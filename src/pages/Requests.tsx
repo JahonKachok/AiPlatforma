@@ -7,18 +7,21 @@ import { Modal } from '../components/ui/Modal';
 import { Avatar } from '../components/ui/Avatar';
 import { useStore } from '../store/useStore';
 import { Plus, MessageSquare, Clock } from 'lucide-react';
-import { priorityLabels } from '../data/mockData';
 import { clsx } from 'clsx';
-
-const statusConfig = {
-  discussion: { label: 'Обсуждение', color: 'bg-blue-900/50 text-blue-400 border border-blue-800' },
-  clarification: { label: 'Уточнение', color: 'bg-amber-900/50 text-amber-400 border border-amber-800' },
-  approval: { label: 'На согласовании', color: 'bg-purple-900/50 text-purple-400 border border-purple-800' },
-  completed: { label: 'Выполнено', color: 'bg-emerald-900/50 text-emerald-400 border border-emerald-800' },
-};
+import { translations } from '../i18n/translations';
 
 export default function Requests() {
-  const { requests, projects, users, addRequest, updateRequest, authUser } = useStore();
+  const { requests, projects, users, addRequest, updateRequest, authUser, language } = useStore();
+  const t = translations[language].requests;
+  const tp = translations[language].priority;
+
+  const statusConfig = {
+    discussion: { label: t.discussion, color: 'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/50 dark:text-blue-400 dark:border-blue-800' },
+    clarification: { label: t.clarification, color: 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/50 dark:text-amber-400 dark:border-amber-800' },
+    approval: { label: t.onApproval, color: 'bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-900/50 dark:text-purple-400 dark:border-purple-800' },
+    completed: { label: t.completedStatus, color: 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-400 dark:border-emerald-800' },
+  };
+
   const [selected, setSelected] = useState<typeof requests[0] | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [newComment, setNewComment] = useState('');
@@ -47,38 +50,41 @@ export default function Requests() {
     setNewComment('');
   };
 
+  const inputCls = "w-full bg-gray-100 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200";
+  const selectCls = inputCls;
+
   return (
-    <Layout title="Запросы и обсуждения" subtitle="Внутренние запросы и переписка">
+    <Layout title={t.title} subtitle={t.subtitle}>
       <div className="flex items-center justify-between mb-6">
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {Object.entries(statusConfig).map(([k, v]) => (
             <span key={k} className={clsx('text-xs px-2 py-1 rounded-full', v.color)}>
               {v.label}: {requests.filter(r => r.status === k).length}
             </span>
           ))}
         </div>
-        <Button variant="primary" icon={<Plus size={16} />} onClick={() => setShowCreate(true)}>Новый запрос</Button>
+        <Button variant="primary" icon={<Plus size={16} />} onClick={() => setShowCreate(true)}>{t.newRequest}</Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
         {requests.map(req => {
           const creator = users.find(u => u.id === req.creatorId);
           const project = projects.find(p => p.id === req.projectId);
-          const cfg = statusConfig[req.status];
+          const cfg = statusConfig[req.status as keyof typeof statusConfig] || statusConfig.discussion;
           return (
             <Card key={req.id} hover onClick={() => setSelected(req)}>
               <div className="p-4">
                 <div className="flex items-start justify-between gap-2 mb-2">
-                  <p className="text-sm font-medium text-gray-200">{req.title}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-200">{req.title}</p>
                   <span className={clsx('text-xs px-2 py-0.5 rounded-full flex-shrink-0', cfg.color)}>{cfg.label}</span>
                 </div>
                 <p className="text-xs text-gray-500 mb-3 line-clamp-2">{req.description}</p>
-                {project && <p className="text-xs text-gray-600 mb-2">📁 {project.name}</p>}
+                {project && <p className="text-xs text-gray-500 mb-2">📁 {project.name}</p>}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {creator && <><Avatar name={creator.name} size="xs" /><span className="text-xs text-gray-500">{creator.name.split(' ')[0]}</span></>}
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-gray-600">
+                  <div className="flex items-center gap-3 text-xs text-gray-500">
                     <span className="flex items-center gap-1"><MessageSquare size={10} /> {req.comments.length}</span>
                     <span className="flex items-center gap-1"><Clock size={10} /> {req.createdAt}</span>
                   </div>
@@ -88,9 +94,9 @@ export default function Requests() {
           );
         })}
         {requests.length === 0 && (
-          <div className="col-span-3 text-center py-20 text-gray-600">
+          <div className="col-span-3 text-center py-20 text-gray-400">
             <MessageSquare size={40} className="mx-auto mb-3 opacity-30" />
-            <p>Запросов нет</p>
+            <p>{t.noRequests}</p>
           </div>
         )}
       </div>
@@ -100,96 +106,96 @@ export default function Requests() {
         <Modal open={!!selected} onClose={() => setSelected(null)} title={selected.title} size="lg"
           footer={
             <div className="flex gap-2 w-full">
-              <input value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Написать комментарий..."
-                className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-blue-500"
+              <input value={newComment} onChange={e => setNewComment(e.target.value)} placeholder={t.commentPlaceholder}
+                className="flex-1 bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
                 onKeyDown={e => e.key === 'Enter' && handleAddComment()} />
-              <Button variant="primary" onClick={handleAddComment}>Отправить</Button>
+              <Button variant="primary" onClick={handleAddComment}>{t.send}</Button>
             </div>
           }>
           <div className="space-y-4">
-            <div className="flex gap-2">
-              <span className={clsx('text-xs px-2 py-0.5 rounded-full', statusConfig[selected.status].color)}>{statusConfig[selected.status].label}</span>
-              <Badge variant="default" size="sm">{priorityLabels[selected.priority]}</Badge>
+            <div className="flex gap-2 flex-wrap">
+              <span className={clsx('text-xs px-2 py-0.5 rounded-full', (statusConfig[selected.status as keyof typeof statusConfig] || statusConfig.discussion).color)}>
+                {(statusConfig[selected.status as keyof typeof statusConfig] || statusConfig.discussion).label}
+              </span>
+              <Badge variant="default" size="sm">{tp[selected.priority] ?? selected.priority}</Badge>
             </div>
-            {selected.description && <p className="text-sm text-gray-400 bg-gray-700/30 p-3 rounded-lg">{selected.description}</p>}
+            {selected.description && (
+              <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/30 p-3 rounded-lg">{selected.description}</p>
+            )}
             <div className="flex gap-4 text-sm">
               <div>
-                <p className="text-xs text-gray-500">Автор</p>
+                <p className="text-xs text-gray-500">{t.author}</p>
                 {users.find(u => u.id === selected.creatorId) && (
                   <div className="flex items-center gap-1.5 mt-1">
                     <Avatar name={users.find(u => u.id === selected.creatorId)!.name} size="xs" />
-                    <span className="text-gray-300">{users.find(u => u.id === selected.creatorId)!.name}</span>
+                    <span className="text-gray-700 dark:text-gray-300">{users.find(u => u.id === selected.creatorId)!.name}</span>
                   </div>
                 )}
               </div>
               {selected.assigneeId && (
                 <div>
-                  <p className="text-xs text-gray-500">Ответственный</p>
+                  <p className="text-xs text-gray-500">{t.responsible}</p>
                   {users.find(u => u.id === selected.assigneeId) && (
                     <div className="flex items-center gap-1.5 mt-1">
                       <Avatar name={users.find(u => u.id === selected.assigneeId)!.name} size="xs" />
-                      <span className="text-gray-300">{users.find(u => u.id === selected.assigneeId)!.name}</span>
+                      <span className="text-gray-700 dark:text-gray-300">{users.find(u => u.id === selected.assigneeId)!.name}</span>
                     </div>
                   )}
                 </div>
               )}
             </div>
             <div className="space-y-2">
-              <p className="text-xs text-gray-500">Комментарии ({selected.comments.length})</p>
+              <p className="text-xs text-gray-500">{t.commentsLabel} ({selected.comments.length})</p>
               {selected.comments.map(c => {
                 const u = users.find(u => u.id === c.userId);
                 return (
-                  <div key={c.id} className="flex gap-2 bg-gray-700/30 p-3 rounded-lg">
+                  <div key={c.id} className="flex gap-2 bg-gray-50 dark:bg-gray-700/30 p-3 rounded-lg">
                     {u && <Avatar name={u.name} size="xs" />}
                     <div>
                       <p className="text-xs text-gray-400 mb-1">{u?.name} · {c.createdAt}</p>
-                      <p className="text-sm text-gray-300">{c.text}</p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">{c.text}</p>
                     </div>
                   </div>
                 );
               })}
-              {selected.comments.length === 0 && <p className="text-xs text-gray-600 text-center py-2">Нет комментариев</p>}
+              {selected.comments.length === 0 && <p className="text-xs text-gray-400 text-center py-2">{t.noComments}</p>}
             </div>
           </div>
         </Modal>
       )}
 
       {/* Create Modal */}
-      <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Новый запрос"
-        footer={<div className="flex justify-end gap-3"><Button onClick={() => setShowCreate(false)}>Отмена</Button><Button variant="primary" onClick={handleCreate}>Создать</Button></div>}>
+      <Modal open={showCreate} onClose={() => setShowCreate(false)} title={t.newRequest}
+        footer={<div className="flex justify-end gap-3"><Button onClick={() => setShowCreate(false)}>{t.cancel}</Button><Button variant="primary" onClick={handleCreate}>{t.create}</Button></div>}>
         <div className="space-y-4">
           <div>
-            <label className="block text-xs text-gray-400 mb-1.5">Тема *</label>
-            <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500" />
+            <label className="block text-xs text-gray-500 mb-1.5">{t.topicLabel}</label>
+            <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className={inputCls} />
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1.5">Описание</label>
+            <label className="block text-xs text-gray-500 mb-1.5">{t.descriptionLabel}</label>
             <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={3}
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500 resize-none" />
+              className="w-full bg-gray-100 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-blue-500 resize-none dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-gray-400 mb-1.5">Проект</label>
-              <select value={form.projectId} onChange={e => setForm({ ...form, projectId: e.target.value })}
-                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500">
-                <option value="">— Не выбран —</option>
+              <label className="block text-xs text-gray-500 mb-1.5">{t.projectLabel}</label>
+              <select value={form.projectId} onChange={e => setForm({ ...form, projectId: e.target.value })} className={selectCls}>
+                <option value="">{t.notSelected}</option>
                 {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1.5">Ответственный</label>
-              <select value={form.assigneeId} onChange={e => setForm({ ...form, assigneeId: e.target.value })}
-                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500">
-                <option value="">— Не выбран —</option>
+              <label className="block text-xs text-gray-500 mb-1.5">{t.responsible}</label>
+              <select value={form.assigneeId} onChange={e => setForm({ ...form, assigneeId: e.target.value })} className={selectCls}>
+                <option value="">{t.notAssigned}</option>
                 {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1.5">Приоритет</label>
-              <select value={form.priority} onChange={e => setForm({ ...form, priority: e.target.value })}
-                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500">
-                {Object.entries(priorityLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              <label className="block text-xs text-gray-500 mb-1.5">{t.priorityLabel}</label>
+              <select value={form.priority} onChange={e => setForm({ ...form, priority: e.target.value })} className={selectCls}>
+                {Object.entries(tp).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
             </div>
           </div>

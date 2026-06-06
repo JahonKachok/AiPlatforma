@@ -1,9 +1,11 @@
 import os
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -124,3 +126,18 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
             await manager.send_to_user(user_id, {"type": "echo", "data": data})
     except WebSocketDisconnect:
         manager.disconnect(websocket, user_id)
+
+
+# Serve the built frontend (production single-server deployment), if present.
+FRONTEND_DIST = Path(__file__).resolve().parent.parent.parent / "dist"
+if FRONTEND_DIST.is_dir():
+    app.mount("/assets", StaticFiles(directory=FRONTEND_DIST / "assets"), name="frontend-assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        candidate = FRONTEND_DIST / full_path
+        if candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(FRONTEND_DIST / "index.html")
+
+    logger.info(f"Serving frontend from {FRONTEND_DIST}")

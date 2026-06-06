@@ -1,7 +1,10 @@
+import { useEffect, useState } from 'react';
 import { Layout } from '../components/layout/Layout';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { useStore } from '../store/useStore';
+import { userService } from '../services/userService';
+import { adaptUser } from '../services/adapters';
 import { Avatar } from '../components/ui/Avatar';
 import { Bell, Shield, Moon, Sun, Building2, Link, Globe, Lock, Key } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -17,9 +20,39 @@ function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
 }
 
 export default function Settings() {
-  const { authUser, darkMode, toggleDarkMode, language, setLanguage } = useStore();
+  const { authUser, setAuthUser, darkMode, toggleDarkMode, language, setLanguage } = useStore();
   const t = translations[language].settings;
   const roles = translations[language].roles;
+
+  const [profileForm, setProfileForm] = useState({ name: '', phone: '', department: '' });
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (authUser) {
+      setProfileForm({ name: authUser.name, phone: authUser.phone || '', department: authUser.department || '' });
+    }
+  }, [authUser]);
+
+  const handleSaveProfile = async () => {
+    if (!authUser || !profileForm.name.trim()) return;
+    setSaving(true);
+    setSaved(false);
+    try {
+      const result = await userService.updateUser(authUser.id, {
+        full_name: profileForm.name,
+        phone: profileForm.phone || undefined,
+        department: profileForm.department || undefined,
+      });
+      setAuthUser(adaptUser(result));
+      setSaved(true);
+    } catch {
+      setAuthUser({ ...authUser, name: profileForm.name, phone: profileForm.phone, department: profileForm.department });
+      setSaved(true);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const inputCls = "w-full bg-gray-100 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200";
   const selectCls = "w-full bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200";
@@ -48,20 +81,26 @@ export default function Settings() {
                 </div>
               )}
               <div className="grid grid-cols-2 gap-4">
-                {[
-                  { label: t.nameLabel, value: authUser?.name, type: 'text' },
-                  { label: t.emailLabel, value: authUser?.email, type: 'email' },
-                  { label: t.phoneLabel, value: authUser?.phone || '', type: 'tel' },
-                  { label: t.deptLabel, value: authUser?.department || '', type: 'text' },
-                ].map(({ label, value, type }) => (
-                  <div key={label}>
-                    <label className="block text-xs text-gray-500 mb-1.5">{label}</label>
-                    <input defaultValue={value} type={type} className={inputCls} />
-                  </div>
-                ))}
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5">{t.nameLabel}</label>
+                  <input value={profileForm.name} onChange={e => setProfileForm(f => ({ ...f, name: e.target.value }))} type="text" className={inputCls} />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5">{t.emailLabel}</label>
+                  <input value={authUser?.email ?? ''} disabled type="email" className={clsx(inputCls, 'opacity-60 cursor-not-allowed')} />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5">{t.phoneLabel}</label>
+                  <input value={profileForm.phone} onChange={e => setProfileForm(f => ({ ...f, phone: e.target.value }))} type="tel" className={inputCls} />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5">{t.deptLabel}</label>
+                  <input value={profileForm.department} onChange={e => setProfileForm(f => ({ ...f, department: e.target.value }))} type="text" className={inputCls} />
+                </div>
               </div>
-              <div className="mt-4 flex justify-end">
-                <Button variant="primary">{t.saveChanges}</Button>
+              <div className="mt-4 flex items-center justify-end gap-3">
+                {saved && <span className="text-xs text-emerald-600 dark:text-emerald-400">{t.saved}</span>}
+                <Button variant="primary" onClick={handleSaveProfile} disabled={saving}>{saving ? t.saving : t.saveChanges}</Button>
               </div>
             </CardContent>
           </Card>

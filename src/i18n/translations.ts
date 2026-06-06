@@ -84,7 +84,7 @@ export interface AppTranslations {
     notifNewTasks: string; notifDeadlines: string; notifApprovals: string; notifComments: string;
     notifFinance: string; notifEmail: string; notifPush: string; notifTelegram: string;
     interfaceTitle: string; darkTheme: string; languageLabel: string; timezoneLabel: string;
-    nameLabel: string; emailLabel: string; phoneLabel: string; deptLabel: string; saveChanges: string;
+    nameLabel: string; emailLabel: string; phoneLabel: string; deptLabel: string; saveChanges: string; saving: string; saved: string;
     googleDriveDesc: string; telegramDesc: string; whatsappDesc: string; outlookDesc: string;
   };
   reports: {
@@ -225,7 +225,7 @@ export const translations: Record<Language, AppTranslations> = {
       notifPush: "Push bildirishnomalar", notifTelegram: "Telegram bildirishnomalar",
       interfaceTitle: "Interfeys", darkTheme: "Tungi mavzu", languageLabel: "Til",
       timezoneLabel: "Vaqt zonasi", nameLabel: "Ism", emailLabel: "Email",
-      phoneLabel: "Telefon", deptLabel: "Bo'lim", saveChanges: "O'zgarishlarni saqlash",
+      phoneLabel: "Telefon", deptLabel: "Bo'lim", saveChanges: "O'zgarishlarni saqlash", saving: "Saqlanmoqda...", saved: "Saqlandi",
       googleDriveDesc: "Fayllarni sinxronlash", telegramDesc: "Telegram bildirishnomalar",
       whatsappDesc: "WhatsApp bildirishnomalar", outlookDesc: "Email bildirishnomalar",
     },
@@ -384,7 +384,7 @@ export const translations: Record<Language, AppTranslations> = {
       notifPush: "Push-уведомления", notifTelegram: "Telegram-уведомления",
       interfaceTitle: "Интерфейс", darkTheme: "Тёмная тема", languageLabel: "Язык",
       timezoneLabel: "Временная зона", nameLabel: "Имя", emailLabel: "Email",
-      phoneLabel: "Телефон", deptLabel: "Отдел", saveChanges: "Сохранить изменения",
+      phoneLabel: "Телефон", deptLabel: "Отдел", saveChanges: "Сохранить изменения", saving: "Сохранение...", saved: "Сохранено",
       googleDriveDesc: "Синхронизация файлов", telegramDesc: "Уведомления в Telegram",
       whatsappDesc: "Уведомления в WhatsApp", outlookDesc: "Email-уведомления",
     },
@@ -543,7 +543,7 @@ export const translations: Record<Language, AppTranslations> = {
       notifPush: "Push notifications", notifTelegram: "Telegram notifications",
       interfaceTitle: "Interface", darkTheme: "Dark theme", languageLabel: "Language",
       timezoneLabel: "Timezone", nameLabel: "Name", emailLabel: "Email",
-      phoneLabel: "Phone", deptLabel: "Department", saveChanges: "Save changes",
+      phoneLabel: "Phone", deptLabel: "Department", saveChanges: "Save changes", saving: "Saving...", saved: "Saved",
       googleDriveDesc: "File synchronization", telegramDesc: "Telegram notifications",
       whatsappDesc: "WhatsApp notifications", outlookDesc: "Email notifications",
     },

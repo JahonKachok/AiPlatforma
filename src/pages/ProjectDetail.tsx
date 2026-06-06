@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Layout } from '../components/layout/Layout';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
@@ -9,7 +9,9 @@ import { Avatar } from '../components/ui/Avatar';
 import { useStore } from '../store/useStore';
 import { ArrowLeft, MapPin, Clock, Users, Layers, CheckSquare, FileText, AlertTriangle, Pencil, Trash2 } from 'lucide-react';
 import { translations } from '../i18n/translations';
-import type { ProjectStatus, ProjectStage } from '../types';
+import type { ProjectStatus, ProjectStage, Project } from '../types';
+import { projectService } from '../services/projectService';
+import { adaptProject } from '../services/adapters';
 
 const inputCls = "w-full bg-gray-100 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200";
 
@@ -25,7 +27,13 @@ export default function ProjectDetail() {
   const tTaskStatus = translations[language].taskStatus;
   const tc = translations[language].common;
 
-  const project = projects.find(p => p.id === id);
+  const storeProject = projects.find(p => p.id === id);
+  // The project list endpoint (which populates `projects`) returns a trimmed-down
+  // shape with no description/startDate/sections/sub_objects/members. Keep the
+  // full record fetched by id in its own state so a background refresh of the
+  // list (e.g. initializeData) can't clobber the richer detail data.
+  const [detail, setDetail] = useState<Project | null>(null);
+  const project = detail ?? storeProject;
 
   const [showEdit, setShowEdit] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
@@ -42,6 +50,16 @@ export default function ProjectDetail() {
     budget: String(project?.budget ?? 0),
     description: project?.description ?? '',
   });
+
+  useEffect(() => {
+    setDetail(null);
+    if (!id) return;
+    let cancelled = false;
+    projectService.getProject(id)
+      .then(result => { if (!cancelled) setDetail(adaptProject(result)); })
+      .catch(() => { /* keep store data (e.g. offline/mock mode) */ });
+    return () => { cancelled = true; };
+  }, [id]);
 
   if (!project) return (
     <Layout title={t.notFound}>
@@ -72,8 +90,8 @@ export default function ProjectDetail() {
     setShowEdit(true);
   };
 
-  const handleSave = () => {
-    updateProject({
+  const handleSave = async () => {
+    const updated: Project = {
       ...project,
       name: editForm.name,
       client: editForm.client,
@@ -86,11 +104,34 @@ export default function ProjectDetail() {
       gipId: editForm.gipId,
       budget: parseFloat(editForm.budget) || 0,
       description: editForm.description,
-    });
+    };
+    try {
+      const result = await projectService.updateProject(project.id, {
+        name: editForm.name,
+        client_name: editForm.client,
+        address: editForm.address || undefined,
+        deadline: editForm.deadline || undefined,
+        start_date: editForm.startDate || undefined,
+        stage: editForm.stage,
+        // Backend has no "planning" status; closest valid equivalent is "active"
+        status: editForm.status === 'paused' ? 'on_hold' : editForm.status === 'planning' ? 'active' : editForm.status,
+        budget: parseFloat(editForm.budget) || 0,
+        description: editForm.description || undefined,
+      });
+      const adapted = adaptProject(result);
+      updateProject(adapted);
+      setDetail(adapted);
+    } catch {
+      updateProject(updated);
+      setDetail(updated);
+    }
     setShowEdit(false);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
+    try {
+      await projectService.deleteProject(project.id);
+    } catch { /* fall through to local removal */ }
     deleteProject(project.id);
     navigate('/projects');
   };
@@ -316,7 +357,7 @@ export default function ProjectDetail() {
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1.5">{pt.priorityLabel}</label>
-              <select value={editForm.priority} onChange={e => setEditForm(f => ({ ...f, priority: e.target.value }))} className={inputCls}>
+              <select value={editForm.priority} onChange={e => setEditForm(f => ({ ...f, priority: e.target.value as Project['priority'] }))} className={inputCls}>
                 {(['low', 'medium', 'high', 'critical'] as const).map(p => <option key={p} value={p}>{tPriority[p]}</option>)}
               </select>
             </div>

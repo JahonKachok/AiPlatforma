@@ -109,6 +109,24 @@ export function adaptTask(t: any): Task {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function adaptDocument(d: any): Document {
+  const approvals = (d.approval_stages ?? d.approvals ?? []).map((a: {
+    id: string; stage_order?: number; stage?: number;
+    stage_name?: string; stageName?: string; reviewer_id?: string; userId?: string;
+    status: string; comment?: string; reviewed_at?: string; updatedAt?: string;
+  }) => ({
+    id: a.id,
+    stage: a.stage_order ?? a.stage ?? 0,
+    stageName: a.stage_name ?? a.stageName ?? '',
+    userId: a.reviewer_id ?? a.userId ?? '',
+    status: a.status,
+    comment: a.comment,
+    updatedAt: a.reviewed_at ?? a.updatedAt,
+  }));
+  // The backend doesn't send a "current stage" number — derive it as the
+  // first stage still awaiting review (or the last stage once all are done).
+  const pendingStage = approvals.find((a: { status: string }) => a.status === 'pending');
+  const approvalStage = d.approval_stage ?? d.approvalStage ??
+    pendingStage?.stage ?? approvals[approvals.length - 1]?.stage ?? 1;
   return {
     id: d.id,
     name: d.name,
@@ -120,20 +138,8 @@ export function adaptDocument(d: any): Document {
     status: d.status,
     uploadedBy: d.uploaded_by ?? d.uploadedBy ?? '',
     uploadedAt: d.created_at ?? d.uploadedAt ?? '',
-    approvalStage: d.approval_stage ?? d.approvalStage,
-    approvals: (d.approval_stages ?? d.approvals ?? []).map((a: {
-      id: string; stage_order?: number; stage?: number;
-      stage_name?: string; stageName?: string; reviewer_id?: string; userId?: string;
-      status: string; comment?: string; reviewed_at?: string; updatedAt?: string;
-    }) => ({
-      id: a.id,
-      stage: a.stage_order ?? a.stage ?? 0,
-      stageName: a.stage_name ?? a.stageName ?? '',
-      userId: a.reviewer_id ?? a.userId ?? '',
-      status: a.status,
-      comment: a.comment,
-      updatedAt: a.reviewed_at ?? a.updatedAt,
-    })),
+    approvalStage,
+    approvals,
     tags: d.tags,
   }
 }

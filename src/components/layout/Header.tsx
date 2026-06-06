@@ -132,7 +132,13 @@ export function Header({ title, subtitle }: HeaderProps) {
         {/* User */}
         {authUser && (
           <div className="flex items-center gap-2 pl-2 border-l border-gray-200 ml-1 dark:border-gray-700">
-            <Avatar name={authUser.name} size="sm" />
+            <button
+              onClick={() => navigate('/settings')}
+              className="rounded-full hover:ring-2 hover:ring-blue-500/40 transition-all"
+              title={authUser.name}
+            >
+              <Avatar name={authUser.name} size="sm" />
+            </button>
             <button
               onClick={handleLogout}
               className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-gray-100 transition-colors dark:hover:bg-gray-800"

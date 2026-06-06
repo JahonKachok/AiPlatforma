@@ -17,6 +17,7 @@ interface AppStore {
   authUser: User | null;
   isAuthenticated: boolean;
   apiAvailable: boolean;
+  setAuthUser: (user: User) => void;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   loadUser: () => Promise<void>;
@@ -62,6 +63,7 @@ export const useStore = create<AppStore>((set, get) => ({
   authUser: null,
   isAuthenticated: !!storedToken,
   apiAvailable: false,
+  setAuthUser: (user) => set({ authUser: user }),
 
   login: async (email: string, password: string) => {
     try {

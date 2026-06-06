@@ -7,6 +7,9 @@ import { useStore } from '../store/useStore';
 import { CheckCircle, XCircle, Clock, AlertCircle, ChevronRight } from 'lucide-react';
 import { clsx } from 'clsx';
 import { translations } from '../i18n/translations';
+import { approvalService } from '../services/approvalService';
+import { documentService } from '../services/documentService';
+import { adaptDocument } from '../services/adapters';
 
 function getFileIcon(type: string) {
   const icons: Record<string, string> = { PDF: '📕', DWG: '📐', DOCX: '📄', XLSX: '📊' };
@@ -31,31 +34,28 @@ export default function Approvals() {
   const approved = documents.filter(d => d.status === 'approved');
   const rejected = documents.filter(d => d.status === 'rejected');
 
-  const handleApprove = () => {
+  const reviewCurrentStage = async (status: 'approved' | 'rejected') => {
     if (!selected) return;
-    const updated = {
-      ...selected, status: 'approved' as const,
-      approvals: selected.approvals.map(ap =>
-        ap.stage === selected.approvalStage ? { ...ap, status: 'approved' as const, updatedAt: new Date().toISOString().split('T')[0], comment } : ap
-      ),
-    };
-    updateDocument(updated);
+    const stage = selected.approvals.find(ap => ap.stage === selected.approvalStage);
+    try {
+      if (!stage) throw new Error('no active stage');
+      await approvalService.reviewStage(stage.id, { status, comment: comment || undefined });
+      const fresh = await documentService.getDocument(selected.id);
+      updateDocument(adaptDocument(fresh));
+    } catch {
+      updateDocument({
+        ...selected, status,
+        approvals: selected.approvals.map(ap =>
+          ap.stage === selected.approvalStage ? { ...ap, status, updatedAt: new Date().toISOString().split('T')[0], comment } : ap
+        ),
+      });
+    }
     setSelected(null);
     setComment('');
   };
 
-  const handleReject = () => {
-    if (!selected) return;
-    const updated = {
-      ...selected, status: 'rejected' as const,
-      approvals: selected.approvals.map(ap =>
-        ap.stage === selected.approvalStage ? { ...ap, status: 'rejected' as const, updatedAt: new Date().toISOString().split('T')[0], comment } : ap
-      ),
-    };
-    updateDocument(updated);
-    setSelected(null);
-    setComment('');
-  };
+  const handleApprove = () => reviewCurrentStage('approved');
+  const handleReject = () => reviewCurrentStage('rejected');
 
   const renderDoc = (doc: typeof documents[0]) => {
     const project = projects.find(p => p.id === doc.projectId);

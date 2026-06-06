@@ -7,6 +7,8 @@ import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { Avatar } from '../components/ui/Avatar';
 import { useStore } from '../store/useStore';
+import { projectService } from '../services/projectService';
+import { adaptProject } from '../services/adapters';
 import { Plus, Search, Filter, Clock, Users, DollarSign, Layers } from 'lucide-react';
 import type { Project } from '../types';
 import { translations } from '../i18n/translations';
@@ -89,17 +91,29 @@ export default function Projects() {
 
   const gips = users.filter(u => u.role === 'gip' || u.role === 'admin' || u.role === 'manager');
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!form.name || !form.client) return;
-    const project: Project = {
-      id: 'p' + Date.now(), name: form.name, client: form.client, address: form.address,
-      stage: form.stage as any, status: 'planning', deadline: form.deadline,
-      startDate: new Date().toISOString().split('T')[0], gipId: form.gipId,
-      budget: Number(form.budget) || 0, paid: 0, priority: form.priority as any,
-      participants: form.gipId ? [form.gipId] : [],
-      sections: [], objects: [],
-    };
-    addProject(project);
+    try {
+      const result = await projectService.createProject({
+        name: form.name,
+        client_name: form.client,
+        address: form.address || undefined,
+        stage: form.stage,
+        deadline: form.deadline || undefined,
+        budget: Number(form.budget) || 0,
+      });
+      addProject(adaptProject(result));
+    } catch {
+      const project: Project = {
+        id: 'p' + Date.now(), name: form.name, client: form.client, address: form.address,
+        stage: form.stage as any, status: 'planning', deadline: form.deadline,
+        startDate: new Date().toISOString().split('T')[0], gipId: form.gipId,
+        budget: Number(form.budget) || 0, paid: 0, priority: form.priority as any,
+        participants: form.gipId ? [form.gipId] : [],
+        sections: [], objects: [],
+      };
+      addProject(project);
+    }
     setShowCreate(false);
     setForm({ name: '', client: '', address: '', stage: 'concept', deadline: '', gipId: '', budget: '', priority: 'medium' });
   };

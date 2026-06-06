@@ -6,7 +6,10 @@ import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { Avatar } from '../components/ui/Avatar';
 import { useStore } from '../store/useStore';
+import { requestService } from '../services/requestService';
+import { adaptRequest } from '../services/adapters';
 import { Plus, MessageSquare, Clock } from 'lucide-react';
+import type { TaskPriority } from '../types';
 import { clsx } from 'clsx';
 import { translations } from '../i18n/translations';
 
@@ -27,24 +30,37 @@ export default function Requests() {
   const [newComment, setNewComment] = useState('');
   const [form, setForm] = useState({ title: '', description: '', projectId: '', assigneeId: '', priority: 'medium' });
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!form.title) return;
-    addRequest({
-      id: 'r' + Date.now(), title: form.title, description: form.description,
-      projectId: form.projectId || undefined, assigneeId: form.assigneeId || undefined,
-      creatorId: authUser?.id || 'u1', status: 'discussion',
-      priority: form.priority as any, createdAt: new Date().toISOString().split('T')[0], comments: [],
-    });
+    try {
+      const result = await requestService.createRequest({
+        title: form.title,
+        description: form.description || undefined,
+        project_id: form.projectId || undefined,
+        assignee_id: form.assigneeId || undefined,
+        priority: form.priority,
+      });
+      addRequest(adaptRequest(result));
+    } catch {
+      addRequest({
+        id: 'r' + Date.now(), title: form.title, description: form.description,
+        projectId: form.projectId || undefined, assigneeId: form.assigneeId || undefined,
+        creatorId: authUser?.id || 'u1', status: 'discussion',
+        priority: form.priority as TaskPriority, createdAt: new Date().toISOString().split('T')[0], comments: [],
+      });
+    }
     setShowCreate(false);
     setForm({ title: '', description: '', projectId: '', assigneeId: '', priority: 'medium' });
   };
 
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (!selected || !newComment.trim()) return;
-    const updated = {
-      ...selected,
-      comments: [...selected.comments, { id: 'rc' + Date.now(), userId: authUser?.id || 'u1', text: newComment, createdAt: new Date().toISOString().split('T')[0] }]
-    };
+    let comment = { id: 'rc' + Date.now(), userId: authUser?.id || 'u1', text: newComment, createdAt: new Date().toISOString().split('T')[0] };
+    try {
+      const result = await requestService.addComment(selected.id, newComment);
+      comment = { id: result.id, userId: result.user_id, text: result.content, createdAt: result.created_at };
+    } catch { /* keep local fallback comment */ }
+    const updated = { ...selected, comments: [...selected.comments, comment] };
     updateRequest(updated);
     setSelected(updated);
     setNewComment('');

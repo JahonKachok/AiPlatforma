@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
 import {
   LayoutDashboard, FolderKanban, CheckSquare, FileText,
@@ -12,6 +12,7 @@ import { translations } from '../../i18n/translations';
 export function Sidebar() {
   const { sidebarOpen, toggleSidebar, authUser, language } = useStore();
   const location = useLocation();
+  const navigate = useNavigate();
   const t = translations[language];
 
   const navItems = [
@@ -74,13 +75,16 @@ export function Sidebar() {
       {/* User + Toggle */}
       <div className="border-t border-gray-200 dark:border-gray-800">
         {sidebarOpen && authUser && (
-          <div className="flex items-center gap-3 px-4 py-3">
+          <button
+            onClick={() => navigate('/settings')}
+            className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
             <Avatar name={authUser.name} size="sm" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{authUser.name}</p>
               <p className="text-xs text-gray-500 truncate">{t.roles[authUser.role] ?? authUser.role}</p>
             </div>
-          </div>
+          </button>
         )}
         <button
           onClick={toggleSidebar}

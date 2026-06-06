@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Layout } from '../components/layout/Layout';
 import { Card } from '../components/ui/Card';
 import { Badge, getTaskStatusBadge, getPriorityBadge } from '../components/ui/Badge';
@@ -6,11 +6,13 @@ import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { Avatar } from '../components/ui/Avatar';
 import { useStore } from '../store/useStore';
+import { taskService } from '../services/taskService';
+import { adaptTask } from '../services/adapters';
 import {
   Plus, MessageSquare, Paperclip, AlertTriangle, LayoutGrid, List,
   Calendar, ChevronLeft, ChevronRight, Pencil, Trash2, X, Check,
 } from 'lucide-react';
-import type { Task, TaskStatus } from '../types';
+import type { Task, TaskStatus, TaskPriority } from '../types';
 import { clsx } from 'clsx';
 import { translations } from '../i18n/translations';
 
@@ -26,7 +28,7 @@ const COLUMNS: { status: TaskStatus; color: string }[] = [
   { status: 'completed',  color: 'border-gray-400 dark:border-gray-700' },
 ];
 
-const emptyForm = { title: '', description: '', projectId: '', assigneeId: '', deadline: '', priority: 'medium', status: 'new' as TaskStatus };
+const emptyForm = { title: '', description: '', projectId: '', assigneeId: '', deadline: '', priority: 'medium' as TaskPriority, status: 'new' as TaskStatus };
 
 // ─── TaskCard ────────────────────────────────────────────────────────────────
 function TaskCard({
@@ -83,7 +85,6 @@ function TaskCard({
 // ─── CalendarView ─────────────────────────────────────────────────────────────
 function CalendarView({ tasks, language, onTaskClick }: { tasks: Task[]; language: string; onTaskClick: (t: Task) => void }) {
   const [cur, setCur] = useState(() => { const d = new Date(); return { year: d.getFullYear(), month: d.getMonth() }; });
-  const t = translations[language as keyof typeof translations];
 
   const daysInMonth = new Date(cur.year, cur.month + 1, 0).getDate();
   const firstDay = (new Date(cur.year, cur.month, 1).getDay() + 6) % 7; // Mon-start
@@ -212,9 +213,25 @@ export default function Tasks() {
     const id = draggedId;
     if (!id) return;
     const task = tasks.find(t => t.id === id);
-    if (task && task.status !== status) updateTask({ ...task, status });
+    if (task && task.status !== status) persistTaskUpdate({ ...task, status });
     setDraggedId(null);
     setDropTarget(null);
+  };
+
+  // Persist a task change to the backend, then sync the store; falls back to local-only update
+  const persistTaskUpdate = async (updated: Task) => {
+    updateTask(updated);
+    try {
+      const result = await taskService.updateTask(updated.id, {
+        title: updated.title,
+        description: updated.description || undefined,
+        assignee_id: updated.assigneeId || undefined,
+        status: updated.status,
+        priority: updated.priority,
+        deadline: updated.deadline || undefined,
+      });
+      updateTask(adaptTask(result));
+    } catch { /* keep local update */ }
   };
 
   // ── Open task detail ──
@@ -231,30 +248,46 @@ export default function Tasks() {
   const handleSaveEdit = () => {
     if (!selected || !editForm.title) return;
     const updated = { ...selected, ...editForm };
-    updateTask(updated);
+    persistTaskUpdate(updated);
     setSelected(updated);
     setEditMode(false);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!selected) return;
+    try {
+      await taskService.deleteTask(selected.id);
+    } catch { /* fall through to local removal */ }
     deleteTask(selected.id);
     setSelected(null);
   };
 
   // ── Create ──
-  const handleCreate = () => {
-    if (!createForm.title) return;
-    addTask({
-      id: 't' + Date.now(), title: createForm.title, description: createForm.description,
-      projectId: createForm.projectId, assigneeId: createForm.assigneeId,
-      creatorId: authUser?.id || '', status: createForm.status,
-      priority: createForm.priority as Task['priority'],
-      deadline: createForm.deadline,
-      createdAt: new Date().toISOString().split('T')[0],
-      updatedAt: new Date().toISOString().split('T')[0],
-      attachments: [], comments: [],
-    });
+  const handleCreate = async () => {
+    if (!createForm.title || !createForm.projectId) return;
+    try {
+      const result = await taskService.createTask({
+        title: createForm.title,
+        description: createForm.description || undefined,
+        project_id: createForm.projectId,
+        assignee_id: createForm.assigneeId || undefined,
+        status: createForm.status,
+        priority: createForm.priority,
+        deadline: createForm.deadline || undefined,
+      });
+      addTask(adaptTask(result));
+    } catch {
+      addTask({
+        id: 't' + Date.now(), title: createForm.title, description: createForm.description,
+        projectId: createForm.projectId, assigneeId: createForm.assigneeId,
+        creatorId: authUser?.id || '', status: createForm.status,
+        priority: createForm.priority as Task['priority'],
+        deadline: createForm.deadline,
+        createdAt: new Date().toISOString().split('T')[0],
+        updatedAt: new Date().toISOString().split('T')[0],
+        attachments: [], comments: [],
+      });
+    }
     setShowCreate(false);
     setCreateForm({ ...emptyForm });
   };
@@ -389,7 +422,7 @@ export default function Tasks() {
                   <div className="flex gap-1.5 flex-wrap">
                     {COLUMNS.map(col => (
                       <button key={col.status}
-                        onClick={() => { updateTask({ ...selected, status: col.status }); setSelected({ ...selected, status: col.status }); }}
+                        onClick={() => { persistTaskUpdate({ ...selected, status: col.status }); setSelected({ ...selected, status: col.status }); }}
                         className={clsx('px-2.5 py-1 text-xs rounded-lg transition-colors',
                           selected.status === col.status
                             ? 'bg-blue-600 text-white'
@@ -433,7 +466,7 @@ export default function Tasks() {
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-1.5">{tt.priorityLabel}</label>
-                  <select value={editForm.priority} onChange={e => setEditForm({ ...editForm, priority: e.target.value })} className={fieldCls}>
+                  <select value={editForm.priority} onChange={e => setEditForm({ ...editForm, priority: e.target.value as TaskPriority })} className={fieldCls}>
                     {Object.entries(t.priority).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                   </select>
                 </div>
@@ -525,7 +558,7 @@ export default function Tasks() {
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1.5">{tt.priorityLabel}</label>
-              <select value={createForm.priority} onChange={e => setCreateForm({ ...createForm, priority: e.target.value })} className={fieldCls}>
+              <select value={createForm.priority} onChange={e => setCreateForm({ ...createForm, priority: e.target.value as TaskPriority })} className={fieldCls}>
                 {Object.entries(t.priority).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
             </div>

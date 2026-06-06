@@ -1,24 +1,48 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Layout } from '../components/layout/Layout';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Badge, getProjectStatusBadge, getPriorityBadge, getTaskStatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
+import { Modal } from '../components/ui/Modal';
 import { Avatar } from '../components/ui/Avatar';
 import { useStore } from '../store/useStore';
-import { ArrowLeft, MapPin, Clock, Users, Layers, CheckSquare, FileText, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Users, Layers, CheckSquare, FileText, AlertTriangle, Pencil, Trash2 } from 'lucide-react';
 import { translations } from '../i18n/translations';
+import type { ProjectStatus, ProjectStage } from '../types';
+
+const inputCls = "w-full bg-gray-100 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200";
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { projects, tasks, documents, users, language } = useStore();
+  const { projects, tasks, documents, users, language, updateProject, deleteProject } = useStore();
   const t = translations[language].projectDetail;
+  const pt = translations[language].projects;
   const tStatus = translations[language].projectStatus;
   const tStage = translations[language].projectStage;
   const tPriority = translations[language].priority;
   const tTaskStatus = translations[language].taskStatus;
+  const tc = translations[language].common;
 
   const project = projects.find(p => p.id === id);
+
+  const [showEdit, setShowEdit] = useState(false);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: project?.name ?? '',
+    client: project?.client ?? '',
+    address: project?.address ?? '',
+    deadline: project?.deadline ?? '',
+    startDate: project?.startDate ?? '',
+    stage: (project?.stage ?? 'concept') as ProjectStage,
+    status: (project?.status ?? 'active') as ProjectStatus,
+    priority: project?.priority ?? 'medium',
+    gipId: project?.gipId ?? '',
+    budget: String(project?.budget ?? 0),
+    description: project?.description ?? '',
+  });
+
   if (!project) return (
     <Layout title={t.notFound}>
       <Button icon={<ArrowLeft size={16} />} onClick={() => navigate('/projects')}>{t.backBtn}</Button>
@@ -31,12 +55,60 @@ export default function ProjectDetail() {
   const progress = project.budget > 0 ? Math.round((project.paid / project.budget) * 100) : 0;
   const overdue = projectTasks.filter(task => task.status !== 'completed' && new Date(task.deadline) < new Date());
 
+  const openEdit = () => {
+    setEditForm({
+      name: project.name,
+      client: project.client,
+      address: project.address,
+      deadline: project.deadline,
+      startDate: project.startDate,
+      stage: project.stage,
+      status: project.status,
+      priority: project.priority,
+      gipId: project.gipId,
+      budget: String(project.budget),
+      description: project.description ?? '',
+    });
+    setShowEdit(true);
+  };
+
+  const handleSave = () => {
+    updateProject({
+      ...project,
+      name: editForm.name,
+      client: editForm.client,
+      address: editForm.address,
+      deadline: editForm.deadline,
+      startDate: editForm.startDate,
+      stage: editForm.stage,
+      status: editForm.status,
+      priority: editForm.priority as 'low' | 'medium' | 'high' | 'critical',
+      gipId: editForm.gipId,
+      budget: parseFloat(editForm.budget) || 0,
+      description: editForm.description,
+    });
+    setShowEdit(false);
+  };
+
+  const handleDelete = () => {
+    deleteProject(project.id);
+    navigate('/projects');
+  };
+
+  const stages: ProjectStage[] = ['concept', 'preliminary', 'working_docs', 'expertise', 'construction'];
+  const statuses: ProjectStatus[] = ['active', 'planning', 'paused', 'completed', 'cancelled'];
+  const gipUsers = users.filter(u => u.role === 'gip' || u.role === 'manager');
+
   return (
     <Layout title={project.name} subtitle={project.client}>
       <div className="flex items-center gap-3 mb-6">
         <Button variant="ghost" icon={<ArrowLeft size={16} />} onClick={() => navigate('/projects')}>{t.backBtn}</Button>
         <Badge variant={getProjectStatusBadge(project.status)} size="md">{tStatus[project.status] ?? project.status}</Badge>
         <Badge variant={getPriorityBadge(project.priority)} size="md">{tPriority[project.priority] ?? project.priority}</Badge>
+        <div className="ml-auto flex gap-2">
+          <Button size="sm" icon={<Pencil size={14} />} onClick={openEdit}>{tc.edit}</Button>
+          <Button size="sm" variant="danger" icon={<Trash2 size={14} />} onClick={() => setShowConfirmDelete(true)}>{tc.delete}</Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -201,6 +273,100 @@ export default function ProjectDetail() {
           </Card>
         </div>
       </div>
+
+      {/* Edit modal */}
+      <Modal open={showEdit} onClose={() => setShowEdit(false)} title={t.editProject}
+        footer={
+          <div className="flex justify-end gap-3">
+            <Button onClick={() => setShowEdit(false)}>{tc.cancel}</Button>
+            <Button variant="primary" onClick={handleSave} disabled={!editForm.name.trim()}>{tc.save}</Button>
+          </div>
+        }>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-gray-500 mb-1.5">{pt.nameLabel}</label>
+              <input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} className={inputCls} />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1.5">{pt.clientLabel}</label>
+              <input value={editForm.client} onChange={e => setEditForm(f => ({ ...f, client: e.target.value }))} className={inputCls} />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-500 mb-1.5">{pt.addressLabel}</label>
+            <input value={editForm.address} onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))} className={inputCls} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-gray-500 mb-1.5">{t.startDate}</label>
+              <input type="date" value={editForm.startDate} onChange={e => setEditForm(f => ({ ...f, startDate: e.target.value }))} className={inputCls} />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1.5">{pt.deadlineLabel}</label>
+              <input type="date" value={editForm.deadline} onChange={e => setEditForm(f => ({ ...f, deadline: e.target.value }))} className={inputCls} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-gray-500 mb-1.5">{pt.stageLabel}</label>
+              <select value={editForm.stage} onChange={e => setEditForm(f => ({ ...f, stage: e.target.value as ProjectStage }))} className={inputCls}>
+                {stages.map(s => <option key={s} value={s}>{tStage[s]}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1.5">{pt.priorityLabel}</label>
+              <select value={editForm.priority} onChange={e => setEditForm(f => ({ ...f, priority: e.target.value }))} className={inputCls}>
+                {(['low', 'medium', 'high', 'critical'] as const).map(p => <option key={p} value={p}>{tPriority[p]}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-gray-500 mb-1.5">{pt.gipLabel}</label>
+              <select value={editForm.gipId} onChange={e => setEditForm(f => ({ ...f, gipId: e.target.value }))} className={inputCls}>
+                <option value="">{pt.notAssigned}</option>
+                {gipUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1.5">{pt.budgetLabel}</label>
+              <input type="number" value={editForm.budget} onChange={e => setEditForm(f => ({ ...f, budget: e.target.value }))} className={inputCls} />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-500 mb-1.5">{tStatus[editForm.status]}</label>
+            <select value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value as ProjectStatus }))} className={inputCls}>
+              {statuses.map(s => <option key={s} value={s}>{tStatus[s]}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-500 mb-1.5">Описание</label>
+            <textarea value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))}
+              rows={3} className={inputCls + ' resize-none'} />
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete confirmation */}
+      {showConfirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setShowConfirmDelete(false)} />
+          <div className="relative w-full max-w-sm bg-white border border-gray-200 rounded-2xl shadow-2xl p-6 dark:bg-gray-800 dark:border-gray-700">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
+                <Trash2 size={18} className="text-red-600 dark:text-red-400" />
+              </div>
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white">{tc.delete}</h2>
+            </div>
+            <p className="text-sm text-gray-500 mb-6">{t.confirmDelete}</p>
+            <div className="flex justify-end gap-3">
+              <Button onClick={() => setShowConfirmDelete(false)}>{tc.cancel}</Button>
+              <Button variant="danger" icon={<Trash2 size={14} />} onClick={handleDelete}>{tc.delete}</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }

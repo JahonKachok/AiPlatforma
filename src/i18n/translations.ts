@@ -25,6 +25,7 @@ export interface AppTranslations {
     notFound: string; approvalRoute: string; download: string; approve: string;
     draft: string; review: string; approved: string; rejected: string; archived: string;
     pending: string; revision: string;
+    uploadTitle: string; docNameLabel: string; docTypeLabel: string;
   };
   approvals: {
     title: string; subtitle: string; pending: string; approvedDocs: string; rejectedDocs: string;
@@ -73,7 +74,7 @@ export interface AppTranslations {
     designersCount: string; searchPlaceholder: string; all: string; addButton: string;
     projectsCount: string; tasksCount: string; fullNameLabel: string; emailLabel: string;
     roleLabel: string; departmentLabel: string; phoneLabel: string; accessNote: string;
-    newEmployee: string;
+    newEmployee: string; passwordLabel: string;
   };
   settings: {
     title: string; subtitle: string; profileTitle: string; securityTitle: string;
@@ -99,6 +100,7 @@ export interface AppTranslations {
     noTasks: string; finance: string; budget: string; paid: string; remainder: string;
     statistics: string; tasksCount: string; overdue: string; docsCount: string;
     participantsCount: string; team: string; gipLabel: string;
+    editProject: string; confirmDelete: string;
   };
   roles: Record<string, string>;
   taskStatus: Record<string, string>;
@@ -143,6 +145,7 @@ export const translations: Record<Language, AppTranslations> = {
       approvalRoute: "Kelishuv marshruti", download: "Yuklab olish", approve: "Tasdiqlash",
       draft: "Qoralama", review: "Kelishuvda", approved: "Tasdiqlangan",
       rejected: "Rad etilgan", archived: "Arxiv", pending: "Kutilmoqda", revision: "Qayta ishlash",
+      uploadTitle: "Hujjat yuklash", docNameLabel: "Hujjat nomi", docTypeLabel: "Tur",
     },
     approvals: {
       title: "Kelishuvlar", subtitle: "Hujjatlar kelishuv marshrutlari",
@@ -207,6 +210,7 @@ export const translations: Record<Language, AppTranslations> = {
       projectsCount: "loyiha", tasksCount: "vazifa", fullNameLabel: "F.I.Sh. *",
       emailLabel: "Email *", roleLabel: "Roli", departmentLabel: "Bo'lim", phoneLabel: "Telefon",
       accessNote: "Kirish tanlangan rolga muvofiq sozlanadi", newEmployee: "Yangi xodim",
+      passwordLabel: "Parol *",
     },
     settings: {
       title: "Sozlamalar", subtitle: "Profil va tizim sozlamalari",
@@ -243,6 +247,7 @@ export const translations: Record<Language, AppTranslations> = {
       noTasks: "Vazifalar yo'q", finance: "Moliya", budget: "Byudjet", paid: "To'langan",
       remainder: "Qoldiq", statistics: "Statistika", tasksCount: "Vazifalar", overdue: "Muddati o'tgan",
       docsCount: "Hujjatlar", participantsCount: "Ishtirokchilar", team: "Jamoa", gipLabel: "BLM",
+      editProject: "Loyihani tahrirlash", confirmDelete: "Bu loyihani o'chirishni tasdiqlaysizmi? Bu amalni qaytarib bo'lmaydi.",
     },
     roles: {
       admin: "Administrator", manager: "Rahbar", gip: "Bosh loyiha muhandisi",
@@ -299,6 +304,7 @@ export const translations: Record<Language, AppTranslations> = {
       approvalRoute: "Маршрут согласования", download: "Скачать", approve: "Согласовать",
       draft: "Черновик", review: "На согласовании", approved: "Согласовано",
       rejected: "Отклонено", archived: "Архив", pending: "Ожидает", revision: "На доработке",
+      uploadTitle: "Загрузить документ", docNameLabel: "Название документа", docTypeLabel: "Тип",
     },
     approvals: {
       title: "Согласования", subtitle: "Маршруты согласования документов",
@@ -363,6 +369,7 @@ export const translations: Record<Language, AppTranslations> = {
       projectsCount: "проектов", tasksCount: "задач", fullNameLabel: "ФИО *",
       emailLabel: "Email *", roleLabel: "Роль", departmentLabel: "Отдел", phoneLabel: "Телефон",
       accessNote: "Доступ будет настроен в соответствии с выбранной ролью", newEmployee: "Новый сотрудник",
+      passwordLabel: "Пароль *",
     },
     settings: {
       title: "Настройки", subtitle: "Настройки профиля и системы",
@@ -399,6 +406,7 @@ export const translations: Record<Language, AppTranslations> = {
       noTasks: "Нет задач", finance: "Финансы", budget: "Бюджет", paid: "Оплачено",
       remainder: "Остаток", statistics: "Статистика", tasksCount: "Задач", overdue: "Просрочено",
       docsCount: "Документов", participantsCount: "Участников", team: "Команда", gipLabel: "ГИП",
+      editProject: "Редактировать проект", confirmDelete: "Вы уверены, что хотите удалить этот проект? Это действие нельзя отменить.",
     },
     roles: {
       admin: "Администратор", manager: "Руководитель", gip: "ГИП",
@@ -455,6 +463,7 @@ export const translations: Record<Language, AppTranslations> = {
       approvalRoute: "Approval route", download: "Download", approve: "Approve",
       draft: "Draft", review: "Under Review", approved: "Approved",
       rejected: "Rejected", archived: "Archived", pending: "Pending", revision: "Revision",
+      uploadTitle: "Upload Document", docNameLabel: "Document name", docTypeLabel: "Type",
     },
     approvals: {
       title: "Approvals", subtitle: "Document approval routes",
@@ -519,6 +528,7 @@ export const translations: Record<Language, AppTranslations> = {
       projectsCount: "projects", tasksCount: "tasks", fullNameLabel: "Full name *",
       emailLabel: "Email *", roleLabel: "Role", departmentLabel: "Department", phoneLabel: "Phone",
       accessNote: "Access will be configured according to the selected role", newEmployee: "New Employee",
+      passwordLabel: "Password *",
     },
     settings: {
       title: "Settings", subtitle: "Profile and system settings",
@@ -555,6 +565,7 @@ export const translations: Record<Language, AppTranslations> = {
       noTasks: "No tasks", finance: "Finance", budget: "Budget", paid: "Paid",
       remainder: "Remainder", statistics: "Statistics", tasksCount: "Tasks", overdue: "Overdue",
       docsCount: "Documents", participantsCount: "Participants", team: "Team", gipLabel: "CPE",
+      editProject: "Edit Project", confirmDelete: "Are you sure you want to delete this project? This action cannot be undone.",
     },
     roles: {
       admin: "Administrator", manager: "Manager", gip: "Chief Project Engineer",

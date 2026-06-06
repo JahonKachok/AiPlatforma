@@ -1,6 +1,11 @@
 import { api } from './api'
 
 export const userService = {
+  async createUser(payload: Record<string, unknown>) {
+    const { data } = await api.post('/users', payload)
+    return data
+  },
+
   async getUsers(params?: { search?: string }) {
     const { data } = await api.get('/users', { params })
     return data

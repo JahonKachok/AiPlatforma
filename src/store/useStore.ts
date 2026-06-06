@@ -50,6 +50,7 @@ interface AppStore {
   updateDocument: (doc: Document) => void;
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
+  addUser: (user: User) => void;
   addRequest: (req: Request) => void;
   updateRequest: (req: Request) => void;
   refreshNotifications: () => Promise<void>;
@@ -166,6 +167,7 @@ export const useStore = create<AppStore>((set, get) => ({
     notifications: s.notifications.map(n => ({ ...n, isRead: true }))
   })),
 
+  addUser: (user) => set(s => ({ users: [user, ...s.users] })),
   addRequest: (req) => set(s => ({ requests: [req, ...s.requests] })),
   updateRequest: (req) => set(s => ({ requests: s.requests.map(r => r.id === req.id ? req : r) })),
 }));

@@ -5,6 +5,8 @@ import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { Avatar } from '../components/ui/Avatar';
 import { useStore } from '../store/useStore';
+import { userService } from '../services/userService';
+import { adaptUser } from '../services/adapters';
 import { Plus, Search, Mail, Phone, Shield } from 'lucide-react';
 import type { UserRole } from '../types';
 import { clsx } from 'clsx';
@@ -20,15 +22,19 @@ const roleColors: Record<UserRole, string> = {
   client: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
 };
 
+const initForm = { name: '', email: '', password: '', role: 'designer', department: '', phone: '' };
+
 export default function Users() {
-  const { users, language } = useStore();
+  const { users, language, addUser } = useStore();
   const t = translations[language].users;
   const roles = translations[language].roles;
+  const tc = translations[language].common;
 
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', role: 'designer', department: '', phone: '' });
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState(initForm);
 
   const filtered = users.filter(u => {
     const ms = u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
@@ -42,6 +48,37 @@ export default function Users() {
     `px-3 py-2 text-sm rounded-lg transition-colors ${active ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'}`;
 
   const inputCls = "w-full bg-gray-100 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200";
+
+  const handleCreate = async () => {
+    if (!form.name.trim() || !form.email.trim()) return;
+    setSaving(true);
+    try {
+      const result = await userService.createUser({
+        full_name: form.name,
+        email: form.email,
+        password: form.password || 'temp1234',
+        role: form.role,
+        department: form.department || undefined,
+        phone: form.phone || undefined,
+      });
+      addUser(adaptUser(result));
+    } catch {
+      addUser({
+        id: `user-${Date.now()}`,
+        name: form.name,
+        email: form.email,
+        role: form.role as UserRole,
+        department: form.department || undefined,
+        phone: form.phone || undefined,
+        isActive: true,
+        createdAt: new Date().toISOString(),
+      });
+    } finally {
+      setSaving(false);
+      setShowCreate(false);
+      setForm(initForm);
+    }
+  };
 
   return (
     <Layout title={t.title} subtitle={t.subtitle}>
@@ -114,8 +151,18 @@ export default function Users() {
       </div>
 
       {/* Create Modal */}
-      <Modal open={showCreate} onClose={() => setShowCreate(false)} title={t.newEmployee}
-        footer={<div className="flex justify-end gap-3"><Button onClick={() => setShowCreate(false)}>{translations[language].common.cancel}</Button><Button variant="primary" icon={<Plus size={16} />}>{t.addButton}</Button></div>}>
+      <Modal open={showCreate} onClose={() => { setShowCreate(false); setForm(initForm); }} title={t.newEmployee}
+        footer={
+          <div className="flex justify-end gap-3">
+            <Button onClick={() => { setShowCreate(false); setForm(initForm); }}>{tc.cancel}</Button>
+            <Button variant="primary" icon={<Plus size={16} />}
+              onClick={handleCreate}
+              disabled={!form.name.trim() || !form.email.trim() || saving}
+              loading={saving}>
+              {t.addButton}
+            </Button>
+          </div>
+        }>
         <div className="space-y-4">
           <div>
             <label className="block text-xs text-gray-500 mb-1.5">{t.fullNameLabel}</label>
@@ -124,6 +171,10 @@ export default function Users() {
           <div>
             <label className="block text-xs text-gray-500 mb-1.5">{t.emailLabel}</label>
             <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className={inputCls} />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-500 mb-1.5">{t.passwordLabel}</label>
+            <input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} className={inputCls} />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>

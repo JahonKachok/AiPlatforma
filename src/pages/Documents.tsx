@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Layout } from '../components/layout/Layout';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Avatar } from '../components/ui/Avatar';
 import { useStore } from '../store/useStore';
+import { documentService } from '../services/documentService';
+import { adaptDocument } from '../services/adapters';
 import { FileText, Upload, Search, CheckCircle, Clock, AlertCircle, Download, Eye } from 'lucide-react';
 import { clsx } from 'clsx';
 import { translations } from '../i18n/translations';
+import type { Document } from '../types';
 
 function formatSize(bytes: number) {
   if (bytes < 1024) return bytes + ' B';
@@ -19,14 +22,72 @@ function getFileIcon(type: string) {
   return icons[type] || icons.default;
 }
 
-const inputCls = "w-full bg-gray-100 border border-gray-200 rounded-lg pl-9 pr-4 py-2 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:placeholder-gray-600";
+const inputCls = "w-full bg-gray-100 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200";
+const searchCls = "w-full bg-gray-100 border border-gray-200 rounded-lg pl-9 pr-4 py-2 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:placeholder-gray-600";
+
+const DOC_TYPES = ['PDF', 'DWG', 'DOCX', 'XLSX', 'OTHER'];
 
 export default function Documents() {
-  const { documents, projects, users, language } = useStore();
+  const { documents, projects, users, language, addDocument, authUser } = useStore();
   const t = translations[language].documents;
+  const tc = translations[language].common;
+
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedDoc, setSelectedDoc] = useState<typeof documents[0] | null>(null);
+  const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
+
+  const [showUpload, setShowUpload] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadForm, setUploadForm] = useState({
+    name: '', docType: 'PDF', projectId: '', version: '1.0', file: null as File | null,
+  });
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const resetUpload = () => {
+    setUploadForm({ name: '', docType: 'PDF', projectId: '', version: '1.0', file: null });
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const ext = file.name.split('.').pop()?.toUpperCase() || 'OTHER';
+    const docType = DOC_TYPES.includes(ext) ? ext : 'OTHER';
+    setUploadForm(f => ({ ...f, file, name: file.name.replace(/\.[^.]+$/, ''), docType }));
+  };
+
+  const handleUpload = async () => {
+    if (!uploadForm.name || !uploadForm.file) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', uploadForm.file);
+      fd.append('name', uploadForm.name);
+      fd.append('doc_type', uploadForm.docType);
+      if (uploadForm.projectId) fd.append('project_id', uploadForm.projectId);
+      fd.append('version', uploadForm.version);
+      const result = await documentService.uploadDocument(fd);
+      addDocument(adaptDocument(result));
+    } catch {
+      const newDoc: Document = {
+        id: `doc-${Date.now()}`,
+        name: uploadForm.name,
+        projectId: uploadForm.projectId,
+        type: uploadForm.docType,
+        size: uploadForm.file!.size,
+        version: uploadForm.version,
+        status: 'draft',
+        uploadedBy: authUser?.id || 'local',
+        uploadedAt: new Date().toISOString().split('T')[0],
+        approvals: [],
+      };
+      addDocument(newDoc);
+    } finally {
+      setUploading(false);
+      setShowUpload(false);
+      resetUpload();
+    }
+  };
 
   const statusConfig = {
     draft: { label: t.draft, color: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300', icon: FileText },
@@ -76,7 +137,7 @@ export default function Documents() {
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <div className="relative flex-1 min-w-48">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t.searchPlaceholder} className={inputCls} />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t.searchPlaceholder} className={searchCls} />
         </div>
         <div className="flex gap-2 flex-wrap">
           {['all', ...Object.keys(statusConfig)].map(s => (
@@ -86,7 +147,7 @@ export default function Documents() {
             </button>
           ))}
         </div>
-        <Button variant="primary" icon={<Upload size={16} />}>{t.upload}</Button>
+        <Button variant="primary" icon={<Upload size={16} />} onClick={() => setShowUpload(true)}>{t.upload}</Button>
       </div>
 
       {/* Table */}
@@ -151,6 +212,72 @@ export default function Documents() {
           )}
         </div>
       </Card>
+
+      {/* Upload modal */}
+      {showUpload && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60" onClick={() => { setShowUpload(false); resetUpload(); }} />
+          <div className="relative w-full max-w-lg bg-white border border-gray-200 rounded-2xl shadow-2xl dark:bg-gray-800 dark:border-gray-700">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white">{t.uploadTitle}</h2>
+              <button onClick={() => { setShowUpload(false); resetUpload(); }} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white">✕</button>
+            </div>
+            <div className="px-6 py-4 space-y-4">
+              <div>
+                <input ref={fileInputRef} type="file" id="doc-file-input"
+                  accept=".pdf,.dwg,.docx,.xlsx,.doc,.xls,.zip"
+                  onChange={handleFileChange} className="hidden" />
+                <label htmlFor="doc-file-input"
+                  className="block w-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors">
+                  {uploadForm.file ? (
+                    <div>
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{uploadForm.file.name}</p>
+                      <p className="text-xs text-gray-500 mt-1">{formatSize(uploadForm.file.size)}</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <Upload size={24} className="mx-auto mb-2 text-gray-400" />
+                      <p className="text-sm text-gray-500">{t.upload}</p>
+                    </div>
+                  )}
+                </label>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">{t.docNameLabel}</label>
+                <input value={uploadForm.name} onChange={e => setUploadForm(f => ({ ...f, name: e.target.value }))} className={inputCls} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5">{t.docTypeLabel}</label>
+                  <select value={uploadForm.docType} onChange={e => setUploadForm(f => ({ ...f, docType: e.target.value }))} className={inputCls}>
+                    {DOC_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5">{t.versionColumn}</label>
+                  <input value={uploadForm.version} onChange={e => setUploadForm(f => ({ ...f, version: e.target.value }))} placeholder="1.0" className={inputCls} />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">{t.projectColumn}</label>
+                <select value={uploadForm.projectId} onChange={e => setUploadForm(f => ({ ...f, projectId: e.target.value }))} className={inputCls}>
+                  <option value="">— {t.all} —</option>
+                  {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+              <Button onClick={() => { setShowUpload(false); resetUpload(); }}>{tc.cancel}</Button>
+              <Button variant="primary" icon={<Upload size={16} />}
+                onClick={handleUpload}
+                disabled={!uploadForm.file || !uploadForm.name || uploading}
+                loading={uploading}>
+                {t.upload}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Document detail modal */}
       {selectedDoc && (

@@ -33,8 +33,8 @@ export function Header({ title, subtitle }: HeaderProps) {
 
   const unread = notifications.filter(n => !n.isRead && n.userId === authUser?.id).length;
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/login');
   };
 

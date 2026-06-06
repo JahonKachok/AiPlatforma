@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { Building2, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { translations } from '../i18n/translations';
@@ -18,8 +18,7 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    await new Promise(r => setTimeout(r, 500));
-    const ok = login(email, password);
+    const ok = await login(email, password);
     if (ok) {
       navigate('/');
     } else {
@@ -102,6 +101,15 @@ export default function Login() {
               {loading ? t.submitting : t.submit}
             </button>
           </form>
+
+          <div className="mt-4 text-center">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Hisobingiz yo'qmi?{' '}
+              <Link to="/register" className="text-blue-600 hover:text-blue-700 font-medium dark:text-blue-400">
+                Ro'yxatdan o'tish
+              </Link>
+            </p>
+          </div>
 
           <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
             <p className="text-xs text-gray-500 mb-3 text-center">{t.demoAccounts}</p>

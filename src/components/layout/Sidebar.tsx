@@ -30,9 +30,16 @@ export function Sidebar() {
 
   return (
     <aside className={clsx(
-      'flex flex-col border-r transition-all duration-300 flex-shrink-0',
+      'flex flex-col border-r transition-all duration-300',
       'bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-800',
-      sidebarOpen ? 'w-60' : 'w-16'
+      // Mobile: fixed overlay; Desktop: static in flow
+      'fixed inset-y-0 left-0 z-50',
+      'lg:static lg:z-auto lg:flex-shrink-0',
+      // Width: always w-60 on mobile, collapsible on desktop
+      'w-60',
+      sidebarOpen ? 'lg:w-60' : 'lg:w-16',
+      // Translate: hide off-screen on mobile when closed, always visible on desktop
+      sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
     )}>
       {/* Logo */}
       <div className={clsx(

@@ -138,13 +138,13 @@ export default function Finance() {
                   const progress = p.budget > 0 ? Math.round((p.paid / p.budget) * 100) : 0;
                   return (
                     <div key={p.id}>
-                      <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1.5 gap-1">
                         <span className="text-sm text-gray-700 dark:text-gray-300">{p.name}</span>
-                        <div className="flex items-center gap-4 text-sm">
+                        <div className="flex items-center gap-3 sm:gap-4 text-sm flex-wrap">
                           <span className="text-gray-500">{(p.budget / 1000000).toFixed(0)} {t.mln}</span>
                           <span className="text-emerald-600 dark:text-emerald-400">{(p.paid / 1000000).toFixed(0)} {t.mln}</span>
                           <span className="text-amber-600 dark:text-amber-400">{((p.budget - p.paid) / 1000000).toFixed(0)} {t.mln}</span>
-                          <span className="text-xs text-gray-400 w-8 text-right">{progress}%</span>
+                          <span className="text-xs text-gray-400">{progress}%</span>
                         </div>
                       </div>
                       <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -216,15 +216,15 @@ export default function Finance() {
             return (
               <Card key={ef.userId + ef.projectId}>
                 <CardContent>
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
                     <div>
                       <p className="font-medium text-gray-900 dark:text-white">{user?.name}</p>
                       <p className="text-xs text-gray-500">{project?.name}</p>
                     </div>
-                    <div className="flex gap-6 text-sm">
-                      <div className="text-right"><p className="text-gray-500 text-xs">{t.contract}</p><p className="text-gray-900 dark:text-white font-medium">{(ef.contractAmount / 1000000).toFixed(1)} {t.mln}</p></div>
-                      <div className="text-right"><p className="text-gray-500 text-xs">{t.paid}</p><p className="text-emerald-600 dark:text-emerald-400 font-medium">{(ef.paid / 1000000).toFixed(1)} {t.mln}</p></div>
-                      <div className="text-right"><p className="text-gray-500 text-xs">{t.balance}</p><p className="text-amber-600 dark:text-amber-400 font-medium">{(ef.balance / 1000000).toFixed(1)} {t.mln}</p></div>
+                    <div className="flex gap-4 sm:gap-6 text-sm flex-wrap">
+                      <div><p className="text-gray-500 text-xs">{t.contract}</p><p className="text-gray-900 dark:text-white font-medium">{(ef.contractAmount / 1000000).toFixed(1)} {t.mln}</p></div>
+                      <div><p className="text-gray-500 text-xs">{t.paid}</p><p className="text-emerald-600 dark:text-emerald-400 font-medium">{(ef.paid / 1000000).toFixed(1)} {t.mln}</p></div>
+                      <div><p className="text-gray-500 text-xs">{t.balance}</p><p className="text-amber-600 dark:text-amber-400 font-medium">{(ef.balance / 1000000).toFixed(1)} {t.mln}</p></div>
                     </div>
                   </div>
                   <div className="mb-4">

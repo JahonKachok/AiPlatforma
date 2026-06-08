@@ -1,4 +1,4 @@
-import { Bell, Search, Sun, Moon, LogOut, Globe, ChevronDown } from 'lucide-react';
+import { Bell, Search, Sun, Moon, LogOut, Globe, ChevronDown, Menu } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { Avatar } from '../ui/Avatar';
 import { useState } from 'react';
@@ -25,7 +25,7 @@ const langShort: Record<Language, string> = {
 };
 
 export function Header({ title, subtitle }: HeaderProps) {
-  const { authUser, notifications, markAllNotificationsRead, darkMode, toggleDarkMode, logout, language, setLanguage } = useStore();
+  const { authUser, notifications, markAllNotificationsRead, darkMode, toggleDarkMode, logout, language, setLanguage, toggleSidebar } = useStore();
   const [showNotifs, setShowNotifs] = useState(false);
   const [showLang, setShowLang] = useState(false);
   const navigate = useNavigate();
@@ -39,13 +39,21 @@ export function Header({ title, subtitle }: HeaderProps) {
   };
 
   return (
-    <header className="h-16 border-b flex items-center justify-between px-6 flex-shrink-0 bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-800">
-      <div>
-        <h1 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h1>
-        {subtitle && <p className="text-xs text-gray-500 dark:text-gray-500">{subtitle}</p>}
+    <header className="h-16 border-b flex items-center justify-between px-4 md:px-6 flex-shrink-0 bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-800">
+      <div className="flex items-center gap-2 md:gap-3 min-w-0">
+        <button
+          onClick={toggleSidebar}
+          className="lg:hidden flex-shrink-0 p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800"
+        >
+          <Menu size={20} />
+        </button>
+        <div className="min-w-0">
+          <h1 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white truncate">{title}</h1>
+          {subtitle && <p className="text-xs text-gray-500 dark:text-gray-500 hidden sm:block truncate">{subtitle}</p>}
+        </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 md:gap-2">
         {/* Search */}
         <div className="relative hidden md:block">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
@@ -109,7 +117,7 @@ export function Header({ title, subtitle }: HeaderProps) {
             )}
           </button>
           {showNotifs && (
-            <div className="absolute right-0 top-12 w-80 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 overflow-hidden dark:bg-gray-800 dark:border-gray-700">
+            <div className="absolute right-0 top-12 w-72 sm:w-80 max-w-[calc(100vw-1rem)] bg-white border border-gray-200 rounded-xl shadow-2xl z-50 overflow-hidden dark:bg-gray-800 dark:border-gray-700">
               <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                 <span className="text-sm font-semibold text-gray-900 dark:text-white">{t.header.notifications}</span>
               </div>

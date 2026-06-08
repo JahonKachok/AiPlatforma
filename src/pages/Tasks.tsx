@@ -398,27 +398,17 @@ export default function Tasks() {
         <Modal open={!!selected} onClose={() => { setSelected(null); setEditMode(false); }}
           title={editMode ? tc.edit : selected.title} size="lg"
           footer={
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-col gap-2">
               {editMode ? (
-                <>
+                <div className="flex items-center justify-between gap-2">
                   <button onClick={() => setEditMode(false)}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
                     <X size={14} /> {tc.cancel}
                   </button>
                   <Button variant="primary" icon={<Check size={14} />} onClick={handleSaveEdit}>{tc.save}</Button>
-                </>
+                </div>
               ) : (
                 <>
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => setEditMode(true)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                      <Pencil size={13} /> {tc.edit}
-                    </button>
-                    <button onClick={handleDelete}
-                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50">
-                      <Trash2 size={13} /> {tc.delete}
-                    </button>
-                  </div>
                   <div className="flex gap-1.5 flex-wrap">
                     {COLUMNS.map(col => (
                       <button key={col.status}
@@ -430,6 +420,16 @@ export default function Tasks() {
                         {t.taskStatus[col.status]}
                       </button>
                     ))}
+                  </div>
+                  <div className="flex items-center gap-2 pt-1 border-t border-gray-700">
+                    <button onClick={() => setEditMode(true)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                      <Pencil size={13} /> {tc.edit}
+                    </button>
+                    <button onClick={handleDelete}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50">
+                      <Trash2 size={13} /> {tc.delete}
+                    </button>
                   </div>
                 </>
               )}

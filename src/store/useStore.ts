@@ -138,7 +138,7 @@ export const useStore = create<AppStore>((set, get) => ({
 
   darkMode: true,
   toggleDarkMode: () => set(s => ({ darkMode: !s.darkMode })),
-  sidebarOpen: true,
+  sidebarOpen: typeof window !== 'undefined' ? window.innerWidth >= 1024 : true,
   toggleSidebar: () => set(s => ({ sidebarOpen: !s.sidebarOpen })),
   language: 'ru' as Language,
   setLanguage: (lang) => set({ language: lang }),

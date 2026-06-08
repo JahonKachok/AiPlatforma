@@ -18,9 +18,17 @@ import type { Language } from '../i18n/translations';
 
 function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
   return (
-    <button onClick={onChange} className={clsx('relative w-10 h-6 rounded-full transition-colors flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-800', on ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600')}>
-      <span className={clsx('absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', on ? 'translate-x-5' : 'translate-x-1')} />
-    </button>
+    <label className="relative cursor-pointer flex-shrink-0">
+      <input
+        type="checkbox"
+        role="switch"
+        checked={on}
+        onChange={onChange}
+        className="sr-only peer"
+      />
+      <div className="w-9 h-5 bg-slate-300 rounded-full peer-checked:bg-blue-600 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 transition-colors dark:bg-neutral-700" />
+      <div className="absolute left-0.5 top-0.5 w-[15.5px] h-[15.5px] bg-white rounded-full transition-transform peer-checked:translate-x-4" />
+    </label>
   );
 }
 
@@ -127,7 +135,7 @@ export default function Settings() {
             </CardHeader>
             <CardContent>
               {authUser && (
-                <div className="flex items-start justify-between gap-4 mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
                   <div className="flex items-start gap-4">
                     <Avatar name={authUser.name} size="lg" />
                     <div>
@@ -143,7 +151,7 @@ export default function Settings() {
                   </Button>
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs text-gray-500 mb-1.5">{t.nameLabel}</label>
                   <input value={profileForm.name} onChange={e => setProfileForm(f => ({ ...f, name: e.target.value }))} disabled={!editing} type="text" className={inputCls} />
@@ -176,25 +184,25 @@ export default function Settings() {
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex items-center justify-between p-3.5 bg-emerald-50/60 dark:bg-emerald-500/5 border border-emerald-100 dark:border-emerald-900/40 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Lock size={16} className="text-emerald-500" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{t.twoFactor}</p>
-                    <p className="text-xs text-gray-500">{t.twoFactorDesc}</p>
+              <div className="flex items-center justify-between gap-3 p-3.5 bg-emerald-50/60 dark:bg-emerald-500/5 border border-emerald-100 dark:border-emerald-900/40 rounded-lg">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Lock size={16} className="text-emerald-500 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">{t.twoFactor}</p>
+                    <p className="text-xs text-gray-500 truncate">{t.twoFactorDesc}</p>
                   </div>
                 </div>
                 <Toggle on={twoFactor} onChange={() => setTwoFactor(v => !v)} />
               </div>
-              <div className="flex items-center justify-between p-3.5 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Key size={16} className="text-gray-400" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{t.changePassword}</p>
-                    <p className="text-xs text-gray-500">{t.changePasswordDesc}</p>
+              <div className="flex items-center justify-between gap-3 p-3.5 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Key size={16} className="text-gray-400 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">{t.changePassword}</p>
+                    <p className="text-xs text-gray-500 truncate">{t.changePasswordDesc}</p>
                   </div>
                 </div>
-                <button className="px-3 py-1.5 text-xs font-medium rounded-lg border border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-900/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+                <button className="flex-shrink-0 px-3 py-1.5 text-xs font-medium rounded-lg border border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-900/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
                   {t.changeBtn}
                 </button>
               </div>
@@ -210,15 +218,15 @@ export default function Settings() {
             </CardHeader>
             <CardContent className="space-y-3">
               {integrations.map(({ name, desc, icon, color, connected }) => (
-                <div key={name} className="flex items-center justify-between p-3.5 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
-                  <div className="flex items-center gap-3">
+                <div key={name} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3.5 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+                  <div className="flex items-center gap-3 min-w-0">
                     <IconBadge icon={icon} color={color} />
-                    <div>
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{name}</p>
-                      <p className="text-xs text-gray-500">{desc}</p>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">{name}</p>
+                      <p className="text-xs text-gray-500 truncate">{desc}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2.5 flex-shrink-0">
                     <Badge variant={connected ? 'success' : 'default'}>{connected ? t.connected : t.notConnected}</Badge>
                     <Button size="sm" variant={connected ? 'danger' : 'primary'}>{connected ? t.disconnectBtn : t.connectBtn}</Button>
                   </div>
@@ -265,12 +273,12 @@ export default function Settings() {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <IconBadge icon={darkMode ? <Moon size={16} /> : <Sun size={16} />} color="indigo" size="sm" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{t.darkTheme}</p>
-                    <p className="text-xs text-gray-500">{t.darkThemeDesc}</p>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">{t.darkTheme}</p>
+                    <p className="text-xs text-gray-500 truncate">{t.darkThemeDesc}</p>
                   </div>
                 </div>
                 <Toggle on={darkMode} onChange={toggleDarkMode} />

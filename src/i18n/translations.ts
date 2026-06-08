@@ -80,10 +80,12 @@ export interface AppTranslations {
     title: string; subtitle: string; profileTitle: string; securityTitle: string;
     twoFactor: string; twoFactorDesc: string; changePassword: string; changePasswordDesc: string;
     changeBtn: string; integrationsTitle: string; connected: string; notConnected: string;
-    connectBtn: string; disconnectBtn: string; notificationsTitle: string;
+    connectBtn: string; disconnectBtn: string; connectNewService: string; notificationsTitle: string;
     notifNewTasks: string; notifDeadlines: string; notifApprovals: string; notifComments: string;
     notifFinance: string; notifEmail: string; notifPush: string; notifTelegram: string;
-    interfaceTitle: string; darkTheme: string; languageLabel: string; timezoneLabel: string;
+    notifNewTasksDesc: string; notifDeadlinesDesc: string; notifApprovalsDesc: string; notifCommentsDesc: string;
+    notifFinanceDesc: string; notifEmailDesc: string; notifPushDesc: string; notifTelegramDesc: string;
+    interfaceTitle: string; darkTheme: string; darkThemeDesc: string; languageLabel: string; timezoneLabel: string;
     nameLabel: string; emailLabel: string; phoneLabel: string; deptLabel: string; saveChanges: string; saving: string; saved: string;
     googleDriveDesc: string; telegramDesc: string; whatsappDesc: string; outlookDesc: string;
   };
@@ -219,11 +221,20 @@ export const translations: Record<Language, AppTranslations> = {
       changePassword: "Parolni o'zgartirish", changePasswordDesc: "Oxirgi o'zgartirish: 30 kun oldin",
       changeBtn: "O'zgartirish", integrationsTitle: "Integratsiyalar",
       connected: "Ulangan", notConnected: "Ulanmagan", connectBtn: "Ulash", disconnectBtn: "Uzish",
+      connectNewService: "Yangi servis ulash",
       notificationsTitle: "Bildirishnomalar", notifNewTasks: "Yangi vazifalar",
       notifDeadlines: "Muddatlar", notifApprovals: "Kelishuvlar", notifComments: "Izohlar",
       notifFinance: "Moliyaviy", notifEmail: "Email bildirishnomalar",
       notifPush: "Push bildirishnomalar", notifTelegram: "Telegram bildirishnomalar",
-      interfaceTitle: "Interfeys", darkTheme: "Tungi mavzu", languageLabel: "Til",
+      notifNewTasksDesc: "Yangi vazifalar haqida bildirishnomalar",
+      notifDeadlinesDesc: "Yaqinlashayotgan muddatlar haqida eslatmalar",
+      notifApprovalsDesc: "Kelishuvlar haqida bildirishnomalar",
+      notifCommentsDesc: "Yangi izohlar haqida bildirishnomalar",
+      notifFinanceDesc: "Moliyaviy operatsiyalar haqida bildirishnomalar",
+      notifEmailDesc: "Email orqali bildirishnomalar olish",
+      notifPushDesc: "Brauzerdagi bildirishnomalar",
+      notifTelegramDesc: "Telegramdagi bildirishnomalar",
+      interfaceTitle: "Interfeys", darkTheme: "Tungi mavzu", darkThemeDesc: "Yorug' va tungi mavzu o'rtasida almashish", languageLabel: "Til",
       timezoneLabel: "Vaqt zonasi", nameLabel: "Ism", emailLabel: "Email",
       phoneLabel: "Telefon", deptLabel: "Bo'lim", saveChanges: "O'zgarishlarni saqlash", saving: "Saqlanmoqda...", saved: "Saqlandi",
       googleDriveDesc: "Fayllarni sinxronlash", telegramDesc: "Telegram bildirishnomalar",
@@ -378,11 +389,20 @@ export const translations: Record<Language, AppTranslations> = {
       changePassword: "Изменить пароль", changePasswordDesc: "Последнее изменение: 30 дней назад",
       changeBtn: "Изменить", integrationsTitle: "Интеграции",
       connected: "Подключено", notConnected: "Не подключено", connectBtn: "Подключить", disconnectBtn: "Отключить",
+      connectNewService: "Подключить новый сервис",
       notificationsTitle: "Уведомления", notifNewTasks: "Новые задачи",
       notifDeadlines: "Дедлайны", notifApprovals: "Согласования", notifComments: "Комментарии",
       notifFinance: "Финансовые", notifEmail: "Email-уведомления",
       notifPush: "Push-уведомления", notifTelegram: "Telegram-уведомления",
-      interfaceTitle: "Интерфейс", darkTheme: "Тёмная тема", languageLabel: "Язык",
+      notifNewTasksDesc: "Уведомления о новых задачах",
+      notifDeadlinesDesc: "Напоминания о приближающихся сроках",
+      notifApprovalsDesc: "Уведомления о согласованиях",
+      notifCommentsDesc: "Уведомления о новых комментариях",
+      notifFinanceDesc: "Уведомления о финансовых операциях",
+      notifEmailDesc: "Получать уведомления на email",
+      notifPushDesc: "Уведомления в браузере",
+      notifTelegramDesc: "Уведомления в Telegram",
+      interfaceTitle: "Интерфейс", darkTheme: "Тёмная тема", darkThemeDesc: "Переключение между светлой и тёмной темой", languageLabel: "Язык",
       timezoneLabel: "Временная зона", nameLabel: "Имя", emailLabel: "Email",
       phoneLabel: "Телефон", deptLabel: "Отдел", saveChanges: "Сохранить изменения", saving: "Сохранение...", saved: "Сохранено",
       googleDriveDesc: "Синхронизация файлов", telegramDesc: "Уведомления в Telegram",
@@ -537,11 +557,20 @@ export const translations: Record<Language, AppTranslations> = {
       changePassword: "Change password", changePasswordDesc: "Last changed: 30 days ago",
       changeBtn: "Change", integrationsTitle: "Integrations",
       connected: "Connected", notConnected: "Not connected", connectBtn: "Connect", disconnectBtn: "Disconnect",
+      connectNewService: "Connect new service",
       notificationsTitle: "Notifications", notifNewTasks: "New tasks",
       notifDeadlines: "Deadlines", notifApprovals: "Approvals", notifComments: "Comments",
       notifFinance: "Financial", notifEmail: "Email notifications",
       notifPush: "Push notifications", notifTelegram: "Telegram notifications",
-      interfaceTitle: "Interface", darkTheme: "Dark theme", languageLabel: "Language",
+      notifNewTasksDesc: "Notifications about new tasks",
+      notifDeadlinesDesc: "Reminders for upcoming deadlines",
+      notifApprovalsDesc: "Notifications about approvals",
+      notifCommentsDesc: "Notifications about new comments",
+      notifFinanceDesc: "Notifications about financial operations",
+      notifEmailDesc: "Receive notifications via email",
+      notifPushDesc: "Notifications in the browser",
+      notifTelegramDesc: "Notifications in Telegram",
+      interfaceTitle: "Interface", darkTheme: "Dark theme", darkThemeDesc: "Switch between light and dark theme", languageLabel: "Language",
       timezoneLabel: "Timezone", nameLabel: "Name", emailLabel: "Email",
       phoneLabel: "Phone", deptLabel: "Department", saveChanges: "Save changes", saving: "Saving...", saved: "Saved",
       googleDriveDesc: "File synchronization", telegramDesc: "Telegram notifications",

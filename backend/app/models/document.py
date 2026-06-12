@@ -18,6 +18,7 @@ class ApprovalStatus(str, enum.Enum):
     pending = "pending"
     approved = "approved"
     rejected = "rejected"
+    revision = "revision"
 
 
 class Document(Base):
@@ -35,6 +36,7 @@ class Document(Base):
     file_size: Mapped[int] = mapped_column(Integer, default=0)
     mime_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
     google_drive_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    deadline: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

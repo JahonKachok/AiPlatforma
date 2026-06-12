@@ -138,6 +138,7 @@ export function adaptDocument(d: any): Document {
     status: d.status,
     uploadedBy: d.uploaded_by ?? d.uploadedBy ?? '',
     uploadedAt: d.created_at ?? d.uploadedAt ?? '',
+    deadline: d.deadline ?? undefined,
     approvalStage,
     approvals,
     tags: d.tags,

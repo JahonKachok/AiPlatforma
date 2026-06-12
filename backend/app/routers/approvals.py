@@ -7,10 +7,11 @@ from sqlalchemy.orm import selectinload
 from app.database import get_db
 from app.models.user import User
 from app.models.document import Document, ApprovalStage, DocumentStatus, ApprovalStatus, AuditLog
-from app.models.notification import Notification, NotificationType
+from app.models.notification import NotificationType
 from app.schemas.document import ApprovalStageCreate, ApprovalStageResponse, ApprovalReviewRequest
 from app.utils.dependencies import get_current_active_user
 from app.websocket.manager import manager
+from app.services.notify import notify_user
 
 router = APIRouter(prefix="/approvals", tags=["approvals"])
 
@@ -64,14 +65,12 @@ async def create_approval_workflow(
         db.add(stage)
         created_stages.append(stage)
 
-        notification = Notification(
-            user_id=stage_data.reviewer_id,
-            type=NotificationType.approval,
-            title="Hujjatni ko'rib chiqish so'rovi",
-            message=f"'{doc.name}' hujjatini ko'rib chiqishingiz so'ralmoqda",
-            link=f"/approvals?doc={document_id}",
+        await notify_user(
+            db, stage_data.reviewer_id, NotificationType.approval,
+            "Hujjatni ko'rib chiqish so'rovi",
+            f"'{doc.name}' hujjatini ko'rib chiqishingiz so'ralmoqda",
+            f"/approvals?doc={document_id}",
         )
-        db.add(notification)
 
     doc.status = DocumentStatus.review
     await db.commit()
@@ -111,6 +110,9 @@ async def review_stage(
     if doc:
         if data.status == ApprovalStatus.rejected:
             doc.status = DocumentStatus.rejected
+        elif data.status == ApprovalStatus.revision:
+            # Needs rework: send the document back to the executor (draft)
+            doc.status = DocumentStatus.draft
         else:
             all_stages = await db.execute(
                 select(ApprovalStage).where(ApprovalStage.document_id == doc.id)
@@ -126,14 +128,18 @@ async def review_stage(
             details={"stage": stage.stage_name, "comment": data.comment},
         ))
 
-        notification = Notification(
-            user_id=doc.uploaded_by,
-            type=NotificationType.approval,
-            title=f"Hujjat {'tasdiqlandi' if data.status == ApprovalStatus.approved else 'rad etildi'}",
-            message=f"'{doc.name}' hujjati: {stage.stage_name} bosqichi {data.status.value}",
-            link=f"/documents?id={doc.id}",
+        status_titles = {
+            ApprovalStatus.approved: "Hujjat tasdiqlandi",
+            ApprovalStatus.rejected: "Hujjat rad etildi",
+            ApprovalStatus.revision: "Hujjat qayta ishlashga qaytarildi",
+        }
+        await notify_user(
+            db, doc.uploaded_by, NotificationType.approval,
+            status_titles.get(data.status, "Hujjat holati o'zgardi"),
+            f"'{doc.name}' hujjati: {stage.stage_name} bosqichi — {data.status.value}"
+            + (f". Izoh: {data.comment}" if data.comment else ""),
+            f"/documents?id={doc.id}",
         )
-        db.add(notification)
         await manager.send_to_user(doc.uploaded_by, {
             "type": "approval",
             "document_id": doc.id,

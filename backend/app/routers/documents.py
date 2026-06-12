@@ -8,8 +8,10 @@ import os
 from app.database import get_db
 from app.models.user import User
 from app.models.document import Document, DocumentVersion, AuditLog
+from datetime import datetime
 from app.schemas.document import (
     DocumentCreate, DocumentUpdate, DocumentResponse, DocumentVersionResponse,
+    AuditLogResponse,
 )
 from app.utils.dependencies import get_current_active_user
 from app.services.file_service import save_upload_file, delete_file
@@ -58,6 +60,7 @@ async def upload_document(
     doc_type: str | None = Form(None),
     section_id: str | None = Form(None),
     version: str = Form("1.0"),
+    deadline: str | None = Form(None),
     file: UploadFile | None = File(None),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -70,12 +73,20 @@ async def upload_document(
         file_path, file_size = await save_upload_file(file, f"documents/{project_id}")
         mime_type = file.content_type
 
+    deadline_dt = None
+    if deadline:
+        try:
+            deadline_dt = datetime.fromisoformat(deadline)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid deadline format. Use ISO format")
+
     doc = Document(
         name=name,
         project_id=project_id,
         doc_type=doc_type,
         section_id=section_id,
         version=version,
+        deadline=deadline_dt,
         uploaded_by=current_user.id,
         file_path=file_path,
         file_size=file_size,
@@ -121,8 +132,18 @@ async def update_document(
     current_user: User = Depends(get_current_active_user),
 ):
     doc = await get_document_or_404(doc_id, db)
+    changes = {}
     for field, value in data.model_dump(exclude_none=True).items():
+        old = getattr(doc, field, None)
+        if old != value:
+            changes[field] = {"old": str(old), "new": str(value)}
         setattr(doc, field, value)
+    if changes:
+        db.add(AuditLog(
+            entity_type="document", entity_id=doc_id,
+            action="update", user_id=current_user.id,
+            details=changes,
+        ))
     await db.commit()
     return await get_document_or_404(doc_id, db)
 
@@ -196,10 +217,42 @@ async def get_versions(
 @router.get("/{doc_id}/download")
 async def download_document(
     doc_id: str,
+    token: str | None = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
 ):
+    # Browser downloads pass the JWT as a query param since <a href> can't set headers.
+    from app.utils.security import verify_token
+    payload = verify_token(token) if token else None
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid or missing token")
+    user_result = await db.execute(select(User).where(User.id == payload.get("sub")))
+    current_user = user_result.scalar_one_or_none()
+    if not current_user or not current_user.is_active:
+        raise HTTPException(status_code=401, detail="User not found or inactive")
+
     doc = await get_document_or_404(doc_id, db)
     if not doc.file_path or not os.path.exists(doc.file_path):
         raise HTTPException(status_code=404, detail="File not found on server")
+    db.add(AuditLog(
+        entity_type="document", entity_id=doc_id,
+        action="download", user_id=current_user.id,
+        details={"name": doc.name, "version": doc.version},
+    ))
+    await db.commit()
     return FileResponse(doc.file_path, filename=doc.name)
+
+
+@router.get("/{doc_id}/audit", response_model=list[AuditLogResponse])
+async def get_document_audit(
+    doc_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    await get_document_or_404(doc_id, db)
+    result = await db.execute(
+        select(AuditLog)
+        .where(AuditLog.entity_type == "document", AuditLog.entity_id == doc_id)
+        .order_by(AuditLog.created_at.desc())
+        .limit(200)
+    )
+    return result.scalars().all()

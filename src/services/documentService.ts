@@ -52,4 +52,9 @@ export const documentService = {
     const token = localStorage.getItem('access_token')
     return `${BASE_UPLOAD_URL}/api/documents/${documentId}/download?token=${token}`
   },
+
+  async getAudit(documentId: string) {
+    const { data } = await api.get(`/documents/${documentId}/audit`)
+    return data
+  },
 }

@@ -5,6 +5,7 @@ from app.models.document import Document, DocumentVersion, ApprovalStage, AuditL
 from app.models.finance import FinancialRecord, Contract, EmployeeContract
 from app.models.notification import Notification
 from app.models.request_model import Request, RequestComment
+from app.models.template import DocumentTemplate
 
 __all__ = [
     "User", "LoginJournal", "RefreshToken",
@@ -14,4 +15,5 @@ __all__ = [
     "FinancialRecord", "Contract", "EmployeeContract",
     "Notification",
     "Request", "RequestComment",
+    "DocumentTemplate",
 ]

@@ -7,13 +7,16 @@ from app.database import get_db
 from app.models.user import User
 from app.models.task import Task, TaskComment, TaskAttachment, TaskStatus
 from app.models.notification import Notification, NotificationType
+from app.models.document import AuditLog
 from app.schemas.task import (
     TaskCreate, TaskUpdate, TaskResponse,
     TaskCommentCreate, TaskCommentUpdate, TaskCommentResponse,
     TaskAttachmentResponse,
 )
+from app.schemas.document import AuditLogResponse
 from app.utils.dependencies import get_current_active_user
 from app.services.file_service import save_upload_file, get_file_url, delete_file
+from app.services.notify import notify_user
 from app.websocket.manager import manager
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
@@ -108,20 +111,19 @@ async def create_task(
     db.add(task)
     await db.flush()
 
+    db.add(AuditLog(
+        entity_type="task", entity_id=task.id,
+        action="create", user_id=current_user.id,
+        details={"title": task.title},
+    ))
+
     if task.assignee_id and task.assignee_id != current_user.id:
-        notification = Notification(
-            user_id=task.assignee_id,
-            type=NotificationType.task,
-            title="Yangi vazifa tayinlandi",
-            message=f"Sizga yangi vazifa tayinlandi: {task.title}",
-            link=f"/tasks?id={task.id}",
+        await notify_user(
+            db, task.assignee_id, NotificationType.task,
+            "Yangi vazifa tayinlandi",
+            f"Sizga yangi vazifa tayinlandi: {task.title}",
+            f"/tasks?id={task.id}",
         )
-        db.add(notification)
-        await manager.send_to_user(task.assignee_id, {
-            "type": "notification",
-            "title": "Yangi vazifa tayinlandi",
-            "message": task.title,
-        })
 
     await db.commit()
     return await get_task_or_404(task.id, db)
@@ -146,18 +148,30 @@ async def update_task(
     task = await get_task_or_404(task_id, db)
     old_status = task.status
 
+    changes = {}
     for field, value in data.model_dump(exclude_none=True).items():
+        old = getattr(task, field, None)
+        if old != value:
+            changes[field] = {
+                "old": old.value if hasattr(old, "value") else str(old),
+                "new": value.value if hasattr(value, "value") else str(value),
+            }
         setattr(task, field, value)
 
+    if changes:
+        db.add(AuditLog(
+            entity_type="task", entity_id=task_id,
+            action="update", user_id=current_user.id,
+            details=changes,
+        ))
+
     if data.status and data.status != old_status and task.assignee_id:
-        notification = Notification(
-            user_id=task.assignee_id,
-            type=NotificationType.task,
-            title="Vazifa holati o'zgardi",
-            message=f"'{task.title}' vazifasi holati: {data.status.value}",
-            link=f"/tasks?id={task.id}",
+        await notify_user(
+            db, task.assignee_id, NotificationType.task,
+            "Vazifa holati o'zgardi",
+            f"'{task.title}' vazifasi holati: {data.status.value}",
+            f"/tasks?id={task.id}",
         )
-        db.add(notification)
 
     await db.commit()
     return await get_task_or_404(task_id, db)
@@ -175,6 +189,22 @@ async def delete_task(
     return {"message": "Task deleted"}
 
 
+@router.get("/{task_id}/history", response_model=list[AuditLogResponse])
+async def get_task_history(
+    task_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    await get_task_or_404(task_id, db)
+    result = await db.execute(
+        select(AuditLog)
+        .where(AuditLog.entity_type == "task", AuditLog.entity_id == task_id)
+        .order_by(AuditLog.created_at.desc())
+        .limit(200)
+    )
+    return result.scalars().all()
+
+
 @router.post("/{task_id}/comments", response_model=TaskCommentResponse, status_code=201)
 async def add_comment(
     task_id: str,
@@ -187,14 +217,12 @@ async def add_comment(
     db.add(comment)
 
     if task.assignee_id and task.assignee_id != current_user.id:
-        notification = Notification(
-            user_id=task.assignee_id,
-            type=NotificationType.comment,
-            title="Yangi izoh",
-            message=f"'{task.title}' vazifasiga yangi izoh qo'shildi",
-            link=f"/tasks?id={task_id}",
+        await notify_user(
+            db, task.assignee_id, NotificationType.comment,
+            "Yangi izoh",
+            f"'{task.title}' vazifasiga yangi izoh qo'shildi",
+            f"/tasks?id={task_id}",
         )
-        db.add(notification)
 
     await db.commit()
     await db.refresh(comment)

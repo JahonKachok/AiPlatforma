@@ -25,4 +25,19 @@ export const reportService = {
     const { data } = await api.get(`/reports/users/${userId}/performance`)
     return data
   },
+
+  async getEmployeesReport() {
+    const { data } = await api.get('/reports/employees')
+    return data
+  },
+
+  async downloadExport(kind: 'projects' | 'tasks' | 'finance' | 'employees') {
+    const response = await api.get(`/reports/export/${kind}`, { responseType: 'blob' })
+    const url = URL.createObjectURL(response.data)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${kind}_report.xlsx`
+    a.click()
+    URL.revokeObjectURL(url)
+  },
 }

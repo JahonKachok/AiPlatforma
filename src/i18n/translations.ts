@@ -4,7 +4,7 @@ export interface AppTranslations {
   nav: {
     dashboard: string; projects: string; tasks: string; documents: string;
     approvals: string; finance: string; analytics: string; requests: string;
-    employees: string; settings: string;
+    employees: string; settings: string; templates: string;
   };
   header: { search: string; notifications: string; logout: string; };
   login: {
@@ -26,12 +26,13 @@ export interface AppTranslations {
     draft: string; review: string; approved: string; rejected: string; archived: string;
     pending: string; revision: string;
     uploadTitle: string; docNameLabel: string; docTypeLabel: string;
+    deadlineLabel: string; journalTitle: string; journalEmpty: string;
   };
   approvals: {
     title: string; subtitle: string; pending: string; approvedDocs: string; rejectedDocs: string;
     waitingApproval: string; approvalStatus: string; comment: string; commentPlaceholder: string;
     close: string; reject: string; approve: string; notStarted: string; waiting: string;
-    approvedStatus: string; rejectedStatus: string;
+    approvedStatus: string; rejectedStatus: string; revisionBtn: string; revisionStatus: string;
   };
   finance: {
     title: string; subtitle: string; totalBudget: string; received: string; expenses: string;
@@ -88,6 +89,7 @@ export interface AppTranslations {
     interfaceTitle: string; darkTheme: string; darkThemeDesc: string; languageLabel: string; timezoneLabel: string;
     nameLabel: string; emailLabel: string; phoneLabel: string; deptLabel: string; saveChanges: string; saving: string; saved: string;
     googleDriveDesc: string; telegramDesc: string; whatsappDesc: string; outlookDesc: string;
+    backupTitle: string; backupDesc: string; backupBtn: string; backupCreating: string; backupList: string;
   };
   reports: {
     title: string; subtitle: string; completedTasks: string; approvedDocs: string;
@@ -95,6 +97,15 @@ export interface AppTranslations {
     projectStatuses: string; platformHealth: string; taskStatusDistribution: string;
     total: string; completed: string; inProgress: string; income: string; expense: string;
     metrics: string; months: string[];
+    exportTitle: string; exportProjects: string; exportTasks: string;
+    exportFinance: string; exportEmployees: string;
+  };
+  templates: {
+    title: string; subtitle: string; newTemplate: string; generate: string;
+    nameLabel: string; typeLabel: string; descriptionLabel: string; contentLabel: string;
+    placeholdersHint: string; projectLabel: string; employeeLabel: string;
+    generateTitle: string; download: string; noTemplates: string; created: string;
+    types: Record<string, string>;
   };
   projectDetail: {
     notFound: string; backBtn: string; projectInfo: string; address: string; stage: string;
@@ -122,6 +133,7 @@ export const translations: Record<Language, AppTranslations> = {
       dashboard: "Bosh sahifa", projects: "Loyihalar", tasks: "Vazifalar",
       documents: "Hujjatlar", approvals: "Kelishuvlar", finance: "Moliya",
       analytics: "Tahlil", requests: "So'rovlar", employees: "Xodimlar", settings: "Sozlamalar",
+      templates: "Shablonlar",
     },
     header: { search: "Qidirish...", notifications: "Bildirishnomalar", logout: "Chiqish" },
     login: {
@@ -148,6 +160,7 @@ export const translations: Record<Language, AppTranslations> = {
       draft: "Qoralama", review: "Kelishuvda", approved: "Tasdiqlangan",
       rejected: "Rad etilgan", archived: "Arxiv", pending: "Kutilmoqda", revision: "Qayta ishlash",
       uploadTitle: "Hujjat yuklash", docNameLabel: "Hujjat nomi", docTypeLabel: "Tur",
+      deadlineLabel: "Muddat", journalTitle: "Amallar jurnali", journalEmpty: "Jurnal bo'sh",
     },
     approvals: {
       title: "Kelishuvlar", subtitle: "Hujjatlar kelishuv marshrutlari",
@@ -157,6 +170,7 @@ export const translations: Record<Language, AppTranslations> = {
       close: "Yopish", reject: "Rad etish", approve: "Tasdiqlash",
       notStarted: "Boshlanmagan", waiting: "Kutilmoqda",
       approvedStatus: "Tasdiqlangan", rejectedStatus: "Rad etilgan",
+      revisionBtn: "Qayta ishlashga", revisionStatus: "Qayta ishlashda",
     },
     finance: {
       title: "Moliya bo'limi", subtitle: "Kirim, chiqim va to'lovlar hisobi",
@@ -239,6 +253,8 @@ export const translations: Record<Language, AppTranslations> = {
       phoneLabel: "Telefon", deptLabel: "Bo'lim", saveChanges: "O'zgarishlarni saqlash", saving: "Saqlanmoqda...", saved: "Saqlandi",
       googleDriveDesc: "Fayllarni sinxronlash", telegramDesc: "Telegram bildirishnomalar",
       whatsappDesc: "WhatsApp bildirishnomalar", outlookDesc: "Email bildirishnomalar",
+      backupTitle: "Zaxira nusxa", backupDesc: "Ma'lumotlar bazasi va fayllarning zaxira nusxasini yaratish",
+      backupBtn: "Zaxira yaratish", backupCreating: "Yaratilmoqda...", backupList: "Zaxira nusxalar",
     },
     reports: {
       title: "Tahlil va hisobotlar", subtitle: "Platforma bo'yicha yig'ma statistika",
@@ -250,6 +266,18 @@ export const translations: Record<Language, AppTranslations> = {
       total: "Jami", completed: "Tugallangan", inProgress: "Bajarilmoqda",
       income: "Kirim", expense: "Chiqim", metrics: "Ko'rsatkichlar",
       months: ["Yan", "Fev", "Mar", "Apr", "May", "Iyn", "Iyl", "Avg"],
+      exportTitle: "Excel eksport", exportProjects: "Loyihalar", exportTasks: "Vazifalar",
+      exportFinance: "Moliya", exportEmployees: "Xodimlar",
+    },
+    templates: {
+      title: "Hujjat shablonlari", subtitle: "Shartnoma, dalolatnoma va hisoblarni avto-yaratish",
+      newTemplate: "Yangi shablon", generate: "Hujjat yaratish",
+      nameLabel: "Nomi", typeLabel: "Turi", descriptionLabel: "Tavsif", contentLabel: "Matn",
+      placeholdersHint: "O'zgaruvchilar: {{project_name}}, {{client_name}}, {{address}}, {{amount}}, {{deadline}}, {{today}}, {{employee_name}} va h.k.",
+      projectLabel: "Loyiha", employeeLabel: "Xodim (ixtiyoriy)",
+      generateTitle: "Shablondan hujjat yaratish", download: "Yuklab olish",
+      noTemplates: "Shablonlar yo'q", created: "Hujjat yaratildi",
+      types: { contract: "Shartnoma", act: "Dalolatnoma", appendix: "Ilova", invoice: "Hisob", other: "Boshqa" },
     },
     projectDetail: {
       notFound: "Loyiha topilmadi", backBtn: "Loyihalar", projectInfo: "Loyiha haqida ma'lumot",
@@ -290,6 +318,7 @@ export const translations: Record<Language, AppTranslations> = {
       dashboard: "Дашборд", projects: "Проекты", tasks: "Задачи",
       documents: "Документы", approvals: "Согласования", finance: "Финансы",
       analytics: "Аналитика", requests: "Запросы", employees: "Сотрудники", settings: "Настройки",
+      templates: "Шаблоны",
     },
     header: { search: "Поиск...", notifications: "Уведомления", logout: "Выйти" },
     login: {
@@ -316,6 +345,7 @@ export const translations: Record<Language, AppTranslations> = {
       draft: "Черновик", review: "На согласовании", approved: "Согласовано",
       rejected: "Отклонено", archived: "Архив", pending: "Ожидает", revision: "На доработке",
       uploadTitle: "Загрузить документ", docNameLabel: "Название документа", docTypeLabel: "Тип",
+      deadlineLabel: "Дедлайн", journalTitle: "Журнал действий", journalEmpty: "Журнал пуст",
     },
     approvals: {
       title: "Согласования", subtitle: "Маршруты согласования документов",
@@ -325,6 +355,7 @@ export const translations: Record<Language, AppTranslations> = {
       close: "Закрыть", reject: "Отклонить", approve: "Согласовать",
       notStarted: "Не начато", waiting: "Ожидает",
       approvedStatus: "Согласовано", rejectedStatus: "Отклонено",
+      revisionBtn: "На доработку", revisionStatus: "Требует доработки",
     },
     finance: {
       title: "Финансовый блок", subtitle: "Учёт доходов, расходов и выплат",
@@ -407,6 +438,8 @@ export const translations: Record<Language, AppTranslations> = {
       phoneLabel: "Телефон", deptLabel: "Отдел", saveChanges: "Сохранить изменения", saving: "Сохранение...", saved: "Сохранено",
       googleDriveDesc: "Синхронизация файлов", telegramDesc: "Уведомления в Telegram",
       whatsappDesc: "Уведомления в WhatsApp", outlookDesc: "Email-уведомления",
+      backupTitle: "Резервное копирование", backupDesc: "Создание резервной копии базы данных и файлов",
+      backupBtn: "Создать копию", backupCreating: "Создание...", backupList: "Резервные копии",
     },
     reports: {
       title: "Аналитика и отчёты", subtitle: "Сводная статистика по платформе",
@@ -418,6 +451,18 @@ export const translations: Record<Language, AppTranslations> = {
       total: "Всего", completed: "Завершено", inProgress: "В работе",
       income: "Доходы", expense: "Расходы", metrics: "Показатели",
       months: ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг"],
+      exportTitle: "Экспорт в Excel", exportProjects: "Проекты", exportTasks: "Задачи",
+      exportFinance: "Финансы", exportEmployees: "Сотрудники",
+    },
+    templates: {
+      title: "Шаблоны документов", subtitle: "Автоформирование договоров, актов и счетов",
+      newTemplate: "Новый шаблон", generate: "Сформировать документ",
+      nameLabel: "Название", typeLabel: "Тип", descriptionLabel: "Описание", contentLabel: "Текст",
+      placeholdersHint: "Переменные: {{project_name}}, {{client_name}}, {{address}}, {{amount}}, {{deadline}}, {{today}}, {{employee_name}} и др.",
+      projectLabel: "Проект", employeeLabel: "Сотрудник (необязательно)",
+      generateTitle: "Сформировать документ из шаблона", download: "Скачать",
+      noTemplates: "Шаблонов нет", created: "Документ сформирован",
+      types: { contract: "Договор", act: "Акт", appendix: "Приложение", invoice: "Счёт", other: "Другое" },
     },
     projectDetail: {
       notFound: "Проект не найден", backBtn: "Проекты", projectInfo: "Информация о проекте",
@@ -458,6 +503,7 @@ export const translations: Record<Language, AppTranslations> = {
       dashboard: "Dashboard", projects: "Projects", tasks: "Tasks",
       documents: "Documents", approvals: "Approvals", finance: "Finance",
       analytics: "Analytics", requests: "Requests", employees: "Employees", settings: "Settings",
+      templates: "Templates",
     },
     header: { search: "Search...", notifications: "Notifications", logout: "Log out" },
     login: {
@@ -484,6 +530,7 @@ export const translations: Record<Language, AppTranslations> = {
       draft: "Draft", review: "Under Review", approved: "Approved",
       rejected: "Rejected", archived: "Archived", pending: "Pending", revision: "Revision",
       uploadTitle: "Upload Document", docNameLabel: "Document name", docTypeLabel: "Type",
+      deadlineLabel: "Deadline", journalTitle: "Activity log", journalEmpty: "Log is empty",
     },
     approvals: {
       title: "Approvals", subtitle: "Document approval routes",
@@ -493,6 +540,7 @@ export const translations: Record<Language, AppTranslations> = {
       close: "Close", reject: "Reject", approve: "Approve",
       notStarted: "Not started", waiting: "Waiting",
       approvedStatus: "Approved", rejectedStatus: "Rejected",
+      revisionBtn: "Needs revision", revisionStatus: "Needs revision",
     },
     finance: {
       title: "Finance", subtitle: "Income, expense and payment tracking",
@@ -575,6 +623,8 @@ export const translations: Record<Language, AppTranslations> = {
       phoneLabel: "Phone", deptLabel: "Department", saveChanges: "Save changes", saving: "Saving...", saved: "Saved",
       googleDriveDesc: "File synchronization", telegramDesc: "Telegram notifications",
       whatsappDesc: "WhatsApp notifications", outlookDesc: "Email notifications",
+      backupTitle: "Backup", backupDesc: "Create a backup of the database and files",
+      backupBtn: "Create backup", backupCreating: "Creating...", backupList: "Backups",
     },
     reports: {
       title: "Analytics & Reports", subtitle: "Platform summary statistics",
@@ -586,6 +636,18 @@ export const translations: Record<Language, AppTranslations> = {
       total: "Total", completed: "Completed", inProgress: "In Progress",
       income: "Income", expense: "Expense", metrics: "Metrics",
       months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"],
+      exportTitle: "Export to Excel", exportProjects: "Projects", exportTasks: "Tasks",
+      exportFinance: "Finance", exportEmployees: "Employees",
+    },
+    templates: {
+      title: "Document Templates", subtitle: "Auto-generate contracts, acts and invoices",
+      newTemplate: "New Template", generate: "Generate document",
+      nameLabel: "Name", typeLabel: "Type", descriptionLabel: "Description", contentLabel: "Body",
+      placeholdersHint: "Variables: {{project_name}}, {{client_name}}, {{address}}, {{amount}}, {{deadline}}, {{today}}, {{employee_name}} etc.",
+      projectLabel: "Project", employeeLabel: "Employee (optional)",
+      generateTitle: "Generate document from template", download: "Download",
+      noTemplates: "No templates", created: "Document generated",
+      types: { contract: "Contract", act: "Act", appendix: "Appendix", invoice: "Invoice", other: "Other" },
     },
     projectDetail: {
       notFound: "Project not found", backBtn: "Projects", projectInfo: "Project information",

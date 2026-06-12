@@ -12,6 +12,16 @@ class Settings(BaseSettings):
     TELEGRAM_BOT_TOKEN: Optional[str] = None
     TELEGRAM_WEBHOOK_URL: Optional[str] = None
 
+    SMTP_HOST: Optional[str] = None
+    SMTP_PORT: int = 587
+    SMTP_USER: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    SMTP_FROM: Optional[str] = None
+    SMTP_USE_TLS: bool = True
+    SMTP_USE_SSL: bool = False
+
+    BACKUP_DIR: str = "backups"
+
     GOOGLE_DRIVE_CREDENTIALS_FILE: Optional[str] = "credentials.json"
     GOOGLE_DRIVE_FOLDER_ID: Optional[str] = None
 

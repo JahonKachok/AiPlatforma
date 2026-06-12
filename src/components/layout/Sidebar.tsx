@@ -3,7 +3,7 @@ import { clsx } from 'clsx';
 import {
   LayoutDashboard, FolderKanban, CheckSquare, FileText,
   DollarSign, GitBranch, Users, BarChart3, MessageSquare,
-  Settings, ChevronLeft, ChevronRight, Building2
+  Settings, ChevronLeft, ChevronRight, Building2, FileSignature
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { Avatar } from '../ui/Avatar';
@@ -24,6 +24,7 @@ export function Sidebar() {
     { to: '/finance', label: t.nav.finance, icon: DollarSign },
     { to: '/reports', label: t.nav.analytics, icon: BarChart3 },
     { to: '/requests', label: t.nav.requests, icon: MessageSquare },
+    { to: '/templates', label: t.nav.templates, icon: FileSignature },
     { to: '/users', label: t.nav.employees, icon: Users },
     { to: '/settings', label: t.nav.settings, icon: Settings },
   ];

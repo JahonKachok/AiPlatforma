@@ -4,7 +4,7 @@ import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Avatar } from '../components/ui/Avatar';
 import { useStore } from '../store/useStore';
-import { CheckCircle, XCircle, Clock, AlertCircle, ChevronRight } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, AlertCircle, ChevronRight, RotateCcw } from 'lucide-react';
 import { clsx } from 'clsx';
 import { translations } from '../i18n/translations';
 import { approvalService } from '../services/approvalService';
@@ -34,7 +34,7 @@ export default function Approvals() {
   const approved = documents.filter(d => d.status === 'approved');
   const rejected = documents.filter(d => d.status === 'rejected');
 
-  const reviewCurrentStage = async (status: 'approved' | 'rejected') => {
+  const reviewCurrentStage = async (status: 'approved' | 'rejected' | 'revision') => {
     if (!selected) return;
     const stage = selected.approvals.find(ap => ap.stage === selected.approvalStage);
     try {
@@ -43,8 +43,10 @@ export default function Approvals() {
       const fresh = await documentService.getDocument(selected.id);
       updateDocument(adaptDocument(fresh));
     } catch {
+      // Revision sends the document back to draft for rework
+      const docStatus = status === 'revision' ? 'draft' : status;
       updateDocument({
-        ...selected, status,
+        ...selected, status: docStatus,
         approvals: selected.approvals.map(ap =>
           ap.stage === selected.approvalStage ? { ...ap, status, updatedAt: new Date().toISOString().split('T')[0], comment } : ap
         ),
@@ -56,6 +58,7 @@ export default function Approvals() {
 
   const handleApprove = () => reviewCurrentStage('approved');
   const handleReject = () => reviewCurrentStage('rejected');
+  const handleRevision = () => reviewCurrentStage('revision');
 
   const renderDoc = (doc: typeof documents[0]) => {
     const project = projects.find(p => p.id === doc.projectId);
@@ -217,6 +220,7 @@ export default function Approvals() {
               {selected.status === 'review' && (
                 <>
                   <Button variant="danger" icon={<XCircle size={16} />} onClick={handleReject}>{t.reject}</Button>
+                  <Button variant="secondary" icon={<RotateCcw size={16} />} onClick={handleRevision}>{t.revisionBtn}</Button>
                   <Button variant="primary" icon={<CheckCircle size={16} />} onClick={handleApprove}>{t.approve}</Button>
                 </>
               )}

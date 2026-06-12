@@ -5,12 +5,13 @@ import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { useStore } from '../store/useStore';
 import { userService } from '../services/userService';
+import { adminService, type BackupInfo } from '../services/adminService';
 import { adaptUser } from '../services/adapters';
 import { Avatar } from '../components/ui/Avatar';
 import {
   Bell, Shield, Moon, Sun, Building2, Link, Globe, Lock, Key, Pencil, Check, Plus,
   Calendar, ClipboardList, ShieldCheck, MessageSquare, DollarSign, Mail, Smartphone, Send,
-  HardDrive, MessageCircle,
+  HardDrive, MessageCircle, DatabaseBackup, Download,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { translations } from '../i18n/translations';
@@ -66,12 +67,30 @@ export default function Settings() {
     newTasks: true, deadlines: true, approvals: true, comments: false,
     finance: true, email: true, push: false, telegram: false,
   });
+  const [backups, setBackups] = useState<BackupInfo[]>([]);
+  const [creatingBackup, setCreatingBackup] = useState(false);
+
+  const isAdmin = authUser && ['admin', 'manager'].includes(authUser.role);
 
   useEffect(() => {
     if (authUser) {
       setProfileForm({ name: authUser.name, phone: authUser.phone || '', department: authUser.department || '' });
     }
   }, [authUser]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    adminService.getBackups().then(setBackups).catch(() => {});
+  }, [isAdmin]);
+
+  const handleCreateBackup = async () => {
+    setCreatingBackup(true);
+    try {
+      await adminService.createBackup();
+      setBackups(await adminService.getBackups());
+    } catch { /* backend unavailable */ }
+    setCreatingBackup(false);
+  };
 
   const handleToggleEdit = () => {
     if (editing && authUser) {
@@ -208,6 +227,48 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
+
+          {isAdmin && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2.5">
+                  <IconBadge icon={<DatabaseBackup size={16} />} color="cyan" size="sm" />
+                  <span className="font-semibold text-gray-900 dark:text-white">{t.backupTitle}</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center justify-between gap-3 p-3.5 bg-cyan-50/60 dark:bg-cyan-500/5 border border-cyan-100 dark:border-cyan-900/40 rounded-lg">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{t.backupTitle}</p>
+                    <p className="text-xs text-gray-500">{t.backupDesc}</p>
+                  </div>
+                  <Button size="sm" variant="primary" loading={creatingBackup} onClick={handleCreateBackup}>
+                    {creatingBackup ? t.backupCreating : t.backupBtn}
+                  </Button>
+                </div>
+                {backups.length > 0 && (
+                  <div className="space-y-1.5">
+                    <p className="text-xs text-gray-500 font-medium">{t.backupList}</p>
+                    {backups.slice(0, 5).map(b => (
+                      <div key={b.filename} className="flex items-center justify-between gap-3 px-3 py-2 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+                        <div className="min-w-0">
+                          <p className="text-xs font-mono text-gray-700 dark:text-gray-300 truncate">{b.filename}</p>
+                          <p className="text-[11px] text-gray-500">{(b.size / 1024 / 1024).toFixed(1)} MB · {new Date(b.created_at).toLocaleString()}</p>
+                        </div>
+                        <button
+                          onClick={() => adminService.downloadBackup(b.filename)}
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-700 transition-colors flex-shrink-0"
+                          title={common.export}
+                        >
+                          <Download size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader>

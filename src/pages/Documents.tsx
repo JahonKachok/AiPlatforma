@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Layout } from '../components/layout/Layout';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -6,7 +6,7 @@ import { Avatar } from '../components/ui/Avatar';
 import { useStore } from '../store/useStore';
 import { documentService } from '../services/documentService';
 import { adaptDocument } from '../services/adapters';
-import { FileText, Upload, Search, CheckCircle, Clock, AlertCircle, Download, Eye } from 'lucide-react';
+import { FileText, Upload, Search, CheckCircle, Clock, AlertCircle, Download, Eye, History } from 'lucide-react';
 import { clsx } from 'clsx';
 import { translations } from '../i18n/translations';
 import type { Document } from '../types';
@@ -39,12 +39,22 @@ export default function Documents() {
   const [showUpload, setShowUpload] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadForm, setUploadForm] = useState({
-    name: '', docType: 'PDF', projectId: '', version: '1.0', file: null as File | null,
+    name: '', docType: 'PDF', projectId: '', version: '1.0', deadline: '', file: null as File | null,
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  interface AuditEntry { id: string; action: string; user_id?: string; details?: Record<string, unknown>; created_at: string }
+  const [auditLog, setAuditLog] = useState<AuditEntry[]>([]);
+  const [showJournal, setShowJournal] = useState(false);
+
+  useEffect(() => {
+    if (selectedDoc && showJournal) {
+      documentService.getAudit(selectedDoc.id).then(setAuditLog).catch(() => setAuditLog([]));
+    }
+  }, [selectedDoc, showJournal]);
+
   const resetUpload = () => {
-    setUploadForm({ name: '', docType: 'PDF', projectId: '', version: '1.0', file: null });
+    setUploadForm({ name: '', docType: 'PDF', projectId: '', version: '1.0', deadline: '', file: null });
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -66,6 +76,7 @@ export default function Documents() {
       fd.append('doc_type', uploadForm.docType);
       if (uploadForm.projectId) fd.append('project_id', uploadForm.projectId);
       fd.append('version', uploadForm.version);
+      if (uploadForm.deadline) fd.append('deadline', uploadForm.deadline);
       const result = await documentService.uploadDocument(fd);
       addDocument(adaptDocument(result));
     } catch {
@@ -79,6 +90,7 @@ export default function Documents() {
         status: 'draft',
         uploadedBy: authUser?.id || 'local',
         uploadedAt: new Date().toISOString().split('T')[0],
+        deadline: uploadForm.deadline || undefined,
         approvals: [],
       };
       addDocument(newDoc);
@@ -194,7 +206,7 @@ export default function Documents() {
                         <button onClick={() => setSelectedDoc(doc)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors dark:hover:bg-gray-700 dark:hover:text-gray-300" title={t.download}>
                           <Eye size={14} />
                         </button>
-                        <button className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors dark:hover:bg-gray-700 dark:hover:text-gray-300" title={t.download}>
+                        <button onClick={() => window.open(documentService.getDownloadUrl(doc.id), '_blank')} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors dark:hover:bg-gray-700 dark:hover:text-gray-300" title={t.download}>
                           <Download size={14} />
                         </button>
                       </div>
@@ -258,12 +270,18 @@ export default function Documents() {
                   <input value={uploadForm.version} onChange={e => setUploadForm(f => ({ ...f, version: e.target.value }))} placeholder="1.0" className={inputCls} />
                 </div>
               </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1.5">{t.projectColumn}</label>
-                <select value={uploadForm.projectId} onChange={e => setUploadForm(f => ({ ...f, projectId: e.target.value }))} className={inputCls}>
-                  <option value="">— {t.all} —</option>
-                  {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5">{t.projectColumn}</label>
+                  <select value={uploadForm.projectId} onChange={e => setUploadForm(f => ({ ...f, projectId: e.target.value }))} className={inputCls}>
+                    <option value="">— {t.all} —</option>
+                    {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5">{t.deadlineLabel}</label>
+                  <input type="date" value={uploadForm.deadline} onChange={e => setUploadForm(f => ({ ...f, deadline: e.target.value }))} className={inputCls} />
+                </div>
               </div>
             </div>
             <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
@@ -289,10 +307,13 @@ export default function Documents() {
                 <span className="text-2xl">{getFileIcon(selectedDoc.type)}</span>
                 <div>
                   <h2 className="text-base font-semibold text-gray-900 dark:text-white">{selectedDoc.name}</h2>
-                  <p className="text-xs text-gray-500">v{selectedDoc.version} · {formatSize(selectedDoc.size)}</p>
+                  <p className="text-xs text-gray-500">
+                    v{selectedDoc.version} · {formatSize(selectedDoc.size)}
+                    {selectedDoc.deadline && <> · {t.deadlineLabel}: {String(selectedDoc.deadline).split('T')[0]}</>}
+                  </p>
                 </div>
               </div>
-              <button onClick={() => setSelectedDoc(null)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors dark:hover:bg-gray-700 dark:hover:text-white">✕</button>
+              <button onClick={() => { setSelectedDoc(null); setShowJournal(false); }} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors dark:hover:bg-gray-700 dark:hover:text-white">✕</button>
             </div>
             <div className="px-6 py-4">
               <h3 className="text-sm font-semibold text-gray-500 mb-3">{t.approvalRoute}</h3>
@@ -317,10 +338,37 @@ export default function Documents() {
                   );
                 })}
               </div>
+
+              {showJournal && (
+                <div className="mt-4">
+                  <h3 className="text-sm font-semibold text-gray-500 mb-3">{t.journalTitle}</h3>
+                  {auditLog.length === 0 ? (
+                    <p className="text-xs text-gray-400">{t.journalEmpty}</p>
+                  ) : (
+                    <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                      {auditLog.map(entry => {
+                        const actor = users.find(u => u.id === entry.user_id);
+                        return (
+                          <div key={entry.id} className="flex items-center gap-3 px-3 py-2 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+                            <History size={12} className="text-gray-400 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs text-gray-700 dark:text-gray-300">
+                                <span className="font-medium">{entry.action}</span>
+                                {actor && <span className="text-gray-500"> · {actor.name}</span>}
+                              </p>
+                            </div>
+                            <span className="text-[11px] text-gray-400 flex-shrink-0">{new Date(entry.created_at).toLocaleString()}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
-              <Button icon={<Download size={16} />}>{t.download}</Button>
-              <Button variant="primary" icon={<CheckCircle size={16} />}>{t.approve}</Button>
+              <Button icon={<History size={16} />} onClick={() => setShowJournal(v => !v)}>{t.journalTitle}</Button>
+              <Button icon={<Download size={16} />} onClick={() => window.open(documentService.getDownloadUrl(selectedDoc.id), '_blank')}>{t.download}</Button>
             </div>
           </div>
         </div>

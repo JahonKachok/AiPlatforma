@@ -1,16 +1,19 @@
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_
 from sqlalchemy.orm import selectinload
 from app.database import get_db
 from app.models.user import User, UserRole
 from app.models.project import Project, ProjectMember, SubObject, Section, ProjectStatus
 from app.models.task import Task
+from app.models.document import AuditLog
 from app.schemas.project import (
     ProjectCreate, ProjectUpdate, ProjectResponse, ProjectListResponse,
     ProjectMemberCreate, ProjectMemberResponse, SubObjectCreate, SubObjectResponse,
     SectionCreate, SectionResponse,
 )
+from app.schemas.document import AuditLogResponse
 from app.utils.dependencies import get_current_active_user
 
 router = APIRouter(prefix="/projects", tags=["projects"])
@@ -42,7 +45,10 @@ async def list_projects(
     query = select(Project)
 
     if current_user.role not in [UserRole.admin, UserRole.manager]:
-        member_subq = select(ProjectMember.project_id).where(ProjectMember.user_id == current_user.id)
+        member_subq = select(ProjectMember.project_id).where(
+            ProjectMember.user_id == current_user.id,
+            or_(ProjectMember.expires_at == None, ProjectMember.expires_at > datetime.utcnow()),
+        )
         query = query.where(Project.id.in_(member_subq))
 
     if status:
@@ -86,8 +92,22 @@ async def update_project(
 ):
     project = await get_project_or_404(project_id, db)
 
+    changes = {}
     for field, value in data.model_dump(exclude_none=True).items():
+        old = getattr(project, field, None)
+        if old != value:
+            changes[field] = {
+                "old": old.value if hasattr(old, "value") else str(old),
+                "new": value.value if hasattr(value, "value") else str(value),
+            }
         setattr(project, field, value)
+
+    if changes:
+        db.add(AuditLog(
+            entity_type="project", entity_id=project_id,
+            action="update", user_id=current_user.id,
+            details=changes,
+        ))
 
     await db.commit()
     return await get_project_or_404(project_id, db)
@@ -177,6 +197,22 @@ async def add_section(
     await db.commit()
     await db.refresh(section)
     return section
+
+
+@router.get("/{project_id}/history", response_model=list[AuditLogResponse])
+async def get_project_history(
+    project_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    await get_project_or_404(project_id, db)
+    result = await db.execute(
+        select(AuditLog)
+        .where(AuditLog.entity_type == "project", AuditLog.entity_id == project_id)
+        .order_by(AuditLog.created_at.desc())
+        .limit(200)
+    )
+    return result.scalars().all()
 
 
 @router.get("/{project_id}/stats")

@@ -1,11 +1,15 @@
+import { useState } from 'react';
 import { Layout } from '../components/layout/Layout';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
 import { useStore } from '../store/useStore';
+import { FileSpreadsheet } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis
 } from 'recharts';
 import { translations } from '../i18n/translations';
+import { reportService } from '../services/reportService';
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444', '#6b7280'];
 
@@ -14,6 +18,15 @@ export default function Reports() {
   const t = translations[language].reports;
   const tStatus = translations[language].taskStatus;
   const tProjectStatus = translations[language].projectStatus;
+  const [exporting, setExporting] = useState<string | null>(null);
+
+  const handleExport = async (kind: 'projects' | 'tasks' | 'finance' | 'employees') => {
+    setExporting(kind);
+    try {
+      await reportService.downloadExport(kind);
+    } catch { /* backend unavailable */ }
+    setExporting(null);
+  };
 
   const taskByUser = users.map(u => ({
     name: u.name.split(' ')[0],
@@ -64,6 +77,26 @@ export default function Reports() {
 
   return (
     <Layout title={t.title} subtitle={t.subtitle}>
+      <div className="flex items-center gap-2 flex-wrap mb-6">
+        <span className="text-sm text-gray-500 mr-1">{t.exportTitle}:</span>
+        {([
+          ['projects', t.exportProjects],
+          ['tasks', t.exportTasks],
+          ['finance', t.exportFinance],
+          ['employees', t.exportEmployees],
+        ] as const).map(([kind, label]) => (
+          <Button
+            key={kind}
+            size="sm"
+            icon={<FileSpreadsheet size={14} />}
+            loading={exporting === kind}
+            onClick={() => handleExport(kind)}
+          >
+            {label}
+          </Button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {summaryStats.map(({ label, value, total, color }) => (
           <div key={label} className="bg-white border border-gray-200 rounded-xl p-4 dark:bg-gray-800 dark:border-gray-700">

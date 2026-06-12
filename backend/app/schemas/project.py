@@ -43,6 +43,8 @@ class SectionResponse(BaseModel):
 class ProjectMemberCreate(BaseModel):
     user_id: str
     role_in_project: Optional[str] = None
+    can_edit: bool = True
+    expires_at: Optional[datetime] = None
 
 
 class ProjectMemberResponse(BaseModel):
@@ -50,6 +52,8 @@ class ProjectMemberResponse(BaseModel):
     id: str
     user_id: str
     role_in_project: Optional[str]
+    can_edit: bool = True
+    expires_at: Optional[datetime] = None
     joined_at: datetime
 
 

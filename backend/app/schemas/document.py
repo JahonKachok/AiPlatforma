@@ -46,6 +46,7 @@ class DocumentCreate(BaseModel):
     project_id: str
     section_id: Optional[str] = None
     version: str = "1.0"
+    deadline: Optional[datetime] = None
 
 
 class DocumentUpdate(BaseModel):
@@ -54,6 +55,19 @@ class DocumentUpdate(BaseModel):
     section_id: Optional[str] = None
     version: Optional[str] = None
     status: Optional[DocumentStatus] = None
+    deadline: Optional[datetime] = None
+
+
+class AuditLogResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    entity_type: str
+    entity_id: str
+    action: str
+    user_id: Optional[str]
+    details: Optional[dict]
+    ip_address: Optional[str]
+    created_at: datetime
 
 
 class DocumentResponse(BaseModel):
@@ -70,6 +84,7 @@ class DocumentResponse(BaseModel):
     file_size: int
     mime_type: Optional[str]
     google_drive_id: Optional[str]
+    deadline: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
     versions: List[DocumentVersionResponse] = []

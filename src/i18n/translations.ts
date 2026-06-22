@@ -118,6 +118,11 @@ export interface AppTranslations {
     participantsCount: string; team: string; gipLabel: string;
     editProject: string; confirmDelete: string;
     objects: string; noObjects: string;
+    addRecord: string; noRecords: string; financeRecords: string;
+    confirmed: string; pendingRecord: string; cancelledRecord: string;
+    typeLabel: string; amountLabel: string; categoryLabel: string; addRecordTitle: string;
+    income: string; expense: string; advance: string; payment: string;
+    deleteRecordConfirm: string;
   };
   roles: Record<string, string>;
   taskStatus: Record<string, string>;
@@ -310,6 +315,11 @@ export const translations: Record<Language, AppTranslations> = {
       docsCount: "Hujjatlar", participantsCount: "Ishtirokchilar", team: "Jamoa", gipLabel: "BLM",
       editProject: "Loyihani tahrirlash", confirmDelete: "Bu loyihani o'chirishni tasdiqlaysizmi? Bu amalni qaytarib bo'lmaydi.",
       objects: "Loyiha tarkibi", noObjects: "Ob'ektlar yo'q",
+      addRecord: "Yozuv qo'shish", noRecords: "Moliya yozuvlari yo'q", financeRecords: "Moliya yozuvlari",
+      confirmed: "Tasdiqlangan", pendingRecord: "Kutilmoqda", cancelledRecord: "Bekor qilingan",
+      typeLabel: "Tur", amountLabel: "Miqdor (so'm)", categoryLabel: "Kategoriya", addRecordTitle: "Yangi moliya yozuvini qo'shish",
+      income: "Kirim", expense: "Chiqim", advance: "Avans", payment: "To'lov",
+      deleteRecordConfirm: "Bu yozuvni o'chirishni tasdiqlaysizmi?",
     },
     organization: {
       title: "Tashkiliy Tuzilma", subtitle: "Bo'lim va kadr boshqaruvi",
@@ -513,6 +523,11 @@ export const translations: Record<Language, AppTranslations> = {
       docsCount: "Документов", participantsCount: "Участников", team: "Команда", gipLabel: "ГИП",
       editProject: "Редактировать проект", confirmDelete: "Вы уверены, что хотите удалить этот проект? Это действие нельзя отменить.",
       objects: "Состав проекта", noObjects: "Объектов нет",
+      addRecord: "Добавить запись", noRecords: "Нет финансовых записей", financeRecords: "Финансовые записи",
+      confirmed: "Подтверждено", pendingRecord: "Ожидается", cancelledRecord: "Отменено",
+      typeLabel: "Тип", amountLabel: "Сумма (сум)", categoryLabel: "Категория", addRecordTitle: "Новая финансовая запись",
+      income: "Доход", expense: "Расход", advance: "Аванс", payment: "Платёж",
+      deleteRecordConfirm: "Вы уверены, что хотите удалить эту запись?",
     },
     organization: {
       title: "Организационная структура", subtitle: "Управление отделами и персоналом",
@@ -716,6 +731,11 @@ export const translations: Record<Language, AppTranslations> = {
       docsCount: "Documents", participantsCount: "Participants", team: "Team", gipLabel: "CPE",
       editProject: "Edit Project", confirmDelete: "Are you sure you want to delete this project? This action cannot be undone.",
       objects: "Project composition", noObjects: "No objects",
+      addRecord: "Add Record", noRecords: "No finance records", financeRecords: "Finance Records",
+      confirmed: "Confirmed", pendingRecord: "Pending", cancelledRecord: "Cancelled",
+      typeLabel: "Type", amountLabel: "Amount (UZS)", categoryLabel: "Category", addRecordTitle: "Add Finance Record",
+      income: "Income", expense: "Expense", advance: "Advance", payment: "Payment",
+      deleteRecordConfirm: "Are you sure you want to delete this record?",
     },
     organization: {
       title: "Organization Structure", subtitle: "Department and personnel management",

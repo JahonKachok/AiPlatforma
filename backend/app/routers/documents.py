@@ -1,9 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
+from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 import os
+import zipfile
+import io
+from typing import List
 
 from app.database import get_db
 from app.models.user import User
@@ -34,6 +37,7 @@ async def get_document_or_404(doc_id: str, db: AsyncSession) -> Document:
 @router.get("", response_model=list[DocumentResponse])
 async def list_documents(
     project_id: str | None = None,
+    section_id: str | None = None,
     status: str | None = None,
     doc_type: str | None = None,
     search: str | None = None,
@@ -43,6 +47,8 @@ async def list_documents(
     query = select(Document).options(selectinload(Document.versions), selectinload(Document.approval_stages))
     if project_id:
         query = query.where(Document.project_id == project_id)
+    if section_id:
+        query = query.where(Document.section_id == section_id)
     if status:
         query = query.where(Document.status == status)
     if doc_type:
@@ -51,6 +57,59 @@ async def list_documents(
         query = query.where(Document.name.ilike(f"%{search}%"))
     result = await db.execute(query.order_by(Document.created_at.desc()))
     return result.scalars().all()
+
+
+@router.get("/bulk-download", response_class=StreamingResponse)
+async def bulk_download_documents(
+    doc_ids: List[str] = Query(...),
+    zip_name: str = Query(default="documents"),
+    token: str | None = None,
+    db: AsyncSession = Depends(get_db),
+):
+    # Verify token for authentication
+    from app.utils.security import verify_token
+    payload = verify_token(token) if token else None
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid or missing token")
+    user_result = await db.execute(select(User).where(User.id == payload.get("sub")))
+    current_user = user_result.scalar_one_or_none()
+    if not current_user or not current_user.is_active:
+        raise HTTPException(status_code=401, detail="User not found or inactive")
+
+    result = await db.execute(
+        select(Document)
+        .where(Document.id.in_(doc_ids))
+        .options(selectinload(Document.versions))
+    )
+    documents = result.scalars().all()
+
+    if not documents:
+        raise HTTPException(status_code=404, detail="No documents found")
+
+    # Create zip in memory
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        for doc in documents:
+            if doc.file_path and os.path.exists(doc.file_path):
+                # Add file to zip with document name
+                arc_name = f"{doc.name}.{doc.doc_type.lower()}" if doc.doc_type else doc.name
+                zip_file.write(doc.file_path, arcname=arc_name)
+
+                # Log download
+                db.add(AuditLog(
+                    entity_type="document", entity_id=doc.id,
+                    action="bulk_download", user_id=current_user.id,
+                    details={"zip_name": zip_name},
+                ))
+
+    await db.commit()
+    zip_buffer.seek(0)
+
+    return StreamingResponse(
+        iter([zip_buffer.getvalue()]),
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{zip_name}.zip"'}
+    )
 
 
 @router.post("", response_model=DocumentResponse, status_code=201)
@@ -155,8 +214,17 @@ async def delete_document(
     current_user: User = Depends(get_current_active_user),
 ):
     doc = await get_document_or_404(doc_id, db)
+
+    # Log deletion
+    db.add(AuditLog(
+        entity_type="document", entity_id=doc_id,
+        action="delete", user_id=current_user.id,
+        details={"name": doc.name, "version": doc.version},
+    ))
+
     if doc.file_path:
         delete_file(doc.file_path)
+
     await db.delete(doc)
     await db.commit()
     return {"message": "Document deleted"}

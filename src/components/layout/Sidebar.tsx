@@ -25,6 +25,7 @@ export function Sidebar() {
     { to: '/reports', label: t.nav.analytics, icon: BarChart3 },
     { to: '/requests', label: t.nav.requests, icon: MessageSquare },
     { to: '/templates', label: t.nav.templates, icon: FileSignature },
+    { to: '/organization', label: 'Организация', icon: Building2 },
     { to: '/users', label: t.nav.employees, icon: Users },
     { to: '/settings', label: t.nav.settings, icon: Settings },
   ];

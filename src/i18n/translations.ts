@@ -27,6 +27,9 @@ export interface AppTranslations {
     pending: string; revision: string;
     uploadTitle: string; docNameLabel: string; docTypeLabel: string;
     deadlineLabel: string; journalTitle: string; journalEmpty: string;
+    sectionColumn: string; downloadSelected: string; selectAll: string; deleteConfirm: string;
+    deleteSelected: string; bulkDownload: string; selected: string; noSelection: string;
+    filterBySection: string; filterByProject: string; filterByType: string;
   };
   approvals: {
     title: string; subtitle: string; pending: string; approvedDocs: string; rejectedDocs: string;
@@ -114,12 +117,26 @@ export interface AppTranslations {
     statistics: string; tasksCount: string; overdue: string; docsCount: string;
     participantsCount: string; team: string; gipLabel: string;
     editProject: string; confirmDelete: string;
+    objects: string; noObjects: string;
   };
   roles: Record<string, string>;
   taskStatus: Record<string, string>;
   projectStatus: Record<string, string>;
   projectStage: Record<string, string>;
   priority: Record<string, string>;
+  organization: {
+    title: string; subtitle: string;
+    departments: string; units: string; members: string; reporting: string;
+    hierarchy: string; composition: string;
+    newDepartment: string; newUnit: string; addMember: string;
+    name: string; code: string; head: string; manager: string;
+    status: string; description: string; level: string;
+    active: string; inactive: string; archived: string;
+    noDepartments: string; noUnits: string; noMembers: string;
+    deptName: string; deptCode: string; deptHead: string;
+    unitName: string; unitCode: string; unitManager: string;
+    createSuccess: string; updateSuccess: string; deleteSuccess: string;
+  };
   common: {
     save: string; cancel: string; delete: string; edit: string; add: string; close: string;
     back: string; loading: string; noData: string; search: string; filter: string;
@@ -161,6 +178,11 @@ export const translations: Record<Language, AppTranslations> = {
       rejected: "Rad etilgan", archived: "Arxiv", pending: "Kutilmoqda", revision: "Qayta ishlash",
       uploadTitle: "Hujjat yuklash", docNameLabel: "Hujjat nomi", docTypeLabel: "Tur",
       deadlineLabel: "Muddat", journalTitle: "Amallar jurnali", journalEmpty: "Jurnal bo'sh",
+      sectionColumn: "Bo'lim", downloadSelected: "Tanlangan fayllni yuklab olish", selectAll: "Barchasini tanlash",
+      deleteConfirm: "Tanlangan hujjatlarni o'chirishni tasdiqlaysizmi?", deleteSelected: "Tanlanganlari o'chirish",
+      bulkDownload: "Zip sifatida yuklab olish", selected: "tanlangan", noSelection: "Hujjat tanlanmagan",
+      filterBySection: "Bo'lim bo'yicha filtrlash", filterByProject: "Loyiha bo'yicha filtrlash",
+      filterByType: "Tur bo'yicha filtrlash",
     },
     approvals: {
       title: "Kelishuvlar", subtitle: "Hujjatlar kelishuv marshrutlari",
@@ -287,6 +309,20 @@ export const translations: Record<Language, AppTranslations> = {
       remainder: "Qoldiq", statistics: "Statistika", tasksCount: "Vazifalar", overdue: "Muddati o'tgan",
       docsCount: "Hujjatlar", participantsCount: "Ishtirokchilar", team: "Jamoa", gipLabel: "BLM",
       editProject: "Loyihani tahrirlash", confirmDelete: "Bu loyihani o'chirishni tasdiqlaysizmi? Bu amalni qaytarib bo'lmaydi.",
+      objects: "Loyiha tarkibi", noObjects: "Ob'ektlar yo'q",
+    },
+    organization: {
+      title: "Tashkiliy Tuzilma", subtitle: "Bo'lim va kadr boshqaruvi",
+      departments: "Bo'limlar", units: "Unitlar", members: "A'zolar", reporting: "Menejment Zanjiri",
+      hierarchy: "Ierarxiya", composition: "Tarkibi",
+      newDepartment: "Yangi Bo'lim", newUnit: "Yangi Unit", addMember: "A'zo Qo'shish",
+      name: "Nomi", code: "Kodi", head: "Bosh", manager: "Menejeri",
+      status: "Holat", description: "Tavsif", level: "Saviyasi",
+      active: "Faol", inactive: "Faol emas", archived: "Arxiv",
+      noDepartments: "Bo'limlar yo'q", noUnits: "Unitlar yo'q", noMembers: "A'zolar yo'q",
+      deptName: "Bo'lim Nomi", deptCode: "Bo'lim Kodi", deptHead: "Bo'lim Boshi",
+      unitName: "Unit Nomi", unitCode: "Unit Kodi", unitManager: "Unit Menejeri",
+      createSuccess: "Yaratildi", updateSuccess: "Yangilandi", deleteSuccess: "O'chirildi",
     },
     roles: {
       admin: "Administrator", manager: "Rahbar", gip: "Bosh loyiha muhandisi",
@@ -346,6 +382,10 @@ export const translations: Record<Language, AppTranslations> = {
       rejected: "Отклонено", archived: "Архив", pending: "Ожидает", revision: "На доработке",
       uploadTitle: "Загрузить документ", docNameLabel: "Название документа", docTypeLabel: "Тип",
       deadlineLabel: "Дедлайн", journalTitle: "Журнал действий", journalEmpty: "Журнал пуст",
+      sectionColumn: "Раздел", downloadSelected: "Скачать выбранные", selectAll: "Выбрать все",
+      deleteConfirm: "Вы уверены, что хотите удалить выбранные документы?", deleteSelected: "Удалить выбранные",
+      bulkDownload: "Скачать как ZIP", selected: "выбрано", noSelection: "Документы не выбраны",
+      filterBySection: "Фильтр по разделу", filterByProject: "Фильтр по проекту", filterByType: "Фильтр по типу",
     },
     approvals: {
       title: "Согласования", subtitle: "Маршруты согласования документов",
@@ -472,6 +512,20 @@ export const translations: Record<Language, AppTranslations> = {
       remainder: "Остаток", statistics: "Статистика", tasksCount: "Задач", overdue: "Просрочено",
       docsCount: "Документов", participantsCount: "Участников", team: "Команда", gipLabel: "ГИП",
       editProject: "Редактировать проект", confirmDelete: "Вы уверены, что хотите удалить этот проект? Это действие нельзя отменить.",
+      objects: "Состав проекта", noObjects: "Объектов нет",
+    },
+    organization: {
+      title: "Организационная структура", subtitle: "Управление отделами и персоналом",
+      departments: "Отделы", units: "Подразделения", members: "Сотрудники", reporting: "Цепь управления",
+      hierarchy: "Иерархия", composition: "Состав",
+      newDepartment: "Новый отдел", newUnit: "Новое подразделение", addMember: "Добавить сотрудника",
+      name: "Название", code: "Код", head: "Руководитель", manager: "Менеджер",
+      status: "Статус", description: "Описание", level: "Уровень",
+      active: "Активный", inactive: "Неактивный", archived: "Архив",
+      noDepartments: "Отделов нет", noUnits: "Подразделений нет", noMembers: "Сотрудников нет",
+      deptName: "Название отдела", deptCode: "Код отдела", deptHead: "Руководитель отдела",
+      unitName: "Название подразделения", unitCode: "Код подразделения", unitManager: "Менеджер подразделения",
+      createSuccess: "Создано", updateSuccess: "Обновлено", deleteSuccess: "Удалено",
     },
     roles: {
       admin: "Администратор", manager: "Руководитель", gip: "ГИП",
@@ -531,6 +585,10 @@ export const translations: Record<Language, AppTranslations> = {
       rejected: "Rejected", archived: "Archived", pending: "Pending", revision: "Revision",
       uploadTitle: "Upload Document", docNameLabel: "Document name", docTypeLabel: "Type",
       deadlineLabel: "Deadline", journalTitle: "Activity log", journalEmpty: "Log is empty",
+      sectionColumn: "Section", downloadSelected: "Download Selected", selectAll: "Select All",
+      deleteConfirm: "Are you sure you want to delete the selected documents?", deleteSelected: "Delete Selected",
+      bulkDownload: "Download as ZIP", selected: "selected", noSelection: "No documents selected",
+      filterBySection: "Filter by section", filterByProject: "Filter by project", filterByType: "Filter by type",
     },
     approvals: {
       title: "Approvals", subtitle: "Document approval routes",
@@ -657,6 +715,20 @@ export const translations: Record<Language, AppTranslations> = {
       remainder: "Remainder", statistics: "Statistics", tasksCount: "Tasks", overdue: "Overdue",
       docsCount: "Documents", participantsCount: "Participants", team: "Team", gipLabel: "CPE",
       editProject: "Edit Project", confirmDelete: "Are you sure you want to delete this project? This action cannot be undone.",
+      objects: "Project composition", noObjects: "No objects",
+    },
+    organization: {
+      title: "Organization Structure", subtitle: "Department and personnel management",
+      departments: "Departments", units: "Units", members: "Members", reporting: "Reporting Chain",
+      hierarchy: "Hierarchy", composition: "Composition",
+      newDepartment: "New Department", newUnit: "New Unit", addMember: "Add Member",
+      name: "Name", code: "Code", head: "Head", manager: "Manager",
+      status: "Status", description: "Description", level: "Level",
+      active: "Active", inactive: "Inactive", archived: "Archived",
+      noDepartments: "No departments", noUnits: "No units", noMembers: "No members",
+      deptName: "Department Name", deptCode: "Department Code", deptHead: "Department Head",
+      unitName: "Unit Name", unitCode: "Unit Code", unitManager: "Unit Manager",
+      createSuccess: "Created", updateSuccess: "Updated", deleteSuccess: "Deleted",
     },
     roles: {
       admin: "Administrator", manager: "Manager", gip: "Chief Project Engineer",

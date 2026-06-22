@@ -179,6 +179,34 @@ export default function ProjectDetail() {
             </CardContent>
           </Card>
 
+          {project.objects.length > 0 && (
+            <Card>
+              <CardHeader><span className="font-semibold text-gray-900 dark:text-white">{t.objects} ({project.objects.length})</span></CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {project.objects.map(obj => {
+                    const objGip = users.find(u => u.id === obj.gipId);
+                    return (
+                      <div key={obj.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
+                        <div className="w-8 h-8 bg-amber-50 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-700 rounded-lg flex items-center justify-center text-xs font-bold text-amber-600 dark:text-amber-400">🏢</div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{obj.name}</p>
+                          {obj.address && <p className="text-xs text-gray-500 mt-0.5">{obj.address}</p>}
+                        </div>
+                        {objGip && (
+                          <div className="flex items-center gap-2">
+                            <Avatar name={objGip.name} size="xs" />
+                            <span className="text-xs text-gray-500 hidden md:inline">{objGip.name}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {project.sections.length > 0 && (
             <Card>
               <CardHeader><span className="font-semibold text-gray-900 dark:text-white">{t.sections} ({project.sections.length})</span></CardHeader>

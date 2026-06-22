@@ -15,6 +15,7 @@ import Reports from './pages/Reports';
 import Requests from './pages/Requests';
 import Settings from './pages/Settings';
 import Templates from './pages/Templates';
+import Organization from './pages/Organization';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useStore();
@@ -50,6 +51,7 @@ export default function App() {
         <Route path="/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
         <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/organization" element={<ProtectedRoute><Organization /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

@@ -57,4 +57,17 @@ export const documentService = {
     const { data } = await api.get(`/documents/${documentId}/audit`)
     return data
   },
+
+  async bulkDownload(docIds: string[], zipName: string = 'documents') {
+    const params = new URLSearchParams()
+    docIds.forEach(id => params.append('doc_ids', id))
+    params.append('zip_name', zipName)
+
+    window.location.href = `${BASE_UPLOAD_URL}/api/documents/bulk-download?${params.toString()}&token=${localStorage.getItem('access_token')}`
+  },
+
+  async approveDocument(id: string, payload: Record<string, unknown>) {
+    const { data } = await api.put(`/documents/${id}`, payload)
+    return data
+  },
 }

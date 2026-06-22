@@ -6,7 +6,7 @@ import { Avatar } from '../components/ui/Avatar';
 import { useStore } from '../store/useStore';
 import { documentService } from '../services/documentService';
 import { adaptDocument } from '../services/adapters';
-import { FileText, Upload, Search, CheckCircle, Clock, AlertCircle, Download, Eye, History } from 'lucide-react';
+import { FileText, Upload, Search, CheckCircle, Clock, AlertCircle, Download, Eye, History, Trash2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { translations } from '../i18n/translations';
 import type { Document } from '../types';
@@ -34,7 +34,11 @@ export default function Documents() {
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [projectFilter, setProjectFilter] = useState('');
+  const [sectionFilter, setSectionFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
+  const [selectedDocs, setSelectedDocs] = useState<Set<string>>(new Set());
 
   const [showUpload, setShowUpload] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -46,6 +50,9 @@ export default function Documents() {
   interface AuditEntry { id: string; action: string; user_id?: string; details?: Record<string, unknown>; created_at: string }
   const [auditLog, setAuditLog] = useState<AuditEntry[]>([]);
   const [showJournal, setShowJournal] = useState(false);
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (selectedDoc && showJournal) {
@@ -119,12 +126,70 @@ export default function Documents() {
   const filtered = documents.filter(d => {
     const ms = search === '' || d.name.toLowerCase().includes(search.toLowerCase());
     const mst = statusFilter === 'all' || d.status === statusFilter;
-    return ms && mst;
+    const mp = projectFilter === '' || d.projectId === projectFilter;
+    const mt = typeFilter === '' || d.type === typeFilter;
+    return ms && mst && mp && mt;
   });
 
   const stats = Object.entries(statusConfig).map(([key, cfg]) => ({
     key, label: cfg.label, count: documents.filter(d => d.status === key).length,
   }));
+
+  const toggleSelectDoc = (docId: string) => {
+    const newSet = new Set(selectedDocs);
+    if (newSet.has(docId)) {
+      newSet.delete(docId);
+    } else {
+      newSet.add(docId);
+    }
+    setSelectedDocs(newSet);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedDocs.size === filtered.length && filtered.length > 0) {
+      setSelectedDocs(new Set());
+    } else {
+      setSelectedDocs(new Set(filtered.map(d => d.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    setDeleting(true);
+    try {
+      for (const docId of selectedDocs) {
+        await documentService.deleteDocument(docId);
+      }
+      setSelectedDocs(new Set());
+      setShowDeleteConfirm(false);
+      window.location.reload();
+    } catch (error) {
+      console.error('Delete error:', error);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleBulkDownload = async () => {
+    const docIds = Array.from(selectedDocs);
+    if (docIds.length === 0) return;
+
+    const filters = [];
+    if (statusFilter !== 'all') filters.push(`status_${statusFilter}`);
+    if (projectFilter) filters.push(`project_${projects.find(p => p.id === projectFilter)?.name || 'docs'}`);
+    if (typeFilter) filters.push(`type_${typeFilter}`);
+
+    const zipName = filters.length > 0 ? `documents_${filters.join('_')}` : 'documents';
+    await documentService.bulkDownload(docIds, zipName);
+  };
+
+  const handleApprove = async (docId: string) => {
+    try {
+      await documentService.approveDocument(docId, { status: 'approved' });
+      window.location.reload();
+    } catch (error) {
+      console.error('Approve error:', error);
+    }
+  };
 
   const thCls = "px-4 py-3 text-left text-xs text-gray-500 font-medium";
   const rowCls = "border-b border-gray-100 hover:bg-gray-50 transition-colors dark:border-gray-800 dark:hover:bg-gray-800/50";
@@ -151,6 +216,16 @@ export default function Documents() {
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t.searchPlaceholder} className={searchCls} />
         </div>
+        <select value={projectFilter} onChange={e => setProjectFilter(e.target.value)}
+          className={clsx(inputCls, 'w-auto')} title={t.filterByProject}>
+          <option value="">— {t.all} —</option>
+          {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
+          className={clsx(inputCls, 'w-auto')} title={t.filterByType}>
+          <option value="">— {t.all} —</option>
+          {DOC_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
+        </select>
         <div className="flex gap-2 flex-wrap">
           {['all', ...Object.keys(statusConfig)].map(s => (
             <button key={s} onClick={() => setStatusFilter(s)}
@@ -159,6 +234,13 @@ export default function Documents() {
             </button>
           ))}
         </div>
+        {selectedDocs.size > 0 && (
+          <div className="flex gap-2">
+            <span className="text-sm text-gray-600 dark:text-gray-400">{selectedDocs.size} {t.selected}</span>
+            <Button variant="primary" icon={<Download size={16} />} onClick={handleBulkDownload}>{t.downloadSelected}</Button>
+            <Button variant="danger" icon={<Trash2 size={16} />} onClick={() => setShowDeleteConfirm(true)}>{t.deleteSelected}</Button>
+          </div>
+        )}
         <Button variant="primary" icon={<Upload size={16} />} onClick={() => setShowUpload(true)}>{t.upload}</Button>
       </div>
 
@@ -168,6 +250,10 @@ export default function Documents() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200 dark:border-gray-700">
+                <th className={thCls}>
+                  <input type="checkbox" checked={selectedDocs.size > 0 && selectedDocs.size === filtered.length}
+                    onChange={toggleSelectAll} className="w-4 h-4 cursor-pointer rounded" />
+                </th>
                 {[t.docColumn, t.projectColumn, t.versionColumn, t.sizeColumn, t.uploaderColumn, t.dateColumn, t.statusColumn, ''].map(h => (
                   <th key={h} className={thCls}>{h}</th>
                 ))}
@@ -178,8 +264,13 @@ export default function Documents() {
                 const project = projects.find(p => p.id === doc.projectId);
                 const uploader = users.find(u => u.id === doc.uploadedBy);
                 const StatusIcon = statusConfig[doc.status].icon;
+                const isSelected = selectedDocs.has(doc.id);
                 return (
-                  <tr key={doc.id} className={rowCls}>
+                  <tr key={doc.id} className={clsx(rowCls, isSelected && 'bg-blue-50 dark:bg-blue-900/20')}>
+                    <td className="px-4 py-3">
+                      <input type="checkbox" checked={isSelected} onChange={() => toggleSelectDoc(doc.id)}
+                        className="w-4 h-4 cursor-pointer rounded" />
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <span className="text-lg">{getFileIcon(doc.type)}</span>
@@ -208,6 +299,15 @@ export default function Documents() {
                         </button>
                         <button onClick={() => window.open(documentService.getDownloadUrl(doc.id), '_blank')} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors dark:hover:bg-gray-700 dark:hover:text-gray-300" title={t.download}>
                           <Download size={14} />
+                        </button>
+                        {doc.status === 'draft' && (
+                          <button onClick={() => handleApprove(doc.id)} className="p-1.5 rounded-lg hover:bg-emerald-100 text-emerald-500 hover:text-emerald-700 transition-colors dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400" title={t.approve}>
+                            <CheckCircle size={14} />
+                          </button>
+                        )}
+                        <button onClick={() => { setSelectedDocs(new Set([doc.id])); setShowDeleteConfirm(true); }}
+                          className="p-1.5 rounded-lg hover:bg-red-100 text-red-500 hover:text-red-700 transition-colors dark:hover:bg-red-900/30 dark:hover:text-red-400" title={tc.delete}>
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </td>
@@ -369,6 +469,26 @@ export default function Documents() {
             <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
               <Button icon={<History size={16} />} onClick={() => setShowJournal(v => !v)}>{t.journalTitle}</Button>
               <Button icon={<Download size={16} />} onClick={() => window.open(documentService.getDownloadUrl(selectedDoc.id), '_blank')}>{t.download}</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setShowDeleteConfirm(false)} />
+          <div className="relative w-full max-w-md bg-white border border-gray-200 rounded-2xl shadow-2xl dark:bg-gray-800 dark:border-gray-700">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white">{tc.delete}</h2>
+              <button onClick={() => setShowDeleteConfirm(false)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors dark:hover:bg-gray-700 dark:hover:text-white">✕</button>
+            </div>
+            <div className="px-6 py-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400">{t.deleteConfirm}</p>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+              <Button onClick={() => setShowDeleteConfirm(false)}>{tc.cancel}</Button>
+              <Button variant="danger" onClick={handleBulkDelete} loading={deleting}>{tc.delete}</Button>
             </div>
           </div>
         </div>

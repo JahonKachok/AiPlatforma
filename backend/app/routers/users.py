@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
+from pydantic import BaseModel
 from app.database import get_db
 from app.models.user import User, UserRole
 from app.models.task import Task, TaskStatus
@@ -8,6 +9,9 @@ from app.models.project import ProjectMember
 from app.schemas.user import UserResponse, UserUpdate, UserStatsResponse
 from app.utils.dependencies import get_current_active_user, require_roles
 from app.services.file_service import save_upload_file, get_file_url
+from app.services.telegram_linking import (
+    generate_linking_token, get_telegram_link_url, unlink_telegram_account
+)
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -120,3 +124,62 @@ async def get_user_stats(
         tasks_overdue=sum(1 for t in tasks if t.deadline and t.deadline < now and t.status not in [TaskStatus.completed, TaskStatus.approved]),
         active_projects=active_projects,
     )
+
+
+class TelegramLinkResponse(BaseModel):
+    telegram_link: str
+    message: str
+    token: str
+
+
+@router.post("/{user_id}/telegram/link", response_model=TelegramLinkResponse)
+async def create_telegram_link(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """Generate a Telegram linking token for current user"""
+    if current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="Cannot link other users")
+
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user.telegram_chat_id:
+        raise HTTPException(status_code=400, detail="Telegram already linked")
+
+    token = generate_linking_token(user_id)
+    telegram_link = get_telegram_link_url(user_id, token)
+
+    return TelegramLinkResponse(
+        telegram_link=telegram_link,
+        message=f"Click the link or open Telegram and send: /link {token}",
+        token=token,
+    )
+
+
+@router.post("/{user_id}/telegram/unlink")
+async def unlink_telegram(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """Unlink Telegram account"""
+    if current_user.id != user_id and current_user.role != UserRole.admin:
+        raise HTTPException(status_code=403, detail="Not allowed")
+
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if not user.telegram_chat_id:
+        raise HTTPException(status_code=400, detail="Telegram not linked")
+
+    success = await unlink_telegram_account(db, user_id)
+    if not success:
+        raise HTTPException(status_code=500, detail="Error unlinking")
+
+    return {"message": "Telegram account unlinked"}

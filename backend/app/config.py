@@ -11,6 +11,7 @@ class Settings(BaseSettings):
 
     TELEGRAM_BOT_TOKEN: Optional[str] = None
     TELEGRAM_WEBHOOK_URL: Optional[str] = None
+    TELEGRAM_USER_ID: Optional[str] = None
 
     SMTP_HOST: Optional[str] = None
     SMTP_PORT: int = 587

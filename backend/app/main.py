@@ -6,7 +6,7 @@ from pathlib import Path
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
@@ -14,13 +14,14 @@ from app.config import settings
 from app.database import engine, Base, get_db
 from app.websocket.manager import manager
 from app.services.telegram_service import telegram_service
+from app.services.telegram_bot import telegram_bot
 from app.services.google_drive_service import google_drive_service
 from app.services.scheduler import deadline_watcher
 from app.utils.security import verify_token
 from app.models import user, project, task, document, finance, notification, request_model, template
 
 from app.routers import auth, users, projects, tasks, documents, approvals, finance as finance_router
-from app.routers import notifications, requests, reports, templates, admin
+from app.routers import notifications, requests, reports, templates, admin, telegram
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -42,6 +43,7 @@ async def lifespan(app: FastAPI):
     logger.info("Database tables created/verified")
 
     await telegram_service.initialize()
+    await telegram_bot.initialize()
     google_drive_service.initialize()
 
     await create_default_admin()
@@ -54,6 +56,7 @@ async def lifespan(app: FastAPI):
 
     logger.info("Shutting down AiPlatforma API...")
     watcher_task.cancel()
+    await telegram_bot.stop_polling()
     await engine.dispose()
 
 
@@ -226,11 +229,22 @@ app.include_router(requests.router, prefix="/api")
 app.include_router(reports.router, prefix="/api")
 app.include_router(templates.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
+app.include_router(telegram.router, prefix="/api")
 
 
 @app.get("/api/health")
 async def health_check():
     return {"status": "ok", "version": "1.0.0"}
+
+
+@app.get("/telegram/miniapp")
+async def telegram_miniapp():
+    """Serve Telegram Mini App"""
+    miniapp_path = Path(__file__).resolve().parent.parent / "telegram_miniapp.html"
+    if miniapp_path.exists():
+        with open(miniapp_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse("<h1>Mini App not found</h1>", status_code=404)
 
 
 @app.websocket("/ws/{user_id}")

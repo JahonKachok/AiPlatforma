@@ -5,8 +5,8 @@ import { Building2, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { translations } from '../i18n/translations';
 
 export default function Login() {
-  const [email, setEmail] = useState('admin@platform.uz');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('test@platform.uz');
+  const [password, setPassword] = useState('Test123456');
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -31,9 +31,7 @@ export default function Login() {
 
   const demoUsers = [
     { email: 'admin@platform.uz', role: roleLabels.admin, color: 'text-red-500 dark:text-red-400' },
-    { email: 'manager@platform.uz', role: roleLabels.manager, color: 'text-purple-500 dark:text-purple-400' },
-    { email: 'gip1@platform.uz', role: roleLabels.gip, color: 'text-blue-500 dark:text-blue-400' },
-    { email: 'designer1@platform.uz', role: roleLabels.designer, color: 'text-emerald-500 dark:text-emerald-400' },
+    { email: 'test@platform.uz', role: roleLabels.designer, color: 'text-emerald-500 dark:text-emerald-400' },
   ];
 
   return (

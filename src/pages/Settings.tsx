@@ -5,13 +5,14 @@ import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { useStore } from '../store/useStore';
 import { userService } from '../services/userService';
+import { telegramService } from '../services/telegramService';
 import { adminService, type BackupInfo } from '../services/adminService';
 import { adaptUser } from '../services/adapters';
 import { Avatar } from '../components/ui/Avatar';
 import {
-  Bell, Shield, Moon, Sun, Building2, Link, Globe, Lock, Key, Pencil, Check, Plus,
+  Bell, Shield, Moon, Sun, Building2, Link, Globe, Lock, Key, Pencil, Check,
   Calendar, ClipboardList, ShieldCheck, MessageSquare, DollarSign, Mail, Smartphone, Send,
-  HardDrive, MessageCircle, DatabaseBackup, Download,
+  HardDrive, DatabaseBackup, Download,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { translations } from '../i18n/translations';
@@ -69,6 +70,8 @@ export default function Settings() {
   });
   const [backups, setBackups] = useState<BackupInfo[]>([]);
   const [creatingBackup, setCreatingBackup] = useState(false);
+  const [telegramLinking, setTelegramLinking] = useState(false);
+  const [telegramLinkData, setTelegramLinkData] = useState<any>(null);
 
   const isAdmin = authUser && ['admin', 'manager'].includes(authUser.role);
 
@@ -90,6 +93,54 @@ export default function Settings() {
       setBackups(await adminService.getBackups());
     } catch { /* backend unavailable */ }
     setCreatingBackup(false);
+  };
+
+  const handleTelegramLink = async () => {
+    if (!authUser) {
+      console.error('No auth user');
+      return;
+    }
+    setTelegramLinking(true);
+    try {
+      console.log('Creating Telegram link for user:', authUser.id);
+      const data = await telegramService.createTelegramLink(authUser.id);
+      console.log('Link created:', data);
+
+      setTelegramLinkData(data);
+
+      if (data && data.telegram_link) {
+        // Open Telegram link in new window
+        setTimeout(() => {
+          const telegramWindow = window.open(data.telegram_link, '_blank');
+          if (!telegramWindow) {
+            console.error('Failed to open Telegram window');
+            alert('Telegramni ochish uchun bu linkni bosing:\n' + data.telegram_link);
+          }
+        }, 500);
+      } else {
+        console.error('No telegram_link in response:', data);
+        alert('Token olingan lekin link bo\'lmadi');
+      }
+    } catch (error) {
+      console.error('Failed to create Telegram link:', error);
+      alert('Xatolik: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
+    setTelegramLinking(false);
+  };
+
+  const handleTelegramUnlink = async () => {
+    if (!authUser) return;
+    setTelegramLinking(true);
+    try {
+      console.log('Unlinking Telegram for user:', authUser.id);
+      await telegramService.removeTelegramLink(authUser.id);
+      setAuthUser({ ...authUser, telegram_chat_id: null });
+      console.log('Telegram unlinked successfully');
+    } catch (error) {
+      console.error('Failed to unlink Telegram:', error);
+      alert('Xatolik: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
+    setTelegramLinking(false);
   };
 
   const handleToggleEdit = () => {
@@ -134,10 +185,8 @@ export default function Settings() {
   ];
 
   const integrations: { name: string; desc: string; icon: React.ReactNode; color: keyof typeof badgeColors; connected: boolean }[] = [
-    { name: 'Google Drive', desc: t.googleDriveDesc, icon: <HardDrive size={18} />, color: 'blue', connected: true },
-    { name: 'Telegram', desc: t.telegramDesc, icon: <Send size={18} />, color: 'cyan', connected: true },
-    { name: 'WhatsApp', desc: t.whatsappDesc, icon: <MessageCircle size={18} />, color: 'emerald', connected: false },
-    { name: 'Outlook / Email', desc: t.outlookDesc, icon: <Mail size={18} />, color: 'indigo', connected: false },
+    { name: 'Telegram', desc: t.telegramDesc, icon: <Send size={18} />, color: 'cyan', connected: !!authUser?.telegram_chat_id },
+    { name: 'Google Drive', desc: t.googleDriveDesc, icon: <HardDrive size={18} />, color: 'blue', connected: false },
   ];
 
   return (
@@ -289,16 +338,56 @@ export default function Settings() {
                   </div>
                   <div className="flex items-center gap-2.5 flex-shrink-0">
                     <Badge variant={connected ? 'success' : 'default'}>{connected ? t.connected : t.notConnected}</Badge>
-                    <Button size="sm" variant={connected ? 'danger' : 'primary'}>{connected ? t.disconnectBtn : t.connectBtn}</Button>
+                    {name === 'Telegram' ? (
+                      <Button
+                        size="sm"
+                        variant={connected ? 'danger' : 'primary'}
+                        loading={telegramLinking}
+                        onClick={connected ? handleTelegramUnlink : handleTelegramLink}
+                      >
+                        {connected ? t.disconnectBtn : t.connectBtn}
+                      </Button>
+                    ) : (
+                      <Button size="sm" variant={connected ? 'danger' : 'primary'} disabled>
+                        {connected ? t.disconnectBtn : t.connectBtn}
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
-              <button className="w-full flex items-center justify-center gap-2 py-3 text-sm font-medium text-blue-600 dark:text-blue-400 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-300 hover:bg-blue-50/40 dark:hover:bg-blue-500/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50">
-                <Plus size={16} />
-                {t.connectNewService}
-              </button>
             </CardContent>
           </Card>
+
+          {telegramLinkData && (
+            <Card className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+              <CardHeader>
+                <div className="flex items-center gap-2.5">
+                  <span className="font-semibold text-blue-900 dark:text-blue-300">🔗 Telegram Linking Token</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <p className="text-xs text-blue-700 dark:text-blue-400 mb-2">Token:</p>
+                  <div className="bg-white dark:bg-gray-800 p-2 rounded border border-blue-200 dark:border-blue-700">
+                    <code className="text-xs text-gray-700 dark:text-gray-300 break-all">{telegramLinkData.token}</code>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs text-blue-700 dark:text-blue-400 mb-2">Telegram Link:</p>
+                  <a href={telegramLinkData.telegram_link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 text-xs break-all">
+                    {telegramLinkData.telegram_link}
+                  </a>
+                </div>
+                <div className="bg-blue-100 dark:bg-blue-800/50 p-2 rounded text-xs text-blue-800 dark:text-blue-200">
+                  <p>📱 Telegramda bosing yoki bu komanada yuboring:</p>
+                  <code className="block mt-1 bg-white dark:bg-gray-800 p-1 rounded">/link {telegramLinkData.token}</code>
+                </div>
+                <button onClick={() => setTelegramLinkData(null)} className="text-xs text-blue-600 dark:text-blue-400 hover:underline">
+                  Yopish
+                </button>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Right panel */}

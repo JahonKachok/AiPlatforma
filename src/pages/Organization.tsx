@@ -7,7 +7,7 @@ import { Badge } from '../components/ui/Badge';
 import { useStore } from '../store/useStore';
 import { organizationService } from '../services/organizationService';
 import { translations } from '../i18n/translations';
-import { Building2, Users, Layers, Plus, Edit2, Trash2, Search } from 'lucide-react';
+import { Building2, Plus, Edit2, Trash2, Search } from 'lucide-react';
 import { clsx } from 'clsx';
 
 const inputCls = "w-full bg-gray-100 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200";
@@ -178,7 +178,7 @@ export default function Organization() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge variant="secondary" size="sm">{dept.status}</Badge>
+                        <Badge variant="info" size="sm">{dept.status}</Badge>
                         <Button size="sm" variant="ghost" icon={<Edit2 size={14} />} />
                         <Button
                           size="sm"

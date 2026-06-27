@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AiPlatforma Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding-top: 20px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            grid-column: 1 / -1;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.6s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-box .number {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-box .label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .user-details h3 {
+            font-size: 14px;
+            margin-bottom: 4px;
+            color: #333;
+        }
+
+        .user-details p {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s;
+            color: #666;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 AiPlatforma</h1>
+            <p>Telegram Mini App</p>
+        </div>
+
+        <div id="alerts"></div>
+
+        <div class="card">
+            <div class="user-info" id="userInfo" style="display: none;">
+                <div class="user-avatar" id="userAvatar">J</div>
+                <div class="user-details">
+                    <h3 id="userName">Jahongir</h3>
+                    <p id="userId">ID: 521013738</p>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('send')">📨 Xabar</button>
+                <button class="tab-btn" onclick="switchTab('info')">ℹ️ Ma'lumot</button>
+            </div>
+
+            <div id="send" class="tab-content active">
+                <div class="form-group">
+                    <label>Xabar matni</label>
+                    <textarea id="messageInput" placeholder="Xabar yubor..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Format</label>
+                    <select id="parseMode">
+                        <option value="HTML">HTML</option>
+                        <option value="Markdown">Markdown</option>
+                    </select>
+                </div>
+
+                <button class="btn-primary" onclick="sendMessage()">📤 Xabar yuborish</button>
+            </div>
+
+            <div id="info" class="tab-content">
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="number" id="statMessages">0</div>
+                        <div class="label">Xabarlar</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="number" id="statNotifications">0</div>
+                        <div class="label">Bildirishnomalar</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Bot Ma'lumotlari</label>
+                    <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.6;">
+                        <div><strong>Bot:</strong> @BotName</div>
+                        <div><strong>User ID:</strong> <span id="botUserInfo">521013738</span></div>
+                        <div><strong>Status:</strong> <span style="color: #28a745;">✓ Faol</span></div>
+                        <div><strong>Versiya:</strong> 1.0.0</div>
+                    </div>
+                </div>
+
+                <button class="btn-primary" onclick="refreshBotInfo()">🔄 Ma'lumotni yangilash</button>
+            </div>
+        </div>
+
+        <div class="card" style="text-align: center; color: #999; font-size: 12px;">
+            <p>AiPlatforma Telegram Integration v1.0</p>
+            <p style="margin-top: 8px;">© 2024 GASTEC</p>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            tg.ready();
+            tg.expand();
+            initApp();
+        });
+
+        function initApp() {
+            const user = tg.initDataUnsafe?.user;
+            if (user) {
+                document.getElementById('userName').textContent = user.first_name;
+                document.getElementById('userId').textContent = `ID: ${user.id}`;
+                document.getElementById('userAvatar').textContent = user.first_name.charAt(0).toUpperCase();
+                document.getElementById('botUserInfo').textContent = user.id;
+                document.getElementById('userInfo').style.display = 'flex';
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        async function sendMessage() {
+            const message = document.getElementById('messageInput').value;
+            const parseMode = document.getElementById('parseMode').value;
+
+            if (!message.trim()) {
+                showAlert('Xabar matni kiritmasdan turibdi!', 'error');
+                return;
+            }
+
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>Yuborilmoqda...';
+
+            try {
+                const response = await fetch('/api/telegram/send-message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message, parse_mode: parseMode })
+                });
+
+                if (response.ok) {
+                    showAlert('✅ Xabar muvaffaqiyatli yuborildi!', 'success');
+                    document.getElementById('messageInput').value = '';
+                    updateStats();
+                } else {
+                    showAlert('❌ Xabar yuborishda xatolik yuz berdi!', 'error');
+                }
+            } catch (error) {
+                showAlert(`❌ Xatolik: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+
+        async function refreshBotInfo() {
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>Yuklanyapti...';
+
+            try {
+                const response = await fetch('/api/telegram/info');
+                if (response.ok) {
+                    const data = await response.json();
+                    showAlert('✅ Ma\'lumot yangilandi!', 'success');
+                    updateStats();
+                } else {
+                    showAlert('❌ Ma\'lumotni yangilashda xatolik!', 'error');
+                }
+            } catch (error) {
+                showAlert(`❌ Xatolik: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+
+        function showAlert(message, type) {
+            const alertsContainer = document.getElementById('alerts');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alertsContainer.appendChild(alert);
+
+            setTimeout(() => {
+                alert.remove();
+            }, 4000);
+        }
+
+        function updateStats() {
+            const messageCount = parseInt(document.getElementById('statMessages').textContent) + 1;
+            document.getElementById('statMessages').textContent = messageCount;
+        }
+    </script>
+</body>
+</html>

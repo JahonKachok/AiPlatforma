@@ -13,6 +13,9 @@ services:
       - ACCESS_TOKEN_EXPIRE_MINUTES=30
       - REFRESH_TOKEN_EXPIRE_DAYS=30
       - ALLOWED_ORIGINS=http://localhost,http://localhost:80
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_WEBHOOK_URL=${TELEGRAM_WEBHOOK_URL:-}
+      - TELEGRAM_USER_ID=${TELEGRAM_USER_ID:-}
     volumes:
       - backend_data:/app/data
       - backend_uploads:/app/uploads

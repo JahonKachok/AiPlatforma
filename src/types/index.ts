@@ -8,6 +8,7 @@ export interface User {
   avatar?: string;
   department?: string;
   phone?: string;
+  telegram_chat_id?: string | null;
   isActive: boolean;
   createdAt: string;
 }

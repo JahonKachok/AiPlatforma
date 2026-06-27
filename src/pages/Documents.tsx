@@ -35,7 +35,6 @@ export default function Documents() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [projectFilter, setProjectFilter] = useState('');
-  const [sectionFilter, setSectionFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
   const [selectedDocs, setSelectedDocs] = useState<Set<string>>(new Set());

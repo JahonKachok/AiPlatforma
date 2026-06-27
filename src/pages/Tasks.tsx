@@ -63,10 +63,13 @@ function TaskCard({
       {project && <p className="text-xs text-gray-400 mb-2 truncate">{project.name}</p>}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {assignee && (
-            <><Avatar name={assignee.name} size="xs" />
-              <span className="text-xs text-gray-500 truncate max-w-20">{assignee.name.split(' ')[0]}</span></>
-          )}
+          {assignee && (() => {
+            const name = assignee.full_name || assignee.name || 'User';
+            return (
+              <><Avatar name={name} size="xs" />
+                <span className="text-xs text-gray-500 truncate max-w-20">{name.split(' ')[0]}</span></>
+            );
+          })()}
         </div>
         <div className="flex items-center gap-2 text-xs">
           {task.comments.length > 0 && <span className="text-gray-400 flex items-center gap-0.5"><MessageSquare size={10} />{task.comments.length}</span>}
@@ -305,7 +308,7 @@ export default function Tasks() {
         </select>
         <select value={filterAssignee} onChange={e => setFilterAssignee(e.target.value)} className={selectCls}>
           <option value="all">{tt.allAssignees}</option>
-          {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+          {users.map(u => <option key={u.id} value={u.id}>{u.full_name || u.name || 'User'}</option>)}
         </select>
         <div className="flex gap-1 ml-auto">
           <button onClick={() => setView('kanban')} className={viewBtnCls(view === 'kanban')} title="Kanban"><LayoutGrid size={16} /></button>
@@ -372,7 +375,10 @@ export default function Tasks() {
                       <td className="px-4 py-3"><p className="text-sm text-gray-800 dark:text-gray-200 max-w-xs truncate">{task.title}</p></td>
                       <td className="px-4 py-3 text-xs text-gray-500">{project?.name}</td>
                       <td className="px-4 py-3">
-                        {assignee && <div className="flex items-center gap-2"><Avatar name={assignee.name} size="xs" /><span className="text-xs text-gray-500">{assignee.name}</span></div>}
+                        {assignee && (() => {
+                          const name = assignee.full_name || assignee.name || 'User';
+                          return <div className="flex items-center gap-2"><Avatar name={name} size="xs" /><span className="text-xs text-gray-500">{name}</span></div>;
+                        })()}
                       </td>
                       <td className="px-4 py-3"><Badge variant={getTaskStatusBadge(task.status)} size="sm">{t.taskStatus[task.status] ?? task.status}</Badge></td>
                       <td className="px-4 py-3"><Badge variant={getPriorityBadge(task.priority)} size="sm">{t.priority[task.priority] ?? task.priority}</Badge></td>
@@ -457,7 +463,7 @@ export default function Tasks() {
                   <label className="block text-xs text-gray-500 mb-1.5">{tt.assigneeLabel}</label>
                   <select value={editForm.assigneeId} onChange={e => setEditForm({ ...editForm, assigneeId: e.target.value })} className={fieldCls}>
                     <option value="">{tt.notAssigned}</option>
-                    {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                    {users.map(u => <option key={u.id} value={u.id}>{u.full_name || u.name || 'User'}</option>)}
                   </select>
                 </div>
                 <div>
@@ -484,12 +490,16 @@ export default function Tasks() {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="bg-gray-50 dark:bg-gray-700/30 p-3 rounded-lg">
                   <p className="text-xs text-gray-500 mb-1">{tt.assigneeLabel}</p>
-                  {users.find(u => u.id === selected.assigneeId) ? (
-                    <div className="flex items-center gap-2">
-                      <Avatar name={users.find(u => u.id === selected.assigneeId)!.name} size="xs" />
-                      <span className="text-gray-700 dark:text-gray-200">{users.find(u => u.id === selected.assigneeId)!.name}</span>
-                    </div>
-                  ) : <span className="text-gray-400">—</span>}
+                  {users.find(u => u.id === selected.assigneeId) ? (() => {
+                    const assignee = users.find(u => u.id === selected.assigneeId)!;
+                    const assigneeName = assignee.full_name || assignee.name || 'User';
+                    return (
+                      <div className="flex items-center gap-2">
+                        <Avatar name={assigneeName} size="xs" />
+                        <span className="text-gray-700 dark:text-gray-200">{assigneeName}</span>
+                      </div>
+                    );
+                  })() : <span className="text-gray-400">—</span>}
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-700/30 p-3 rounded-lg">
                   <p className="text-xs text-gray-500 mb-1">{tt.deadlineLabel}</p>
@@ -502,11 +512,12 @@ export default function Tasks() {
                   <div className="space-y-2">
                     {selected.comments.map(c => {
                       const u = users.find(u => u.id === c.userId);
+                      const userName = u?.full_name || u?.name || 'Unknown';
                       return (
                         <div key={c.id} className="flex gap-2 bg-gray-50 dark:bg-gray-700/30 p-3 rounded-lg">
-                          {u && <Avatar name={u.name} size="xs" />}
+                          {u && <Avatar name={userName} size="xs" />}
                           <div>
-                            <p className="text-xs text-gray-400 mb-1">{u?.name} · {c.createdAt}</p>
+                            <p className="text-xs text-gray-400 mb-1">{userName} · {c.createdAt}</p>
                             <p className="text-sm text-gray-700 dark:text-gray-300">{c.text}</p>
                           </div>
                         </div>
@@ -549,7 +560,7 @@ export default function Tasks() {
               <label className="block text-xs text-gray-500 mb-1.5">{tt.assigneeLabel}</label>
               <select value={createForm.assigneeId} onChange={e => setCreateForm({ ...createForm, assigneeId: e.target.value })} className={fieldCls}>
                 <option value="">{tt.notAssigned}</option>
-                {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                {users.map(u => <option key={u.id} value={u.id}>{u.full_name || u.name || 'User'}</option>)}
               </select>
             </div>
             <div>

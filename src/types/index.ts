@@ -3,14 +3,19 @@ export type UserRole = 'admin' | 'manager' | 'gip' | 'gip_assistant' | 'designer
 export interface User {
   id: string;
   name: string;
+  full_name?: string;
   email: string;
   role: UserRole;
   avatar?: string;
+  avatar_url?: string;
   department?: string;
   phone?: string;
   telegram_chat_id?: string | null;
-  isActive: boolean;
-  createdAt: string;
+  isActive?: boolean;
+  is_active?: boolean;
+  createdAt?: string;
+  created_at?: string;
+  two_factor_enabled?: boolean;
 }
 
 export type ProjectStatus = 'active' | 'completed' | 'paused' | 'cancelled' | 'planning';

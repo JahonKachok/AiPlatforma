@@ -77,7 +77,7 @@ export default function Settings() {
 
   useEffect(() => {
     if (authUser) {
-      setProfileForm({ name: authUser.name, phone: authUser.phone || '', department: authUser.department || '' });
+      setProfileForm({ name: authUser.full_name || authUser.name || '', phone: authUser.phone || '', department: authUser.department || '' });
     }
   }, [authUser]);
 
@@ -145,7 +145,7 @@ export default function Settings() {
 
   const handleToggleEdit = () => {
     if (editing && authUser) {
-      setProfileForm({ name: authUser.name, phone: authUser.phone || '', department: authUser.department || '' });
+      setProfileForm({ name: authUser.full_name || authUser.name || '', phone: authUser.phone || '', department: authUser.department || '' });
     }
     setEditing(e => !e);
   };
@@ -202,13 +202,15 @@ export default function Settings() {
               </div>
             </CardHeader>
             <CardContent>
-              {authUser && (
+              {authUser && (() => {
+                const userName = authUser.full_name || authUser.name || 'User';
+                return (
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
                   <div className="flex items-start gap-4">
-                    <Avatar name={authUser.name} size="lg" />
+                    <Avatar name={userName} size="lg" />
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{authUser.name}</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{userName}</h3>
                         <Badge variant="info">{roles[authUser.role] ?? authUser.role}</Badge>
                       </div>
                       <p className="text-sm text-gray-500 mt-1">{authUser.email}</p>
@@ -218,7 +220,8 @@ export default function Settings() {
                     {editing ? common.cancel : common.edit}
                   </Button>
                 </div>
-              )}
+                );
+              })()}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs text-gray-500 mb-1.5">{t.nameLabel}</label>

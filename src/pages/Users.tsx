@@ -37,7 +37,8 @@ export default function Users() {
   const [form, setForm] = useState(initForm);
 
   const filtered = users.filter(u => {
-    const ms = u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
+    const userName = (u.full_name || u.name || '').toLowerCase();
+    const ms = userName.includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
     const mr = roleFilter === 'all' || u.role === roleFilter;
     return ms && mr;
   });
@@ -121,13 +122,13 @@ export default function Users() {
           return (
             <Card key={user.id} hover className="p-5">
               <div className="flex items-start justify-between mb-4">
-                <Avatar name={user.name} size="lg" />
+                <Avatar name={user.full_name || user.name || 'User'} size="lg" />
                 <div className="flex flex-col items-end gap-2">
                   <span className={clsx('text-xs font-medium px-2 py-0.5 rounded-full', roleColors[user.role])}>{roles[user.role] ?? user.role}</span>
-                  <span className={clsx('w-2 h-2 rounded-full', user.isActive ? 'bg-emerald-400' : 'bg-gray-400 dark:bg-gray-600')} />
+                  <span className={clsx('w-2 h-2 rounded-full', user.is_active || user.isActive ? 'bg-emerald-400' : 'bg-gray-400 dark:bg-gray-600')} />
                 </div>
               </div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{user.name}</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{user.full_name || user.name || 'User'}</h3>
               {user.department && <p className="text-xs text-gray-500 mb-3">{user.department}</p>}
               <div className="space-y-2 text-xs">
                 <div className="flex items-center gap-2 text-gray-500">

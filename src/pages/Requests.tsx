@@ -98,7 +98,10 @@ export default function Requests() {
                 {project && <p className="text-xs text-gray-500 mb-2">📁 {project.name}</p>}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {creator && <><Avatar name={creator.name} size="xs" /><span className="text-xs text-gray-500">{creator.name.split(' ')[0]}</span></>}
+                    {creator && (() => {
+                      const name = creator.full_name || creator.name || 'User';
+                      return <><Avatar name={name} size="xs" /><span className="text-xs text-gray-500">{name.split(' ')[0]}</span></>;
+                    })()}
                   </div>
                   <div className="flex items-center gap-3 text-xs text-gray-500">
                     <span className="flex items-center gap-1"><MessageSquare size={10} /> {req.comments.length}</span>
@@ -141,22 +144,30 @@ export default function Requests() {
             <div className="flex gap-4 text-sm">
               <div>
                 <p className="text-xs text-gray-500">{t.author}</p>
-                {users.find(u => u.id === selected.creatorId) && (
+                {users.find(u => u.id === selected.creatorId) && (() => {
+                  const user = users.find(u => u.id === selected.creatorId)!;
+                  const name = user.full_name || user.name || 'User';
+                  return (
                   <div className="flex items-center gap-1.5 mt-1">
-                    <Avatar name={users.find(u => u.id === selected.creatorId)!.name} size="xs" />
-                    <span className="text-gray-700 dark:text-gray-300">{users.find(u => u.id === selected.creatorId)!.name}</span>
+                    <Avatar name={name} size="xs" />
+                    <span className="text-gray-700 dark:text-gray-300">{name}</span>
                   </div>
-                )}
+                  );
+                })()}
               </div>
               {selected.assigneeId && (
                 <div>
                   <p className="text-xs text-gray-500">{t.responsible}</p>
-                  {users.find(u => u.id === selected.assigneeId) && (
+                  {users.find(u => u.id === selected.assigneeId) && (() => {
+                      const user = users.find(u => u.id === selected.assigneeId)!;
+                      const name = user.full_name || user.name || 'User';
+                      return (
                     <div className="flex items-center gap-1.5 mt-1">
-                      <Avatar name={users.find(u => u.id === selected.assigneeId)!.name} size="xs" />
-                      <span className="text-gray-700 dark:text-gray-300">{users.find(u => u.id === selected.assigneeId)!.name}</span>
+                      <Avatar name={name} size="xs" />
+                      <span className="text-gray-700 dark:text-gray-300">{name}</span>
                     </div>
-                  )}
+                      );
+                    })()}
                 </div>
               )}
             </div>
@@ -166,9 +177,9 @@ export default function Requests() {
                 const u = users.find(u => u.id === c.userId);
                 return (
                   <div key={c.id} className="flex gap-2 bg-gray-50 dark:bg-gray-700/30 p-3 rounded-lg">
-                    {u && <Avatar name={u.name} size="xs" />}
+                    {u && <Avatar name={u.full_name || u.name || 'User'} size="xs" />}
                     <div>
-                      <p className="text-xs text-gray-400 mb-1">{u?.name} · {c.createdAt}</p>
+                      <p className="text-xs text-gray-400 mb-1">{u?.full_name || u?.name || 'Unknown'} · {c.createdAt}</p>
                       <p className="text-sm text-gray-700 dark:text-gray-300">{c.text}</p>
                     </div>
                   </div>
@@ -205,7 +216,7 @@ export default function Requests() {
               <label className="block text-xs text-gray-500 mb-1.5">{t.responsible}</label>
               <select value={form.assigneeId} onChange={e => setForm({ ...form, assigneeId: e.target.value })} className={selectCls}>
                 <option value="">{t.notAssigned}</option>
-                {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+{users.map(u => <option key={u.id} value={u.id}>{u.full_name || u.name || 'User'}</option>)}
               </select>
             </div>
             <div>

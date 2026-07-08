@@ -482,7 +482,7 @@ export default function ProjectDetail() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-                      {[t.typeLabel, t.amountLabel, 'Tavsif', t.categoryLabel, 'Sana', 'Holat', ''].map((h, i) => (
+                      {[t.typeLabel, t.amountLabel, t.descriptionLabel, t.categoryLabel, t.dateLabel, t.statusLabel, ''].map((h, i) => (
                         <th key={i} className="px-4 py-3 text-left text-xs text-gray-500 font-medium">{h}</th>
                       ))}
                     </tr>
@@ -528,7 +528,7 @@ export default function ProjectDetail() {
                   </tbody>
                   <tfoot>
                     <tr className="bg-gray-50 dark:bg-gray-800/50 border-t-2 border-gray-200 dark:border-gray-700">
-                      <td className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Jami</td>
+                      <td className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{t.totalLabel}</td>
                       <td className="px-4 py-3 text-sm font-bold text-gray-900 dark:text-white">
                         <span className="text-emerald-600 dark:text-emerald-400">+{fmt(totalIncome)} mln</span>
                         {totalExpense > 0 && <span className="ml-2 text-red-500 dark:text-red-400">−{fmt(totalExpense)} mln</span>}
@@ -592,10 +592,10 @@ export default function ProjectDetail() {
           </div>
 
           <div>
-            <label className="block text-xs text-gray-500 mb-1.5">Tavsif</label>
+            <label className="block text-xs text-gray-500 mb-1.5">{t.descriptionLabel}</label>
             <input
               type="text"
-              placeholder="Qisqacha tavsif..."
+              placeholder={t.descriptionPlaceholder}
               value={addRecordForm.description}
               onChange={e => setAddRecordForm(f => ({ ...f, description: e.target.value }))}
               className={inputCls}
@@ -607,14 +607,14 @@ export default function ProjectDetail() {
               <label className="block text-xs text-gray-500 mb-1.5">{t.categoryLabel}</label>
               <input
                 type="text"
-                placeholder="Loyiha, ish haqi..."
+                placeholder={t.categoryPlaceholder}
                 value={addRecordForm.category}
                 onChange={e => setAddRecordForm(f => ({ ...f, category: e.target.value }))}
                 className={inputCls}
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1.5">Sana</label>
+              <label className="block text-xs text-gray-500 mb-1.5">{t.dateLabel}</label>
               <input
                 type="date"
                 value={addRecordForm.date}
@@ -625,7 +625,7 @@ export default function ProjectDetail() {
           </div>
 
           <div>
-            <label className="block text-xs text-gray-500 mb-1.5">Holat</label>
+            <label className="block text-xs text-gray-500 mb-1.5">{t.statusLabel}</label>
             <select
               value={addRecordForm.status}
               onChange={e => setAddRecordForm(f => ({ ...f, status: e.target.value as RecordStatus }))}
@@ -651,7 +651,7 @@ export default function ProjectDetail() {
                   {addRecordForm.type === 'expense' || addRecordForm.type === 'payment' ? '−' : '+'}
                   {fmt(parseFloat(addRecordForm.amount))} mln so'm
                 </p>
-                <p className="text-xs text-gray-500">{typeConfig[addRecordForm.type].label} · {t.pendingRecord}</p>
+                <p className="text-xs text-gray-500">{typeConfig[addRecordForm.type].label} · {statusConfig[addRecordForm.status].label}</p>
               </div>
             </div>
           )}

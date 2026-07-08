@@ -16,22 +16,7 @@ import {
 import { clsx } from 'clsx';
 import { translations } from '../i18n/translations';
 import type { Language } from '../i18n/translations';
-
-function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
-  return (
-    <label className="relative cursor-pointer flex-shrink-0">
-      <input
-        type="checkbox"
-        role="switch"
-        checked={on}
-        onChange={onChange}
-        className="sr-only peer"
-      />
-      <div className="w-9 h-5 bg-slate-300 rounded-full peer-checked:bg-blue-600 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 transition-colors dark:bg-neutral-700" />
-      <div className="absolute left-0.5 top-0.5 w-[15.5px] h-[15.5px] bg-white rounded-full transition-transform peer-checked:translate-x-4" />
-    </label>
-  );
-}
+import { Toggle } from '../components/ui/Checkbox';
 
 const badgeColors = {
   blue: 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400',

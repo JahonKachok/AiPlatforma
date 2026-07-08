@@ -13,14 +13,14 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar
 } from 'recharts';
 import { translations } from '../i18n/translations';
-
-const COLORS = ['#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#10b981', '#6b7280'];
+import { useChartTheme, ChartTooltip, ChartLegend } from '../components/ui/chart';
 
 export default function Dashboard() {
-  const { projects, tasks, documents, users, language, darkMode } = useStore();
+  const { projects, tasks, documents, users, language } = useStore();
   const navigate = useNavigate();
   const t = translations[language];
   const d = t.dashboard;
+  const chart = useChartTheme();
 
   const months = language === 'uz'
     ? ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyn', 'Iyl', 'Avg']
@@ -44,6 +44,7 @@ export default function Dashboard() {
   const taskStatusData = Object.entries(
     tasks.reduce((acc, task) => ({ ...acc, [task.status]: (acc[task.status] || 0) + 1 }), {} as Record<string, number>)
   ).map(([status, count]) => ({ name: t.taskStatus[status] ?? status, value: count }));
+  const totalTasks = taskStatusData.reduce((a, e) => a + e.value, 0);
 
   const projectFinanceData = projects.slice(0, 5).map(p => ({
     name: p.name.length > 15 ? p.name.slice(0, 15) + '...' : p.name,
@@ -52,35 +53,27 @@ export default function Dashboard() {
   }));
 
   const statCards = [
-    { label: d.activeProjects, value: activeProjects.length, icon: FolderKanban, color: 'text-blue-500 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30', link: '/projects' },
-    { label: d.tasksInProgress, value: tasks.filter(task => task.status === 'in_progress').length, icon: CheckSquare, color: 'text-purple-500 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-900/30', link: '/tasks' },
-    { label: d.pendingApprovals, value: pendingApprovals.length, icon: GitBranch, color: 'text-amber-500 dark:text-amber-400', bg: 'bg-amber-100 dark:bg-amber-900/30', link: '/approvals' },
-    { label: d.overdueTasks, value: overdueTasks.length, icon: AlertTriangle, color: 'text-red-500 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-900/30', link: '/tasks' },
+    { label: d.activeProjects, value: activeProjects.length, icon: FolderKanban, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30', ring: 'group-hover:ring-blue-200 dark:group-hover:ring-blue-800', link: '/projects' },
+    { label: d.tasksInProgress, value: tasks.filter(task => task.status === 'in_progress').length, icon: CheckSquare, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-900/30', ring: 'group-hover:ring-purple-200 dark:group-hover:ring-purple-800', link: '/tasks' },
+    { label: d.pendingApprovals, value: pendingApprovals.length, icon: GitBranch, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-100 dark:bg-amber-900/30', ring: 'group-hover:ring-amber-200 dark:group-hover:ring-amber-800', link: '/approvals' },
+    { label: d.overdueTasks, value: overdueTasks.length, icon: AlertTriangle, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-900/30', ring: 'group-hover:ring-red-200 dark:group-hover:ring-red-800', link: '/tasks' },
   ];
 
-  const tooltipStyle = {
-    backgroundColor: darkMode ? '#1f2937' : '#ffffff',
-    border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`,
-    borderRadius: '8px',
-    color: darkMode ? '#f9fafb' : '#111827',
-  };
-
-  const tickColor = darkMode ? '#6b7280' : '#9ca3af';
-  const gridColor = darkMode ? '#374151' : '#f3f4f6';
+  const tick = { fill: chart.tick, fontSize: 11 };
 
   return (
     <Layout title={d.title} subtitle={d.subtitle}>
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {statCards.map(({ label, value, icon: Icon, color, bg, link }) => (
-          <Card key={label} hover onClick={() => navigate(link)} className="p-4">
+        {statCards.map(({ label, value, icon: Icon, color, bg, ring, link }) => (
+          <Card key={label} hover onClick={() => navigate(link)} className="group p-4">
             <div className="flex items-center justify-between mb-3">
-              <div className={`p-2.5 rounded-xl ${bg}`}>
+              <div className={`p-2.5 rounded-xl ring-4 ring-transparent transition-all duration-200 ${bg} ${ring}`}>
                 <Icon size={20} className={color} />
               </div>
-              <ArrowRight size={14} className="text-gray-400" />
+              <ArrowRight size={14} className="text-gray-300 transition-all duration-200 group-hover:text-gray-500 group-hover:translate-x-0.5 dark:text-gray-600 dark:group-hover:text-gray-400" />
             </div>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
+            <p className="text-3xl font-bold text-gray-900 dark:text-white [font-variant-numeric:tabular-nums]">{value}</p>
             <p className="text-xs text-gray-500 mt-1">{label}</p>
           </Card>
         ))}
@@ -92,46 +85,69 @@ export default function Dashboard() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <span className="font-semibold text-gray-900 dark:text-white">{d.activity}</span>
-              <div className="flex gap-4 text-xs text-gray-500">
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" /> {d.tasks}</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-500 inline-block" /> {d.documents}</span>
-              </div>
+              <ChartLegend items={[
+                { label: d.tasks, color: chart.colors[0] },
+                { label: d.documents, color: chart.colors[4] },
+              ]} />
             </div>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={areaData}>
-                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-                <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 12 }} />
-                <YAxis tick={{ fill: tickColor, fontSize: 12 }} />
-                <Tooltip contentStyle={tooltipStyle} />
-                <Area type="monotone" dataKey="tasks" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.15} strokeWidth={2} name={d.tasks} />
-                <Area type="monotone" dataKey="docs" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.15} strokeWidth={2} name={d.documents} />
+                <defs>
+                  <linearGradient id="gradTasks" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={chart.colors[0]} stopOpacity={0.25} />
+                    <stop offset="100%" stopColor={chart.colors[0]} stopOpacity={0.02} />
+                  </linearGradient>
+                  <linearGradient id="gradDocs" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={chart.colors[4]} stopOpacity={0.25} />
+                    <stop offset="100%" stopColor={chart.colors[4]} stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} vertical={false} />
+                <XAxis dataKey="month" tick={tick} axisLine={{ stroke: chart.axisLine }} tickLine={false} />
+                <YAxis tick={tick} axisLine={false} tickLine={false} width={32} />
+                <Tooltip content={<ChartTooltip />} cursor={{ stroke: chart.axisLine, strokeDasharray: '4 4' }} />
+                <Area type="monotone" dataKey="tasks" stroke={chart.colors[0]} fill="url(#gradTasks)" strokeWidth={2} name={d.tasks}
+                  activeDot={{ r: 4, strokeWidth: 2, stroke: 'var(--color-white, #fff)' }} />
+                <Area type="monotone" dataKey="docs" stroke={chart.colors[4]} fill="url(#gradDocs)" strokeWidth={2} name={d.documents}
+                  activeDot={{ r: 4, strokeWidth: 2, stroke: 'var(--color-white, #fff)' }} />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Task status pie */}
+        {/* Task status donut */}
         <Card>
           <CardHeader><span className="font-semibold text-gray-900 dark:text-white">{d.taskStatuses}</span></CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={160}>
-              <PieChart>
-                <Pie data={taskStatusData} cx="50%" cy="50%" innerRadius={45} outerRadius={75} dataKey="value" paddingAngle={3}>
-                  {taskStatusData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                </Pie>
-                <Tooltip contentStyle={tooltipStyle} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="space-y-1.5 mt-2">
+            <div className="relative">
+              <ResponsiveContainer width="100%" height={160}>
+                <PieChart>
+                  <Pie
+                    data={taskStatusData} cx="50%" cy="50%"
+                    innerRadius={52} outerRadius={74}
+                    dataKey="value" paddingAngle={3} cornerRadius={4}
+                    stroke="none"
+                  >
+                    {taskStatusData.map((_, i) => <Cell key={i} fill={chart.colors[i % chart.colors.length]} />)}
+                  </Pie>
+                  <Tooltip content={<ChartTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-2xl font-bold text-gray-900 dark:text-white [font-variant-numeric:tabular-nums]">{totalTasks}</span>
+                <span className="text-[10px] uppercase tracking-wide text-gray-400">{d.tasks}</span>
+              </div>
+            </div>
+            <div className="space-y-1.5 mt-3">
               {taskStatusData.map((entry, i) => (
                 <div key={entry.name} className="flex items-center justify-between text-xs">
                   <span className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
+                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: chart.colors[i % chart.colors.length] }} />
                     {entry.name}
                   </span>
-                  <span className="text-gray-700 dark:text-gray-300 font-medium">{entry.value}</span>
+                  <span className="text-gray-700 dark:text-gray-300 font-medium [font-variant-numeric:tabular-nums]">{entry.value}</span>
                 </div>
               ))}
             </div>
@@ -147,19 +163,25 @@ export default function Dashboard() {
               <span className="font-semibold text-gray-900 dark:text-white">{d.financeByProjects}</span>
               <div className="flex items-center gap-2">
                 <DollarSign size={14} className="text-emerald-500" />
-                <span className="text-sm text-gray-500">{(totalPaid / 1000000).toFixed(0)} / {(totalBudget / 1000000).toFixed(0)} {d.mln}</span>
+                <span className="text-sm text-gray-500 [font-variant-numeric:tabular-nums]">{(totalPaid / 1000000).toFixed(0)} / {(totalBudget / 1000000).toFixed(0)} {d.mln}</span>
               </div>
             </div>
           </CardHeader>
           <CardContent>
+            <div className="mb-3">
+              <ChartLegend items={[
+                { label: d.budget, color: chart.colors[0] },
+                { label: d.paid, color: chart.colors[1] },
+              ]} />
+            </div>
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={projectFinanceData} barSize={24}>
-                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-                <XAxis dataKey="name" tick={{ fill: tickColor, fontSize: 11 }} />
-                <YAxis tick={{ fill: tickColor, fontSize: 11 }} />
-                <Tooltip contentStyle={tooltipStyle} />
-                <Bar dataKey="budget" fill="#1d4ed8" fillOpacity={0.6} name={d.budget} />
-                <Bar dataKey="paid" fill="#10b981" name={d.paid} />
+              <BarChart data={projectFinanceData} barSize={18} barGap={2}>
+                <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} vertical={false} />
+                <XAxis dataKey="name" tick={tick} axisLine={{ stroke: chart.axisLine }} tickLine={false} />
+                <YAxis tick={tick} axisLine={false} tickLine={false} width={36} />
+                <Tooltip content={<ChartTooltip suffix={d.mln} />} cursor={{ fill: chart.cursorFill }} />
+                <Bar dataKey="budget" fill={chart.colors[0]} fillOpacity={0.55} name={d.budget} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="paid" fill={chart.colors[1]} name={d.paid} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -183,7 +205,7 @@ export default function Dashboard() {
                   <p className="text-sm text-gray-700 dark:text-gray-200 truncate">{u.name}</p>
                   <p className="text-xs text-gray-500">{u.department || '—'}</p>
                 </div>
-                <span className={`w-2 h-2 rounded-full ${u.isActive ? 'bg-emerald-400' : 'bg-gray-400'}`} />
+                <span className={`w-2 h-2 rounded-full ${u.isActive ? 'bg-emerald-400 ring-2 ring-emerald-100 dark:ring-emerald-900/60' : 'bg-gray-400'}`} />
               </div>
             ))}
           </CardContent>
@@ -208,7 +230,7 @@ export default function Dashboard() {
                 <div key={p.id} onClick={() => navigate(`/projects/${p.id}`)} className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/30 rounded-lg p-2 -mx-2 transition-colors">
                   <div className="flex items-start justify-between gap-2 mb-1.5">
                     <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{p.name}</p>
-                    <Badge variant={getProjectStatusBadge(p.status)}>{t.projectStatus[p.status] ?? p.status}</Badge>
+                    <Badge variant={getProjectStatusBadge(p.status)} dot>{t.projectStatus[p.status] ?? p.status}</Badge>
                   </div>
                   <div className="flex items-center gap-2 mb-1.5">
                     <Clock size={12} className="text-gray-400" />
@@ -217,9 +239,9 @@ export default function Dashboard() {
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-500 rounded-full" style={{ width: `${progress}%` }} />
+                      <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
                     </div>
-                    <span className="text-xs text-gray-500 w-8">{progress}%</span>
+                    <span className="text-xs text-gray-500 w-8 [font-variant-numeric:tabular-nums]">{progress}%</span>
                   </div>
                 </div>
               );

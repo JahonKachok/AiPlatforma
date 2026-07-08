@@ -10,8 +10,7 @@ import {
 } from 'recharts';
 import { translations } from '../i18n/translations';
 import { reportService } from '../services/reportService';
-
-const COLORS = ['#3b82f6', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444', '#6b7280'];
+import { useChartTheme, ChartTooltip, ChartLegend } from '../components/ui/chart';
 
 export default function Reports() {
   const { projects, tasks, documents, users, language, darkMode } = useStore();
@@ -19,6 +18,7 @@ export default function Reports() {
   const tStatus = translations[language].taskStatus;
   const tProjectStatus = translations[language].projectStatus;
   const [exporting, setExporting] = useState<string | null>(null);
+  const chart = useChartTheme();
 
   const handleExport = async (kind: 'projects' | 'tasks' | 'finance' | 'employees') => {
     setExporting(kind);
@@ -64,16 +64,8 @@ export default function Reports() {
     { label: t.activeEmployees, value: users.filter(u => u.isActive).length, total: users.length, color: 'text-amber-600 dark:text-amber-400' },
   ];
 
-  const tooltipStyle = {
-    backgroundColor: darkMode ? '#1f2937' : '#ffffff',
-    border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`,
-    borderRadius: '8px',
-    color: darkMode ? '#f9fafb' : '#111827',
-  };
-  const tickColor = darkMode ? '#6b7280' : '#9ca3af';
-  const gridColor = darkMode ? '#374151' : '#f3f4f6';
-  const polarGridColor = darkMode ? '#374151' : '#e5e7eb';
-  const angleAxisColor = darkMode ? '#9ca3af' : '#6b7280';
+  const tick = { fill: chart.tick, fontSize: 11 };
+  const totalProjects = projectStatusData.reduce((a, e) => a + e.value, 0);
 
   return (
     <Layout title={t.title} subtitle={t.subtitle}>
@@ -99,44 +91,63 @@ export default function Reports() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {summaryStats.map(({ label, value, total, color }) => (
-          <div key={label} className="bg-white border border-gray-200 rounded-xl p-4 dark:bg-gray-800 dark:border-gray-700">
-            <p className={`text-3xl font-bold ${color}`}>
+          <Card key={label} className="p-4">
+            <p className={`text-3xl font-bold [font-variant-numeric:tabular-nums] ${color}`}>
               {value}{total !== null && <span className="text-base font-normal text-gray-400"> / {total}</span>}
             </p>
             <p className="text-xs text-gray-500 mt-1">{label}</p>
-          </div>
+          </Card>
         ))}
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
         <Card>
-          <CardHeader><span className="font-semibold text-gray-900 dark:text-white">{t.tasksByEmployee}</span></CardHeader>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <span className="font-semibold text-gray-900 dark:text-white">{t.tasksByEmployee}</span>
+              <ChartLegend items={[
+                { label: t.total, color: chart.colors[0] },
+                { label: t.completed, color: chart.colors[1] },
+                { label: t.inProgress, color: chart.colors[4] },
+              ]} />
+            </div>
+          </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={taskByUser} barSize={16}>
-                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-                <XAxis dataKey="name" tick={{ fill: tickColor, fontSize: 11 }} />
-                <YAxis tick={{ fill: tickColor, fontSize: 11 }} />
-                <Tooltip contentStyle={tooltipStyle} />
-                <Bar dataKey="total" fill="#3b82f6" fillOpacity={0.6} name={t.total} />
-                <Bar dataKey="completed" fill="#10b981" name={t.completed} />
-                <Bar dataKey="inProgress" fill="#8b5cf6" name={t.inProgress} />
+              <BarChart data={taskByUser} barSize={14} barGap={2}>
+                <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} vertical={false} />
+                <XAxis dataKey="name" tick={tick} axisLine={{ stroke: chart.axisLine }} tickLine={false} />
+                <YAxis tick={tick} axisLine={false} tickLine={false} width={28} />
+                <Tooltip content={<ChartTooltip />} cursor={{ fill: chart.cursorFill }} />
+                <Bar dataKey="total" fill={chart.colors[0]} fillOpacity={0.55} name={t.total} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="completed" fill={chart.colors[1]} name={t.completed} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="inProgress" fill={chart.colors[4]} name={t.inProgress} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader><span className="font-semibold text-gray-900 dark:text-white">{t.financeTrend}</span></CardHeader>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <span className="font-semibold text-gray-900 dark:text-white">{t.financeTrend}</span>
+              <ChartLegend items={[
+                { label: t.income, color: chart.colors[1] },
+                { label: t.expense, color: chart.colors[5] },
+              ]} />
+            </div>
+          </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={240}>
               <LineChart data={monthlyFinance}>
-                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-                <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} />
-                <YAxis tick={{ fill: tickColor, fontSize: 11 }} />
-                <Tooltip contentStyle={tooltipStyle} />
-                <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={2} dot={false} name={t.income} />
-                <Line type="monotone" dataKey="expense" stroke="#ef4444" strokeWidth={2} dot={false} name={t.expense} />
+                <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} vertical={false} />
+                <XAxis dataKey="month" tick={tick} axisLine={{ stroke: chart.axisLine }} tickLine={false} />
+                <YAxis tick={tick} axisLine={false} tickLine={false} width={36} />
+                <Tooltip content={<ChartTooltip />} cursor={{ stroke: chart.axisLine, strokeDasharray: '4 4' }} />
+                <Line type="monotone" dataKey="income" stroke={chart.colors[1]} strokeWidth={2} dot={false} name={t.income}
+                  activeDot={{ r: 4, strokeWidth: 2, stroke: darkMode ? '#1f2937' : '#ffffff' }} />
+                <Line type="monotone" dataKey="expense" stroke={chart.colors[5]} strokeWidth={2} dot={false} name={t.expense}
+                  activeDot={{ r: 4, strokeWidth: 2, stroke: darkMode ? '#1f2937' : '#ffffff' }} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -146,21 +157,31 @@ export default function Reports() {
           <CardHeader><span className="font-semibold text-gray-900 dark:text-white">{t.projectStatuses}</span></CardHeader>
           <CardContent>
             <div className="flex items-center gap-6">
-              <ResponsiveContainer width={160} height={160}>
-                <PieChart>
-                  <Pie data={projectStatusData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} dataKey="value" paddingAngle={3}>
-                    {projectStatusData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="relative flex-shrink-0">
+                <ResponsiveContainer width={160} height={160}>
+                  <PieChart>
+                    <Pie
+                      data={projectStatusData} cx="50%" cy="50%"
+                      innerRadius={48} outerRadius={70}
+                      dataKey="value" paddingAngle={3} cornerRadius={4} stroke="none"
+                    >
+                      {projectStatusData.map((_, i) => <Cell key={i} fill={chart.colors[i % chart.colors.length]} />)}
+                    </Pie>
+                    <Tooltip content={<ChartTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                  <span className="text-xl font-bold text-gray-900 dark:text-white [font-variant-numeric:tabular-nums]">{totalProjects}</span>
+                </div>
+              </div>
               <div className="space-y-2 flex-1">
                 {projectStatusData.map((entry, i) => (
                   <div key={entry.name} className="flex items-center justify-between">
                     <span className="flex items-center gap-2 text-sm text-gray-500">
-                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
+                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: chart.colors[i % chart.colors.length] }} />
                       {entry.name}
                     </span>
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{entry.value}</span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200 [font-variant-numeric:tabular-nums]">{entry.value}</span>
                   </div>
                 ))}
               </div>
@@ -173,11 +194,11 @@ export default function Reports() {
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
               <RadarChart data={radarData}>
-                <PolarGrid stroke={polarGridColor} />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: angleAxisColor, fontSize: 11 }} />
-                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: tickColor, fontSize: 10 }} />
-                <Radar name={t.metrics} dataKey="value" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.25} strokeWidth={2} />
-                <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`${v}%`]} />
+                <PolarGrid stroke={chart.grid} />
+                <PolarAngleAxis dataKey="subject" tick={{ fill: chart.tick, fontSize: 11 }} />
+                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: chart.tick, fontSize: 10 }} axisLine={false} />
+                <Radar name={t.metrics} dataKey="value" stroke={chart.colors[0]} fill={chart.colors[0]} fillOpacity={0.2} strokeWidth={2} />
+                <Tooltip content={<ChartTooltip formatter={v => `${v}%`} />} />
               </RadarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -194,10 +215,10 @@ export default function Reports() {
                 <div key={item.name} className="flex-1 min-w-24">
                   <div className="flex justify-between text-xs mb-1">
                     <span className="text-gray-500 truncate">{item.name}</span>
-                    <span className="text-gray-700 dark:text-gray-300 ml-2">{item.value}</span>
+                    <span className="text-gray-700 dark:text-gray-300 ml-2 [font-variant-numeric:tabular-nums]">{item.value}</span>
                   </div>
-                  <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${pct}%`, background: COLORS[i % COLORS.length] }} />
+                  <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: chart.colors[i % chart.colors.length] }} />
                   </div>
                 </div>
               );

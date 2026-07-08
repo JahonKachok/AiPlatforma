@@ -6,26 +6,37 @@ interface BadgeProps {
   children: React.ReactNode;
   variant?: BadgeVariant;
   size?: 'sm' | 'md';
+  dot?: boolean;
   className?: string;
 }
 
 const variants: Record<BadgeVariant, string> = {
-  default: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
-  success: 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-400 dark:border-emerald-800',
-  warning: 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/50 dark:text-amber-400 dark:border-amber-800',
-  danger: 'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/50 dark:text-red-400 dark:border-red-800',
-  info: 'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/50 dark:text-blue-400 dark:border-blue-800',
-  purple: 'bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-900/50 dark:text-purple-400 dark:border-purple-800',
+  default: 'bg-gray-100 text-gray-600 ring-1 ring-inset ring-gray-200 dark:bg-gray-700/70 dark:text-gray-300 dark:ring-gray-600',
+  success: 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-400 dark:ring-emerald-800',
+  warning: 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200 dark:bg-amber-900/40 dark:text-amber-400 dark:ring-amber-800',
+  danger: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-900/40 dark:text-red-400 dark:ring-red-800',
+  info: 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200 dark:bg-blue-900/40 dark:text-blue-400 dark:ring-blue-800',
+  purple: 'bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-200 dark:bg-purple-900/40 dark:text-purple-400 dark:ring-purple-800',
 };
 
-export function Badge({ children, variant = 'default', size = 'sm', className }: BadgeProps) {
+const dotColors: Record<BadgeVariant, string> = {
+  default: 'bg-gray-400',
+  success: 'bg-emerald-500',
+  warning: 'bg-amber-500',
+  danger: 'bg-red-500',
+  info: 'bg-blue-500',
+  purple: 'bg-purple-500',
+};
+
+export function Badge({ children, variant = 'default', size = 'sm', dot, className }: BadgeProps) {
   return (
     <span className={clsx(
-      'inline-flex items-center font-medium rounded-full',
+      'inline-flex items-center gap-1.5 font-medium rounded-full whitespace-nowrap',
       size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-3 py-1 text-sm',
       variants[variant],
       className
     )}>
+      {dot && <span className={clsx('w-1.5 h-1.5 rounded-full flex-shrink-0', dotColors[variant])} />}
       {children}
     </span>
   );

@@ -8,14 +8,14 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { clsx } from 'clsx';
 import { mockEmployeeFinances } from '../data/mockData';
 import { translations } from '../i18n/translations';
-
-const COLORS = ['#3b82f6', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444'];
+import { useChartTheme, ChartTooltip, ChartLegend } from '../components/ui/chart';
 
 export default function Finance() {
-  const { financials, projects, users, language, darkMode } = useStore();
+  const { financials, projects, users, language } = useStore();
   const t = translations[language].finance;
   const [tab, setTab] = useState<'overview' | 'records' | 'employees'>('overview');
   const [filterProject, setFilterProject] = useState('all');
+  const chart = useChartTheme();
 
   const typeConfig = {
     income: { label: t.income, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30', icon: TrendingUp },
@@ -43,23 +43,16 @@ export default function Finance() {
     remainder: Math.round((p.budget - p.paid) / 1000000),
   }));
 
-  const tooltipStyle = {
-    backgroundColor: darkMode ? '#1f2937' : '#ffffff',
-    border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`,
-    borderRadius: '8px',
-    color: darkMode ? '#f9fafb' : '#111827',
-  };
-  const tickColor = darkMode ? '#6b7280' : '#9ca3af';
-  const gridColor = darkMode ? '#374151' : '#f3f4f6';
-
   const tabCls = (key: string) => clsx(
-    'px-4 py-2 text-sm rounded-lg transition-colors',
+    'px-4 py-2 text-sm rounded-lg transition-all duration-150',
     tab === key
-      ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
+      ? 'bg-white text-gray-900 shadow-sm font-medium dark:bg-gray-700 dark:text-white'
       : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
   );
 
-  const selectCls = "bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300";
+  const selectCls = "bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300";
+
+  const tick = { fill: chart.tick, fontSize: 11 };
 
   return (
     <Layout title={t.title} subtitle={t.subtitle}>
@@ -75,7 +68,9 @@ export default function Finance() {
             <div className="flex items-center gap-3 mb-2">
               <div className={clsx('p-2 rounded-xl', bg)}><Icon size={18} className={color} /></div>
             </div>
-            <p className={clsx('text-2xl font-bold', color)}>{(value / 1000000).toFixed(1)} <span className="text-sm font-normal text-gray-500">{t.mln}</span></p>
+            <p className={clsx('text-2xl font-bold [font-variant-numeric:tabular-nums]', color)}>
+              {(value / 1000000).toFixed(1)} <span className="text-sm font-normal text-gray-500">{t.mln}</span>
+            </p>
             <p className="text-xs text-gray-500 mt-1">{label}</p>
           </Card>
         ))}
@@ -83,25 +78,34 @@ export default function Finance() {
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit dark:bg-gray-800">
-        {[{ key: 'overview', label: t.overview }, { key: 'records', label: t.records }, { key: 'employees', label: t.employees }].map(tab => (
-          <button key={tab.key} onClick={() => setTab(tab.key as any)} className={tabCls(tab.key)}>{tab.label}</button>
+        {[{ key: 'overview', label: t.overview }, { key: 'records', label: t.records }, { key: 'employees', label: t.employees }].map(tabItem => (
+          <button key={tabItem.key} onClick={() => setTab(tabItem.key as typeof tab)} className={tabCls(tabItem.key)}>{tabItem.label}</button>
         ))}
       </div>
 
       {tab === 'overview' && (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <Card>
-            <CardHeader><span className="font-semibold text-gray-900 dark:text-white">{t.budgetVsPayment}</span></CardHeader>
+            <CardHeader>
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <span className="font-semibold text-gray-900 dark:text-white">{t.budgetVsPayment}</span>
+                <ChartLegend items={[
+                  { label: t.budget, color: chart.colors[0] },
+                  { label: t.paid, color: chart.colors[1] },
+                  { label: t.remainder, color: chart.colors[2] },
+                ]} />
+              </div>
+            </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={240}>
-                <BarChart data={projectFinanceData} barSize={20}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-                  <XAxis dataKey="name" tick={{ fill: tickColor, fontSize: 11 }} />
-                  <YAxis tick={{ fill: tickColor, fontSize: 11 }} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="budget" fill="#1d4ed8" fillOpacity={0.6} name={t.budget} />
-                  <Bar dataKey="paid" fill="#10b981" name={t.paid} />
-                  <Bar dataKey="remainder" fill="#f59e0b" fillOpacity={0.6} name={t.remainder} />
+                <BarChart data={projectFinanceData} barSize={16} barGap={2}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} vertical={false} />
+                  <XAxis dataKey="name" tick={tick} axisLine={{ stroke: chart.axisLine }} tickLine={false} />
+                  <YAxis tick={tick} axisLine={false} tickLine={false} width={36} />
+                  <Tooltip content={<ChartTooltip suffix={t.mln} />} cursor={{ fill: chart.cursorFill }} />
+                  <Bar dataKey="budget" fill={chart.colors[0]} fillOpacity={0.55} name={t.budget} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="paid" fill={chart.colors[1]} name={t.paid} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="remainder" fill={chart.colors[2]} fillOpacity={0.7} name={t.remainder} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -110,20 +114,31 @@ export default function Finance() {
           <Card>
             <CardHeader><span className="font-semibold text-gray-900 dark:text-white">{t.budgetDistribution}</span></CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie data={projectFinanceData} cx="50%" cy="50%" outerRadius={85} dataKey="budget" nameKey="name" paddingAngle={3}>
-                    {projectFinanceData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                  </Pie>
-                  <Tooltip contentStyle={tooltipStyle} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="grid grid-cols-2 gap-2 mt-2">
+              <div className="relative">
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={projectFinanceData} cx="50%" cy="50%"
+                      innerRadius={58} outerRadius={85}
+                      dataKey="budget" nameKey="name"
+                      paddingAngle={3} cornerRadius={4} stroke="none"
+                    >
+                      {projectFinanceData.map((_, i) => <Cell key={i} fill={chart.colors[i % chart.colors.length]} />)}
+                    </Pie>
+                    <Tooltip content={<ChartTooltip suffix={t.mln} />} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-xl font-bold text-gray-900 dark:text-white [font-variant-numeric:tabular-nums]">{(totalBudget / 1000000).toFixed(0)}</span>
+                  <span className="text-[10px] uppercase tracking-wide text-gray-400">{t.mln}</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2 mt-3">
                 {projectFinanceData.map((p, i) => (
                   <div key={p.name} className="flex items-center gap-2 text-xs">
-                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
+                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: chart.colors[i % chart.colors.length] }} />
                     <span className="text-gray-500 truncate">{p.name}</span>
-                    <span className="text-gray-700 dark:text-gray-300 ml-auto">{p.budget}{t.mln}</span>
+                    <span className="text-gray-700 dark:text-gray-300 ml-auto [font-variant-numeric:tabular-nums]">{p.budget}{t.mln}</span>
                   </div>
                 ))}
               </div>
@@ -140,15 +155,15 @@ export default function Finance() {
                     <div key={p.id}>
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1.5 gap-1">
                         <span className="text-sm text-gray-700 dark:text-gray-300">{p.name}</span>
-                        <div className="flex items-center gap-3 sm:gap-4 text-sm flex-wrap">
+                        <div className="flex items-center gap-3 sm:gap-4 text-sm flex-wrap [font-variant-numeric:tabular-nums]">
                           <span className="text-gray-500">{(p.budget / 1000000).toFixed(0)} {t.mln}</span>
                           <span className="text-emerald-600 dark:text-emerald-400">{(p.paid / 1000000).toFixed(0)} {t.mln}</span>
                           <span className="text-amber-600 dark:text-amber-400">{((p.budget - p.paid) / 1000000).toFixed(0)} {t.mln}</span>
                           <span className="text-xs text-gray-400">{progress}%</span>
                         </div>
                       </div>
-                      <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${progress}%` }} />
+                      <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-500" style={{ width: `${Math.min(progress, 100)}%` }} />
                       </div>
                     </div>
                   );
@@ -171,9 +186,9 @@ export default function Finance() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <tr className="border-b border-gray-200 bg-gray-50/70 dark:border-gray-700 dark:bg-gray-800/60">
                     {[t.description, t.projectColumn, t.typeColumn, t.amountColumn, t.dateColumn, t.statusColumn].map(h => (
-                      <th key={h} className="px-4 py-3 text-left text-xs text-gray-500 font-medium">{h}</th>
+                      <th key={h} className="px-4 py-3 text-left text-xs text-gray-500 font-medium uppercase tracking-wide">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -188,15 +203,15 @@ export default function Finance() {
                         <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">{f.description}</td>
                         <td className="px-4 py-3 text-xs text-gray-500">{project?.name}</td>
                         <td className="px-4 py-3">
-                          <span className={clsx('inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full', cfg.bg, cfg.color)}>
+                          <span className={clsx('inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full', cfg.bg, cfg.color)}>
                             <Icon size={10} /> {cfg.label}
                           </span>
                         </td>
-                        <td className={clsx('px-4 py-3 text-sm font-semibold', cfg.color)}>
+                        <td className={clsx('px-4 py-3 text-sm font-semibold [font-variant-numeric:tabular-nums]', cfg.color)}>
                           {f.type === 'expense' || f.type === 'payment' ? '−' : '+'}{(f.amount / 1000000).toFixed(1)} {t.mln}
                         </td>
                         <td className="px-4 py-3 text-xs text-gray-500">{f.date}</td>
-                        <td className="px-4 py-3"><Badge variant={statusCfg.variant}>{statusCfg.label}</Badge></td>
+                        <td className="px-4 py-3"><Badge variant={statusCfg.variant} dot>{statusCfg.label}</Badge></td>
                       </tr>
                     );
                   })}
@@ -221,25 +236,25 @@ export default function Finance() {
                       <p className="font-medium text-gray-900 dark:text-white">{user?.name}</p>
                       <p className="text-xs text-gray-500">{project?.name}</p>
                     </div>
-                    <div className="flex gap-4 sm:gap-6 text-sm flex-wrap">
+                    <div className="flex gap-4 sm:gap-6 text-sm flex-wrap [font-variant-numeric:tabular-nums]">
                       <div><p className="text-gray-500 text-xs">{t.contract}</p><p className="text-gray-900 dark:text-white font-medium">{(ef.contractAmount / 1000000).toFixed(1)} {t.mln}</p></div>
                       <div><p className="text-gray-500 text-xs">{t.paid}</p><p className="text-emerald-600 dark:text-emerald-400 font-medium">{(ef.paid / 1000000).toFixed(1)} {t.mln}</p></div>
                       <div><p className="text-gray-500 text-xs">{t.balance}</p><p className="text-amber-600 dark:text-amber-400 font-medium">{(ef.balance / 1000000).toFixed(1)} {t.mln}</p></div>
                     </div>
                   </div>
                   <div className="mb-4">
-                    <div className="flex justify-between text-xs text-gray-500 mb-1"><span>{t.paymentProgress}</span><span>{progress}%</span></div>
-                    <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                      <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${progress}%` }} />
+                    <div className="flex justify-between text-xs text-gray-500 mb-1"><span>{t.paymentProgress}</span><span className="[font-variant-numeric:tabular-nums]">{progress}%</span></div>
+                    <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-500" style={{ width: `${Math.min(progress, 100)}%` }} />
                     </div>
                   </div>
                   <div className="space-y-1.5">
                     {ef.payments.map(pay => (
-                      <div key={pay.id} className="flex items-center justify-between text-sm p-2 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+                      <div key={pay.id} className="flex items-center justify-between text-sm p-2.5 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
                         <span className="text-gray-600 dark:text-gray-400">{pay.description}</span>
                         <div className="flex items-center gap-4">
                           <span className="text-gray-400 text-xs">{pay.date}</span>
-                          <span className="text-emerald-600 dark:text-emerald-400 font-medium">{(pay.amount / 1000000).toFixed(1)} {t.mln}</span>
+                          <span className="text-emerald-600 dark:text-emerald-400 font-medium [font-variant-numeric:tabular-nums]">{(pay.amount / 1000000).toFixed(1)} {t.mln}</span>
                           <CheckCircle size={14} className="text-emerald-500" />
                         </div>
                       </div>

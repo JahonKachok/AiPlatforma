@@ -119,6 +119,8 @@ export interface AppTranslations {
     typeLabel: string; amountLabel: string; categoryLabel: string; addRecordTitle: string;
     income: string; expense: string; advance: string; payment: string;
     deleteRecordConfirm: string;
+    descriptionLabel: string; dateLabel: string; statusLabel: string; totalLabel: string;
+    descriptionPlaceholder: string; categoryPlaceholder: string;
   };
   roles: Record<string, string>;
   taskStatus: Record<string, string>;
@@ -297,6 +299,8 @@ export const translations: Record<Language, AppTranslations> = {
       typeLabel: "Tur", amountLabel: "Miqdor (so'm)", categoryLabel: "Kategoriya", addRecordTitle: "Yangi moliya yozuvini qo'shish",
       income: "Kirim", expense: "Chiqim", advance: "Avans", payment: "To'lov",
       deleteRecordConfirm: "Bu yozuvni o'chirishni tasdiqlaysizmi?",
+      descriptionLabel: "Tavsif", dateLabel: "Sana", statusLabel: "Holat", totalLabel: "Jami",
+      descriptionPlaceholder: "Qisqacha tavsif...", categoryPlaceholder: "Loyiha, ish haqi...",
     },
     roles: {
       admin: "Administrator", manager: "Rahbar", gip: "Bosh loyiha muhandisi",
@@ -487,6 +491,8 @@ export const translations: Record<Language, AppTranslations> = {
       typeLabel: "Тип", amountLabel: "Сумма (сум)", categoryLabel: "Категория", addRecordTitle: "Новая финансовая запись",
       income: "Доход", expense: "Расход", advance: "Аванс", payment: "Платёж",
       deleteRecordConfirm: "Вы уверены, что хотите удалить эту запись?",
+      descriptionLabel: "Описание", dateLabel: "Дата", statusLabel: "Статус", totalLabel: "Итого",
+      descriptionPlaceholder: "Краткое описание...", categoryPlaceholder: "Проект, зарплата...",
     },
     roles: {
       admin: "Администратор", manager: "Руководитель", gip: "ГИП",
@@ -677,6 +683,8 @@ export const translations: Record<Language, AppTranslations> = {
       typeLabel: "Type", amountLabel: "Amount (UZS)", categoryLabel: "Category", addRecordTitle: "Add Finance Record",
       income: "Income", expense: "Expense", advance: "Advance", payment: "Payment",
       deleteRecordConfirm: "Are you sure you want to delete this record?",
+      descriptionLabel: "Description", dateLabel: "Date", statusLabel: "Status", totalLabel: "Total",
+      descriptionPlaceholder: "Short description...", categoryPlaceholder: "Project, salary...",
     },
     roles: {
       admin: "Administrator", manager: "Manager", gip: "Chief Project Engineer",

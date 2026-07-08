@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load i18n core_extras document_extras %}
+{% block title %}{{ document.name }}{% endblock %}
+{% block page_title %}{{ document.name }}{% endblock %}
+{% block page_subtitle %}<span class="{{ document.status|document_status_badge }}">{{ document.get_status_display }}</span> · v{{ document.version }}{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap gap-2">
+  <a href="{% url 'documents:list' %}" class="btn btn-ghost btn-sm">← {% trans "Back" %}</a>
+  <a href="{% url 'documents:download' document.pk %}" class="btn btn-secondary btn-sm">{% trans "Download" %}</a>
+  {% if document.status == "draft" %}
+    <a href="{% url 'documents:assign_stages' document.pk %}" class="btn btn-primary btn-sm">{% trans "Send for approval" %}</a>
+  {% endif %}
+  <a href="?audit=1" class="btn btn-ghost btn-sm">{% trans "Audit log" %}</a>
+  <a href="{% url 'documents:delete' document.pk %}" class="btn btn-danger btn-sm">{% trans "Delete" %}</a>
+</div>
+
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+  <div class="space-y-6 lg:col-span-2">
+    <div class="card p-6">
+      <h2 class="mb-3 font-semibold">{% trans "Approval route" %}</h2>
+      <ol class="space-y-2 text-sm">
+        {% for stage in document.approval_stages.all %}
+          <li class="flex items-center justify-between border-b border-gray-100 py-1 dark:border-gray-700">
+            <span>{{ stage.stage_order }}. {{ stage.stage_name }} — {{ stage.reviewer.get_short_name }}</span>
+            <span class="{{ stage.status|approval_status_badge }}">{{ stage.get_status_display }}</span>
+          </li>
+        {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No approval route yet." %}</li>{% endfor %}
+      </ol>
+    </div>
+
+    <div class="card p-6">
+      <h2 class="mb-3 font-semibold">{% trans "Versions" %}</h2>
+      <ul class="mb-3 space-y-1 text-sm">
+        {% for v in document.versions.all %}
+          <li class="flex items-center justify-between border-b border-gray-100 py-1 dark:border-gray-700">
+            <span>v{{ v.version_number }} — {{ v.uploaded_by.get_short_name }} — {{ v.created_at|date:"Y-m-d" }}</span>
+            <a href="{{ v.file.url }}" class="text-blue-600 hover:underline dark:text-blue-400">{% trans "Download" %}</a>
+          </li>
+        {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No versions yet." %}</li>{% endfor %}
+      </ul>
+      <form method="post" action="{% url 'documents:add_version' document.pk %}" enctype="multipart/form-data" class="flex flex-wrap gap-2">
+        {% csrf_token %}
+        {{ version_form.file }}
+        {{ version_form.notes }}
+        <button type="submit" class="btn btn-secondary btn-sm">{% trans "Add version" %}</button>
+      </form>
+    </div>
+
+    {% if show_audit %}
+      <div class="card overflow-x-auto p-6">
+        <h2 class="mb-3 font-semibold">{% trans "Audit log" %}</h2>
+        <table class="w-full text-left text-sm">
+          <thead class="text-gray-500 dark:text-gray-400"><tr><th class="py-1">{% trans "Action" %}</th><th>{% trans "User" %}</th><th>{% trans "Date" %}</th></tr></thead>
+          <tbody>
+            {% for entry in audit_entries %}
+              <tr class="border-t border-gray-100 dark:border-gray-700">
+                <td class="py-1">{{ entry.action }}</td><td>{{ entry.user|default:"—" }}</td><td>{{ entry.created_at }}</td>
+              </tr>
+            {% empty %}<tr><td colspan="3" class="py-4 text-center text-gray-500 dark:text-gray-400">{% trans "No entries." %}</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="card p-6">
+    <h2 class="mb-3 font-semibold">{% trans "Details" %}</h2>
+    <dl class="space-y-2 text-sm">
+      <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Project" %}</dt><dd>{{ document.project.name }}</dd></div>
+      <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Type" %}</dt><dd>{{ document.doc_type|default:"—" }}</dd></div>
+      <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Size" %}</dt><dd>{{ document.file_size|filesizeformat_short }}</dd></div>
+      <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Uploaded by" %}</dt><dd>{{ document.uploaded_by.get_short_name }}</dd></div>
+      <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Deadline" %}</dt><dd>{{ document.deadline|default:"—" }}</dd></div>
+    </dl>
+  </div>
+</div>
+{% endblock %}

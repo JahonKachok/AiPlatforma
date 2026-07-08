@@ -1,49 +1,104 @@
-version: '3.9'
-
 services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: aiplatforma_backend
+  redis:
+    image: redis:7-alpine
+    container_name: aiplatforma_redis
     restart: unless-stopped
-    environment:
-      - DATABASE_URL=sqlite+aiosqlite:///./data/platform.db
-      - SECRET_KEY=${SECRET_KEY:-changeme_in_production_use_32chars}
-      - ACCESS_TOKEN_EXPIRE_MINUTES=30
-      - REFRESH_TOKEN_EXPIRE_DAYS=30
-      - ALLOWED_ORIGINS=http://localhost,http://localhost:80
     volumes:
-      - backend_data:/app/data
-      - backend_uploads:/app/uploads
+      - redis_data:/data
+    networks:
+      - app_network
+
+  web:
+    build: .
+    container_name: aiplatforma_web
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=aiplatforma.settings.prod
+    volumes:
+      - media_data:/app/media
+      - static_data:/app/staticfiles
+      - backups_data:/app/backups
     ports:
       - "8000:8000"
+    depends_on:
+      - redis
     networks:
       - app_network
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/accounts/login/')"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 15s
 
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-    container_name: aiplatforma_frontend
+  celery-worker:
+    build: .
+    container_name: aiplatforma_celery_worker
     restart: unless-stopped
+    entrypoint: []
+    command: celery -A aiplatforma worker --loglevel=info
+    env_file: .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=aiplatforma.settings.prod
+    volumes:
+      - media_data:/app/media
+    depends_on:
+      - redis
+      - web
+    networks:
+      - app_network
+
+  celery-beat:
+    build: .
+    container_name: aiplatforma_celery_beat
+    restart: unless-stopped
+    entrypoint: []
+    command: celery -A aiplatforma beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    env_file: .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=aiplatforma.settings.prod
+    depends_on:
+      - redis
+      - web
+    networks:
+      - app_network
+
+  telegram-bot:
+    build: .
+    container_name: aiplatforma_telegram_bot
+    restart: unless-stopped
+    entrypoint: []
+    command: python manage.py run_telegram_bot
+    env_file: .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=aiplatforma.settings.prod
+    depends_on:
+      - web
+    networks:
+      - app_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: aiplatforma_nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - static_data:/app/staticfiles:ro
+      - media_data:/app/media:ro
     ports:
       - "80:80"
     depends_on:
-      backend:
+      web:
         condition: service_healthy
     networks:
       - app_network
 
 volumes:
-  backend_data:
-  backend_uploads:
+  redis_data:
+  media_data:
+  static_data:
+  backups_data:
 
 networks:
   app_network:

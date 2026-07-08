@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load i18n core_extras request_extras %}
+{% block title %}{% trans "Requests" %}{% endblock %}
+{% block page_title %}{% trans "Requests" %}{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+  <div class="flex flex-wrap gap-2">
+    <a href="?" class="btn btn-sm {% if not status %}btn-primary{% else %}btn-secondary{% endif %}">{% trans "All" %}</a>
+    {% for value, label in statuses %}
+      <a href="?status={{ value }}" class="btn btn-sm {% if status == value %}btn-primary{% else %}btn-secondary{% endif %}">{{ label }} ({{ counts|get_item:value|default:0 }})</a>
+    {% endfor %}
+  </div>
+  <a href="{% url 'requests_app:create' %}" class="btn btn-primary btn-md">{% trans "New request" %}</a>
+</div>
+
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  {% for req in requests %}
+    <a href="{% url 'requests_app:detail' req.pk %}" class="card block p-4 hover:shadow-md">
+      <div class="mb-2 flex items-center justify-between">
+        <h3 class="font-semibold">{{ req.title }}</h3>
+        <span class="{{ req.status|request_status_badge }}">{{ req.get_status_display }}</span>
+      </div>
+      <p class="mb-2 line-clamp-2 text-sm text-gray-500 dark:text-gray-400">{{ req.description|default:"" }}</p>
+      <div class="flex items-center justify-between text-xs text-gray-400">
+        <span>{{ req.project.name|default:"—" }}</span>
+        <span>{{ req.comments.count }} {% trans "comments" %}</span>
+      </div>
+    </a>
+  {% empty %}
+    <p class="col-span-full text-center text-sm text-gray-500 dark:text-gray-400">{% trans "No requests found." %}</p>
+  {% endfor %}
+</div>
+{% endblock %}

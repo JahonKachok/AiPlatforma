@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load i18n core_extras %}
+{% block title %}{% trans "Reports" %}{% endblock %}
+{% block page_title %}{% trans "Reports" %}{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-wrap gap-2">
+  <a href="{% url 'reports:export' 'projects' %}" class="btn btn-secondary btn-sm">{% trans "Export projects" %}</a>
+  <a href="{% url 'reports:export' 'tasks' %}" class="btn btn-secondary btn-sm">{% trans "Export tasks" %}</a>
+  <a href="{% url 'reports:export' 'finance' %}" class="btn btn-secondary btn-sm">{% trans "Export finance" %}</a>
+  <a href="{% url 'reports:export' 'employees' %}" class="btn btn-secondary btn-sm">{% trans "Export employees" %}</a>
+</div>
+
+<div class="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+  <div class="card p-4"><p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Tasks completed" %}</p><p class="text-xl font-semibold">{{ tasks_completed }} / {{ tasks_total }}</p></div>
+  <div class="card p-4"><p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Documents approved" %}</p><p class="text-xl font-semibold">{{ docs_approved }} / {{ docs_total }}</p></div>
+  <div class="card p-4"><p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Total paid" %}</p><p class="text-xl font-semibold">{{ total_paid|millions }} {% trans "mln" %}</p></div>
+  <div class="card p-4"><p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Active employees" %}</p><p class="text-xl font-semibold">{{ active_employees }} / {{ total_employees }}</p></div>
+</div>
+
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+  <div class="card p-4">
+    <h2 class="mb-3 font-semibold">{% trans "Task status distribution" %}</h2>
+    <div class="space-y-2">
+      {% for row in status_distribution %}
+        <div>
+          <div class="mb-1 flex justify-between text-xs"><span>{{ row.label }}</span><span>{{ row.count }}</span></div>
+          <div class="h-2 w-full rounded-full bg-gray-100 dark:bg-gray-700">
+            <div class="h-2 rounded-full bg-blue-500" style="width: {{ row.pct }}%"></div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card p-4">
+    <h2 class="mb-3 font-semibold">{% trans "Project status distribution" %}</h2>
+    <div class="space-y-2">
+      {% for row in project_status_distribution %}
+        <div class="flex justify-between text-sm"><span>{{ row.label }}</span><span>{{ row.count }}</span></div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card p-4 lg:col-span-2">
+    <h2 class="mb-3 font-semibold">{% trans "Workload (top 10)" %}</h2>
+    <table class="w-full text-left text-sm">
+      <thead class="text-gray-500 dark:text-gray-400"><tr><th class="py-1">{% trans "Employee" %}</th><th>{% trans "Assigned tasks" %}</th></tr></thead>
+      <tbody>
+        {% for u in workload %}
+          <tr class="border-t border-gray-100 dark:border-gray-700"><td class="py-1">{{ u.full_name }}</td><td>{{ u.task_count }}</td></tr>
+        {% empty %}<tr><td colspan="2" class="py-4 text-center text-gray-500 dark:text-gray-400">{% trans "No data." %}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

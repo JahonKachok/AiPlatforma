@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Delete request" %}{% endblock %}
+{% block page_title %}{% trans "Delete request" %}{% endblock %}
+{% block content %}
+<div class="card max-w-md p-6">
+  <p class="mb-4 text-sm">{% blocktrans with title=request_obj.title %}Are you sure you want to delete "{{ title }}"?{% endblocktrans %}</p>
+  <form method="post" class="flex gap-3">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger btn-md">{% trans "Delete" %}</button>
+    <a href="{% url 'requests_app:detail' request_obj.pk %}" class="btn btn-secondary btn-md">{% trans "Cancel" %}</a>
+  </form>
+</div>
+{% endblock %}

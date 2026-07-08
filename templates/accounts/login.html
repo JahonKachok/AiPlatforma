@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Log in" %} — AiPlatforma{% endblock %}
+{% block auth_content %}
+<div class="flex min-h-screen items-center justify-center px-4">
+  <div class="w-full max-w-sm card p-6">
+    <h1 class="mb-1 text-xl font-semibold">🏗️ AiPlatforma</h1>
+    <p class="mb-6 text-sm text-gray-500 dark:text-gray-400">{% trans "Sign in to your account" %}</p>
+    <form method="post" novalidate class="space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="field-label" for="{{ form.email.id_for_label }}">{% trans "Email" %}</label>
+        {{ form.email }}
+        {% if form.email.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.email.errors|join:", " }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="field-label" for="{{ form.password.id_for_label }}">{% trans "Password" %}</label>
+        {{ form.password }}
+        {% if form.password.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.password.errors|join:", " }}</p>{% endif %}
+      </div>
+      <button type="submit" class="btn btn-primary btn-md w-full">{% trans "Log in" %}</button>
+    </form>
+    <p class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+      {% trans "No account?" %} <a href="{% url 'accounts:register' %}" class="text-blue-600 hover:underline dark:text-blue-400">{% trans "Register" %}</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

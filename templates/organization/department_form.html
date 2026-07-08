@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Edit department" %}{% endblock %}
+{% block page_title %}{% trans "Edit department" %}{% endblock %}
+{% block content %}
+<form method="post" class="card max-w-xl space-y-4 p-6">
+  {% csrf_token %}
+  {% for field in form %}
+    <div>
+      <label class="field-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+    </div>
+  {% endfor %}
+  <div class="flex gap-3">
+    <button type="submit" class="btn btn-primary btn-md">{% trans "Save" %}</button>
+    <a href="{% url 'organization:list' %}" class="btn btn-secondary btn-md">{% trans "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

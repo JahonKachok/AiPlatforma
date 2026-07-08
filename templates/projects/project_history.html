@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "History" %}{% endblock %}
+{% block page_title %}{% blocktrans with name=project.name %}History — {{ name }}{% endblocktrans %}{% endblock %}
+{% block content %}
+<div class="card overflow-x-auto">
+  <table class="w-full text-left text-sm">
+    <thead class="border-b border-gray-200 text-gray-500 dark:border-gray-700 dark:text-gray-400">
+      <tr><th class="px-4 py-2">{% trans "Date" %}</th><th class="px-4 py-2">{% trans "Action" %}</th><th class="px-4 py-2">{% trans "User" %}</th><th class="px-4 py-2">{% trans "Details" %}</th></tr>
+    </thead>
+    <tbody>
+      {% for entry in entries %}
+        <tr class="border-b border-gray-100 dark:border-gray-700">
+          <td class="px-4 py-2">{{ entry.created_at }}</td>
+          <td class="px-4 py-2">{{ entry.action }}</td>
+          <td class="px-4 py-2">{{ entry.user|default:"—" }}</td>
+          <td class="max-w-md truncate px-4 py-2">{{ entry.details|default:"" }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">{% trans "No history yet." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

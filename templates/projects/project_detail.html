@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% load i18n core_extras project_extras %}
+{% block title %}{{ project.name }}{% endblock %}
+{% block page_title %}{{ project.name }}{% endblock %}
+{% block page_subtitle %}
+  <span class="{{ project.status|project_status_badge }}">{{ project.get_status_display }}</span>
+  <span class="{{ project.stage|project_stage_badge }}">{{ project.get_stage_display }}</span>
+{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap gap-2">
+  <a href="{% url 'projects:list' %}" class="btn btn-ghost btn-sm">← {% trans "Back" %}</a>
+  <a href="{% url 'projects:history' project.pk %}" class="btn btn-ghost btn-sm">{% trans "History" %}</a>
+  {% if can_edit %}
+    <a href="{% url 'projects:update' project.pk %}" class="btn btn-secondary btn-sm">{% trans "Edit" %}</a>
+    <a href="{% url 'projects:delete' project.pk %}" class="btn btn-danger btn-sm">{% trans "Delete" %}</a>
+  {% endif %}
+</div>
+
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+  <div class="space-y-6 lg:col-span-2">
+    <div class="card p-6">
+      <h2 class="mb-3 font-semibold">{% trans "Project info" %}</h2>
+      <dl class="grid grid-cols-2 gap-3 text-sm">
+        <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Client" %}</dt><dd>{{ project.client_name|default:"—" }}</dd></div>
+        <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Address" %}</dt><dd>{{ project.address|default:"—" }}</dd></div>
+        <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Start date" %}</dt><dd>{{ project.start_date|default:"—" }}</dd></div>
+        <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Deadline" %}</dt><dd>{{ project.deadline|default:"—" }}</dd></div>
+      </dl>
+      {% if project.description %}<p class="mt-3 text-sm text-gray-600 dark:text-gray-300">{{ project.description }}</p>{% endif %}
+    </div>
+
+    <div class="card p-6">
+      <div class="mb-3 flex items-center justify-between">
+        <h2 class="font-semibold">{% trans "Sub-objects" %}</h2>
+      </div>
+      <ul class="mb-3 space-y-2 text-sm">
+        {% for obj in project.sub_objects.all %}
+          <li class="flex items-center justify-between border-b border-gray-100 py-1 dark:border-gray-700">
+            <span>{{ obj.name }} <span class="text-gray-400">{{ obj.address|default:"" }}</span></span>
+            <span class="text-gray-500 dark:text-gray-400">{{ obj.gip|default:"—" }}</span>
+          </li>
+        {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No sub-objects yet." %}</li>{% endfor %}
+      </ul>
+      {% if can_edit %}
+      <form method="post" action="{% url 'projects:add_subobject' project.pk %}" class="flex flex-wrap gap-2">
+        {% csrf_token %}
+        {% for field in sub_object_form %}{{ field }}{% endfor %}
+        <button type="submit" class="btn btn-secondary btn-sm">{% trans "Add" %}</button>
+      </form>
+      {% endif %}
+    </div>
+
+    <div class="card p-6">
+      <h2 class="mb-3 font-semibold">{% trans "Sections" %}</h2>
+      <ul class="mb-3 space-y-2 text-sm">
+        {% for section in project.sections.all %}
+          <li class="flex items-center justify-between border-b border-gray-100 py-1 dark:border-gray-700">
+            <span><span class="badge badge-info">{{ section.code }}</span> {{ section.name }}</span>
+            <span class="text-gray-500 dark:text-gray-400">{{ section.gip|default:"—" }}</span>
+          </li>
+        {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No sections yet." %}</li>{% endfor %}
+      </ul>
+      {% if can_edit %}
+      <form method="post" action="{% url 'projects:add_section' project.pk %}" class="flex flex-wrap gap-2">
+        {% csrf_token %}
+        {% for field in section_form %}{{ field }}{% endfor %}
+        <button type="submit" class="btn btn-secondary btn-sm">{% trans "Add" %}</button>
+      </form>
+      {% endif %}
+    </div>
+
+    <div class="card p-6">
+      <div class="mb-3 flex items-center justify-between">
+        <h2 class="font-semibold">{% trans "Tasks" %}</h2>
+        <a href="{% url 'tasks:board' %}?project={{ project.pk }}" class="text-sm text-blue-600 hover:underline dark:text-blue-400">{% trans "Open all" %}</a>
+      </div>
+      <ul class="space-y-2 text-sm">
+        {% for task in tasks %}
+          <li class="flex items-center justify-between border-b border-gray-100 py-1 dark:border-gray-700">
+            <span>{{ task.title }}</span>
+            <span class="text-gray-500 dark:text-gray-400">{{ task.assignee|default:"—" }}</span>
+          </li>
+        {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No tasks yet." %}</li>{% endfor %}
+      </ul>
+    </div>
+
+    <div class="card overflow-x-auto p-6">
+      <h2 class="mb-3 font-semibold">{% trans "Finance records" %}</h2>
+      <table class="mb-4 w-full text-left text-sm">
+        <thead class="text-gray-500 dark:text-gray-400">
+          <tr><th class="py-1">{% trans "Description" %}</th><th>{% trans "Type" %}</th><th>{% trans "Amount" %}</th><th>{% trans "Date" %}</th><th>{% trans "Status" %}</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for record in records %}
+            <tr class="border-t border-gray-100 dark:border-gray-700">
+              <td class="py-1">{{ record.description|default:"—" }}</td>
+              <td>{{ record.get_type_display }}</td>
+              <td>{{ record.amount|money }} {{ record.currency }}</td>
+              <td>{{ record.date }}</td>
+              <td>{{ record.get_status_display }}</td>
+              <td class="text-right">
+                {% if can_edit %}
+                <a href="{% url 'finance:delete_record' record.pk %}" class="text-xs text-red-500 hover:underline">{% trans "Delete" %}</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="py-4 text-center text-gray-500 dark:text-gray-400">{% trans "No records yet." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if can_edit %}
+      <form method="post" action="{% url 'finance:add_record' project.pk %}" class="flex flex-wrap gap-2">
+        {% csrf_token %}
+        {% for field in record_form %}{{ field }}{% endfor %}
+        <button type="submit" class="btn btn-secondary btn-sm">{% trans "Add record" %}</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="space-y-6">
+    <div class="card p-6">
+      <h2 class="mb-3 font-semibold">{% trans "Finance summary" %}</h2>
+      <div class="mb-2 h-2 w-full rounded-full bg-gray-100 dark:bg-gray-700">
+        <div class="h-2 rounded-full bg-blue-500" style="width: {{ project.paid_percentage }}%"></div>
+      </div>
+      <p class="text-sm text-gray-500 dark:text-gray-400">{{ project.paid_amount|millions }} / {{ project.budget|millions }} {% trans "mln" %}</p>
+      <dl class="mt-3 space-y-1 text-sm">
+        <div class="flex justify-between"><dt>{% trans "Income" %}</dt><dd class="text-green-600 dark:text-green-400">{{ income|money }}</dd></div>
+        <div class="flex justify-between"><dt>{% trans "Expense" %}</dt><dd class="text-red-600 dark:text-red-400">{{ expense|money }}</dd></div>
+      </dl>
+    </div>
+
+    <div class="card p-6">
+      <h2 class="mb-3 font-semibold">{% trans "Statistics" %}</h2>
+      <dl class="space-y-1 text-sm">
+        <div class="flex justify-between"><dt>{% trans "Tasks" %}</dt><dd>{{ task_stats.total }}</dd></div>
+        <div class="flex justify-between"><dt>{% trans "Completed" %}</dt><dd>{{ task_stats.completed }}</dd></div>
+        <div class="flex justify-between"><dt>{% trans "In progress" %}</dt><dd>{{ task_stats.in_progress }}</dd></div>
+      </dl>
+    </div>
+
+    <div class="card p-6">
+      <h2 class="mb-3 font-semibold">{% trans "Team" %}</h2>
+      <ul class="space-y-2 text-sm">
+        {% for member in project.members.all %}
+          <li class="flex items-center justify-between">
+            <span class="flex items-center gap-2">
+              <span class="flex h-6 w-6 items-center justify-center rounded-full text-xs text-white" style="background-color: {{ member.user.full_name|avatar_color }};">{{ member.user.full_name|initials }}</span>
+              {{ member.user.get_short_name }}
+            </span>
+            {% if can_edit %}
+              <form method="post" action="{% url 'projects:remove_member' project.pk member.user.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="text-xs text-red-500 hover:underline">{% trans "Remove" %}</button>
+              </form>
+            {% endif %}
+          </li>
+        {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No members yet." %}</li>{% endfor %}
+      </ul>
+      {% if can_edit %}
+      <form method="post" action="{% url 'projects:add_member' project.pk %}" class="mt-3 flex flex-wrap gap-2">
+        {% csrf_token %}
+        {% for field in member_form %}{{ field }}{% endfor %}
+        <button type="submit" class="btn btn-secondary btn-sm">{% trans "Add" %}</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

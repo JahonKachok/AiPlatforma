@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Assign approval route" %}{% endblock %}
+{% block page_title %}{% blocktrans with name=document.name %}Approval route — {{ name }}{% endblocktrans %}{% endblock %}
+{% block content %}
+<form method="post" class="card max-w-2xl space-y-4 p-6">
+  {% csrf_token %}
+  {{ formset.management_form }}
+  <div id="stage-forms" class="space-y-3">
+    {% for form in formset %}
+      <div class="flex flex-wrap items-end gap-2 border-b border-gray-100 pb-3 dark:border-gray-700">
+        <div>
+          <label class="field-label">{% trans "Stage name" %}</label>
+          {{ form.stage_name }}
+        </div>
+        <div>
+          <label class="field-label">{% trans "Reviewer" %}</label>
+          {{ form.reviewer }}
+        </div>
+        {% if form.DELETE %}<label class="text-xs">{{ form.DELETE }} {% trans "Remove" %}</label>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+  <p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Add more stage rows by editing the form count, or submit with a single stage for a simple one-step review." %}</p>
+  <div class="flex gap-3">
+    <button type="submit" class="btn btn-primary btn-md">{% trans "Save route" %}</button>
+    <a href="{% url 'documents:detail' document.pk %}" class="btn btn-secondary btn-md">{% trans "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

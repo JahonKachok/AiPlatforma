@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Notifications" %}{% endblock %}
+{% block page_title %}{% trans "Notifications" %}{% endblock %}
+{% block content %}
+<div class="mb-4 flex justify-end">
+  <form method="post" action="{% url 'notifications:mark_all_read' %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-secondary btn-sm">{% trans "Mark all as read" %}</button>
+  </form>
+</div>
+<div class="card divide-y divide-gray-100 dark:divide-gray-700">
+  {% for n in notifications %}
+    <div class="flex items-center justify-between p-4 {% if not n.is_read %}bg-blue-50/50 dark:bg-blue-950/30{% endif %}">
+      <div>
+        <p class="font-medium">{{ n.title }}</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">{{ n.message }}</p>
+        <p class="text-xs text-gray-400">{{ n.created_at }}</p>
+      </div>
+      <div class="flex gap-2">
+        {% if n.link %}<a href="{{ n.link }}" class="text-xs text-blue-600 hover:underline dark:text-blue-400">{% trans "Open" %}</a>{% endif %}
+        {% if not n.is_read %}
+          <form method="post" action="{% url 'notifications:mark_read' n.pk %}">{% csrf_token %}<button type="submit" class="text-xs text-gray-500 hover:underline">{% trans "Mark read" %}</button></form>
+        {% endif %}
+        <form method="post" action="{% url 'notifications:delete' n.pk %}">{% csrf_token %}<button type="submit" class="text-xs text-red-500 hover:underline">{% trans "Delete" %}</button></form>
+      </div>
+    </div>
+  {% empty %}
+    <p class="p-6 text-center text-sm text-gray-500 dark:text-gray-400">{% trans "No notifications yet." %}</p>
+  {% endfor %}
+</div>
+{% endblock %}

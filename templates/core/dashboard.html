@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load i18n core_extras project_extras task_extras %}
+{% block title %}{% trans "Dashboard" %}{% endblock %}
+{% block page_title %}{% trans "Dashboard" %}{% endblock %}
+{% block page_subtitle %}{% blocktrans with name=user.get_short_name %}Welcome back, {{ name }}{% endblocktrans %}{% endblock %}
+{% block content %}
+<div class="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+  <a href="{% url 'projects:list' %}?status=active" class="card p-4 hover:shadow-md">
+    <p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Active projects" %}</p>
+    <p class="text-2xl font-semibold">{{ active_projects_count }}</p>
+  </a>
+  <a href="{% url 'tasks:board' %}" class="card p-4 hover:shadow-md">
+    <p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Tasks in progress" %}</p>
+    <p class="text-2xl font-semibold">{{ in_progress_tasks_count }}</p>
+  </a>
+  <a href="{% url 'documents:approvals' %}" class="card p-4 hover:shadow-md">
+    <p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Pending approvals" %}</p>
+    <p class="text-2xl font-semibold">{{ pending_approvals_count }}</p>
+  </a>
+  <a href="{% url 'tasks:board' %}?view=list" class="card p-4 hover:shadow-md">
+    <p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Overdue tasks" %}</p>
+    <p class="text-2xl font-semibold text-red-500">{{ overdue_tasks_count }}</p>
+  </a>
+</div>
+
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+  <div class="card p-4 lg:col-span-2">
+    <div class="mb-3 flex items-center justify-between">
+      <h2 class="font-semibold">{% trans "Active projects" %}</h2>
+      <a href="{% url 'projects:list' %}" class="text-sm text-blue-600 hover:underline dark:text-blue-400">{% trans "View all" %}</a>
+    </div>
+    <div class="space-y-3">
+      {% for project in recent_projects %}
+        <a href="{% url 'projects:detail' project.pk %}" class="block border-b border-gray-100 pb-2 dark:border-gray-700">
+          <div class="mb-1 flex items-center justify-between text-sm">
+            <span>{{ project.name }}</span>
+            <span class="{{ project.status|project_status_badge }}">{{ project.get_status_display }}</span>
+          </div>
+          <div class="h-1.5 w-full rounded-full bg-gray-100 dark:bg-gray-700">
+            <div class="h-1.5 rounded-full bg-blue-500" style="width: {{ project.paid_percentage }}%"></div>
+          </div>
+        </a>
+      {% empty %}<p class="text-sm text-gray-500 dark:text-gray-400">{% trans "No projects yet." %}</p>{% endfor %}
+    </div>
+  </div>
+
+  <div class="card p-4">
+    <div class="mb-3 flex items-center justify-between">
+      <h2 class="font-semibold">{% trans "Team" %}</h2>
+      <a href="{% url 'accounts:user_list' %}" class="text-sm text-blue-600 hover:underline dark:text-blue-400">{% trans "View all" %}</a>
+    </div>
+    <ul class="space-y-2 text-sm">
+      {% for member in team %}
+        <li class="flex items-center gap-2">
+          <span class="flex h-7 w-7 items-center justify-center rounded-full text-xs text-white" style="background-color: {{ member.full_name|avatar_color }};">{{ member.full_name|initials }}</span>
+          <span>{{ member.get_short_name }}</span>
+          <span class="text-xs text-gray-400">{{ member.department|default:"" }}</span>
+        </li>
+      {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No team members yet." %}</li>{% endfor %}
+    </ul>
+  </div>
+
+  <div class="card p-4 lg:col-span-3">
+    <div class="mb-3 flex items-center justify-between">
+      <h2 class="font-semibold">{% trans "Recent tasks" %}</h2>
+      <a href="{% url 'tasks:board' %}" class="text-sm text-blue-600 hover:underline dark:text-blue-400">{% trans "View all" %}</a>
+    </div>
+    <ul class="space-y-2 text-sm">
+      {% for task in recent_tasks %}
+        <li class="flex items-center justify-between border-b border-gray-100 py-1 dark:border-gray-700">
+          <a href="{% url 'tasks:detail' task.pk %}" class="hover:underline">{{ task.title }}</a>
+          <span class="flex items-center gap-2">
+            <span class="{{ task.status|task_status_badge }}">{{ task.get_status_display }}</span>
+            {% if task.is_overdue %}<span class="text-xs text-red-500">{% trans "overdue" %}</span>{% endif %}
+          </span>
+        </li>
+      {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No tasks yet." %}</li>{% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

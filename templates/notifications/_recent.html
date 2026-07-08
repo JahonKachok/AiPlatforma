@@ -1,0 +1,19 @@
+{% load i18n %}
+<div class="max-h-96 overflow-y-auto">
+  {% for n in notifications %}
+    <a href="{{ n.link|default:'#' }}" data-mark-read-url="{% url 'notifications:mark_read' n.pk %}"
+       class="block border-b border-gray-100 px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700 {% if not n.is_read %}font-medium{% endif %}">
+      <p>{{ n.title }}</p>
+      <p class="truncate text-xs text-gray-500 dark:text-gray-400">{{ n.message }}</p>
+      <p class="text-xs text-gray-400">{{ n.created_at|timesince }} {% trans "ago" %}</p>
+    </a>
+  {% empty %}
+    <p class="px-3 py-4 text-center text-sm text-gray-500 dark:text-gray-400">{% trans "No notifications." %}</p>
+  {% endfor %}
+</div>
+{% if notifications %}
+  <form method="post" action="{% url 'notifications:mark_all_read' %}" class="border-t border-gray-100 p-2 dark:border-gray-700">
+    {% csrf_token %}
+    <button type="submit" class="w-full text-center text-xs text-blue-600 hover:underline dark:text-blue-400">{% trans "Mark all as read" %}</button>
+  </form>
+{% endif %}

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Two-factor verification" %}{% endblock %}
+{% block auth_content %}
+<div class="flex min-h-screen items-center justify-center px-4">
+  <div class="w-full max-w-sm card p-6">
+    <h1 class="mb-1 text-xl font-semibold">{% trans "Two-factor verification" %}</h1>
+    <p class="mb-6 text-sm text-gray-500 dark:text-gray-400">{% trans "Enter the 6-digit code from your authenticator app." %}</p>
+    <form method="post" novalidate class="space-y-4">
+      {% csrf_token %}
+      {{ form.code }}
+      {% if form.errors %}<p class="text-xs text-red-600 dark:text-red-400">{{ form.errors.code|join:", " }}</p>{% endif %}
+      <button type="submit" class="btn btn-primary btn-md w-full">{% trans "Verify" %}</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

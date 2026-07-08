@@ -1,0 +1,52 @@
+{% load i18n static %}
+<header class="flex items-center justify-end border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800 md:px-6">
+  <div class="flex items-center gap-3">
+    <div class="relative" data-notification-bell>
+      <button type="button" data-bell-toggle class="btn btn-ghost btn-sm relative">
+        🔔
+        <span data-unread-badge class="absolute -right-1 -top-1 hidden min-w-[1.1rem] rounded-full bg-red-500 px-1 text-center text-[10px] leading-4 text-white"></span>
+      </button>
+      <div data-bell-dropdown class="absolute right-0 z-20 mt-2 hidden w-80 rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+        <div class="flex items-center justify-between border-b border-gray-100 px-3 py-2 text-sm font-medium dark:border-gray-700">
+          {% trans "Notifications" %}
+          <a href="{% url 'notifications:list' %}" class="text-xs font-normal text-blue-600 hover:underline dark:text-blue-400">{% trans "View all" %}</a>
+        </div>
+        <div data-bell-content></div>
+      </div>
+    </div>
+    <form method="post" action="{% url 'set_language' %}" class="flex items-center">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.path }}">
+      <select name="language" onchange="this.form.submit()"
+              class="rounded-lg border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-700">
+        {% get_current_language as CURRENT_LANGUAGE %}
+        {% get_available_languages as LANGUAGES %}
+        {% for code, name in LANGUAGES %}
+          <option value="{{ code }}" {% if code == CURRENT_LANGUAGE %}selected{% endif %}>{{ name }}</option>
+        {% endfor %}
+      </select>
+    </form>
+
+    <form method="post" action="{% url 'core:set_dark_mode' %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.path }}">
+      <input type="hidden" name="dark_mode" value="{% if dark_mode %}0{% else %}1{% endif %}">
+      <button type="submit" class="btn btn-ghost btn-sm" title="{% trans 'Toggle dark mode' %}">
+        {% if dark_mode %}☀️{% else %}🌙{% endif %}
+      </button>
+    </form>
+
+    <a href="{% url 'accounts:profile' %}" class="btn btn-ghost btn-sm">{% trans "Profile" %}</a>
+    <form method="post" action="{% url 'accounts:logout' %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-secondary btn-sm">{% trans "Log out" %}</button>
+    </form>
+  </div>
+</header>
+<script>
+  window.NOTIFICATIONS_URLS = {
+    unreadCount: "{% url 'notifications:unread_count' %}",
+    recent: "{% url 'notifications:recent' %}"
+  };
+</script>
+<script src="{% static 'js/notifications-poll.js' %}"></script>

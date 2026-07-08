@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% if is_create %}{% trans "New project" %}{% else %}{% trans "Edit project" %}{% endif %}{% endblock %}
+{% block page_title %}{% if is_create %}{% trans "New project" %}{% else %}{% trans "Edit project" %}{% endif %}{% endblock %}
+{% block content %}
+<form method="post" class="card max-w-3xl space-y-4 p-6">
+  {% csrf_token %}
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    {% for field in form %}
+      <div class="{% if field.name == 'description' %}sm:col-span-2{% endif %}">
+        <label class="field-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ field.errors|join:", " }}</p>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+  <div class="flex gap-3">
+    <button type="submit" class="btn btn-primary btn-md">{% trans "Save" %}</button>
+    {% if project %}
+      <a href="{% url 'projects:detail' project.pk %}" class="btn btn-secondary btn-md">{% trans "Cancel" %}</a>
+    {% else %}
+      <a href="{% url 'projects:list' %}" class="btn btn-secondary btn-md">{% trans "Cancel" %}</a>
+    {% endif %}
+  </div>
+</form>
+{% endblock %}

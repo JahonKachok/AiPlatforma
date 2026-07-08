@@ -1,0 +1,76 @@
+{% load i18n core_extras %}
+<aside class="hidden w-64 shrink-0 flex-col border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 md:flex">
+  <div class="flex items-center gap-2 border-b border-gray-200 px-4 py-4 dark:border-gray-700">
+    <span class="text-xl">🏗️</span>
+    <span class="text-lg font-semibold">AiPlatforma</span>
+  </div>
+  <nav class="flex-1 space-y-1 overflow-y-auto px-2 py-4 text-sm">
+    {% url 'core:dashboard' as dashboard_url %}
+    <a href="{{ dashboard_url }}" class="flex items-center gap-3 rounded-lg px-3 py-2 font-medium
+      {% if request.path == dashboard_url %}bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300{% else %}text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700{% endif %}">
+      {% trans "Dashboard" %}
+    </a>
+    {% url 'projects:list' as projects_url %}
+    <a href="{{ projects_url }}" class="flex items-center gap-3 rounded-lg px-3 py-2 font-medium
+      {% if request.path|slice:":9" == "/projects" %}bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300{% else %}text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700{% endif %}">
+      {% trans "Projects" %}
+    </a>
+    {% url 'tasks:board' as tasks_url %}
+    <a href="{{ tasks_url }}" class="flex items-center gap-3 rounded-lg px-3 py-2 font-medium
+      {% if request.path|slice:":6" == "/tasks" %}bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300{% else %}text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700{% endif %}">
+      {% trans "Tasks" %}
+    </a>
+    {% url 'documents:list' as documents_url %}
+    <a href="{{ documents_url }}" class="flex items-center gap-3 rounded-lg px-3 py-2 font-medium
+      {% if request.path == documents_url %}bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300{% else %}text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700{% endif %}">
+      {% trans "Documents" %}
+    </a>
+    {% url 'documents:approvals' as approvals_url %}
+    <a href="{{ approvals_url }}" class="flex items-center gap-3 rounded-lg px-3 py-2 font-medium
+      {% if request.path == approvals_url %}bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300{% else %}text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700{% endif %}">
+      {% trans "Approvals" %}
+    </a>
+    {% url 'finance:home' as finance_url %}
+    <a href="{{ finance_url }}" class="flex items-center gap-3 rounded-lg px-3 py-2 font-medium
+      {% if request.path == finance_url %}bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300{% else %}text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700{% endif %}">
+      {% trans "Finance" %}
+    </a>
+    {% url 'reports:dashboard' as reports_url %}
+    <a href="{{ reports_url }}" class="flex items-center gap-3 rounded-lg px-3 py-2 font-medium
+      {% if request.path == reports_url %}bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300{% else %}text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700{% endif %}">
+      {% trans "Reports" %}
+    </a>
+    {% url 'requests_app:list' as requests_url %}
+    <a href="{{ requests_url }}" class="flex items-center gap-3 rounded-lg px-3 py-2 font-medium
+      {% if request.path|slice:":9" == "/requests" %}bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300{% else %}text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700{% endif %}">
+      {% trans "Requests" %}
+    </a>
+    {% url 'document_templates:list' as templates_url %}
+    <a href="{{ templates_url }}" class="flex items-center gap-3 rounded-lg px-3 py-2 font-medium
+      {% if request.path|slice:":10" == "/templates" %}bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300{% else %}text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700{% endif %}">
+      {% trans "Templates" %}
+    </a>
+    {% url 'organization:list' as organization_url %}
+    <a href="{{ organization_url }}" class="flex items-center gap-3 rounded-lg px-3 py-2 font-medium
+      {% if request.path == organization_url %}bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300{% else %}text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700{% endif %}">
+      {% trans "Organization" %}
+    </a>
+    {% url 'accounts:user_list' as users_url %}
+    <a href="{{ users_url }}" class="flex items-center gap-3 rounded-lg px-3 py-2 font-medium
+      {% if request.path == users_url %}bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300{% else %}text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700{% endif %}">
+      {% trans "Users" %}
+    </a>
+  </nav>
+  <div class="border-t border-gray-200 p-3 dark:border-gray-700">
+    <a href="{% url 'accounts:profile' %}" class="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">
+      <span class="flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold text-white"
+            style="background-color: {{ request.user.full_name|avatar_color }};">
+        {{ request.user.full_name|initials }}
+      </span>
+      <span class="truncate text-sm">
+        <span class="block font-medium">{{ request.user.get_short_name }}</span>
+        <span class="block text-xs text-gray-500 dark:text-gray-400">{{ request.user.get_role_display }}</span>
+      </span>
+    </a>
+  </div>
+</aside>

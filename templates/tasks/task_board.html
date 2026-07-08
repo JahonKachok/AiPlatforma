@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load i18n static core_extras task_extras %}
+{% block title %}{% trans "Tasks" %}{% endblock %}
+{% block page_title %}{% trans "Tasks" %}{% endblock %}
+{% block content %}
+<form method="get" class="hidden">{% csrf_token %}</form>
+
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+  <form method="get" class="flex flex-wrap items-center gap-2">
+    <input type="hidden" name="view" value="{{ view }}">
+    <select name="project" onchange="this.form.submit()" class="field-input w-auto">
+      <option value="">{% trans "All projects" %}</option>
+      {% for project in projects %}
+        <option value="{{ project.pk }}" {% if project_id == project.pk|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
+      {% endfor %}
+    </select>
+    <select name="assignee" onchange="this.form.submit()" class="field-input w-auto">
+      <option value="">{% trans "All assignees" %}</option>
+      {% for a in assignees %}
+        <option value="{{ a.pk }}" {% if assignee_id == a.pk|stringformat:"s" %}selected{% endif %}>{{ a.full_name }}</option>
+      {% endfor %}
+    </select>
+  </form>
+  <div class="flex items-center gap-2">
+    <a href="?view=kanban&project={{ project_id }}&assignee={{ assignee_id }}" class="btn {% if view == 'kanban' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">{% trans "Kanban" %}</a>
+    <a href="?view=list&project={{ project_id }}&assignee={{ assignee_id }}" class="btn {% if view == 'list' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">{% trans "List" %}</a>
+    <a href="?view=calendar&project={{ project_id }}&assignee={{ assignee_id }}" class="btn {% if view == 'calendar' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">{% trans "Calendar" %}</a>
+    <a href="{% url 'tasks:create' %}" class="btn btn-primary btn-md">{% trans "New task" %}</a>
+  </div>
+</div>
+
+{% if view == "list" %}
+  <div class="card overflow-x-auto">
+    <table class="w-full text-left text-sm">
+      <thead class="border-b border-gray-200 text-gray-500 dark:border-gray-700 dark:text-gray-400">
+        <tr>
+          <th class="px-4 py-2">{% trans "Task" %}</th><th class="px-4 py-2">{% trans "Project" %}</th>
+          <th class="px-4 py-2">{% trans "Assignee" %}</th><th class="px-4 py-2">{% trans "Status" %}</th>
+          <th class="px-4 py-2">{% trans "Priority" %}</th><th class="px-4 py-2">{% trans "Deadline" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in tasks %}
+          <tr class="cursor-pointer border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700"
+              onclick="window.location='{% url 'tasks:detail' task.pk %}'">
+            <td class="px-4 py-2">{{ task.title }}</td>
+            <td class="px-4 py-2">{{ task.project.name }}</td>
+            <td class="px-4 py-2">{{ task.assignee|default:"—" }}</td>
+            <td class="px-4 py-2"><span class="{{ task.status|task_status_badge }}">{{ task.get_status_display }}</span></td>
+            <td class="px-4 py-2"><span class="{{ task.priority|task_priority_badge }}">{{ task.get_priority_display }}</span></td>
+            <td class="px-4 py-2 {% if task.is_overdue %}text-red-500{% endif %}">{{ task.deadline|default:"—" }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">{% trans "No tasks found." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% elif view == "calendar" %}
+  <div class="card p-4">
+    <div class="mb-4 flex items-center justify-between">
+      <a href="?view=calendar&year={{ prev_year }}&month={{ prev_month }}&project={{ project_id }}&assignee={{ assignee_id }}" class="btn btn-ghost btn-sm">←</a>
+      <h2 class="font-semibold">{{ current_month|date:"F Y" }}</h2>
+      <a href="?view=calendar&year={{ next_year }}&month={{ next_month }}&project={{ project_id }}&assignee={{ assignee_id }}" class="btn btn-ghost btn-sm">→</a>
+    </div>
+    <div class="grid grid-cols-7 gap-1 text-xs">
+      {% for day in month_days %}
+        <div class="min-h-20 rounded border border-gray-100 p-1 dark:border-gray-700 {% if day.month != current_month.month %}opacity-40{% endif %} {% if day == today %}bg-blue-50 dark:bg-blue-950{% endif %}">
+          <div class="mb-1 font-medium">{{ day.day }}</div>
+          {% for task in tasks_by_day|get_item:day %}
+            <a href="{% url 'tasks:detail' task.pk %}" class="mb-0.5 block truncate rounded bg-blue-100 px-1 text-blue-800 dark:bg-blue-900 dark:text-blue-200">{{ task.title }}</a>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+{% else %}
+  <div data-kanban-board class="grid grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-6">
+    {% for value, label, column_tasks in columns %}
+      <div data-kanban-column="{{ value }}" class="card min-h-[300px] p-3">
+        <h3 class="mb-3 flex items-center justify-between text-sm font-semibold">
+          {{ label }} <span class="badge badge-default">{{ column_tasks|length }}</span>
+        </h3>
+        <div data-kanban-cards class="space-y-2">
+          {% for task in column_tasks %}
+            <div data-task-card="{{ task.pk }}" data-status-url="{% url 'tasks:update_status' task.pk %}"
+                 draggable="true" onclick="window.location='{% url 'tasks:detail' task.pk %}'"
+                 class="cursor-pointer rounded-lg border border-gray-200 bg-white p-2 text-xs shadow-sm hover:shadow dark:border-gray-700 dark:bg-gray-800">
+              <p class="mb-1 font-medium">{{ task.title }}</p>
+              <p class="mb-1 text-gray-500 dark:text-gray-400">{{ task.project.name }}</p>
+              <div class="flex items-center justify-between">
+                <span class="{{ task.priority|task_priority_badge }}">{{ task.get_priority_display }}</span>
+                {% if task.deadline %}<span class="{% if task.is_overdue %}text-red-500{% endif %}">{{ task.deadline }}</span>{% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}
+{% block extra_scripts %}
+<script src="{% static 'js/kanban.js' %}"></script>
+{% endblock %}

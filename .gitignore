@@ -34,3 +34,4 @@ media/
 *.njsproj
 *.sln
 *.sw?
+.vite

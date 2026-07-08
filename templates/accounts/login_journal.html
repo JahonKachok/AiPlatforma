@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Login history" %}{% endblock %}
+{% block page_title %}{% trans "Login history" %}{% endblock %}
+{% block content %}
+<div class="card overflow-x-auto">
+  <table class="w-full text-left text-sm">
+    <thead class="border-b border-gray-200 text-gray-500 dark:border-gray-700 dark:text-gray-400">
+      <tr>
+        <th class="px-4 py-2">{% trans "Date" %}</th>
+        <th class="px-4 py-2">{% trans "Status" %}</th>
+        <th class="px-4 py-2">{% trans "IP address" %}</th>
+        <th class="px-4 py-2">{% trans "User agent" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in entries %}
+        <tr class="border-b border-gray-100 dark:border-gray-700">
+          <td class="px-4 py-2">{{ entry.created_at }}</td>
+          <td class="px-4 py-2">{{ entry.status }}</td>
+          <td class="px-4 py-2">{{ entry.ip_address|default:"—" }}</td>
+          <td class="max-w-xs truncate px-4 py-2">{{ entry.user_agent|default:"—" }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">{% trans "No entries yet." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

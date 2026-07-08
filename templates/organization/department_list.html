@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load i18n core_extras %}
+{% block title %}{% trans "Organization" %}{% endblock %}
+{% block page_title %}{% trans "Organization" %}{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+  <form method="get" class="flex gap-2">
+    <input type="text" name="search" value="{{ search }}" placeholder="{% trans 'Search...' %}" class="field-input w-56">
+    <button type="submit" class="btn btn-secondary btn-sm">{% trans "Search" %}</button>
+  </form>
+</div>
+
+{% if can_manage %}
+<div class="card mb-6 p-4">
+  <h2 class="mb-3 font-semibold">{% trans "New department" %}</h2>
+  <form method="post" action="{% url 'organization:create' %}" class="flex flex-wrap gap-2">
+    {% csrf_token %}
+    {% for field in department_form %}{{ field }}{% endfor %}
+    <button type="submit" class="btn btn-primary btn-sm">{% trans "Create" %}</button>
+  </form>
+</div>
+{% endif %}
+
+<div class="space-y-4">
+  {% for department in departments %}
+    <div class="card p-4">
+      <div class="mb-2 flex items-center justify-between">
+        <div>
+          <h3 class="font-semibold">{{ department.name }}</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">{{ department.code|default:"" }} · {{ department.get_status_display }}</p>
+        </div>
+        {% if can_manage %}
+          <div class="flex gap-2">
+            <a href="{% url 'organization:update' department.pk %}" class="text-xs text-blue-600 hover:underline dark:text-blue-400">{% trans "Edit" %}</a>
+            <form method="post" action="{% url 'organization:delete' department.pk %}" onsubmit="return confirm('{% trans "Delete this department?" %}');">
+              {% csrf_token %}
+              <button type="submit" class="text-xs text-red-500 hover:underline">{% trans "Delete" %}</button>
+            </form>
+          </div>
+        {% endif %}
+      </div>
+      {% if department.description %}<p class="mb-2 text-sm text-gray-600 dark:text-gray-300">{{ department.description }}</p>{% endif %}
+      {% if department.head %}<p class="mb-3 text-sm">{% trans "Head" %}: {{ department.head.get_short_name }}</p>{% endif %}
+
+      <div class="ml-4 space-y-3 border-l border-gray-100 pl-4 dark:border-gray-700">
+        {% for unit in department.units.all %}
+          <div>
+            <div class="flex items-center justify-between">
+              <p class="text-sm font-medium">{{ unit.name }} <span class="text-xs text-gray-400">{{ unit.code|default:"" }}</span></p>
+              {% if can_manage %}
+                <form method="post" action="{% url 'organization:delete_unit' unit.pk %}" onsubmit="return confirm('{% trans "Delete this unit?" %}');">
+                  {% csrf_token %}
+                  <button type="submit" class="text-xs text-red-500 hover:underline">{% trans "Delete" %}</button>
+                </form>
+              {% endif %}
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Manager" %}: {{ unit.manager|default:"—" }}</p>
+            <div class="mt-1 flex flex-wrap gap-1">
+              {% for member in unit.members.all %}
+                <span class="flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs dark:bg-gray-700">
+                  {{ member.user.get_short_name }}
+                  {% if can_manage %}
+                    <form method="post" action="{% url 'organization:remove_member' member.pk %}" class="inline">
+                      {% csrf_token %}
+                      <button type="submit" class="text-red-500">×</button>
+                    </form>
+                  {% endif %}
+                </span>
+              {% endfor %}
+            </div>
+            {% if can_manage %}
+              <form method="post" action="{% url 'organization:add_member' unit.pk %}" class="mt-1 flex flex-wrap gap-1">
+                {% csrf_token %}
+                <select name="user" class="field-input w-auto text-xs" required>
+                  {% for u in users %}
+                    <option value="{{ u.pk }}">{{ u.full_name }}</option>
+                  {% endfor %}
+                </select>
+                <input type="text" name="role_in_unit" placeholder="{% trans 'Role' %}" class="field-input w-auto text-xs">
+                <button type="submit" class="btn btn-secondary btn-sm">{% trans "Add" %}</button>
+              </form>
+            {% endif %}
+          </div>
+        {% empty %}
+          <p class="text-sm text-gray-500 dark:text-gray-400">{% trans "No units yet." %}</p>
+        {% endfor %}
+
+        {% if can_manage %}
+          <form method="post" action="{% url 'organization:add_unit' department.pk %}" class="flex flex-wrap gap-2">
+            {% csrf_token %}
+            <input type="text" name="name" placeholder="{% trans 'Unit name' %}" class="field-input w-auto text-xs" required>
+            <input type="text" name="code" placeholder="{% trans 'Code' %}" class="field-input w-auto text-xs">
+            <button type="submit" class="btn btn-secondary btn-sm">{% trans "Add unit" %}</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  {% empty %}
+    <p class="text-center text-sm text-gray-500 dark:text-gray-400">{% trans "No departments yet." %}</p>
+  {% endfor %}
+</div>
+{% endblock %}

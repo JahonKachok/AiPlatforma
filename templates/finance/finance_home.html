@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load i18n core_extras finance_extras %}
+{% block title %}{% trans "Finance" %}{% endblock %}
+{% block page_title %}{% trans "Finance" %}{% endblock %}
+{% block content %}
+<div class="mb-4 flex gap-2">
+  <a href="?tab=overview" class="btn btn-sm {% if tab == 'overview' %}btn-primary{% else %}btn-secondary{% endif %}">{% trans "Overview" %}</a>
+  <a href="?tab=records" class="btn btn-sm {% if tab == 'records' %}btn-primary{% else %}btn-secondary{% endif %}">{% trans "Records" %}</a>
+  <a href="?tab=employees" class="btn btn-sm {% if tab == 'employees' %}btn-primary{% else %}btn-secondary{% endif %}">{% trans "Employees" %}</a>
+</div>
+
+{% if tab == "records" %}
+  <form method="get" class="mb-4 flex items-center gap-2">
+    <input type="hidden" name="tab" value="records">
+    <select name="project" onchange="this.form.submit()" class="field-input w-auto">
+      <option value="">{% trans "All projects" %}</option>
+      {% for project in projects %}
+        <option value="{{ project.pk }}" {% if project_id == project.pk|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
+      {% endfor %}
+    </select>
+  </form>
+  <div class="card overflow-x-auto">
+    <table class="w-full text-left text-sm">
+      <thead class="border-b border-gray-200 text-gray-500 dark:border-gray-700 dark:text-gray-400">
+        <tr><th class="px-3 py-2">{% trans "Description" %}</th><th class="px-3 py-2">{% trans "Project" %}</th>
+            <th class="px-3 py-2">{% trans "Type" %}</th><th class="px-3 py-2">{% trans "Amount" %}</th>
+            <th class="px-3 py-2">{% trans "Date" %}</th><th class="px-3 py-2">{% trans "Status" %}</th></tr>
+      </thead>
+      <tbody>
+        {% for record in records %}
+          <tr class="border-b border-gray-100 dark:border-gray-700">
+            <td class="px-3 py-2">{{ record.description|default:"—" }}</td>
+            <td class="px-3 py-2">{{ record.project.name }}</td>
+            <td class="px-3 py-2"><span class="{{ record.type|record_type_badge }}">{{ record.get_type_display }}</span></td>
+            <td class="px-3 py-2">{{ record.amount|money }} {{ record.currency }}</td>
+            <td class="px-3 py-2">{{ record.date }}</td>
+            <td class="px-3 py-2"><span class="{{ record.status|record_status_badge }}">{{ record.get_status_display }}</span></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">{% trans "No records." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% elif tab == "employees" %}
+  <div class="card mb-4 overflow-x-auto">
+    <table class="w-full text-left text-sm">
+      <thead class="border-b border-gray-200 text-gray-500 dark:border-gray-700 dark:text-gray-400">
+        <tr><th class="px-3 py-2">{% trans "Employee" %}</th><th class="px-3 py-2">{% trans "Project" %}</th>
+            <th class="px-3 py-2">{% trans "Contract amount" %}</th><th class="px-3 py-2">{% trans "Paid" %}</th>
+            <th class="px-3 py-2">{% trans "Balance" %}</th><th class="px-3 py-2"></th></tr>
+      </thead>
+      <tbody>
+        {% for ec in employee_contracts %}
+          <tr class="border-b border-gray-100 dark:border-gray-700">
+            <td class="px-3 py-2">{{ ec.user.get_short_name }}</td>
+            <td class="px-3 py-2">{{ ec.project.name }}</td>
+            <td class="px-3 py-2">{{ ec.amount|money }}</td>
+            <td class="px-3 py-2">{{ ec.paid|money }}</td>
+            <td class="px-3 py-2">{{ ec.balance|money }}</td>
+            <td class="px-3 py-2 text-right">
+              <form method="post" action="{% url 'finance:delete_employee_contract' ec.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="text-xs text-red-500 hover:underline">{% trans "Delete" %}</button>
+              </form>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">{% trans "No employee contracts yet." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card p-4">
+    <h2 class="mb-3 font-semibold">{% trans "Add employee contract" %}</h2>
+    <form method="post" action="{% url 'finance:add_employee_contract' %}" class="flex flex-wrap gap-2">
+      {% csrf_token %}
+      {% for field in employee_form %}{{ field }}{% endfor %}
+      <button type="submit" class="btn btn-primary btn-sm">{% trans "Add" %}</button>
+    </form>
+  </div>
+
+{% else %}
+  <div class="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+    <div class="card p-4"><p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Total budget" %}</p><p class="text-xl font-semibold">{{ total_budget|millions }} {% trans "mln" %}</p></div>
+    <div class="card p-4"><p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Received" %}</p><p class="text-xl font-semibold text-green-600 dark:text-green-400">{{ received|millions }} {% trans "mln" %}</p></div>
+    <div class="card p-4"><p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Expenses" %}</p><p class="text-xl font-semibold text-red-600 dark:text-red-400">{{ expenses|millions }} {% trans "mln" %}</p></div>
+    <div class="card p-4"><p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Pending" %}</p><p class="text-xl font-semibold text-amber-600 dark:text-amber-400">{{ pending|millions }} {% trans "mln" %}</p></div>
+  </div>
+
+  <div class="card p-4">
+    <h2 class="mb-3 font-semibold">{% trans "Projects" %}</h2>
+    <div class="space-y-3">
+      {% for project in projects %}
+        <div>
+          <div class="mb-1 flex items-center justify-between text-sm">
+            <a href="{% url 'projects:detail' project.pk %}" class="hover:underline">{{ project.name }}</a>
+            <span class="text-gray-500 dark:text-gray-400">{{ project.paid_amount|millions }} / {{ project.budget|millions }} {% trans "mln" %}</span>
+          </div>
+          <div class="h-2 w-full rounded-full bg-gray-100 dark:bg-gray-700">
+            <div class="h-2 rounded-full bg-blue-500" style="width: {{ project.paid_percentage }}%"></div>
+          </div>
+        </div>
+      {% empty %}<p class="text-sm text-gray-500 dark:text-gray-400">{% trans "No projects yet." %}</p>{% endfor %}
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

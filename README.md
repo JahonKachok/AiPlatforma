@@ -1,73 +1,69 @@
-# React + TypeScript + Vite
+# AiPlatforma
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Construction-company project management platform: projects, tasks (kanban/list/calendar), document approval workflows, finance, requests, document-generation templates, organization chart, and Telegram bot notifications. Built as a single Django app (server-rendered templates, minimal vanilla JS) — no separate frontend/backend split.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Django 6 (server-rendered templates, session auth, 2FA via TOTP)
+- SQLite by default (`DATABASE_URL` env var to switch to Postgres)
+- Celery + Redis for background jobs (deadline reminders, email/Telegram delivery)
+- Tailwind CSS (compiled ahead of time; no Node needed at runtime)
+- `python-telegram-bot` for the Telegram integration
 
-## React Compiler
+## Local development
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+python -m venv .venv
+.venv\Scripts\activate          # or `source .venv/bin/activate` on Linux/macOS
+pip install -r requirements.txt
 
-## Expanding the ESLint configuration
+copy .env.example .env          # fill in SECRET_KEY etc.
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py seed_demo_data # optional: realistic demo data
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+python manage.py runserver
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Visit `http://localhost:8000`. Django admin is at `/django-admin/`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### CSS
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Tailwind output is checked into `static/css/tailwind.css` (built ahead of time — no Node needed to *run* the app, only to rebuild the CSS after changing templates or `static/css/src/input.css`):
+
+```bash
+npm install --no-save tailwindcss @tailwindcss/cli
+npx tailwindcss -i static/css/src/input.css -o static/css/tailwind.css --minify
+```
+
+### Background jobs (Celery)
+
+In dev, `CELERY_TASK_ALWAYS_EAGER=True` runs tasks synchronously — no Redis/worker needed for `runserver` or `manage.py test`. For real async behavior (e.g. testing the deployment setup), run Redis plus:
+
+```bash
+celery -A aiplatforma worker --loglevel=info
+celery -A aiplatforma beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+python manage.py setup_periodic_tasks   # registers the hourly deadline-check task
+```
+
+### Telegram bot
+
+Set `TELEGRAM_BOT_TOKEN` (and `TELEGRAM_BOT_USERNAME`) in `.env`, then run the bot as its own long-running process:
+
+```bash
+python manage.py run_telegram_bot
+```
+
+### Tests
+
+```bash
+python manage.py test apps
+```
+
+## Deployment
+
+`docker-compose.yml` runs the full stack: `web` (gunicorn), `celery-worker`, `celery-beat`, `telegram-bot`, `redis`, and `nginx` (reverse proxy + static/media serving). Copy `.env.example` to `.env` with real production values first, then:
+
+```bash
+docker compose up -d --build
 ```

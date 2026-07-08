@@ -16,6 +16,14 @@ dist-ssr
 backend/backups/
 __pycache__/
 
+# Django
+.venv/
+db.sqlite3
+staticfiles/
+media/
+.env
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

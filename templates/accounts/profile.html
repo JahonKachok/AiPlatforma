@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load i18n core_extras %}
+{% block title %}{% trans "Settings" %}{% endblock %}
+{% block page_title %}{% trans "Settings" %}{% endblock %}
+{% block page_subtitle %}{% trans "Manage your profile, security and notifications" %}{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+
+  <div class="card p-6">
+    <div class="mb-4 flex items-center gap-3">
+      <span class="flex h-14 w-14 items-center justify-center rounded-full text-lg font-semibold text-white"
+            style="background-color: {{ user.full_name|avatar_color }};">{{ user.full_name|initials }}</span>
+      <div>
+        <p class="font-medium">{{ user.full_name }}</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">{{ user.get_role_display }} · {{ user.email }}</p>
+      </div>
+    </div>
+    <form method="post" enctype="multipart/form-data" class="space-y-4">
+      {% csrf_token %}
+      {% for field in form %}
+        <div>
+          <label class="field-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+        </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary btn-md">{% trans "Save" %}</button>
+    </form>
+  </div>
+
+  <div class="space-y-6">
+    <div class="card p-6">
+      <h2 class="mb-4 font-semibold">{% trans "Security" %}</h2>
+      <div class="flex items-center justify-between py-2">
+        <div>
+          <p class="text-sm font-medium">{% trans "Two-factor authentication" %}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">
+            {% if user.two_factor_enabled %}{% trans "Enabled" %}{% else %}{% trans "Disabled" %}{% endif %}
+          </p>
+        </div>
+        {% if user.two_factor_enabled %}
+          <a href="{% url 'accounts:2fa_disable' %}" class="btn btn-secondary btn-sm">{% trans "Disable" %}</a>
+        {% else %}
+          <a href="{% url 'accounts:2fa_setup' %}" class="btn btn-primary btn-sm">{% trans "Enable" %}</a>
+        {% endif %}
+      </div>
+      <div class="flex items-center justify-between border-t border-gray-100 py-2 dark:border-gray-700">
+        <p class="text-sm font-medium">{% trans "Password" %}</p>
+        <a href="{% url 'accounts:change_password' %}" class="btn btn-secondary btn-sm">{% trans "Change password" %}</a>
+      </div>
+      <div class="flex items-center justify-between border-t border-gray-100 py-2 dark:border-gray-700">
+        <p class="text-sm font-medium">{% trans "Login history" %}</p>
+        <a href="{% url 'accounts:login_journal' %}" class="btn btn-ghost btn-sm">{% trans "View" %}</a>
+      </div>
+      {% if user.role == "admin" or user.role == "manager" or user.is_superuser %}
+        <div class="flex items-center justify-between border-t border-gray-100 py-2 dark:border-gray-700">
+          <p class="text-sm font-medium">{% trans "Backups" %}</p>
+          <a href="{% url 'core:backup_list' %}" class="btn btn-ghost btn-sm">{% trans "View" %}</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="card p-6">
+      <h2 class="mb-4 font-semibold">{% trans "Integrations" %}</h2>
+      <div class="flex items-center justify-between py-2">
+        <div>
+          <p class="text-sm font-medium">Telegram</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">
+            {% if user.telegram_chat_id %}{% trans "Connected" %}{% else %}{% trans "Not connected" %}{% endif %}
+          </p>
+        </div>
+        {% if user.telegram_chat_id %}
+          <form method="post" action="{% url 'telegram_bot:unlink' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-secondary btn-sm">{% trans "Disconnect" %}</button>
+          </form>
+        {% else %}
+          <form method="post" action="{% url 'telegram_bot:link' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary btn-sm">{% trans "Connect" %}</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card p-6">
+      <h2 class="mb-4 font-semibold">{% trans "Notifications" %}</h2>
+      <form method="post" class="space-y-2">
+        {% csrf_token %}
+        {% for field in prefs_form %}
+          <label class="flex items-center justify-between py-1 text-sm">
+            <span>{{ field.label }}</span>
+            {{ field }}
+          </label>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary btn-sm mt-2">{% trans "Save" %}</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

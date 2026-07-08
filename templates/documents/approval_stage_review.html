@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Review document" %}{% endblock %}
+{% block page_title %}{% blocktrans with name=document.name %}Review — {{ name }}{% endblocktrans %}{% endblock %}
+{% block content %}
+<form method="post" class="card max-w-xl space-y-4 p-6">
+  {% csrf_token %}
+  <p class="text-sm text-gray-500 dark:text-gray-400">{% trans "Stage" %}: {{ stage.stage_name }}</p>
+  <div>
+    <label class="field-label">{% trans "Decision" %}</label>
+    <div class="flex gap-4">
+      {% for radio in form.status %}
+        <label class="flex items-center gap-1 text-sm">{{ radio.tag }} {{ radio.choice_label }}</label>
+      {% endfor %}
+    </div>
+  </div>
+  <div>
+    <label class="field-label" for="{{ form.comment.id_for_label }}">{% trans "Comment" %}</label>
+    {{ form.comment }}
+  </div>
+  <div class="flex gap-3">
+    <button type="submit" class="btn btn-primary btn-md">{% trans "Submit" %}</button>
+    <a href="{% url 'documents:detail' document.pk %}" class="btn btn-secondary btn-md">{% trans "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

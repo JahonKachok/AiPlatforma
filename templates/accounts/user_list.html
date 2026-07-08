@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load i18n core_extras %}
+{% block title %}{% trans "Users" %}{% endblock %}
+{% block page_title %}{% trans "Users" %}{% endblock %}
+{% block content %}
+<div class="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+  <div class="card p-4"><p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Total" %}</p><p class="text-xl font-semibold">{{ stats.total }}</p></div>
+  <div class="card p-4"><p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Active" %}</p><p class="text-xl font-semibold">{{ stats.active }}</p></div>
+  <div class="card p-4"><p class="text-xs text-gray-500 dark:text-gray-400">{% trans "GIP" %}</p><p class="text-xl font-semibold">{{ stats.gip }}</p></div>
+  <div class="card p-4"><p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Designers" %}</p><p class="text-xl font-semibold">{{ stats.designer }}</p></div>
+</div>
+
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+  <form method="get" class="flex flex-wrap items-center gap-2">
+    <input type="text" name="search" value="{{ search }}" placeholder="{% trans 'Search...' %}" class="field-input w-56">
+    <select name="role" onchange="this.form.submit()" class="field-input w-auto">
+      <option value="">{% trans "All roles" %}</option>
+      {% for value, label in roles %}
+        <option value="{{ value }}" {% if value == role %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-secondary btn-sm">{% trans "Filter" %}</button>
+  </form>
+  {% if can_manage %}<a href="{% url 'accounts:user_create' %}" class="btn btn-primary btn-md">{% trans "Add" %}</a>{% endif %}
+</div>
+
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  {% for u in users %}
+    <div class="card p-4">
+      <div class="mb-2 flex items-center gap-3">
+        <span class="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white" style="background-color: {{ u.full_name|avatar_color }};">{{ u.full_name|initials }}</span>
+        <div>
+          <p class="font-medium">{{ u.full_name }}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">{{ u.get_role_display }} {% if not u.is_active %}· {% trans "inactive" %}{% endif %}</p>
+        </div>
+      </div>
+      <p class="text-sm text-gray-500 dark:text-gray-400">{{ u.department|default:"—" }}</p>
+      <p class="text-sm text-gray-500 dark:text-gray-400">{{ u.email }}</p>
+      {% if can_manage %}
+        <a href="{% url 'accounts:user_update' u.pk %}" class="mt-2 inline-block text-xs text-blue-600 hover:underline dark:text-blue-400">{% trans "Edit" %}</a>
+      {% endif %}
+    </div>
+  {% empty %}
+    <p class="col-span-full text-center text-sm text-gray-500 dark:text-gray-400">{% trans "No users found." %}</p>
+  {% endfor %}
+</div>
+{% endblock %}

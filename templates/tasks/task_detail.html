@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load i18n core_extras task_extras %}
+{% block title %}{{ task.title }}{% endblock %}
+{% block page_title %}{{ task.title }}{% endblock %}
+{% block page_subtitle %}
+  <span class="{{ task.status|task_status_badge }}">{{ task.get_status_display }}</span>
+  <span class="{{ task.priority|task_priority_badge }}">{{ task.get_priority_display }}</span>
+{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap gap-2">
+  <a href="{% url 'tasks:board' %}" class="btn btn-ghost btn-sm">← {% trans "Back" %}</a>
+  <a href="{% url 'tasks:update' task.pk %}" class="btn btn-secondary btn-sm">{% trans "Edit" %}</a>
+  <a href="{% url 'tasks:delete' task.pk %}" class="btn btn-danger btn-sm">{% trans "Delete" %}</a>
+</div>
+
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+  <div class="space-y-6 lg:col-span-2">
+    <div class="card p-6">
+      <h2 class="mb-2 font-semibold">{% trans "Description" %}</h2>
+      <p class="text-sm text-gray-600 dark:text-gray-300">{% if task.description %}{{ task.description }}{% else %}{% trans "No description." %}{% endif %}</p>
+    </div>
+
+    <div class="card p-6">
+      <h2 class="mb-3 font-semibold">{% trans "Quick status change" %}</h2>
+      <form method="post" action="{% url 'tasks:update_status' task.pk %}" class="flex flex-wrap gap-2">
+        {% csrf_token %}
+        {% for value, label in statuses %}
+          <button type="submit" name="status" value="{{ value }}"
+            class="btn btn-sm {% if task.status == value %}btn-primary{% else %}btn-secondary{% endif %}">{{ label }}</button>
+        {% endfor %}
+      </form>
+    </div>
+
+    <div class="card p-6">
+      <h2 class="mb-3 font-semibold">{% trans "Attachments" %}</h2>
+      <ul class="mb-3 space-y-1 text-sm">
+        {% for att in task.attachments.all %}
+          <li class="flex items-center justify-between border-b border-gray-100 py-1 dark:border-gray-700">
+            <a href="{{ att.file.url }}" class="text-blue-600 hover:underline dark:text-blue-400">{{ att.filename }}</a>
+            {% if att.user_id == request.user.id %}
+              <form method="post" action="{% url 'tasks:delete_attachment' task.pk att.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="text-xs text-red-500 hover:underline">{% trans "Delete" %}</button>
+              </form>
+            {% endif %}
+          </li>
+        {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No attachments." %}</li>{% endfor %}
+      </ul>
+      <form method="post" action="{% url 'tasks:upload_attachment' task.pk %}" enctype="multipart/form-data" class="flex gap-2">
+        {% csrf_token %}
+        {{ attachment_form.file }}
+        <button type="submit" class="btn btn-secondary btn-sm">{% trans "Upload" %}</button>
+      </form>
+    </div>
+
+    <div class="card p-6">
+      <h2 class="mb-3 font-semibold">{% trans "Comments" %}</h2>
+      <ul class="mb-4 space-y-3 text-sm">
+        {% for comment in task.comments.all %}
+          <li class="border-b border-gray-100 pb-2 dark:border-gray-700">
+            <div class="mb-1 flex items-center justify-between">
+              <span class="flex items-center gap-2">
+                <span class="flex h-6 w-6 items-center justify-center rounded-full text-xs text-white" style="background-color: {{ comment.user.full_name|avatar_color }};">{{ comment.user.full_name|initials }}</span>
+                <span class="font-medium">{{ comment.user.get_short_name }}</span>
+                <span class="text-xs text-gray-400">{{ comment.created_at }}</span>
+              </span>
+              {% if comment.user_id == request.user.id %}
+                <form method="post" action="{% url 'tasks:delete_comment' task.pk comment.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="text-xs text-red-500 hover:underline">{% trans "Delete" %}</button>
+                </form>
+              {% endif %}
+            </div>
+            <p>{{ comment.content }}</p>
+          </li>
+        {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No comments yet." %}</li>{% endfor %}
+      </ul>
+      <form method="post" class="flex gap-2">
+        {% csrf_token %}
+        {{ comment_form.content }}
+        <button type="submit" class="btn btn-primary btn-sm">{% trans "Send" %}</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="space-y-6">
+    <div class="card p-6">
+      <h2 class="mb-3 font-semibold">{% trans "Details" %}</h2>
+      <dl class="space-y-2 text-sm">
+        <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Project" %}</dt><dd>{{ task.project.name }}</dd></div>
+        <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Section" %}</dt><dd>{{ task.section|default:"—" }}</dd></div>
+        <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Assignee" %}</dt><dd>{{ task.assignee|default:"—" }}</dd></div>
+        <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Deadline" %}</dt>
+          <dd class="{% if task.is_overdue %}text-red-500{% endif %}">{{ task.deadline|default:"—" }}</dd></div>
+      </dl>
+    </div>
+  </div>
+</div>
+{% endblock %}

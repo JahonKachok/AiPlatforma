@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n template_extras %}
+{% block title %}{% trans "Templates" %}{% endblock %}
+{% block page_title %}{% trans "Templates" %}{% endblock %}
+{% block content %}
+<div class="mb-4 flex justify-end">
+  {% if can_manage %}<a href="{% url 'document_templates:create' %}" class="btn btn-primary btn-md">{% trans "New template" %}</a>{% endif %}
+</div>
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  {% for tpl in templates %}
+    <div class="card p-4">
+      <div class="mb-2 flex items-center justify-between">
+        <h3 class="font-semibold">{{ tpl.name }}</h3>
+        <span class="{{ tpl.template_type|template_type_badge }}">{{ tpl.get_template_type_display }}</span>
+      </div>
+      <p class="mb-2 line-clamp-2 text-sm text-gray-500 dark:text-gray-400">{{ tpl.description|default:"" }}</p>
+      <pre class="mb-3 line-clamp-3 whitespace-pre-wrap rounded bg-gray-50 p-2 font-mono text-xs dark:bg-gray-900">{{ tpl.content }}</pre>
+      <div class="flex flex-wrap gap-2">
+        <a href="{% url 'document_templates:generate' tpl.pk %}" class="btn btn-primary btn-sm">{% trans "Generate" %}</a>
+        {% if can_manage %}<a href="{% url 'document_templates:update' tpl.pk %}" class="btn btn-secondary btn-sm">{% trans "Edit" %}</a>{% endif %}
+        {% if can_delete %}<a href="{% url 'document_templates:delete' tpl.pk %}" class="btn btn-danger btn-sm">{% trans "Delete" %}</a>{% endif %}
+      </div>
+    </div>
+  {% empty %}
+    <p class="col-span-full text-center text-sm text-gray-500 dark:text-gray-400">{% trans "No templates yet." %}</p>
+  {% endfor %}
+</div>
+{% endblock %}

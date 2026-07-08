@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load i18n core_extras document_extras %}
+{% block title %}{% trans "Approvals" %}{% endblock %}
+{% block page_title %}{% trans "Approvals" %}{% endblock %}
+{% block content %}
+<div class="mb-4 flex gap-2">
+  <a href="?tab=pending" class="btn btn-sm {% if tab == 'pending' %}btn-primary{% else %}btn-secondary{% endif %}">{% trans "Pending" %}</a>
+  <a href="?tab=approved" class="btn btn-sm {% if tab == 'approved' %}btn-primary{% else %}btn-secondary{% endif %}">{% trans "Approved" %}</a>
+  <a href="?tab=rejected" class="btn btn-sm {% if tab == 'rejected' %}btn-primary{% else %}btn-secondary{% endif %}">{% trans "Rejected" %}</a>
+</div>
+
+<div class="space-y-4">
+  {% for document in documents %}
+    <div class="card p-4">
+      <div class="mb-2 flex items-center justify-between">
+        <a href="{% url 'documents:detail' document.pk %}" class="font-semibold text-blue-600 hover:underline dark:text-blue-400">{{ document.name }}</a>
+        <span class="{{ document.status|document_status_badge }}">{{ document.get_status_display }}</span>
+      </div>
+      <p class="mb-2 text-xs text-gray-500 dark:text-gray-400">{{ document.project.name }} · v{{ document.version }}</p>
+      <div class="flex flex-wrap gap-2 text-xs">
+        {% for stage in document.approval_stages.all %}
+          <span class="{{ stage.status|approval_status_badge }}">
+            {{ stage.stage_order }}. {{ stage.stage_name }} ({{ stage.reviewer.get_short_name }})
+          </span>
+          {% if stage.reviewer_id == request.user.id and stage.status == "pending" %}
+            <a href="{% url 'documents:review_stage' stage.pk %}" class="btn btn-primary btn-sm">{% trans "Review" %}</a>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  {% empty %}
+    <p class="text-center text-sm text-gray-500 dark:text-gray-400">{% trans "Nothing here." %}</p>
+  {% endfor %}
+</div>
+{% endblock %}

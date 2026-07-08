@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load i18n core_extras request_extras %}
+{% block title %}{{ request_obj.title }}{% endblock %}
+{% block page_title %}{{ request_obj.title }}{% endblock %}
+{% block page_subtitle %}
+  <span class="{{ request_obj.status|request_status_badge }}">{{ request_obj.get_status_display }}</span>
+  <span class="{{ request_obj.priority|request_priority_badge }}">{{ request_obj.get_priority_display }}</span>
+{% endblock %}
+{% block content %}
+<div class="mb-4 flex gap-2">
+  <a href="{% url 'requests_app:list' %}" class="btn btn-ghost btn-sm">← {% trans "Back" %}</a>
+  <a href="{% url 'requests_app:update' request_obj.pk %}" class="btn btn-secondary btn-sm">{% trans "Edit" %}</a>
+  <a href="{% url 'requests_app:delete' request_obj.pk %}" class="btn btn-danger btn-sm">{% trans "Delete" %}</a>
+</div>
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+  <div class="space-y-6 lg:col-span-2">
+    <div class="card p-6">
+      <p class="text-sm text-gray-600 dark:text-gray-300">{{ request_obj.description|default:"" }}</p>
+    </div>
+    <div class="card p-6">
+      <h2 class="mb-3 font-semibold">{% trans "Comments" %}</h2>
+      <ul class="mb-4 space-y-3 text-sm">
+        {% for comment in request_obj.comments.all %}
+          <li class="border-b border-gray-100 pb-2 dark:border-gray-700">
+            <div class="mb-1 flex items-center gap-2">
+              <span class="flex h-6 w-6 items-center justify-center rounded-full text-xs text-white" style="background-color: {{ comment.user.full_name|avatar_color }};">{{ comment.user.full_name|initials }}</span>
+              <span class="font-medium">{{ comment.user.get_short_name }}</span>
+              <span class="text-xs text-gray-400">{{ comment.created_at }}</span>
+            </div>
+            <p>{{ comment.content }}</p>
+          </li>
+        {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No comments yet." %}</li>{% endfor %}
+      </ul>
+      <form method="post" class="flex gap-2">
+        {% csrf_token %}
+        {{ comment_form.content }}
+        <button type="submit" class="btn btn-primary btn-sm">{% trans "Send" %}</button>
+      </form>
+    </div>
+  </div>
+  <div class="card p-6">
+    <h2 class="mb-3 font-semibold">{% trans "Details" %}</h2>
+    <dl class="space-y-2 text-sm">
+      <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Type" %}</dt><dd>{{ request_obj.get_type_display }}</dd></div>
+      <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Project" %}</dt><dd>{{ request_obj.project|default:"—" }}</dd></div>
+      <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Created by" %}</dt><dd>{{ request_obj.created_by.get_short_name }}</dd></div>
+      <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Assignee" %}</dt><dd>{{ request_obj.assignee|default:"—" }}</dd></div>
+    </dl>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Disable two-factor authentication" %}{% endblock %}
+{% block page_title %}{% trans "Disable two-factor authentication" %}{% endblock %}
+{% block content %}
+<div class="max-w-sm card p-6">
+  <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">{% trans "Enter your current 6-digit code to confirm." %}</p>
+  <form method="post" class="space-y-4">
+    {% csrf_token %}
+    {{ form.code }}
+    {% if form.errors %}<p class="text-xs text-red-600 dark:text-red-400">{{ form.errors.code|join:", " }}</p>{% endif %}
+    <button type="submit" class="btn btn-danger btn-md w-full">{% trans "Disable" %}</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load i18n core_extras project_extras %}
+{% block title %}{% trans "Projects" %}{% endblock %}
+{% block page_title %}{% trans "Projects" %}{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+  <form method="get" class="flex flex-wrap items-center gap-2">
+    <input type="text" name="search" value="{{ search }}" placeholder="{% trans 'Search projects...' %}" class="field-input w-56">
+    <select name="status" onchange="this.form.submit()" class="field-input w-auto">
+      <option value="">{% trans "All statuses" %}</option>
+      {% for value, label in statuses %}
+        <option value="{{ value }}" {% if value == status %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-secondary btn-sm">{% trans "Filter" %}</button>
+  </form>
+  {% if can_create %}
+    <a href="{% url 'projects:create' %}" class="btn btn-primary btn-md">{% trans "New project" %}</a>
+  {% endif %}
+</div>
+
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  {% for project in page_obj %}
+    <a href="{% url 'projects:detail' project.pk %}" class="card block p-4 hover:shadow-md">
+      <div class="mb-2 flex items-center justify-between">
+        <h3 class="font-semibold">{{ project.name }}</h3>
+        <span class="{{ project.status|project_status_badge }}">{{ project.get_status_display }}</span>
+      </div>
+      <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">{{ project.client_name|default:"—" }}</p>
+      <p class="mb-3 text-xs text-gray-400">{{ project.get_stage_display }}</p>
+      <div class="h-2 w-full rounded-full bg-gray-100 dark:bg-gray-700">
+        <div class="h-2 rounded-full bg-blue-500" style="width: {{ project.paid_percentage }}%"></div>
+      </div>
+      <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+        {{ project.paid_amount|millions }} / {{ project.budget|millions }} {% trans "mln" %}
+      </p>
+    </a>
+  {% empty %}
+    <p class="col-span-full text-center text-sm text-gray-500 dark:text-gray-400">{% trans "No projects found." %}</p>
+  {% endfor %}
+</div>
+
+{% if page_obj.has_other_pages %}
+  <div class="mt-6 flex justify-center gap-2 text-sm">
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}&status={{ status }}&search={{ search }}" class="btn btn-secondary btn-sm">{% trans "Previous" %}</a>
+    {% endif %}
+    <span class="px-2 py-1">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}&status={{ status }}&search={{ search }}" class="btn btn-secondary btn-sm">{% trans "Next" %}</a>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

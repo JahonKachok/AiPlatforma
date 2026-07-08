@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Generate document" %}{% endblock %}
+{% block page_title %}{% blocktrans with name=template.name %}Generate — {{ name }}{% endblocktrans %}{% endblock %}
+{% block content %}
+<form method="post" class="card max-w-xl space-y-4 p-6">
+  {% csrf_token %}
+  {% for field in form %}
+    <div>
+      <label class="field-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+    </div>
+  {% endfor %}
+  <button type="submit" class="btn btn-primary btn-md">{% trans "Generate" %}</button>
+</form>
+
+{% if rendered_text %}
+  <div class="card mt-6 max-w-xl p-6">
+    <h2 class="mb-3 font-semibold">{% trans "Preview" %}</h2>
+    <pre class="mb-3 whitespace-pre-wrap rounded bg-gray-50 p-3 text-xs dark:bg-gray-900">{{ rendered_text }}</pre>
+    {% if download_url %}
+      <a href="{{ download_url }}" class="btn btn-primary btn-sm">{% trans "Download" %}</a>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

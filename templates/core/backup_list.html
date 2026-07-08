@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Backups" %}{% endblock %}
+{% block page_title %}{% trans "Backups" %}{% endblock %}
+{% block content %}
+<form method="post" class="mb-4">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-primary btn-md">{% trans "Create backup" %}</button>
+</form>
+<div class="card divide-y divide-gray-100 dark:divide-gray-700">
+  {% for b in backups %}
+    <div class="flex items-center justify-between p-4">
+      <div>
+        <p class="font-medium">{{ b.name }}</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400">{{ b.size_mb }} MB</p>
+      </div>
+      <div class="flex gap-2">
+        <a href="{% url 'core:backup_download' b.name %}" class="btn btn-secondary btn-sm">{% trans "Download" %}</a>
+        {% if can_delete %}
+          <form method="post" action="{% url 'core:backup_delete' b.name %}" onsubmit="return confirm('{% trans "Delete this backup?" %}');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger btn-sm">{% trans "Delete" %}</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  {% empty %}
+    <p class="p-6 text-center text-sm text-gray-500 dark:text-gray-400">{% trans "No backups yet." %}</p>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -3,6 +3,7 @@
 {% block title %}{% trans "Projects" %}{% endblock %}
 {% block page_title %}{% trans "Projects" %}{% endblock %}
 {% block content %}
+{% include "partials/stat_cards.html" %}
 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
   <form method="get" class="flex flex-wrap items-center gap-2">
     <input type="text" name="search" value="{{ search }}" placeholder="{% trans 'Search projects...' %}" class="field-input w-56">

@@ -11,7 +11,7 @@ from apps.projects.permissions import visible_projects_for
 
 from .forms import DocumentTemplateForm, TemplateGenerateForm
 from .generate import build_context, render_content, render_docx
-from .models import DocumentTemplate
+from .models import DocumentTemplate, TemplateType
 
 MANAGE_ROLES = (User.Role.ADMIN, User.Role.MANAGER, User.Role.GIP)
 DELETE_ROLES = (User.Role.ADMIN, User.Role.MANAGER)
@@ -20,10 +20,20 @@ DELETE_ROLES = (User.Role.ADMIN, User.Role.MANAGER)
 @login_required
 def template_list(request):
     templates = DocumentTemplate.objects.all()
+    stat_cards = [
+        {"label": _("Total"), "value": templates.count()},
+        {"label": _("Contracts"), "value": templates.filter(template_type=TemplateType.CONTRACT).count(),
+         "color": "text-blue-600 dark:text-blue-400"},
+        {"label": _("Acts"), "value": templates.filter(template_type=TemplateType.ACT).count(),
+         "color": "text-green-600 dark:text-green-400"},
+        {"label": _("Invoices"), "value": templates.filter(template_type=TemplateType.INVOICE).count(),
+         "color": "text-amber-600 dark:text-amber-400"},
+    ]
     return render(request, "document_templates/template_list.html", {
         "templates": templates,
         "can_manage": request.user.is_superuser or request.user.role in MANAGE_ROLES,
         "can_delete": request.user.is_superuser or request.user.role in DELETE_ROLES,
+        "stat_cards": stat_cards,
     })
 
 

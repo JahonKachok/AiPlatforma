@@ -755,3 +755,48 @@ msgstr "млн"
 
 msgid "overdue"
 msgstr "просрочено"
+
+msgid "Deadline passed"
+msgstr "Дедлайн истёк"
+
+msgid "Overdue"
+msgstr "Просрочено"
+
+msgid "Awaiting approval"
+msgstr "Ожидает согласования"
+
+msgid "My pending reviews"
+msgstr "Мои проверки"
+
+msgid "Acts"
+msgstr "Акты"
+
+msgid "Invoices"
+msgstr "Счета"
+
+msgid "Departments"
+msgstr "Отделы"
+
+msgid "Units"
+msgstr "Подразделения"
+
+msgid "Members"
+msgstr "Участники"
+
+msgid "Unread"
+msgstr "Непрочитанные"
+
+msgid "Read"
+msgstr "Прочитанные"
+
+msgid "Last 7 days"
+msgstr "За 7 дней"
+
+msgid "Contracts"
+msgstr "Договоры"
+
+msgid "New"
+msgstr "Новая"
+
+msgid "Needs revision"
+msgstr "На доработке"

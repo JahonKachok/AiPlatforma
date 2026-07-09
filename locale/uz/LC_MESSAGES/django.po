@@ -755,3 +755,48 @@ msgstr "mln"
 
 msgid "overdue"
 msgstr "muddati o'tgan"
+
+msgid "Deadline passed"
+msgstr "Muddati o'tgan"
+
+msgid "Overdue"
+msgstr "Muddati o'tgan"
+
+msgid "Awaiting approval"
+msgstr "Kelishuv kutilmoqda"
+
+msgid "My pending reviews"
+msgstr "Mening tekshiruvlarim"
+
+msgid "Acts"
+msgstr "Dalolatnomalar"
+
+msgid "Invoices"
+msgstr "Hisoblar"
+
+msgid "Departments"
+msgstr "Bo'limlar"
+
+msgid "Units"
+msgstr "Bo'linmalar"
+
+msgid "Members"
+msgstr "A'zolar"
+
+msgid "Unread"
+msgstr "O'qilmagan"
+
+msgid "Read"
+msgstr "O'qilgan"
+
+msgid "Last 7 days"
+msgstr "Oxirgi 7 kun"
+
+msgid "Contracts"
+msgstr "Shartnomalar"
+
+msgid "New"
+msgstr "Yangi"
+
+msgid "Needs revision"
+msgstr "Qayta ishlash"

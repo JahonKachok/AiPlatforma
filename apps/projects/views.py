@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -21,7 +23,8 @@ TRACKED_FIELDS = [
 
 @login_required
 def project_list(request):
-    projects = visible_projects_for(request.user)
+    visible = visible_projects_for(request.user)
+    projects = visible
 
     status = request.GET.get("status")
     if status:
@@ -33,12 +36,25 @@ def project_list(request):
     paginator = Paginator(projects, 12)
     page_obj = paginator.get_page(request.GET.get("page"))
 
+    today = date.today()
+    stat_cards = [
+        {"label": _("Total"), "value": visible.count()},
+        {"label": _("Active"), "value": visible.filter(status=Project.Status.ACTIVE).count(),
+         "color": "text-blue-600 dark:text-blue-400"},
+        {"label": _("Completed"), "value": visible.filter(status=Project.Status.COMPLETED).count(),
+         "color": "text-green-600 dark:text-green-400"},
+        {"label": _("Deadline passed"), "value": visible.filter(
+            status=Project.Status.ACTIVE, deadline__lt=today).count(),
+         "color": "text-red-600 dark:text-red-400"},
+    ]
+
     return render(request, "projects/project_list.html", {
         "page_obj": page_obj,
         "status": status or "",
         "search": search or "",
         "statuses": Project.Status.choices,
         "can_create": can_create_project(request.user),
+        "stat_cards": stat_cards,
     })
 
 

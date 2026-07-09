@@ -16,6 +16,10 @@ def _employees_tab_url():
     return f"{reverse('finance:home')}?tab=employees"
 
 
+def _millions(value):
+    return f"{float(value) / 1_000_000:.1f}"
+
+
 @login_required
 def finance_home(request):
     tab = request.GET.get("tab", "overview")
@@ -30,11 +34,36 @@ def finance_home(request):
             records = records.filter(project_id=project_id)
         context["records"] = records.select_related("project")[:200]
         context["project_id"] = project_id or ""
+        confirmed = records.filter(status=RecordStatus.CONFIRMED)
+        context["stat_cards"] = [
+            {"label": _("Records"), "value": records.count()},
+            {"label": _("Income"), "value": _millions(sum(
+                r.amount for r in confirmed.filter(type=RecordType.INCOME))),
+             "color": "text-green-600 dark:text-green-400", "sub": _("mln")},
+            {"label": _("Expenses"), "value": _millions(sum(
+                r.amount for r in confirmed.filter(type=RecordType.EXPENSE))),
+             "color": "text-red-600 dark:text-red-400", "sub": _("mln")},
+            {"label": _("Pending"), "value": _millions(sum(
+                r.amount for r in records.filter(status=RecordStatus.PENDING))),
+             "color": "text-amber-600 dark:text-amber-400", "sub": _("mln")},
+        ]
     elif tab == "employees":
-        context["employee_contracts"] = EmployeeContract.objects.filter(
+        contracts = EmployeeContract.objects.filter(
             project__in=projects
         ).select_related("user", "project")
+        context["employee_contracts"] = contracts
         context["employee_form"] = EmployeeContractForm()
+        total_amount = sum(c.amount for c in contracts)
+        total_paid = sum(c.paid for c in contracts)
+        context["stat_cards"] = [
+            {"label": _("Contracts"), "value": contracts.count()},
+            {"label": _("Contract amount"), "value": _millions(total_amount),
+             "color": "text-blue-600 dark:text-blue-400", "sub": _("mln")},
+            {"label": _("Paid"), "value": _millions(total_paid),
+             "color": "text-green-600 dark:text-green-400", "sub": _("mln")},
+            {"label": _("Balance"), "value": _millions(total_amount - total_paid),
+             "color": "text-amber-600 dark:text-amber-400", "sub": _("mln")},
+        ]
     else:
         confirmed = records.filter(status=RecordStatus.CONFIRMED)
         context.update({

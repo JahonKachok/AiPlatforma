@@ -3,6 +3,7 @@
 {% block title %}{% trans "Tasks" %}{% endblock %}
 {% block page_title %}{% trans "Tasks" %}{% endblock %}
 {% block content %}
+{% include "partials/stat_cards.html" %}
 <form method="get" class="hidden">{% csrf_token %}</form>
 
 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">

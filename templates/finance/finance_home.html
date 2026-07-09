@@ -3,6 +3,7 @@
 {% block title %}{% trans "Finance" %}{% endblock %}
 {% block page_title %}{% trans "Finance" %}{% endblock %}
 {% block content %}
+{% include "partials/stat_cards.html" %}
 <div class="mb-4 flex gap-2">
   <a href="?tab=overview" class="btn btn-sm {% if tab == 'overview' %}btn-primary{% else %}btn-secondary{% endif %}">{% trans "Overview" %}</a>
   <a href="?tab=records" class="btn btn-sm {% if tab == 'records' %}btn-primary{% else %}btn-secondary{% endif %}">{% trans "Records" %}</a>

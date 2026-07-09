@@ -3,6 +3,7 @@
 {% block title %}{% trans "Notifications" %}{% endblock %}
 {% block page_title %}{% trans "Notifications" %}{% endblock %}
 {% block content %}
+{% include "partials/stat_cards.html" %}
 <div class="mb-4 flex justify-end">
   <form method="post" action="{% url 'notifications:mark_all_read' %}">
     {% csrf_token %}

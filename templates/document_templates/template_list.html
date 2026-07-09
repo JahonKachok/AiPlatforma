@@ -3,6 +3,7 @@
 {% block title %}{% trans "Templates" %}{% endblock %}
 {% block page_title %}{% trans "Templates" %}{% endblock %}
 {% block content %}
+{% include "partials/stat_cards.html" %}
 <div class="mb-4 flex justify-end">
   {% if can_manage %}<a href="{% url 'document_templates:create' %}" class="btn btn-primary btn-md">{% trans "New template" %}</a>{% endif %}
 </div>

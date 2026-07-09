@@ -39,6 +39,17 @@ def task_board(request):
         tasks = tasks.filter(title__icontains=search)
 
     view = request.GET.get("view", "kanban")
+    all_tasks = _visible_tasks(request.user)
+    stat_cards = [
+        {"label": _("Total"), "value": all_tasks.count()},
+        {"label": _("In progress"), "value": all_tasks.filter(status=Task.Status.IN_PROGRESS).count(),
+         "color": "text-blue-600 dark:text-blue-400"},
+        {"label": _("Completed"), "value": all_tasks.filter(status=Task.Status.COMPLETED).count(),
+         "color": "text-green-600 dark:text-green-400"},
+        {"label": _("Overdue"), "value": all_tasks.filter(
+            deadline__lt=date.today()).exclude(status=Task.Status.COMPLETED).count(),
+         "color": "text-red-600 dark:text-red-400"},
+    ]
     context = {
         "view": view,
         "project_id": project_id or "",
@@ -46,6 +57,7 @@ def task_board(request):
         "search": search or "",
         "projects": visible_projects_for(request.user),
         "assignees": User.objects.filter(is_active=True),
+        "stat_cards": stat_cards,
     }
 
     if view == "list":

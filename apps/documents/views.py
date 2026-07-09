@@ -226,9 +226,24 @@ def approvals_list(request):
         documents = base.filter(status=DocumentStatus.REJECTED)
     else:
         documents = base.filter(status=DocumentStatus.REVIEW)
+
+    stat_cards = [
+        {"label": _("Awaiting approval"), "value": base.filter(status=DocumentStatus.REVIEW).count(),
+         "color": "text-amber-600 dark:text-amber-400"},
+        {"label": _("Approved"), "value": base.filter(status=DocumentStatus.APPROVED).count(),
+         "color": "text-green-600 dark:text-green-400"},
+        {"label": _("Rejected"), "value": base.filter(status=DocumentStatus.REJECTED).count(),
+         "color": "text-red-600 dark:text-red-400"},
+        {"label": _("My pending reviews"), "value": ApprovalStage.objects.filter(
+            reviewer=request.user, status=ApprovalStatus.PENDING,
+            document__in=base).count(),
+         "color": "text-blue-600 dark:text-blue-400"},
+    ]
+
     return render(request, "documents/approvals_list.html", {
         "documents": documents.prefetch_related("approval_stages__reviewer"),
         "tab": tab,
+        "stat_cards": stat_cards,
     })
 
 

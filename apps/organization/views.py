@@ -23,6 +23,15 @@ def department_list(request):
     if search:
         departments = departments.filter(name__icontains=search)
     view_mode = request.GET.get("view", "hierarchy")
+    stat_cards = [
+        {"label": _("Departments"), "value": Department.objects.count()},
+        {"label": _("Units"), "value": OrganizationalUnit.objects.count(),
+         "color": "text-blue-600 dark:text-blue-400"},
+        {"label": _("Members"), "value": DepartmentMember.objects.values("user").distinct().count(),
+         "color": "text-green-600 dark:text-green-400"},
+        {"label": _("Active employees"), "value": User.objects.filter(is_active=True).count(),
+         "color": "text-amber-600 dark:text-amber-400"},
+    ]
     return render(request, "organization/department_list.html", {
         "departments": departments,
         "search": search or "",
@@ -30,6 +39,7 @@ def department_list(request):
         "can_manage": _can_manage(request.user),
         "department_form": DepartmentForm(),
         "users": User.objects.filter(is_active=True),
+        "stat_cards": stat_cards,
     })
 
 

@@ -3,6 +3,7 @@
 {% block title %}{% trans "Approvals" %}{% endblock %}
 {% block page_title %}{% trans "Approvals" %}{% endblock %}
 {% block content %}
+{% include "partials/stat_cards.html" %}
 <div class="mb-4 flex gap-2">
   <a href="?tab=pending" class="btn btn-sm {% if tab == 'pending' %}btn-primary{% else %}btn-secondary{% endif %}">{% trans "Pending" %}</a>
   <a href="?tab=approved" class="btn btn-sm {% if tab == 'approved' %}btn-primary{% else %}btn-secondary{% endif %}">{% trans "Approved" %}</a>

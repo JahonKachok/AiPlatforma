@@ -32,23 +32,42 @@ def reports_dashboard(request):
     active_employees = EmployeeContract.objects.filter(project__in=projects, status="active").values("user").distinct().count()
     total_employees = EmployeeContract.objects.filter(project__in=projects).values("user").distinct().count()
 
+    status_colors = {
+        "new": "#3b82f6", "in_progress": "#8b5cf6", "review": "#f59e0b",
+        "revision": "#ef4444", "approved": "#10b981", "completed": "#64748b",
+    }
     status_distribution = [
         {
+            "value": value,
             "label": label,
+            "color": status_colors.get(value, "#94a3b8"),
             "count": tasks.filter(status=value).count(),
             "pct": round(tasks.filter(status=value).count() / tasks_total * 100) if tasks_total else 0,
         }
         for value, label in Task.Status.choices
     ]
+    project_status_colors = {
+        "active": "#10b981", "on_hold": "#f59e0b", "completed": "#64748b", "cancelled": "#ef4444",
+    }
+    projects_total = projects.count()
     project_status_distribution = [
-        {"label": label, "count": projects.filter(status=value).count()}
+        {
+            "value": value,
+            "label": label,
+            "color": project_status_colors.get(value, "#94a3b8"),
+            "count": projects.filter(status=value).count(),
+            "pct": round(projects.filter(status=value).count() / projects_total * 100) if projects_total else 0,
+        }
         for value, label in projects.model.Status.choices
     ]
-    workload = (
+    workload = list(
         User.objects.filter(assigned_tasks__project__in=projects)
         .annotate(task_count=Count("assigned_tasks"))
         .order_by("-task_count")[:10]
     )
+    max_task_count = workload[0].task_count if workload else 0
+    for u in workload:
+        u.task_pct = round(u.task_count / max_task_count * 100) if max_task_count else 0
 
     return render(request, "reports/dashboard.html", {
         "tasks_total": tasks_total, "tasks_completed": tasks_completed,
@@ -57,6 +76,7 @@ def reports_dashboard(request):
         "active_employees": active_employees, "total_employees": total_employees,
         "status_distribution": status_distribution,
         "project_status_distribution": project_status_distribution,
+        "projects_total": projects_total,
         "workload": workload,
     })
 

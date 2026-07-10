@@ -11,46 +11,101 @@
 </div>
 
 <div class="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-  <div class="card p-4"><p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Tasks completed" %}</p><p class="text-xl font-semibold">{{ tasks_completed }} / {{ tasks_total }}</p></div>
-  <div class="card p-4"><p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Documents approved" %}</p><p class="text-xl font-semibold">{{ docs_approved }} / {{ docs_total }}</p></div>
-  <div class="card p-4"><p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Total paid" %}</p><p class="text-xl font-semibold">{{ total_paid|millions }} {% trans "mln" %}</p></div>
-  <div class="card p-4"><p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Active employees" %}</p><p class="text-xl font-semibold">{{ active_employees }} / {{ total_employees }}</p></div>
+  <div class="card ap-stat">
+    <span class="ap-stat-icon is-green">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    </span>
+    <div>
+      <p class="ap-stat-label">{% trans "Tasks completed" %}</p>
+      <p class="ap-stat-value">{{ tasks_completed }} <span class="text-sm font-normal text-gray-400">/ {{ tasks_total }}</span></p>
+    </div>
+  </div>
+  <div class="card ap-stat">
+    <span class="ap-stat-icon is-blue">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    </span>
+    <div>
+      <p class="ap-stat-label">{% trans "Documents approved" %}</p>
+      <p class="ap-stat-value">{{ docs_approved }} <span class="text-sm font-normal text-gray-400">/ {{ docs_total }}</span></p>
+    </div>
+  </div>
+  <div class="card ap-stat">
+    <span class="ap-stat-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    </span>
+    <div>
+      <p class="ap-stat-label">{% trans "Total paid" %}</p>
+      <p class="ap-stat-value">{{ total_paid|millions }} <span class="text-sm font-normal text-gray-400">{% trans "mln" %}</span></p>
+    </div>
+  </div>
+  <div class="card ap-stat">
+    <span class="ap-stat-icon is-amber">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </span>
+    <div>
+      <p class="ap-stat-label">{% trans "Active employees" %}</p>
+      <p class="ap-stat-value">{{ active_employees }} <span class="text-sm font-normal text-gray-400">/ {{ total_employees }}</span></p>
+    </div>
+  </div>
 </div>
 
 <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-  <div class="card p-4">
-    <h2 class="mb-3 font-semibold">{% trans "Task status distribution" %}</h2>
-    <div class="space-y-2">
-      {% for row in status_distribution %}
-        <div>
-          <div class="mb-1 flex justify-between text-xs"><span>{{ row.label }}</span><span>{{ row.count }}</span></div>
-          <div class="h-2 w-full rounded-full bg-gray-100 dark:bg-gray-700">
-            <div class="h-2 rounded-full bg-blue-500" style="width: {{ row.pct }}%"></div>
+  <div class="card p-5">
+    <h2 class="mb-4 font-semibold">{% trans "Task status distribution" %}</h2>
+    <div class="ap-donut-wrap">
+      <div class="ap-donut" data-donut
+           data-segments='[{% for row in status_distribution %}{"color":"{{ row.color }}","value":{{ row.count }}}{% if not forloop.last %},{% endif %}{% endfor %}]'>
+        <div class="ap-donut-center"><b>{{ tasks_total }}</b><span>{% trans "Total" %}</span></div>
+      </div>
+      <div class="ap-legend">
+        {% for row in status_distribution %}
+          <div class="ap-legend-item">
+            <span class="ap-legend-dot" style="background: {{ row.color }};"></span>
+            {{ row.label }} <b>{{ row.count }}</b>
           </div>
-        </div>
-      {% endfor %}
+        {% endfor %}
+      </div>
     </div>
   </div>
 
-  <div class="card p-4">
-    <h2 class="mb-3 font-semibold">{% trans "Project status distribution" %}</h2>
-    <div class="space-y-2">
-      {% for row in project_status_distribution %}
-        <div class="flex justify-between text-sm"><span>{{ row.label }}</span><span>{{ row.count }}</span></div>
-      {% endfor %}
+  <div class="card p-5">
+    <h2 class="mb-4 font-semibold">{% trans "Project status distribution" %}</h2>
+    <div class="ap-donut-wrap">
+      <div class="ap-donut" data-donut
+           data-segments='[{% for row in project_status_distribution %}{"color":"{{ row.color }}","value":{{ row.count }}}{% if not forloop.last %},{% endif %}{% endfor %}]'>
+        <div class="ap-donut-center"><b>{{ projects_total }}</b><span>{% trans "Total" %}</span></div>
+      </div>
+      <div class="ap-legend">
+        {% for row in project_status_distribution %}
+          <div class="ap-legend-item">
+            <span class="ap-legend-dot" style="background: {{ row.color }};"></span>
+            {{ row.label }} <b>{{ row.count }}</b>
+          </div>
+        {% endfor %}
+      </div>
     </div>
   </div>
 
-  <div class="card p-4 lg:col-span-2">
-    <h2 class="mb-3 font-semibold">{% trans "Workload (top 10)" %}</h2>
-    <table class="w-full text-left text-sm">
-      <thead class="text-gray-500 dark:text-gray-400"><tr><th class="py-1">{% trans "Employee" %}</th><th>{% trans "Assigned tasks" %}</th></tr></thead>
-      <tbody>
-        {% for u in workload %}
-          <tr class="border-t border-gray-100 dark:border-gray-700"><td class="py-1">{{ u.full_name }}</td><td>{{ u.task_count }}</td></tr>
-        {% empty %}<tr><td colspan="2" class="py-4 text-center text-gray-500 dark:text-gray-400">{% trans "No data." %}</td></tr>{% endfor %}
-      </tbody>
-    </table>
+  <div class="card p-5">
+    <h2 class="mb-4 font-semibold">{% trans "Task status distribution" %} (%)</h2>
+    {% for row in status_distribution %}
+      <div class="ap-hbar-row">
+        <div class="ap-hbar-top"><span>{{ row.label }}</span><span>{{ row.count }} · {{ row.pct }}%</span></div>
+        <div class="ap-hbar"><div data-bar-to="{{ row.pct }}" style="background: {{ row.color }};"></div></div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="card p-5">
+    <h2 class="mb-4 font-semibold">{% trans "Workload (top 10)" %}</h2>
+    {% for u in workload %}
+      <div class="ap-hbar-row">
+        <div class="ap-hbar-top"><span>{{ u.full_name }}</span><span>{{ u.task_count }}</span></div>
+        <div class="ap-hbar"><div data-bar-to="{{ u.task_pct }}" style="background: linear-gradient(90deg, #4f46e5, #7c3aed);"></div></div>
+      </div>
+    {% empty %}
+      <p class="py-4 text-center text-sm text-gray-500 dark:text-gray-400">{% trans "No data." %}</p>
+    {% endfor %}
   </div>
 </div>
 {% endblock %}

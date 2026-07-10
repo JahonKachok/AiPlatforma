@@ -10,6 +10,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from apps.accounts.models import User
+from apps.document_templates.models import DocumentTemplate, TemplateType
 from apps.documents.models import ApprovalStage, ApprovalStatus, Document, DocumentStatus
 from apps.finance.models import FinancialRecord, RecordStatus, RecordType
 from apps.projects.models import Project, ProjectMember, Section, SectionStatus, SubObject
@@ -87,6 +88,70 @@ SEED_FINANCIAL_RECORDS = [
     (1, RecordType.INCOME, 1_500_000_000, "Mijozdan asosiy to'lov", "Shartnoma to'lovi", RecordStatus.CONFIRMED),
     (2, RecordType.EXPENSE, 60_000_000, "Geodezik tadqiqotlar", "Xizmatlar", RecordStatus.PENDING),
     (3, RecordType.PAYMENT, 35_000_000, "Loyihalash xizmatlari uchun to'lov", "Xizmatlar", RecordStatus.CANCELLED),
+]
+
+SEED_TEMPLATES = [
+    (
+        "Pudrat shartnomasi", TemplateType.CONTRACT,
+        "Loyihalash xizmatlari uchun standart pudrat shartnomasi",
+        "PUDRAT SHARTNOMASI\n\n"
+        "Sana: {{today}}\n"
+        "Buyurtmachi: {{client_name}}\n"
+        "Bog'lanish: {{client_contact}}\n\n"
+        "Ushbu shartnoma \"{{project_name}}\" loyihasi doirasida tuzildi.\n"
+        "Manzil: {{address}}\n"
+        "Boshlanish sanasi: {{start_date}}\n"
+        "Tugash muddati: {{deadline}}\n\n"
+        "Shartnoma summasi: {{budget}} so'm\n"
+        "To'langan summa: {{paid_amount}} so'm\n\n"
+        "Tomonlar yuqoridagi shartlarga rioya qilishga majburdirlar.",
+    ),
+    (
+        "Bajarilgan ishlar dalolatnomasi", TemplateType.ACT,
+        "Loyihaning bosqichi yakunlanganda imzolanadigan dalolatnoma",
+        "BAJARILGAN ISHLAR DALOLATNOMASI\n\n"
+        "Sana: {{today}}\n"
+        "Loyiha: {{project_name}}\n"
+        "Manzil: {{address}}\n"
+        "Buyurtmachi: {{client_name}}\n\n"
+        "Ushbu dalolatnoma tomonlar tomonidan bajarilgan ishlar hajmi va sifati "
+        "bo'yicha o'zaro kelishuvni tasdiqlaydi.\n\n"
+        "Umumiy shartnoma summasi: {{budget}} so'm\n"
+        "Shu kungacha to'langan: {{paid_amount}} so'm",
+    ),
+    (
+        "Shartnomaga ilova", TemplateType.APPENDIX,
+        "Shartnoma shartlarini o'zgartirish yoki aniqlashtirish uchun ilova",
+        "SHARTNOMAGA ILOVA\n\n"
+        "\"{{project_name}}\" loyihasi bo'yicha {{today}} sanadagi pudrat shartnomasiga ilova.\n\n"
+        "Buyurtmachi: {{client_name}}\n"
+        "Manzil: {{address}}\n"
+        "Yangi tugash muddati: {{deadline}}\n\n"
+        "Ushbu ilova asosiy shartnomaning ajralmas qismi hisoblanadi.",
+    ),
+    (
+        "Xizmat ko'rsatish uchun hisob-faktura", TemplateType.INVOICE,
+        "Bajarilgan loyihalash xizmatlari uchun to'lov hisob-fakturasi",
+        "HISOB-FAKTURA\n\n"
+        "Sana: {{today}}\n"
+        "Xaridor: {{client_name}}\n"
+        "Bog'lanish: {{client_contact}}\n"
+        "Loyiha: {{project_name}}\n\n"
+        "To'lov summasi: {{budget}} so'm\n"
+        "Avvalgi to'lovlar: {{paid_amount}} so'm\n\n"
+        "To'lov ushbu hisob-faktura asosida amalga oshiriladi.",
+    ),
+    (
+        "Xodim bilan mehnat shartnomasi", TemplateType.OTHER,
+        "Loyihaga jalb qilingan xodim bilan tuzuladigan mehnat shartnomasi",
+        "MEHNAT SHARTNOMASI\n\n"
+        "Sana: {{today}}\n"
+        "Xodim: {{employee_name}}\n"
+        "Loyiha: {{project_name}}\n\n"
+        "Shartnoma summasi: {{employee_amount}} so'm\n"
+        "Avans: {{employee_advance}} so'm\n"
+        "To'langan: {{employee_paid}} so'm",
+    ),
 ]
 
 SEED_REQUESTS = [
@@ -174,6 +239,13 @@ class Command(BaseCommand):
                 reviewed_at=timezone.now() if stage_status != ApprovalStatus.PENDING else None,
             )
 
+        if not DocumentTemplate.objects.exists():
+            for name, template_type, description, content in SEED_TEMPLATES:
+                DocumentTemplate.objects.create(
+                    name=name, template_type=template_type, description=description,
+                    content=content, created_by=admin,
+                )
+
         for project_idx, rtype, amount, description, category, status in SEED_FINANCIAL_RECORDS:
             FinancialRecord.objects.create(
                 project=projects[project_idx], type=rtype, amount=amount, currency="UZS",
@@ -192,7 +264,7 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS(
             f"Done: {len(SEED_USERS)} users, {len(SEED_PROJECTS)} projects, {len(SEED_TASKS)} tasks, "
-            f"{len(SEED_DOCUMENTS)} documents, {len(SEED_FINANCIAL_RECORDS)} financial records, "
-            f"{len(SEED_REQUESTS)} requests added."
+            f"{len(SEED_DOCUMENTS)} documents, {len(SEED_TEMPLATES)} document templates, "
+            f"{len(SEED_FINANCIAL_RECORDS)} financial records, {len(SEED_REQUESTS)} requests added."
         ))
         self.stdout.write("New users' password: password123")

@@ -5,21 +5,41 @@
 {% block page_subtitle %}{% blocktrans with name=user.get_short_name %}Welcome back, {{ name }}{% endblocktrans %}{% endblock %}
 {% block content %}
 <div class="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-  <a href="{% url 'projects:list' %}?status=active" class="card p-4 hover:shadow-md">
-    <p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Active projects" %}</p>
-    <p class="text-2xl font-semibold">{{ active_projects_count }}</p>
+  <a href="{% url 'projects:list' %}?status=active" class="card ap-stat">
+    <span class="ap-stat-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+    </span>
+    <div>
+      <p class="ap-stat-label">{% trans "Active projects" %}</p>
+      <p class="ap-stat-value">{{ active_projects_count }}</p>
+    </div>
   </a>
-  <a href="{% url 'tasks:board' %}" class="card p-4 hover:shadow-md">
-    <p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Tasks in progress" %}</p>
-    <p class="text-2xl font-semibold">{{ in_progress_tasks_count }}</p>
+  <a href="{% url 'tasks:board' %}" class="card ap-stat">
+    <span class="ap-stat-icon is-blue">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </span>
+    <div>
+      <p class="ap-stat-label">{% trans "Tasks in progress" %}</p>
+      <p class="ap-stat-value">{{ in_progress_tasks_count }}</p>
+    </div>
   </a>
-  <a href="{% url 'documents:approvals' %}" class="card p-4 hover:shadow-md">
-    <p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Pending approvals" %}</p>
-    <p class="text-2xl font-semibold">{{ pending_approvals_count }}</p>
+  <a href="{% url 'documents:approvals' %}" class="card ap-stat">
+    <span class="ap-stat-icon is-amber">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+    </span>
+    <div>
+      <p class="ap-stat-label">{% trans "Pending approvals" %}</p>
+      <p class="ap-stat-value">{{ pending_approvals_count }}</p>
+    </div>
   </a>
-  <a href="{% url 'tasks:board' %}?view=list" class="card p-4 hover:shadow-md">
-    <p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Overdue tasks" %}</p>
-    <p class="text-2xl font-semibold text-red-500">{{ overdue_tasks_count }}</p>
+  <a href="{% url 'tasks:board' %}?view=list" class="card ap-stat">
+    <span class="ap-stat-icon is-red">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </span>
+    <div>
+      <p class="ap-stat-label">{% trans "Overdue tasks" %}</p>
+      <p class="ap-stat-value text-red-500">{{ overdue_tasks_count }}</p>
+    </div>
   </a>
 </div>
 
@@ -36,8 +56,8 @@
             <span>{{ project.name }}</span>
             <span class="{{ project.status|project_status_badge }}">{{ project.get_status_display }}</span>
           </div>
-          <div class="h-1.5 w-full rounded-full bg-gray-100 dark:bg-gray-700">
-            <div class="h-1.5 rounded-full bg-blue-500" style="width: {{ project.paid_percentage }}%"></div>
+          <div class="ap-progress">
+            <div data-bar-to="{{ project.paid_percentage }}"></div>
           </div>
         </a>
       {% empty %}<p class="text-sm text-gray-500 dark:text-gray-400">{% trans "No projects yet." %}</p>{% endfor %}

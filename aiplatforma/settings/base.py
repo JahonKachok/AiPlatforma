@@ -42,6 +42,7 @@ LOCAL_APPS = [
     "apps.organization",
     "apps.telegram_bot",
     "apps.reports",
+    "apps.ai_agents",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -147,3 +148,7 @@ EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@aiplatforma.local")
 
 FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:8000")
+
+# AI agents (Claude API). Kalit bo'sh bo'lsa agentlar jimgina o'tkazib yuboriladi.
+ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
+AI_MODEL = env("AI_MODEL", default="claude-opus-4-8")

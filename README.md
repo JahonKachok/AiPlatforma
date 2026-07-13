@@ -46,6 +46,15 @@ celery -A aiplatforma beat --loglevel=info --scheduler django_celery_beat.schedu
 python manage.py setup_periodic_tasks   # registers the hourly deadline-check task
 ```
 
+### AI agents (Claude)
+
+The deadline-control AI agent (`apps/ai_agents`) summarizes overdue/upcoming tasks with Claude and notifies admins/managers. Set `ANTHROPIC_API_KEY` in `.env` (key from https://console.anthropic.com); without it, agents are silently skipped.
+
+```bash
+python manage.py run_ai_agent            # manual test run (prints the report; --send also notifies)
+python manage.py setup_ai_periodic_tasks # registers the daily 08:00 Celery Beat task
+```
+
 ### Telegram bot
 
 Set `TELEGRAM_BOT_TOKEN` (and `TELEGRAM_BOT_USERNAME`) in `.env`, then run the bot as its own long-running process:

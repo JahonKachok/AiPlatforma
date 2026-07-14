@@ -5,6 +5,8 @@ from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from apps.core.validators import MaxFileSizeValidator
+
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -51,7 +53,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.DESIGNER)
     department = models.CharField(max_length=255, blank=True, null=True)
     phone = models.CharField(max_length=50, blank=True, null=True)
-    avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
+    avatar = models.ImageField(
+        upload_to="avatars/", blank=True, null=True,
+        validators=[MaxFileSizeValidator(2)],
+    )
     telegram_chat_id = models.CharField(max_length=64, blank=True, null=True)
 
     is_active = models.BooleanField(default=True)

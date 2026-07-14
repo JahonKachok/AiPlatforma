@@ -4,6 +4,8 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from apps.core.validators import MaxFileSizeValidator
+
 
 class RecordType(models.TextChoices):
     INCOME = "income", _("Income")
@@ -59,7 +61,10 @@ class Contract(models.Model):
     signed_date = models.DateField(blank=True, null=True)
     deadline = models.DateField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=ContractStatus.choices, default=ContractStatus.DRAFT)
-    file = models.FileField(upload_to="contracts/%Y/%m/", blank=True, null=True)
+    file = models.FileField(
+        upload_to="contracts/%Y/%m/", blank=True, null=True,
+        validators=[MaxFileSizeValidator(25)],
+    )
     notes = models.CharField(max_length=1000, blank=True, null=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)

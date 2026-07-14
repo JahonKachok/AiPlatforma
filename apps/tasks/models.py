@@ -4,6 +4,8 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from apps.core.validators import MaxFileSizeValidator
+
 
 class Task(models.Model):
     class Status(models.TextChoices):
@@ -73,7 +75,7 @@ class TaskAttachment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="attachments")
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
-    file = models.FileField(upload_to="tasks/%Y/%m/")
+    file = models.FileField(upload_to="tasks/%Y/%m/", validators=[MaxFileSizeValidator(25)])
     filename = models.CharField(max_length=255)
     file_size = models.PositiveIntegerField(default=0)
     mime_type = models.CharField(max_length=100, blank=True, null=True)

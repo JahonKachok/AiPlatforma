@@ -63,10 +63,14 @@
   </nav>
   <div class="border-t border-gray-200 p-3 dark:border-gray-700">
     <a href="{% url 'accounts:profile' %}" class="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">
-      <span class="flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold text-white"
-            style="background-color: {{ request.user.full_name|avatar_color }};">
-        {{ request.user.full_name|initials }}
-      </span>
+      {% if request.user.avatar %}
+        <img src="{{ request.user.avatar.url }}" alt="" class="ap-avatar-img h-8 w-8">
+      {% else %}
+        <span class="flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold text-white"
+              style="background-color: {{ request.user.full_name|avatar_color }};">
+          {{ request.user.full_name|initials }}
+        </span>
+      {% endif %}
       <span class="truncate text-sm">
         <span class="block font-medium">{{ request.user.get_short_name }}</span>
         <span class="block text-xs text-gray-500 dark:text-gray-400">{{ request.user.get_role_display }}</span>

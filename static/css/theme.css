@@ -298,6 +298,17 @@ aside nav a[class*="bg-blue-50"]::before {
 /* Hamburger tugma — faqat mobilda ko'rinadi */
 .ap-menu-btn { display: none; }
 
+/* Header o'ng bloki doim o'ngda turadi (hamburger desktopda yashiringanida
+   justify-between uni chapga surib yubormasligi uchun) */
+.ap-header-right { margin-left: auto; }
+
+/* Yuklangan avatar rasmi — bosh harfli doira bilan bir xil ko'rinishda */
+.ap-avatar-img {
+  border-radius: 9999px;
+  object-fit: cover;
+  flex: none;
+}
+
 @media (max-width: 767.98px) {
   .ap-menu-btn { display: inline-flex; font-size: 1.125rem; }
 

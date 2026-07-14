@@ -12,7 +12,7 @@ from apps.finance.forms import FinancialRecordForm
 from apps.tasks.models import Task
 
 from .forms import ProjectForm, ProjectMemberForm, SectionForm, SubObjectForm
-from .models import Project, ProjectMember, Section, SubObject
+from .models import Project, ProjectMember
 from .permissions import can_create_project, can_edit_project, visible_projects_for
 
 TRACKED_FIELDS = [

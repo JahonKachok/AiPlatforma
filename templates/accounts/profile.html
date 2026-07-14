@@ -8,8 +8,12 @@
 
   <div class="card p-6">
     <div class="mb-4 flex items-center gap-3">
-      <span class="flex h-14 w-14 items-center justify-center rounded-full text-lg font-semibold text-white"
-            style="background-color: {{ user.full_name|avatar_color }};">{{ user.full_name|initials }}</span>
+      {% if user.avatar %}
+        <img src="{{ user.avatar.url }}" alt="{{ user.full_name }}" class="ap-avatar-img h-14 w-14">
+      {% else %}
+        <span class="flex h-14 w-14 items-center justify-center rounded-full text-lg font-semibold text-white"
+              style="background-color: {{ user.full_name|avatar_color }};">{{ user.full_name|initials }}</span>
+      {% endif %}
       <div>
         <p class="font-medium">{{ user.full_name }}</p>
         <p class="text-sm text-gray-500 dark:text-gray-400">{{ user.get_role_display }} · {{ user.email }}</p>

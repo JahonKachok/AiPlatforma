@@ -72,7 +72,7 @@
     <ul class="space-y-2 text-sm">
       {% for member in team %}
         <li class="flex items-center gap-2">
-          <span class="flex h-7 w-7 items-center justify-center rounded-full text-xs text-white" style="background-color: {{ member.full_name|avatar_color }};">{{ member.full_name|initials }}</span>
+          {% if member.avatar %}<img src="{{ member.avatar.url }}" alt="" class="ap-avatar-img h-7 w-7">{% else %}<span class="flex h-7 w-7 items-center justify-center rounded-full text-xs text-white" style="background-color: {{ member.full_name|avatar_color }};">{{ member.full_name|initials }}</span>{% endif %}
           <span>{{ member.get_short_name }}</span>
           <span class="text-xs text-gray-400">{{ member.department|default:"" }}</span>
         </li>

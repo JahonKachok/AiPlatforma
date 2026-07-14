@@ -28,7 +28,7 @@
   {% for u in users %}
     <div class="card p-4">
       <div class="mb-2 flex items-center gap-3">
-        <span class="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white" style="background-color: {{ u.full_name|avatar_color }};">{{ u.full_name|initials }}</span>
+        {% if u.avatar %}<img src="{{ u.avatar.url }}" alt="" class="ap-avatar-img h-10 w-10">{% else %}<span class="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white" style="background-color: {{ u.full_name|avatar_color }};">{{ u.full_name|initials }}</span>{% endif %}
         <div>
           <p class="font-medium">{{ u.full_name }}</p>
           <p class="text-xs text-gray-500 dark:text-gray-400">{{ u.get_role_display }} {% if not u.is_active %}· {% trans "inactive" %}{% endif %}</p>

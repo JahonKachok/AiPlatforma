@@ -22,6 +22,8 @@ __pycache__/
 staticfiles/
 media/
 db.sqlite3
+celery-broker.sqlite
+celery-results.sqlite
 .env
 !.env.example
 

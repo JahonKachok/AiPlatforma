@@ -81,7 +81,14 @@ class Command(BaseCommand):
                 return
             user = await _do_link(token, update.effective_chat.id)
             if user:
-                await update.message.reply_html(f"✅ Hisobingiz ulandi: <b>{user.full_name}</b>")
+                await update.message.reply_html(
+                    "✅ Hisobingiz muvaffaqiyatli ulandi!\n\n"
+                    f"👤 <b>{user.full_name}</b>\n"
+                    f"🎖 Rol: <b>{user.get_role_display()}</b>\n"
+                    f"📧 {user.email}\n\n"
+                    "Endi platforma bildirishnomalari (vazifalar, muddatlar, "
+                    "tasdiqlashlar) shu yerga keladi."
+                )
             else:
                 await update.message.reply_text("Token yaroqsiz yoki muddati o'tgan.")
 

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}Telegram{% endblock %}
+{% block page_title %}{% trans "Connect Telegram" %}{% endblock %}
+{% block content %}
+<div class="card mx-auto max-w-md p-6 text-center">
+  <p class="mb-1 text-4xl">✈️</p>
+  <h2 class="mb-2 text-lg font-semibold">Telegram ochilmoqda…</h2>
+  <p class="mb-6 text-sm text-gray-500 dark:text-gray-400">
+    Telegram ilovasi ochilganda botda <b>Start</b> tugmasini bosing —
+    hisobingiz avtomatik ulanadi.
+  </p>
+  <div class="space-y-3">
+    <a href="{{ app_link }}" class="btn btn-primary btn-md w-full">
+      Telegram ilovasini ochish
+    </a>
+    <a href="{{ web_link }}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm w-full">
+      Ilova ochilmasa: t.me orqali ochish
+    </a>
+    <a href="{% url 'accounts:profile' %}" class="btn btn-ghost btn-sm w-full">
+      ← Profilga qaytish
+    </a>
+  </div>
+</div>
+<script>
+  // Telegram ilovasini avtomatik ochishga urinamiz (tg:// t.me bloklangan
+  // tarmoqlarda ham ishlaydi). Ochilmasa, foydalanuvchi tugmalardan foydalanadi.
+  setTimeout(function () { window.location.href = "{{ app_link|escapejs }}"; }, 400);
+</script>
+{% endblock %}

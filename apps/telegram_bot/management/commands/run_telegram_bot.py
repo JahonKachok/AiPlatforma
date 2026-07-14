@@ -13,7 +13,14 @@ class Command(BaseCommand):
             return
 
         from telegram import Update
-        from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
+        from telegram.ext import (
+            Application,
+            CommandHandler,
+            ContextTypes,
+            MessageHandler,
+            TypeHandler,
+            filters,
+        )
 
         async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             args = context.args
@@ -87,12 +94,29 @@ class Command(BaseCommand):
             await _unlink(update.effective_chat.id)
             await update.message.reply_text("Hisobingiz uzildi.")
 
+        @sync_to_async
+        def _record_event(chat_id, text):
+            from apps.accounts.models import User
+            from apps.telegram_bot.models import TelegramEvent
+
+            text = text or ""
+            user = User.objects.filter(telegram_chat_id=str(chat_id)).first()
+            kind = TelegramEvent.Kind.COMMAND if text.startswith("/") else TelegramEvent.Kind.MESSAGE
+            TelegramEvent.objects.create(user=user, chat_id=str(chat_id), kind=kind, text=text)
+
+        async def record_update(update: Update, context: ContextTypes.DEFAULT_TYPE):
+            if update.effective_chat and update.effective_message:
+                await _record_event(update.effective_chat.id, update.effective_message.text)
+
         async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             user = await _get_user_by_chat_id(update.effective_chat.id)
             prefix = f"[{user.full_name}] " if user else ""
             await update.message.reply_text(f"{prefix}{update.message.text}")
 
         application = Application.builder().token(settings.TELEGRAM_BOT_TOKEN).build()
+        # group=-1: barcha xabar/buyruqlarni asosiy handlerlardan oldin jurnalga
+        # yozadi, ularning ishlashiga xalaqit bermaydi.
+        application.add_handler(TypeHandler(Update, record_update), group=-1)
         application.add_handler(CommandHandler("start", start))
         application.add_handler(CommandHandler("help", help_cmd))
         application.add_handler(CommandHandler("whoami", whoami))

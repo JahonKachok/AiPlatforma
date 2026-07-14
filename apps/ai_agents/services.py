@@ -30,12 +30,45 @@ def is_configured() -> bool:
     return get_provider() is not None
 
 
-def ask_ai(system: str, prompt: str, max_tokens: int = 16000) -> str:
-    """Sozlangan provayderga bitta so'rov yuborib, javob matnini qaytaradi."""
+def ask_ai(system: str, prompt: str, max_tokens: int = 16000, agent: str = "") -> str:
+    """Sozlangan provayderga bitta so'rov yuborib, javob matnini qaytaradi.
+
+    Har bir chaqiruv (muvaffaqiyatli, bo'sh yoki xatoli) AILog'ga yoziladi;
+    log yozishdagi xato agent ishini to'xtatmaydi."""
+    import time
+
+    from .models import AILog
+
     provider = get_provider()
-    if provider == "gemini":
-        return ask_gemini(system, prompt, max_tokens)
-    return ask_claude(system, prompt, max_tokens)
+    model = settings.GEMINI_MODEL if provider == "gemini" else settings.AI_MODEL
+    start = time.monotonic()
+    status, text, error = AILog.Status.SUCCESS, "", ""
+    try:
+        if provider == "gemini":
+            text = ask_gemini(system, prompt, max_tokens)
+        else:
+            text = ask_claude(system, prompt, max_tokens)
+        if not text:
+            status = AILog.Status.EMPTY
+    except Exception as exc:
+        status, error = AILog.Status.ERROR, str(exc)
+        raise
+    finally:
+        try:
+            AILog.objects.create(
+                agent=agent,
+                provider=provider or "",
+                model=model,
+                system=system,
+                prompt=prompt,
+                response=text,
+                status=status,
+                error=error,
+                duration_ms=int((time.monotonic() - start) * 1000),
+            )
+        except Exception:
+            logger.exception("AILog yozishda xato")
+    return text
 
 
 def ask_claude(system: str, prompt: str, max_tokens: int = 16000) -> str:
@@ -142,4 +175,4 @@ def run_deadline_agent() -> str | None:
     context = collect_deadline_context()
     if context is None:
         return None
-    return ask_ai(DEADLINE_AGENT_SYSTEM, context) or None
+    return ask_ai(DEADLINE_AGENT_SYSTEM, context, agent="deadline") or None

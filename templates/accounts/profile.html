@@ -87,9 +87,14 @@
       <form method="post" class="space-y-2">
         {% csrf_token %}
         {% for field in prefs_form %}
-          <label class="flex items-center justify-between py-1 text-sm">
+          <label class="flex items-center justify-between gap-3 py-1 text-sm">
             <span>{{ field.label }}</span>
-            {{ field }}
+            <span class="switch">
+              {{ field }}
+              <span class="slider">
+                <svg class="slider-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation"><path fill="none" d="m4 16.5 8 8 16-16"></path></svg>
+              </span>
+            </span>
           </label>
         {% endfor %}
         <button type="submit" class="btn btn-primary btn-sm mt-2">{% trans "Save" %}</button>

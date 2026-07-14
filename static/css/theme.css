@@ -337,3 +337,89 @@ aside nav a[class*="bg-blue-50"]::before {
    gorizontal scroll ichiga olinadi */
 .ap-cal-scroll { overflow-x: auto; }
 .ap-cal-scroll > .grid { min-width: 560px; }
+
+/* ============ Toggle switch (Uiverse.io by alexruix) ============ */
+/* Asl koddan farqlar: o'lcham em'ga o'tkazildi (knopka rem'da edi —
+   font-size o'zgarsa buzilardi) va qorong'i rejim ranglari qo'shildi. */
+.switch {
+  font-size: 14px;
+  position: relative;
+  display: inline-block;
+  width: 3.5em;
+  height: 2em;
+  flex: none;
+}
+
+/* Standart checkboxni yashiramiz (globaldagi appearance uslublarini ham bekor qiladi) */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+  border: none;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #B0B0B0;
+  border: 1px solid #B0B0B0;
+  transition: .4s;
+  border-radius: 32px;
+  outline: none;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 2em;
+  width: 2em;
+  border-radius: 50%;
+  outline: 2px solid #B0B0B0;
+  left: -1px;
+  bottom: -1px;
+  background-color: #fff;
+  transition: transform .25s ease-in-out 0s;
+}
+
+.slider-icon {
+  opacity: 0;
+  height: 12px;
+  width: 12px;
+  stroke-width: 8;
+  position: absolute;
+  z-index: 999;
+  stroke: #222222;
+  right: 60%;
+  top: 30%;
+  transition: right ease-in-out .3s, opacity ease-in-out .15s;
+}
+
+.switch input:checked + .slider {
+  background-color: #222222;
+  border-color: #222222;
+}
+
+.switch input:checked + .slider .slider-icon {
+  opacity: 1;
+  right: 20%;
+}
+
+.switch input:checked + .slider:before {
+  transform: translateX(1.5em);
+  outline-color: #181818;
+}
+
+/* Qorong'i rejimda #222 fon kartada ko'rinmay qoladi — primary rangga o'tamiz */
+.dark .switch input:checked + .slider {
+  background-color: var(--ap-primary);
+  border-color: var(--ap-primary);
+}
+.dark .switch input:checked + .slider:before { outline-color: var(--ap-primary); }
+.dark .slider-icon { stroke: var(--ap-primary); }
+
+.switch input:focus-visible + .slider { box-shadow: 0 0 0 3px var(--ap-ring); }

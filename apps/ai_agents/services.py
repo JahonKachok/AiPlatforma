@@ -1,8 +1,10 @@
-"""Claude API bilan ishlovchi AI-agent servislari.
+"""AI-agent servislari (Claude yoki Gemini bilan ishlaydi).
 
-Barcha agentlar bitta `ask_claude()` chaqiruv nuqtasidan foydalanadi.
-ANTHROPIC_API_KEY o'rnatilmagan bo'lsa `is_configured()` False qaytaradi va
-agentlar hech narsa qilmay o'tkazib yuboriladi — platforma AI'siz ham ishlayveradi.
+Barcha agentlar bitta `ask_ai()` chaqiruv nuqtasidan foydalanadi. Provayder
+GEMINI_API_KEY / ANTHROPIC_API_KEY kalitlariga qarab avtomatik tanlanadi
+(AI_PROVIDER bilan majburan belgilash ham mumkin). Hech qaysi kalit
+o'rnatilmagan bo'lsa `is_configured()` False qaytaradi va agentlar hech narsa
+qilmay o'tkazib yuboriladi — platforma AI'siz ham ishlayveradi.
 """
 import logging
 
@@ -11,8 +13,29 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
+def get_provider() -> str | None:
+    """Ishlatiladigan provayderni qaytaradi: "gemini", "anthropic" yoki None."""
+    forced = settings.AI_PROVIDER
+    if forced:
+        key = settings.GEMINI_API_KEY if forced == "gemini" else settings.ANTHROPIC_API_KEY
+        return forced if key else None
+    if settings.GEMINI_API_KEY:
+        return "gemini"
+    if settings.ANTHROPIC_API_KEY:
+        return "anthropic"
+    return None
+
+
 def is_configured() -> bool:
-    return bool(settings.ANTHROPIC_API_KEY)
+    return get_provider() is not None
+
+
+def ask_ai(system: str, prompt: str, max_tokens: int = 16000) -> str:
+    """Sozlangan provayderga bitta so'rov yuborib, javob matnini qaytaradi."""
+    provider = get_provider()
+    if provider == "gemini":
+        return ask_gemini(system, prompt, max_tokens)
+    return ask_claude(system, prompt, max_tokens)
 
 
 def ask_claude(system: str, prompt: str, max_tokens: int = 16000) -> str:
@@ -31,6 +54,23 @@ def ask_claude(system: str, prompt: str, max_tokens: int = 16000) -> str:
         logger.warning("Claude so'rovni rad etdi (stop_reason=refusal)")
         return ""
     return "".join(block.text for block in response.content if block.type == "text").strip()
+
+
+def ask_gemini(system: str, prompt: str, max_tokens: int = 16000) -> str:
+    """Gemini'ga bitta so'rov yuborib, javob matnini qaytaradi."""
+    from google import genai
+    from google.genai import types
+
+    client = genai.Client(api_key=settings.GEMINI_API_KEY)
+    response = client.models.generate_content(
+        model=settings.GEMINI_MODEL,
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            system_instruction=system,
+            max_output_tokens=max_tokens,
+        ),
+    )
+    return (response.text or "").strip()
 
 
 # ---------------------------------------------------------------------------
@@ -97,9 +137,9 @@ def collect_deadline_context() -> str | None:
 
 
 def run_deadline_agent() -> str | None:
-    """Kontekstni yig'ib Claude'dan hisobot oladi. Hisobot matnini yoki
+    """Kontekstni yig'ib AI'dan hisobot oladi. Hisobot matnini yoki
     (xabar beradigan narsa bo'lmasa) None qaytaradi."""
     context = collect_deadline_context()
     if context is None:
         return None
-    return ask_claude(DEADLINE_AGENT_SYSTEM, context) or None
+    return ask_ai(DEADLINE_AGENT_SYSTEM, context) or None

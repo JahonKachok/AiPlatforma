@@ -149,6 +149,11 @@ DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@aiplatforma.loca
 
 FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:8000")
 
-# AI agents (Claude API). Kalit bo'sh bo'lsa agentlar jimgina o'tkazib yuboriladi.
+# AI agents. Kalitlar bo'sh bo'lsa agentlar jimgina o'tkazib yuboriladi.
+# AI_PROVIDER bo'sh bo'lsa avtomatik tanlanadi: GEMINI_API_KEY bo'lsa gemini,
+# aks holda ANTHROPIC_API_KEY bo'lsa anthropic.
+AI_PROVIDER = env("AI_PROVIDER", default="")
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
 AI_MODEL = env("AI_MODEL", default="claude-opus-4-8")
+GEMINI_API_KEY = env("GEMINI_API_KEY", default="")
+GEMINI_MODEL = env("GEMINI_MODEL", default="gemini-2.5-flash")

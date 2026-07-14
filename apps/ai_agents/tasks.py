@@ -15,13 +15,13 @@ def run_deadline_agent(self):
     from . import services
 
     if not services.is_configured():
-        logger.warning("ANTHROPIC_API_KEY o'rnatilmagan — AI muddat agenti o'tkazib yuborildi.")
+        logger.warning("AI kaliti (GEMINI_API_KEY/ANTHROPIC_API_KEY) o'rnatilmagan — AI muddat agenti o'tkazib yuborildi.")
         return "skipped: no api key"
 
     try:
         report = services.run_deadline_agent()
     except Exception as exc:
-        logger.exception("AI muddat agenti Claude chaqiruvida xato")
+        logger.exception("AI muddat agenti chaqiruvida xato")
         raise self.retry(exc=exc)
 
     if not report:

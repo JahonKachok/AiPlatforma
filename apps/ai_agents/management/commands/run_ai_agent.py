@@ -15,10 +15,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if not services.is_configured():
-            self.stdout.write(self.style.ERROR("ANTHROPIC_API_KEY o'rnatilmagan."))
+            self.stdout.write(self.style.ERROR("AI kaliti o'rnatilmagan."))
             self.stdout.write(
-                "Kalitni https://console.anthropic.com dan oling va .env fayliga qo'shing:\n"
-                "  ANTHROPIC_API_KEY=sk-ant-..."
+                ".env fayliga quyidagilardan birini qo'shing:\n"
+                "  GEMINI_API_KEY=AIza...      (bepul: https://aistudio.google.com)\n"
+                "  ANTHROPIC_API_KEY=sk-ant... (https://console.anthropic.com)"
             )
             return
 
@@ -27,14 +28,15 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS("Kechikkan yoki muddati yaqin vazifalar yo'q — hisobot kerak emas."))
             return
 
-        self.stdout.write(self.style.MIGRATE_HEADING("Claude'ga yuborilayotgan kontekst:"))
+        provider = services.get_provider()
+        self.stdout.write(self.style.MIGRATE_HEADING(f"AI'ga ({provider}) yuborilayotgan kontekst:"))
         self.stdout.write(context)
         self.stdout.write("")
-        self.stdout.write(self.style.MIGRATE_HEADING("Claude javobi:"))
+        self.stdout.write(self.style.MIGRATE_HEADING("AI javobi:"))
 
-        report = services.ask_claude(services.DEADLINE_AGENT_SYSTEM, context)
+        report = services.ask_ai(services.DEADLINE_AGENT_SYSTEM, context)
         if not report:
-            self.stdout.write(self.style.WARNING("Claude bo'sh javob qaytardi."))
+            self.stdout.write(self.style.WARNING("AI bo'sh javob qaytardi."))
             return
         self.stdout.write(report)
 

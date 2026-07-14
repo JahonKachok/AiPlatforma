@@ -293,3 +293,47 @@ aside nav a[class*="bg-blue-50"]::before {
 
 /* ============ Badges ============ */
 .badge { font-weight: 600; letter-spacing: 0.01em; }
+
+/* ============ Responsive (mobil) ============ */
+/* Hamburger tugma — faqat mobilda ko'rinadi */
+.ap-menu-btn { display: none; }
+
+@media (max-width: 767.98px) {
+  .ap-menu-btn { display: inline-flex; font-size: 1.125rem; }
+
+  /* Sidebar mobilda off-canvas drawer bo'ladi: `hidden` klassini bekor
+     qilib, chapdan surilib chiqadigan fixed panelga aylantiramiz. */
+  #ap-sidebar {
+    display: flex !important;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 40;
+    width: 16rem;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
+  }
+  #ap-sidebar.is-open { transform: translateX(0); }
+
+  #ap-sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    background: rgba(15, 23, 42, 0.5);
+  }
+  #ap-sidebar-overlay.is-open { display: block; }
+}
+
+/* Juda tor ekranlarda ikkinchi darajali tugmalarni yashirish
+   (profil sidebar pastida baribir bor) */
+@media (max-width: 479.98px) {
+  .ap-hide-sm { display: none !important; }
+}
+
+/* Kalendar (7 ustunli grid) tor ekranda siqilib ketmasligi uchun
+   gorizontal scroll ichiga olinadi */
+.ap-cal-scroll { overflow-x: auto; }
+.ap-cal-scroll > .grid { min-width: 560px; }

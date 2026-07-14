@@ -58,7 +58,11 @@
             <td class="px-3 py-2">{{ document.uploaded_by.get_short_name }}</td>
             <td class="px-3 py-2"><span class="{{ document.status|document_status_badge }}">{{ document.get_status_display }}</span></td>
             <td class="whitespace-nowrap px-3 py-2 text-right">
-              <a href="{% url 'documents:download' document.pk %}" class="text-xs text-blue-600 hover:underline dark:text-blue-400">{% trans "Download" %}</a>
+              {% if document.file %}
+                <a href="{% url 'documents:download' document.pk %}" class="text-xs text-blue-600 hover:underline dark:text-blue-400">{% trans "Download" %}</a>
+              {% else %}
+                <span class="text-xs text-gray-400 dark:text-gray-500">—</span>
+              {% endif %}
             </td>
           </tr>
         {% empty %}

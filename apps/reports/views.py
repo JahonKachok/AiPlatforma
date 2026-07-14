@@ -22,7 +22,6 @@ def reports_dashboard(request):
     projects = visible_projects_for(request.user)
     tasks = Task.objects.filter(project__in=projects)
     documents = Document.objects.filter(project__in=projects)
-    records = FinancialRecord.objects.filter(project__in=projects)
 
     tasks_total = tasks.count()
     tasks_completed = tasks.filter(status=Task.Status.COMPLETED).count()

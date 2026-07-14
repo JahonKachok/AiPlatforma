@@ -42,7 +42,11 @@ def document_list(request):
     if request.method == "POST":
         ids = request.POST.getlist("selected")
         if "delete_selected" in request.POST and ids:
-            _visible_documents(request.user).filter(pk__in=ids).delete()
+            selected = _visible_documents(request.user).filter(pk__in=ids)
+            for document in selected:
+                if document.file:
+                    document.file.delete(save=False)
+            selected.delete()
             messages.success(request, _("Selected documents deleted."))
             return redirect("documents:list")
 
@@ -114,8 +118,12 @@ def document_download(request, pk):
     document = get_object_or_404(_visible_documents(request.user), pk=pk)
     if not document.file:
         raise Http404
+    try:
+        file_handle = document.file.open("rb")
+    except FileNotFoundError:
+        raise Http404
     AuditLog.log(obj=document, action="downloaded", user=request.user)
-    return FileResponse(document.file.open("rb"), as_attachment=True, filename=document.file.name.split("/")[-1])
+    return FileResponse(file_handle, as_attachment=True, filename=document.file.name.split("/")[-1])
 
 
 @login_required
@@ -126,7 +134,11 @@ def document_bulk_download(request):
     with zipfile.ZipFile(buffer, "w") as zf:
         for document in documents:
             if document.file:
-                zf.writestr(document.file.name.split("/")[-1], document.file.read())
+                try:
+                    content = document.file.read()
+                except FileNotFoundError:
+                    continue
+                zf.writestr(document.file.name.split("/")[-1], content)
                 AuditLog.log(obj=document, action="bulk_download", user=request.user)
     buffer.seek(0)
     response = HttpResponse(buffer.getvalue(), content_type="application/zip")

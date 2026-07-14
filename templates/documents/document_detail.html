@@ -6,7 +6,9 @@
 {% block content %}
 <div class="mb-4 flex flex-wrap gap-2">
   <a href="{% url 'documents:list' %}" class="btn btn-ghost btn-sm">← {% trans "Back" %}</a>
-  <a href="{% url 'documents:download' document.pk %}" class="btn btn-secondary btn-sm">{% trans "Download" %}</a>
+  {% if document.file %}
+    <a href="{% url 'documents:download' document.pk %}" class="btn btn-secondary btn-sm">{% trans "Download" %}</a>
+  {% endif %}
   {% if document.status == "draft" %}
     <a href="{% url 'documents:assign_stages' document.pk %}" class="btn btn-primary btn-sm">{% trans "Send for approval" %}</a>
   {% endif %}

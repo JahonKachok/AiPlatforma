@@ -144,7 +144,7 @@ def profile_view(request):
     else:
         form = ProfileForm(instance=request.user)
 
-    if request.method == "POST" and "notify_task" in request.POST:
+    if request.method == "POST" and "prefs_submit" in request.POST:
         prefs_form = NotificationPreferenceForm(request.POST, instance=request.user.notification_preference)
         if prefs_form.is_valid():
             prefs_form.save()

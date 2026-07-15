@@ -15,7 +15,9 @@
         <span class="{{ tpl.template_type|template_type_badge }}">{{ tpl.get_template_type_display }}</span>
       </div>
       <p class="mb-2 line-clamp-2 text-sm text-gray-500 dark:text-gray-400">{{ tpl.description|default:"" }}</p>
-      <pre class="mb-3 line-clamp-3 whitespace-pre-wrap rounded bg-gray-50 p-2 font-mono text-xs dark:bg-gray-900">{{ tpl.content }}</pre>
+      <div class="mb-3 rounded bg-gray-50 p-2 dark:bg-gray-900">
+        <pre class="line-clamp-3 whitespace-pre-wrap font-mono text-xs">{{ tpl.content }}</pre>
+      </div>
       <div class="flex flex-wrap gap-2">
         <a href="{% url 'document_templates:generate' tpl.pk %}" class="btn btn-primary btn-sm">{% trans "Generate" %}</a>
         {% if can_manage %}<a href="{% url 'document_templates:update' tpl.pk %}" class="btn btn-secondary btn-sm">{% trans "Edit" %}</a>{% endif %}

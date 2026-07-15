@@ -17,7 +17,15 @@
 </div>
 
 <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-  <div class="space-y-6 lg:col-span-2">
+  <div class="lg:col-span-2">
+    <div class="ap-tabs mb-4" data-tabs>
+      <button type="button" data-tab="info" class="ap-tab is-active">{% trans "Overview" %}</button>
+      <button type="button" data-tab="structure" class="ap-tab">{% trans "Sub-objects & sections" %}</button>
+      <button type="button" data-tab="tasks" class="ap-tab">{% trans "Tasks" %}</button>
+      <button type="button" data-tab="finance" class="ap-tab">{% trans "Finance" %}</button>
+    </div>
+
+    <div data-tab-panel="info" class="space-y-6">
     <div class="card p-6">
       <h2 class="mb-3 font-semibold">{% trans "Project info" %}</h2>
       <dl class="grid grid-cols-2 gap-3 text-sm">
@@ -28,7 +36,9 @@
       </dl>
       {% if project.description %}<p class="mt-3 text-sm text-gray-600 dark:text-gray-300">{{ project.description }}</p>{% endif %}
     </div>
+    </div>
 
+    <div data-tab-panel="structure" class="hidden space-y-6">
     <div class="card p-6">
       <div class="mb-3 flex items-center justify-between">
         <h2 class="font-semibold">{% trans "Sub-objects" %}</h2>
@@ -68,7 +78,9 @@
       </form>
       {% endif %}
     </div>
+    </div>
 
+    <div data-tab-panel="tasks" class="hidden space-y-6">
     <div class="card p-6">
       <div class="mb-3 flex items-center justify-between">
         <h2 class="font-semibold">{% trans "Tasks" %}</h2>
@@ -83,7 +95,9 @@
         {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No tasks yet." %}</li>{% endfor %}
       </ul>
     </div>
+    </div>
 
+    <div data-tab-panel="finance" class="hidden space-y-6">
     <div class="card overflow-x-auto p-6">
       <h2 class="mb-3 font-semibold">{% trans "Finance records" %}</h2>
       <table class="mb-4 w-full text-left text-sm">
@@ -116,6 +130,7 @@
         <button type="submit" class="btn btn-secondary btn-sm">{% trans "Add record" %}</button>
       </form>
       {% endif %}
+    </div>
     </div>
   </div>
 

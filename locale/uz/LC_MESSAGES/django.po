@@ -1,16 +1,19 @@
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: AiPlatforma\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-08 00:00+0000\n"
+"Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: uz\n"
 
-
-msgid "A random temporary password will be generated and shown once after creation."
-msgstr "Yaratilgandan so'ng bir martalik vaqtinchalik parol yaratiladi va ko'rsatiladi."
+msgid ""
+"A random temporary password will be generated and shown once after creation."
+msgstr ""
+"Yaratilgandan so'ng bir martalik vaqtinchalik parol yaratiladi va "
+"ko'rsatiladi."
 
 msgid "Action"
 msgstr "Amal"
@@ -30,8 +33,12 @@ msgstr "Qo'shish"
 msgid "Add employee contract"
 msgstr "Xodim shartnomasini qo'shish"
 
-msgid "Add more stage rows by editing the form count, or submit with a single stage for a simple one-step review."
-msgstr "Qo'shimcha bosqich qatorlarini forma sonini o'zgartirib qo'shing, yoki oddiy bir bosqichli ko'rib chiqish uchun bitta bosqich bilan yuboring."
+msgid ""
+"Add more stage rows by editing the form count, or submit with a single stage"
+" for a simple one-step review."
+msgstr ""
+"Qo'shimcha bosqich qatorlarini forma sonini o'zgartirib qo'shing, yoki oddiy"
+" bir bosqichli ko'rib chiqish uchun bitta bosqich bilan yuboring."
 
 msgid "Add record"
 msgstr "Yozuv qo'shish"
@@ -85,7 +92,9 @@ msgid "Are you sure you want to delete \"%(name)s\"?"
 msgstr "\"%(name)s\" ni o'chirishga ishonchingiz komilmi?"
 
 msgid "Are you sure you want to delete \"%(name)s\"? This cannot be undone."
-msgstr "\"%(name)s\" ni o'chirishga ishonchingiz komilmi? Bu amalni qaytarib bo'lmaydi."
+msgstr ""
+"\"%(name)s\" ni o'chirishga ishonchingiz komilmi? Bu amalni qaytarib "
+"bo'lmaydi."
 
 msgid "Are you sure you want to delete \"%(title)s\"?"
 msgstr "\"%(title)s\" ni o'chirishga ishonchingiz komilmi?"
@@ -594,8 +603,11 @@ msgstr "Saqlash"
 msgid "Save route"
 msgstr "Yo'nalishni saqlash"
 
-msgid "Scan the QR code with your authenticator app, then enter the code it shows."
-msgstr "Autentifikator ilovangiz bilan QR kodni skanerlang, so'ng ko'rsatilgan kodni kiriting."
+msgid ""
+"Scan the QR code with your authenticator app, then enter the code it shows."
+msgstr ""
+"Autentifikator ilovangiz bilan QR kodni skanerlang, so'ng ko'rsatilgan kodni"
+" kiriting."
 
 msgid "Search"
 msgstr "Qidiruv"
@@ -705,8 +717,12 @@ msgstr "Hujjat yuklash"
 msgid "Uploaded by"
 msgstr "Yuklovchi"
 
-msgid "Use {{placeholder}} tokens, e.g. {{client_name}}, {{project_name}}, {{budget}}, {{deadline}}."
-msgstr "{{placeholder}} kabi belgilardan foydalaning, masalan: {{client_name}}, {{project_name}}, {{budget}}, {{deadline}}."
+msgid ""
+"Use {{placeholder}} tokens, e.g. {{client_name}}, {{project_name}}, "
+"{{budget}}, {{deadline}}."
+msgstr ""
+"{{placeholder}} kabi belgilardan foydalaning, masalan: {{client_name}}, "
+"{{project_name}}, {{budget}}, {{deadline}}."
 
 msgid "User"
 msgstr "Foydalanuvchi"
@@ -800,3 +816,98 @@ msgstr "Yangi"
 
 msgid "Needs revision"
 msgstr "Qayta ishlash"
+
+msgid "AI ecosystem"
+msgstr "Sun'iy intellekt ekotizimi"
+
+msgid "Agents, schedules and audit log"
+msgstr "Agentlar, jadvallar va audit jurnali"
+
+msgid "Deadline control agent"
+msgstr "Muddat nazorati agenti"
+
+msgid ""
+"Analyzes overdue and upcoming tasks, prepares a daily report for management "
+"(site, email, Telegram)."
+msgstr ""
+"Kechikkan va muddati yaqin vazifalarni tahlil qilib, rahbariyat uchun kunlik"
+" hisobot tayyorlaydi (sayt, email, Telegram)."
+
+msgid "Schedule"
+msgstr "Jadval"
+
+msgid "Provider"
+msgstr "Provayder"
+
+msgid "not configured"
+msgstr "sozlanmagan"
+
+msgid "Last run"
+msgstr "Oxirgi ishga tushish"
+
+msgid "Run now"
+msgstr "Hozir ishga tushirish"
+
+msgid "Finance analysis agent"
+msgstr "Moliya tahlili agenti"
+
+msgid "In development"
+msgstr "Ishlab chiqilmoqda"
+
+msgid ""
+"Will monitor payments, debts and contracts, and forecast expenses. Coming in"
+" the next phase."
+msgstr ""
+"To'lovlar, qarzlar va shartnomalarni nazorat qiladi, xarajatlarni prognoz "
+"qiladi. Keyingi bosqichda qo'shiladi."
+
+msgid "Latest report"
+msgstr "Oxirgi hisobot"
+
+msgid "AI audit log"
+msgstr "AI audit jurnali"
+
+msgid "Agent"
+msgstr "Agent"
+
+msgid "Duration"
+msgstr "Davomiyligi"
+
+msgid "No AI calls yet."
+msgstr "Hozircha AI chaqiruvlari yo'q."
+
+msgid "AI: deadline control report"
+msgstr "AI: muddat nazorati hisoboti"
+
+msgid "AI panel"
+msgstr "AI paneli"
+
+msgid "Recent activity"
+msgstr "So'nggi faollik"
+
+msgid "No activity yet."
+msgstr "Hozircha faollik yo'q."
+
+msgid "results"
+msgstr "natijalari"
+
+msgid "Enter at least 2 characters to search."
+msgstr "Qidirish uchun kamida 2 ta belgi kiriting."
+
+msgid "Nothing found."
+msgstr "Hech narsa topilmadi."
+
+msgid "Search projects, tasks, files..."
+msgstr "Loyihalar, vazifalar, fayllar..."
+
+msgid "Open menu"
+msgstr "Menyuni ochish"
+
+msgid "AI agents"
+msgstr "AI agentlari"
+
+msgid "Sub-objects & sections"
+msgstr "Obyektlar va bo'limlar"
+
+msgid "Connect Telegram"
+msgstr "Telegram'ni ulash"

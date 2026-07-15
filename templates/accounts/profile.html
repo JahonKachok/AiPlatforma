@@ -89,20 +89,31 @@
 
     <div class="card p-6">
       <h2 class="mb-4 font-semibold">{% trans "Notifications" %}</h2>
-      <form method="post" class="space-y-2">
+      <form method="post">
         {% csrf_token %}
-        {% for field in prefs_form %}
-          <label class="flex items-center justify-between gap-3 py-1 text-sm">
-            <span>{{ field.label }}</span>
-            <span class="switch">
-              {{ field }}
-              <span class="slider">
-                <svg class="slider-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation"><path fill="none" d="m4 16.5 8 8 16-16"></path></svg>
+        <input type="hidden" name="prefs_submit" value="1">
+        <div class="ap-prefs-row mb-1 text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
+          <span></span>
+          <span class="w-12 text-center">{% trans "Site" %}</span>
+          <span class="w-12 text-center">Email</span>
+          <span class="w-12 text-center">TG</span>
+        </div>
+        {% for label, fields in prefs_form.rows %}
+          <div class="ap-prefs-row border-t border-gray-100 py-2 text-sm dark:border-gray-700">
+            <span>{{ label }}</span>
+            {% for field in fields %}
+              <span class="flex w-12 justify-center">
+                <label class="switch switch-sm">
+                  {{ field }}
+                  <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation"><path fill="none" d="m4 16.5 8 8 16-16"></path></svg>
+                  </span>
+                </label>
               </span>
-            </span>
-          </label>
+            {% endfor %}
+          </div>
         {% endfor %}
-        <button type="submit" class="btn btn-primary btn-sm mt-2">{% trans "Save" %}</button>
+        <button type="submit" class="btn btn-primary btn-sm mt-3">{% trans "Save" %}</button>
       </form>
     </div>
   </div>

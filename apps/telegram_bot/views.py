@@ -1,3 +1,7 @@
+import base64
+import io
+
+import qrcode
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -18,9 +22,18 @@ def link_telegram(request):
     # bloklangan tarmoqlarda ham ishlaydi), keyin t.me variantini taklif
     # qiladi. Bot /start link_<token> orqali hisobni rolini aniqlagan holda
     # avtomatik ulaydi.
+    web_link = f"https://t.me/{bot_username}?start=link_{token.token}"
+
+    # Telefondan skanerlash uchun QR-kod (t.me bloklangan bo'lsa ham
+    # telefonda Telegram ilovasi havolani to'g'ridan-to'g'ri ochadi)
+    buf = io.BytesIO()
+    qrcode.make(web_link).save(buf, format="PNG")
+    qr_base64 = base64.b64encode(buf.getvalue()).decode()
+
     return render(request, "telegram_bot/link_redirect.html", {
         "app_link": f"tg://resolve?domain={bot_username}&start=link_{token.token}",
-        "web_link": f"https://t.me/{bot_username}?start=link_{token.token}",
+        "web_link": web_link,
+        "qr_base64": qr_base64,
     })
 
 

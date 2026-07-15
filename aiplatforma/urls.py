@@ -17,6 +17,7 @@ urlpatterns = [
     path("reports/", include("apps.reports.urls")),
     path("notifications/", include("apps.notifications.urls")),
     path("telegram/", include("apps.telegram_bot.urls")),
+    path("ai/", include("apps.ai_agents.urls")),
     path("", include("apps.core.urls")),
 ]
 

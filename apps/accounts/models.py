@@ -99,20 +99,25 @@ class LoginJournal(models.Model):
         return f"{self.user.email} @ {self.created_at:%Y-%m-%d %H:%M} ({self.status})"
 
 
+NOTIFICATION_TYPES = ["task", "deadline", "approval", "comment", "finance", "document", "system"]
+NOTIFICATION_CHANNELS = ["site", "email", "telegram"]
+
+
 class NotificationPreference(models.Model):
+    """Har bir hodisa turi uchun 3 kanal (sayt/email/telegram) matritsasi.
+
+    `channels` JSON ko'rinishi: {"task": {"site": true, "email": false, ...}, ...}
+    Kalit yo'q bo'lsa — yoqilgan hisoblanadi (default True)."""
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="notification_preference")
-    notify_task = models.BooleanField(default=True)
-    notify_deadline = models.BooleanField(default=True)
-    notify_approval = models.BooleanField(default=True)
-    notify_comment = models.BooleanField(default=True)
-    notify_finance = models.BooleanField(default=True)
-    notify_document = models.BooleanField(default=True)
-    notify_system = models.BooleanField(default=True)
-    email_enabled = models.BooleanField(default=True)
-    telegram_enabled = models.BooleanField(default=True)
+    channels = models.JSONField(default=dict, blank=True)
+
+    def allows_channel(self, notification_type: str, channel: str) -> bool:
+        return bool(self.channels.get(notification_type, {}).get(channel, True))
 
     def allows(self, notification_type: str) -> bool:
-        return getattr(self, f"notify_{notification_type}", True)
+        """Sayt (qo'ng'iroqcha) kanali — bazaga yozuv yaratish sharti."""
+        return self.allows_channel(notification_type, "site")
 
     def __str__(self):
         return f"Preferences for {self.user.email}"

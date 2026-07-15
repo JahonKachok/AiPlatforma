@@ -40,6 +40,13 @@
       {% if request.path == reports_url %}bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300{% else %}text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700{% endif %}">
       {% trans "Reports" %}
     </a>
+    {% if request.user.role == "admin" or request.user.role == "manager" or request.user.is_superuser %}
+    {% url 'ai_agents:dashboard' as ai_url %}
+    <a href="{{ ai_url }}" class="flex items-center gap-3 rounded-lg px-3 py-2 font-medium
+      {% if request.path|slice:":3" == "/ai" %}bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300{% else %}text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700{% endif %}">
+      🤖 {% trans "AI agents" %}
+    </a>
+    {% endif %}
     {% url 'requests_app:list' as requests_url %}
     <a href="{{ requests_url }}" class="flex items-center gap-3 rounded-lg px-3 py-2 font-medium
       {% if request.path|slice:":9" == "/requests" %}bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300{% else %}text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700{% endif %}">

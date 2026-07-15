@@ -80,6 +80,34 @@
     </ul>
   </div>
 
+  {% if ai_report %}
+  <div class="card p-4 lg:col-span-2" style="border-left: 4px solid var(--ap-primary);">
+    <div class="mb-3 flex items-center justify-between">
+      <h2 class="font-semibold">🤖 {% trans "AI: deadline control report" %}</h2>
+      <span class="text-xs text-gray-500 dark:text-gray-400">{{ ai_report.created_at|date:"d.m.Y H:i" }}</span>
+    </div>
+    <pre class="ap-clamp-6 mb-2 whitespace-pre-wrap font-sans text-sm">{{ ai_report.response }}</pre>
+    <a href="{% url 'ai_agents:dashboard' %}" class="text-sm text-blue-600 hover:underline dark:text-blue-400">{% trans "AI panel" %} →</a>
+  </div>
+  {% endif %}
+
+  <div class="card p-4 {% if not ai_report %}lg:col-span-3{% endif %}">
+    <div class="mb-3 flex items-center justify-between">
+      <h2 class="font-semibold">{% trans "Recent activity" %}</h2>
+    </div>
+    <ul class="space-y-2 text-sm">
+      {% for entry in recent_activity %}
+        <li class="flex items-center justify-between gap-2 border-b border-gray-100 py-1 dark:border-gray-700">
+          <span class="truncate">
+            <b>{{ entry.user.get_short_name|default:"—" }}</b>
+            <span class="text-gray-500 dark:text-gray-400">{{ entry.action }}</span>
+          </span>
+          <span class="shrink-0 text-xs text-gray-400">{{ entry.created_at|date:"d.m H:i" }}</span>
+        </li>
+      {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No activity yet." %}</li>{% endfor %}
+    </ul>
+  </div>
+
   <div class="card p-4 lg:col-span-3">
     <div class="mb-3 flex items-center justify-between">
       <h2 class="font-semibold">{% trans "Recent tasks" %}</h2>

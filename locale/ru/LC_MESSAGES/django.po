@@ -1,16 +1,18 @@
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: AiPlatforma\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-08 00:00+0000\n"
+"Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: ru\n"
 
-
-msgid "A random temporary password will be generated and shown once after creation."
-msgstr "После создания будет сгенерирован и один раз показан временный пароль."
+msgid ""
+"A random temporary password will be generated and shown once after creation."
+msgstr ""
+"После создания будет сгенерирован и один раз показан временный пароль."
 
 msgid "Action"
 msgstr "Действие"
@@ -30,8 +32,12 @@ msgstr "Добавить"
 msgid "Add employee contract"
 msgstr "Добавить контракт сотрудника"
 
-msgid "Add more stage rows by editing the form count, or submit with a single stage for a simple one-step review."
-msgstr "Добавьте дополнительные строки этапов, изменив количество форм, либо отправьте с одним этапом для простой проверки в один шаг."
+msgid ""
+"Add more stage rows by editing the form count, or submit with a single stage"
+" for a simple one-step review."
+msgstr ""
+"Добавьте дополнительные строки этапов, изменив количество форм, либо "
+"отправьте с одним этапом для простой проверки в один шаг."
 
 msgid "Add record"
 msgstr "Добавить запись"
@@ -85,7 +91,8 @@ msgid "Are you sure you want to delete \"%(name)s\"?"
 msgstr "Вы уверены, что хотите удалить \"%(name)s\"?"
 
 msgid "Are you sure you want to delete \"%(name)s\"? This cannot be undone."
-msgstr "Вы уверены, что хотите удалить \"%(name)s\"? Это действие нельзя отменить."
+msgstr ""
+"Вы уверены, что хотите удалить \"%(name)s\"? Это действие нельзя отменить."
 
 msgid "Are you sure you want to delete \"%(title)s\"?"
 msgstr "Вы уверены, что хотите удалить \"%(title)s\"?"
@@ -594,8 +601,11 @@ msgstr "Сохранить"
 msgid "Save route"
 msgstr "Сохранить маршрут"
 
-msgid "Scan the QR code with your authenticator app, then enter the code it shows."
-msgstr "Отсканируйте QR-код в приложении-аутентификаторе, затем введите показанный код."
+msgid ""
+"Scan the QR code with your authenticator app, then enter the code it shows."
+msgstr ""
+"Отсканируйте QR-код в приложении-аутентификаторе, затем введите показанный "
+"код."
 
 msgid "Search"
 msgstr "Поиск"
@@ -705,8 +715,12 @@ msgstr "Загрузить документ"
 msgid "Uploaded by"
 msgstr "Загрузил"
 
-msgid "Use {{placeholder}} tokens, e.g. {{client_name}}, {{project_name}}, {{budget}}, {{deadline}}."
-msgstr "Используйте метки {{placeholder}}, например: {{client_name}}, {{project_name}}, {{budget}}, {{deadline}}."
+msgid ""
+"Use {{placeholder}} tokens, e.g. {{client_name}}, {{project_name}}, "
+"{{budget}}, {{deadline}}."
+msgstr ""
+"Используйте метки {{placeholder}}, например: {{client_name}}, "
+"{{project_name}}, {{budget}}, {{deadline}}."
 
 msgid "User"
 msgstr "Пользователь"
@@ -800,3 +814,98 @@ msgstr "Новая"
 
 msgid "Needs revision"
 msgstr "На доработке"
+
+msgid "AI ecosystem"
+msgstr "Экосистема ИИ"
+
+msgid "Agents, schedules and audit log"
+msgstr "Агенты, расписания и журнал аудита"
+
+msgid "Deadline control agent"
+msgstr "Агент контроля сроков"
+
+msgid ""
+"Analyzes overdue and upcoming tasks, prepares a daily report for management "
+"(site, email, Telegram)."
+msgstr ""
+"Анализирует просроченные и предстоящие задачи, готовит ежедневный отчёт для "
+"руководства (сайт, email, Telegram)."
+
+msgid "Schedule"
+msgstr "Расписание"
+
+msgid "Provider"
+msgstr "Провайдер"
+
+msgid "not configured"
+msgstr "не настроен"
+
+msgid "Last run"
+msgstr "Последний запуск"
+
+msgid "Run now"
+msgstr "Запустить сейчас"
+
+msgid "Finance analysis agent"
+msgstr "Агент финансового анализа"
+
+msgid "In development"
+msgstr "В разработке"
+
+msgid ""
+"Will monitor payments, debts and contracts, and forecast expenses. Coming in"
+" the next phase."
+msgstr ""
+"Будет контролировать платежи, задолженности и договоры, прогнозировать "
+"расходы. Появится на следующем этапе."
+
+msgid "Latest report"
+msgstr "Последний отчёт"
+
+msgid "AI audit log"
+msgstr "Журнал аудита ИИ"
+
+msgid "Agent"
+msgstr "Агент"
+
+msgid "Duration"
+msgstr "Длительность"
+
+msgid "No AI calls yet."
+msgstr "Пока нет вызовов ИИ."
+
+msgid "AI: deadline control report"
+msgstr "ИИ: отчёт контроля сроков"
+
+msgid "AI panel"
+msgstr "Панель ИИ"
+
+msgid "Recent activity"
+msgstr "Последняя активность"
+
+msgid "No activity yet."
+msgstr "Пока нет активности."
+
+msgid "results"
+msgstr "результаты"
+
+msgid "Enter at least 2 characters to search."
+msgstr "Введите минимум 2 символа для поиска."
+
+msgid "Nothing found."
+msgstr "Ничего не найдено."
+
+msgid "Search projects, tasks, files..."
+msgstr "Проекты, задачи, файлы..."
+
+msgid "Open menu"
+msgstr "Открыть меню"
+
+msgid "AI agents"
+msgstr "ИИ агенты"
+
+msgid "Sub-objects & sections"
+msgstr "Объекты и разделы"
+
+msgid "Connect Telegram"
+msgstr "Подключение Telegram"

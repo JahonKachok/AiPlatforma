@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "AI ecosystem" %}{% endblock %}
+{% block page_title %}🤖 {% trans "AI ecosystem" %}{% endblock %}
+{% block page_subtitle %}{% trans "Agents, schedules and audit log" %}{% endblock %}
+{% block content %}
+
+<div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+  <div class="card p-6">
+    <div class="mb-2 flex items-center justify-between">
+      <h2 class="font-semibold">⏰ {% trans "Deadline control agent" %}</h2>
+      <span class="badge rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700 dark:bg-green-950 dark:text-green-300">
+        {% trans "Active" %}
+      </span>
+    </div>
+    <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+      {% trans "Analyzes overdue and upcoming tasks, prepares a daily report for management (site, email, Telegram)." %}
+    </p>
+    <ul class="mb-4 space-y-1 text-sm">
+      <li><span class="text-gray-500 dark:text-gray-400">{% trans "Schedule" %}:</span>
+        {% if schedule and schedule.enabled %}{{ schedule.crontab }}{% else %}—{% endif %}
+      </li>
+      <li><span class="text-gray-500 dark:text-gray-400">{% trans "Provider" %}:</span>
+        {% if provider %}{{ provider }}{% else %}<span class="text-red-500">{% trans "not configured" %}</span>{% endif %}
+      </li>
+      <li><span class="text-gray-500 dark:text-gray-400">{% trans "Last run" %}:</span>
+        {% if last_run %}{{ last_run.created_at }} · {{ last_run.get_status_display }} · {{ last_run.duration_ms }} ms{% else %}—{% endif %}
+      </li>
+    </ul>
+    <form method="post" action="{% url 'ai_agents:run_deadline' %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary btn-md">▶️ {% trans "Run now" %}</button>
+    </form>
+  </div>
+
+  <div class="card p-6">
+    <div class="mb-2 flex items-center justify-between">
+      <h2 class="font-semibold">💰 {% trans "Finance analysis agent" %}</h2>
+      <span class="badge rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+        {% trans "In development" %}
+      </span>
+    </div>
+    <p class="text-sm text-gray-500 dark:text-gray-400">
+      {% trans "Will monitor payments, debts and contracts, and forecast expenses. Coming in the next phase." %}
+    </p>
+  </div>
+</div>
+
+{% if last_run and last_run.response %}
+<div class="card mb-6 p-6">
+  <h2 class="mb-3 font-semibold">📋 {% trans "Latest report" %}</h2>
+  <pre class="whitespace-pre-wrap font-sans text-sm">{{ last_run.response }}</pre>
+</div>
+{% endif %}
+
+<div class="card overflow-x-auto p-6">
+  <h2 class="mb-3 font-semibold">{% trans "AI audit log" %}</h2>
+  <table class="w-full text-left text-sm">
+    <thead class="text-gray-500 dark:text-gray-400">
+      <tr>
+        <th class="py-1">{% trans "Date" %}</th>
+        <th>{% trans "Agent" %}</th>
+        <th>{% trans "Provider" %}</th>
+        <th>{% trans "Model" %}</th>
+        <th>{% trans "Duration" %}</th>
+        <th>{% trans "Status" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+        <tr class="border-t border-gray-100 dark:border-gray-700">
+          <td class="py-1.5">{{ log.created_at|date:"d.m.Y H:i" }}</td>
+          <td>{{ log.agent|default:"—" }}</td>
+          <td>{{ log.provider }}</td>
+          <td>{{ log.model }}</td>
+          <td>{{ log.duration_ms }} ms</td>
+          <td>
+            {% if log.status == "success" %}<span class="text-green-600 dark:text-green-400">✓ {{ log.get_status_display }}</span>
+            {% elif log.status == "error" %}<span class="text-red-600 dark:text-red-400">✗ {{ log.get_status_display }}</span>
+            {% else %}<span class="text-gray-500">{{ log.get_status_display }}</span>{% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="py-4 text-center text-gray-500 dark:text-gray-400">{% trans "No AI calls yet." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load i18n core_extras %}
+{% block title %}{% trans "Search" %}{% endblock %}
+{% block page_title %}🔍 {% trans "Search" %}{% endblock %}
+{% block page_subtitle %}{% if query %}"{{ query }}" {% trans "results" %}{% endif %}{% endblock %}
+{% block content %}
+
+{% if query|length < 2 %}
+  <p class="text-sm text-gray-500 dark:text-gray-400">{% trans "Enter at least 2 characters to search." %}</p>
+{% else %}
+
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+  <div class="card p-6">
+    <h2 class="mb-3 font-semibold">📁 {% trans "Projects" %} ({{ projects|length }})</h2>
+    <ul class="space-y-2 text-sm">
+      {% for p in projects %}
+        <li><a href="{% url 'projects:detail' p.pk %}" class="text-blue-600 hover:underline dark:text-blue-400">{{ p.name }}</a>
+          <span class="text-xs text-gray-400">· {{ p.get_status_display }}</span></li>
+      {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "Nothing found." %}</li>{% endfor %}
+    </ul>
+  </div>
+
+  <div class="card p-6">
+    <h2 class="mb-3 font-semibold">✅ {% trans "Tasks" %} ({{ tasks|length }})</h2>
+    <ul class="space-y-2 text-sm">
+      {% for t in tasks %}
+        <li><a href="{% url 'tasks:detail' t.pk %}" class="text-blue-600 hover:underline dark:text-blue-400">{{ t.title }}</a>
+          <span class="text-xs text-gray-400">· {{ t.project.name }}</span></li>
+      {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "Nothing found." %}</li>{% endfor %}
+    </ul>
+  </div>
+
+  <div class="card p-6">
+    <h2 class="mb-3 font-semibold">📄 {% trans "Documents" %} ({{ documents|length }})</h2>
+    <ul class="space-y-2 text-sm">
+      {% for d in documents %}
+        <li><a href="{% url 'documents:detail' d.pk %}" class="text-blue-600 hover:underline dark:text-blue-400">{{ d.name }}</a>
+          <span class="text-xs text-gray-400">· {{ d.project.name }}</span></li>
+      {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "Nothing found." %}</li>{% endfor %}
+    </ul>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

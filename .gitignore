@@ -38,3 +38,4 @@ celery-results.sqlite
 *.sln
 *.sw?
 .vite
+tools/

@@ -107,6 +107,70 @@ def ask_gemini(system: str, prompt: str, max_tokens: int = 16000) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Telegram chat-yordamchi
+# ---------------------------------------------------------------------------
+
+TELEGRAM_CHAT_SYSTEM = """\
+Sen "AiPlatforma" — qurilish kompaniyasining loyiha boshqaruv platformasidagi \
+Telegram AI-yordamchisisan. Foydalanuvchi senga botda oddiy xabar yozadi.
+
+Qoidalar:
+- Faqat o'zbek tilida, qisqa va aniq javob ber (odatda 100 so'zdan oshmasin).
+- Oddiy matn ishlat: Markdown, HTML yoki emoji ishlatma.
+- Quyida platformadagi joriy holat surati beriladi — javoblaringni faqat shu \
+ma'lumotlarga asosla. Suratda yo'q narsani to'qib chiqarma; ma'lumot yetmasa, \
+buni ochiq ayt va saytdagi tegishli bo'limni tavsiya qil.
+- Foydalanuvchi roli suratda ko'rsatilgan — javobni shunga moslashtir.
+"""
+
+
+def collect_chat_context(user) -> str:
+    """Foydalanuvchi ko'ra oladigan loyihalar va ochiq vazifalarning matnli
+    surati (AI javoblari uchun kontekst)."""
+    from django.utils import timezone
+
+    from apps.projects.permissions import visible_projects_for
+    from apps.tasks.models import Task
+
+    today = timezone.now().date()
+    projects = visible_projects_for(user).select_related(None)
+    open_tasks = (
+        Task.objects.filter(project__in=projects)
+        .exclude(status__in=[Task.Status.COMPLETED, Task.Status.APPROVED])
+        .select_related("project", "assignee")
+        .order_by("deadline")[:60]
+    )
+
+    parts = [
+        f"Bugungi sana: {today}",
+        f"Foydalanuvchi: {user.full_name} (rol: {user.get_role_display()})",
+        "",
+        "LOYIHALAR:",
+    ]
+    for p in projects[:30]:
+        parts.append(
+            f"- {p.name} | holat: {p.get_status_display()} | muddat: {p.deadline or '—'}"
+        )
+    parts.append("")
+    parts.append("OCHIQ VAZIFALAR:")
+    for t in open_tasks:
+        assignee = t.assignee.full_name if t.assignee else "biriktirilmagan"
+        overdue = " (MUDDATI O'TGAN)" if t.deadline and t.deadline < today else ""
+        parts.append(
+            f"- {t.title} | loyiha: {t.project.name} | mas'ul: {assignee}"
+            f" | muddat: {t.deadline or '—'}{overdue} | holat: {t.get_status_display()}"
+        )
+    return "\n".join(parts)
+
+
+def answer_telegram(user, text: str) -> str:
+    """Telegram'dagi oddiy xabarga platforma konteksti asosida AI javobi."""
+    context = collect_chat_context(user)
+    prompt = f"{context}\n\nFOYDALANUVCHI XABARI:\n{text[:2000]}"
+    return ask_ai(TELEGRAM_CHAT_SYSTEM, prompt, agent="telegram")
+
+
+# ---------------------------------------------------------------------------
 # Muddat nazorati agenti
 # ---------------------------------------------------------------------------
 

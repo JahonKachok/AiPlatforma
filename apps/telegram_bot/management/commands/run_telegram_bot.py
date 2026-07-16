@@ -115,10 +115,37 @@ class Command(BaseCommand):
             if update.effective_chat and update.effective_message:
                 await _record_event(update.effective_chat.id, update.effective_message.text)
 
-        async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-            user = await _get_user_by_chat_id(update.effective_chat.id)
-            prefix = f"[{user.full_name}] " if user else ""
-            await update.message.reply_text(f"{prefix}{update.message.text}")
+        @sync_to_async
+        def _ai_answer(chat_id, text):
+            from apps.accounts.models import User
+            from apps.ai_agents import services
+
+            user = User.objects.filter(telegram_chat_id=str(chat_id)).first()
+            if user is None:
+                return None  # hisob ulanmagan
+            if not services.is_configured():
+                return ""  # AI kaliti sozlanmagan
+            return services.answer_telegram(user, text)
+
+        async def ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
+            """Oddiy matnli xabarlarga platforma konteksti asosida AI javob beradi."""
+            await update.effective_chat.send_action("typing")
+            try:
+                answer = await _ai_answer(update.effective_chat.id, update.message.text or "")
+            except Exception:
+                await update.message.reply_text(
+                    "Kechirasiz, javob tayyorlashda xatolik yuz berdi. Birozdan keyin qayta urinib ko'ring."
+                )
+                raise
+            if answer is None:
+                await update.message.reply_text(
+                    "Hisobingiz hali ulanmagan. Saytdagi profil sahifasida "
+                    "Telegram → Ulash tugmasini bosing yoki /link <token> yuboring."
+                )
+            elif not answer:
+                await update.message.reply_text("AI yordamchi hozircha sozlanmagan.")
+            else:
+                await update.message.reply_text(answer)
 
         application = Application.builder().token(settings.TELEGRAM_BOT_TOKEN).build()
         # group=-1: barcha xabar/buyruqlarni asosiy handlerlardan oldin jurnalga
@@ -131,7 +158,7 @@ class Command(BaseCommand):
         application.add_handler(CommandHandler("miniapp", miniapp))
         application.add_handler(CommandHandler("link", link))
         application.add_handler(CommandHandler("unlink", unlink))
-        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
+        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, ai_chat))
 
         self.stdout.write(self.style.SUCCESS("Starting Telegram bot (long polling)..."))
         application.run_polling()

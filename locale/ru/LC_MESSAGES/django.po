@@ -130,6 +130,9 @@ msgstr "Календарь"
 msgid "Cancel"
 msgstr "Отмена"
 
+msgid "Cancelled"
+msgstr "Отменён"
+
 msgid "Change password"
 msgstr "Изменить пароль"
 
@@ -148,11 +151,17 @@ msgstr "Комментарии"
 msgid "Completed"
 msgstr "Завершено"
 
+msgid "Concept"
+msgstr "Концепция"
+
 msgid "Connect"
 msgstr "Подключить"
 
 msgid "Connected"
 msgstr "Подключено"
+
+msgid "Construction"
+msgstr "Строительство"
 
 msgid "Contract amount"
 msgstr "Сумма контракта"
@@ -297,6 +306,9 @@ msgstr "Расход"
 
 msgid "Expenses"
 msgstr "Расходы"
+
+msgid "Expertise"
+msgstr "Экспертиза"
 
 msgid "Export employees"
 msgstr "Экспорт сотрудников"
@@ -502,6 +514,9 @@ msgstr "Здесь пока пусто."
 msgid "Notifications"
 msgstr "Уведомления"
 
+msgid "On hold"
+msgstr "Приостановлен"
+
 msgid "Open"
 msgstr "Открыть"
 
@@ -528,6 +543,9 @@ msgstr "В ожидании"
 
 msgid "Pending approvals"
 msgstr "Ожидают согласования"
+
+msgid "Preliminary design"
+msgstr "Эскизный проект"
 
 msgid "Preview"
 msgstr "Предпросмотр"
@@ -751,6 +769,9 @@ msgstr "Смотреть все"
 
 msgid "Welcome back, %(name)s"
 msgstr "С возвращением, %(name)s"
+
+msgid "Working documentation"
+msgstr "Рабочая документация"
 
 msgid "Workload (top 10)"
 msgstr "Загруженность (топ 10)"

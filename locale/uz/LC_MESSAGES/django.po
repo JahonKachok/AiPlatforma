@@ -132,6 +132,9 @@ msgstr "Taqvim"
 msgid "Cancel"
 msgstr "Bekor qilish"
 
+msgid "Cancelled"
+msgstr "Bekor qilingan"
+
 msgid "Change password"
 msgstr "Parolni o'zgartirish"
 
@@ -150,11 +153,17 @@ msgstr "Izohlar"
 msgid "Completed"
 msgstr "Yakunlangan"
 
+msgid "Concept"
+msgstr "Konsepsiya"
+
 msgid "Connect"
 msgstr "Ulash"
 
 msgid "Connected"
 msgstr "Ulangan"
+
+msgid "Construction"
+msgstr "Qurilish"
 
 msgid "Contract amount"
 msgstr "Shartnoma summasi"
@@ -299,6 +308,9 @@ msgstr "Xarajat"
 
 msgid "Expenses"
 msgstr "Xarajatlar"
+
+msgid "Expertise"
+msgstr "Ekspertiza"
 
 msgid "Export employees"
 msgstr "Xodimlarni eksport qilish"
@@ -504,6 +516,9 @@ msgstr "Bu yerda hech narsa yo'q."
 msgid "Notifications"
 msgstr "Bildirishnomalar"
 
+msgid "On hold"
+msgstr "To'xtatib turilgan"
+
 msgid "Open"
 msgstr "Ochish"
 
@@ -530,6 +545,9 @@ msgstr "Kutilmoqda"
 
 msgid "Pending approvals"
 msgstr "Tasdiqlash kutilayotganlar"
+
+msgid "Preliminary design"
+msgstr "Eskiz loyihasi"
 
 msgid "Preview"
 msgstr "Ko'rib chiqish"
@@ -753,6 +771,9 @@ msgstr "Barchasini ko'rish"
 
 msgid "Welcome back, %(name)s"
 msgstr "Xush kelibsiz, %(name)s"
+
+msgid "Working documentation"
+msgstr "Ishchi hujjatlar"
 
 msgid "Workload (top 10)"
 msgstr "Ish yuki (top 10)"

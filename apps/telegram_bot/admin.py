@@ -1,6 +1,13 @@
 from django.contrib import admin
 
-from .models import TelegramEvent, TelegramLinkToken
+from .models import TelegramChat, TelegramEvent, TelegramLinkToken
+
+
+@admin.register(TelegramChat)
+class TelegramChatAdmin(admin.ModelAdmin):
+    list_display = ["chat_id", "language", "updated_at"]
+    list_filter = ["language"]
+    search_fields = ["chat_id"]
 
 
 @admin.register(TelegramLinkToken)

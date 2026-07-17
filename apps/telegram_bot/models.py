@@ -38,6 +38,26 @@ class TelegramLinkToken(models.Model):
         return self.used_at is None and self.expires_at > timezone.now()
 
 
+class TelegramChat(models.Model):
+    """Chat darajasidagi bot sozlamalari (hozircha faqat til).
+
+    User modeliga bog'lanmagan, chunki til hisob ulanmasdan oldin ham
+    tanlanishi mumkin."""
+
+    class Language(models.TextChoices):
+        UZBEK = "uz", "Oʻzbekcha"
+        RUSSIAN = "ru", "Русский"
+        ENGLISH = "en", "English"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    chat_id = models.CharField(max_length=64, unique=True, db_index=True)
+    language = models.CharField(max_length=8, choices=Language.choices, default=Language.UZBEK)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.chat_id} · {self.language}"
+
+
 class TelegramEvent(models.Model):
     """Botga kelgan xabar va buyruqlar jurnali.
 

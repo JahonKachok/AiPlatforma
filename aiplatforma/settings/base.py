@@ -15,6 +15,8 @@ environ.Env.read_env(BASE_DIR / ".env")
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env.bool("DEBUG", default=False)
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
+# Tashqi domen orqali (masalan, Cloudflare Tunnel) kirishda POST/CSRF ishlashi uchun
+CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 
 DJANGO_APPS = [
     "django.contrib.admin",

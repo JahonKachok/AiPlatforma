@@ -191,6 +191,14 @@ T = {
         "ru": "AI-помощник пока не настроен.",
         "en": "The AI assistant is not configured yet.",
     },
+    "ai.rate_limited": {
+        "uz": "So'rovlar juda tez-tez yuborilmoqda. Bir necha daqiqadan "
+              "keyin qayta urinib ko'ring.",
+        "ru": "Слишком много запросов подряд. Попробуйте снова через "
+              "несколько минут.",
+        "en": "Too many requests in a short time. Please try again in a "
+              "few minutes.",
+    },
 
     # --- Sozlamalar -------------------------------------------------------------
     "settings.title": {

@@ -341,6 +341,9 @@ class Command(BaseCommand):
                 parse_mode="HTML",
             )
 
+        # ai_chat holatlari uchun ichki belgilar (sentinel qiymatlar)
+        AI_NOT_LINKED, AI_NOT_CONFIGURED, AI_RATE_LIMITED = "not_linked", "not_configured", "rate_limited"
+
         @sync_to_async
         def _ai_answer(chat_id, text):
             from apps.accounts.models import User
@@ -348,23 +351,27 @@ class Command(BaseCommand):
 
             user = User.objects.filter(telegram_chat_id=str(chat_id)).first()
             if user is None:
-                return None  # hisob ulanmagan
+                return AI_NOT_LINKED, ""
             if not services.is_configured():
-                return ""  # AI kaliti sozlanmagan
-            return services.answer_telegram(user, text)
+                return AI_NOT_CONFIGURED, ""
+            if services.rate_limited(user):
+                return AI_RATE_LIMITED, ""
+            return "ok", services.answer_telegram(user, text)
 
         async def ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
             """Oddiy matnli xabarlarga platforma konteksti asosida AI javob beradi."""
             lang = await get_lang(update, context)
             await update.effective_chat.send_action("typing")
             try:
-                answer = await _ai_answer(update.effective_chat.id, update.message.text or "")
+                state, answer = await _ai_answer(update.effective_chat.id, update.message.text or "")
             except Exception:
                 await update.message.reply_text(t("ai.error", lang))
                 raise
-            if answer is None:
+            if state == AI_NOT_LINKED:
                 await update.message.reply_text(t("ai.not_linked", lang))
-            elif not answer:
+            elif state == AI_RATE_LIMITED:
+                await update.message.reply_text(t("ai.rate_limited", lang))
+            elif state == AI_NOT_CONFIGURED or not answer:
                 await update.message.reply_text(t("ai.not_configured", lang))
             else:
                 await update.message.reply_text(answer)

@@ -34,7 +34,7 @@ class Command(BaseCommand):
         self.stdout.write("")
         self.stdout.write(self.style.MIGRATE_HEADING("AI javobi:"))
 
-        report = services.ask_ai(services.DEADLINE_AGENT_SYSTEM, context, agent="deadline")
+        report = services.ask_ai(services.DEADLINE_AGENT_SYSTEM, context, agent="deadline", effort="medium")
         if not report:
             self.stdout.write(self.style.WARNING("AI bo'sh javob qaytardi."))
             return

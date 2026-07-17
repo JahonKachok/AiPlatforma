@@ -163,12 +163,19 @@ def ask_gemini(system: str, prompt: str, max_tokens: int = 4000) -> str:
 # Telegram chat-yordamchi
 # ---------------------------------------------------------------------------
 
+# Foydalanuvchi botda tanlagan tilga qarab javob tili belgilanadi.
+TELEGRAM_CHAT_LANG_RULES = {
+    "uz": "Faqat o'zbek tilida javob ber.",
+    "ru": "Отвечай только на русском языке.",
+    "en": "Reply only in English.",
+}
+
 TELEGRAM_CHAT_SYSTEM = """\
 Sen "AiPlatforma" — qurilish kompaniyasining loyiha boshqaruv platformasidagi \
 Telegram AI-yordamchisisan. Foydalanuvchi senga botda oddiy xabar yozadi.
 
 Qoidalar:
-- Faqat o'zbek tilida, qisqa va aniq javob ber (odatda 100 so'zdan oshmasin).
+- {lang_rule} Qisqa va aniq javob ber (odatda 100 so'zdan oshmasin).
 - Oddiy matn ishlat: Markdown, HTML yoki emoji ishlatma.
 - Quyida platformadagi joriy holat surati beriladi — javoblaringni faqat shu \
 ma'lumotlarga asosla. Suratda yo'q narsani to'qib chiqarma; ma'lumot yetmasa, \
@@ -221,11 +228,16 @@ def collect_chat_context(user) -> str:
     return "\n".join(parts)
 
 
-def answer_telegram(user, text: str) -> str:
-    """Telegram'dagi oddiy xabarga platforma konteksti asosida AI javobi."""
+def answer_telegram(user, text: str, lang: str = "uz") -> str:
+    """Telegram'dagi oddiy xabarga platforma konteksti asosida AI javobi.
+
+    `lang` — foydalanuvchi botda tanlagan til (uz/ru/en); AI shu tilda javob
+    beradi."""
+    lang_rule = TELEGRAM_CHAT_LANG_RULES.get(lang, TELEGRAM_CHAT_LANG_RULES["uz"])
+    system = TELEGRAM_CHAT_SYSTEM.format(lang_rule=lang_rule)
     context = collect_chat_context(user)
     prompt = f"{context}\n\nFOYDALANUVCHI XABARI:\n{text[:2000]}"
-    return ask_ai(TELEGRAM_CHAT_SYSTEM, prompt, agent="telegram")
+    return ask_ai(system, prompt, agent="telegram")
 
 
 # ---------------------------------------------------------------------------

@@ -345,7 +345,7 @@ class Command(BaseCommand):
         AI_NOT_LINKED, AI_NOT_CONFIGURED, AI_RATE_LIMITED = "not_linked", "not_configured", "rate_limited"
 
         @sync_to_async
-        def _ai_answer(chat_id, text):
+        def _ai_answer(chat_id, text, lang):
             from apps.accounts.models import User
             from apps.ai_agents import services
 
@@ -356,14 +356,14 @@ class Command(BaseCommand):
                 return AI_NOT_CONFIGURED, ""
             if services.rate_limited(user):
                 return AI_RATE_LIMITED, ""
-            return "ok", services.answer_telegram(user, text)
+            return "ok", services.answer_telegram(user, text, lang=lang)
 
         async def ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
             """Oddiy matnli xabarlarga platforma konteksti asosida AI javob beradi."""
             lang = await get_lang(update, context)
             await update.effective_chat.send_action("typing")
             try:
-                state, answer = await _ai_answer(update.effective_chat.id, update.message.text or "")
+                state, answer = await _ai_answer(update.effective_chat.id, update.message.text or "", lang)
             except Exception:
                 await update.message.reply_text(t("ai.error", lang))
                 raise

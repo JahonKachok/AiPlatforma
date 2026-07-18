@@ -58,16 +58,20 @@ class Command(BaseCommand):
 
         # --- Doimiy pastki menyu tugmalari -----------------------------------
 
-        def main_keyboard(lang):
-            return ReplyKeyboardMarkup(
-                [
-                    [t("menu.profile", lang), t("menu.miniapp", lang)],
-                    [t("menu.upload", lang), t("menu.help", lang)],
-                    [t("menu.settings", lang)],
-                ],
-                resize_keyboard=True,
-                is_persistent=True,
+        def _is_manager(user) -> bool:
+            from apps.accounts.models import User
+            return user is not None and (
+                user.is_superuser or user.role in (User.Role.ADMIN, User.Role.MANAGER)
             )
+
+        def main_keyboard(lang, is_manager=False):
+            rows = [
+                [t("menu.profile", lang), t("menu.upload", lang)],
+                [t("menu.help", lang), t("menu.settings", lang)],
+            ]
+            if is_manager:
+                rows.insert(0, [t("menu.report", lang)])
+            return ReplyKeyboardMarkup(rows, resize_keyboard=True, is_persistent=True)
 
         async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             args = context.args
@@ -75,7 +79,10 @@ class Command(BaseCommand):
                 await link(update, context, token=args[0][len("link_"):])
                 return
             lang = await get_lang(update, context)
-            await update.message.reply_html(t("start", lang), reply_markup=main_keyboard(lang))
+            user = await _get_user_by_chat_id(update.effective_chat.id)
+            await update.message.reply_html(
+                t("start", lang), reply_markup=main_keyboard(lang, _is_manager(user))
+            )
 
         async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
             lang = await get_lang(update, context)
@@ -95,9 +102,6 @@ class Command(BaseCommand):
             else:
                 lang = await get_lang(update, context)
                 await update.message.reply_text(t("not_linked", lang))
-
-        async def miniapp(update: Update, context: ContextTypes.DEFAULT_TYPE):
-            await update.message.reply_text(f"{settings.FRONTEND_URL}/telegram/miniapp/")
 
         @sync_to_async
         def _do_link(token, chat_id):
@@ -124,7 +128,7 @@ class Command(BaseCommand):
                 await update.message.reply_html(
                     t("link.success", lang,
                       name=user.full_name, role=user.get_role_display(), email=user.email),
-                    reply_markup=main_keyboard(lang),
+                    reply_markup=main_keyboard(lang, _is_manager(user)),
                 )
             else:
                 await update.message.reply_text(t("link.invalid", lang))
@@ -185,24 +189,49 @@ class Command(BaseCommand):
             await _set_chat_lang(update.effective_chat.id, lang)
             context.user_data["lang"] = lang
             await query.edit_message_text(t("settings.language_saved", lang))
+            user = await _get_user_by_chat_id(update.effective_chat.id)
             # Pastki menyu tugmalari yangi tilda qayta chiziladi.
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text=t("settings.title", lang),
-                reply_markup=main_keyboard(lang),
+                reply_markup=main_keyboard(lang, _is_manager(user)),
             )
+
+        @sync_to_async
+        def _run_deadline_report():
+            from apps.ai_agents import services
+            return services.run_deadline_agent()
+
+        async def ai_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
+            """Admin/menejer uchun bir tugmalik AI muddat-hisoboti."""
+            lang = await get_lang(update, context)
+            user = await _get_user_by_chat_id(update.effective_chat.id)
+            if user is None:
+                await update.message.reply_text(t("not_linked", lang))
+                return
+            if not _is_manager(user):
+                await update.message.reply_text(t("report.admins_only", lang))
+                return
+            await update.message.reply_text(t("report.generating", lang))
+            await update.effective_chat.send_action("typing")
+            try:
+                report = await _run_deadline_report()
+            except Exception:
+                await update.message.reply_text(t("ai.error", lang))
+                raise
+            await update.message.reply_text(report or t("report.empty", lang))
 
         async def menu_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
             """Pastki menyu tugmalarini tegishli buyruqlarga yo'naltiradi."""
             key = menu_key_for(update.message.text)
             if key == "menu.profile":
                 await whoami(update, context)
-            elif key == "menu.miniapp":
-                await miniapp(update, context)
             elif key == "menu.help":
                 await help_cmd(update, context)
             elif key == "menu.settings":
                 await settings_menu(update, context)
+            elif key == "menu.report":
+                await ai_report(update, context)
             elif key == "menu.upload":
                 lang = await get_lang(update, context)
                 await update.message.reply_text(t("upload.hint", lang))
@@ -345,7 +374,7 @@ class Command(BaseCommand):
         AI_NOT_LINKED, AI_NOT_CONFIGURED, AI_RATE_LIMITED = "not_linked", "not_configured", "rate_limited"
 
         @sync_to_async
-        def _ai_answer(chat_id, text, lang):
+        def _ai_answer(chat_id, text, lang, history):
             from apps.accounts.models import User
             from apps.ai_agents import services
 
@@ -356,14 +385,20 @@ class Command(BaseCommand):
                 return AI_NOT_CONFIGURED, ""
             if services.rate_limited(user):
                 return AI_RATE_LIMITED, ""
-            return "ok", services.answer_telegram(user, text, lang=lang)
+            return "ok", services.answer_telegram(user, text, lang=lang, history=history)
 
         async def ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
-            """Oddiy matnli xabarlarga platforma konteksti asosida AI javob beradi."""
+            """Oddiy matnli xabarlarga platforma konteksti asosida AI javob beradi.
+
+            Oxirgi almashinuvlar user_data'da saqlanadi — AI "uni", "o'sha
+            loyihani" kabi murojaatlarni tushunadi (bot qayta ishga
+            tushirilganda tarix tozalanadi)."""
             lang = await get_lang(update, context)
+            text = update.message.text or ""
+            history = context.user_data.get("ai_history", [])
             await update.effective_chat.send_action("typing")
             try:
-                state, answer = await _ai_answer(update.effective_chat.id, update.message.text or "", lang)
+                state, answer = await _ai_answer(update.effective_chat.id, text, lang, history)
             except Exception:
                 await update.message.reply_text(t("ai.error", lang))
                 raise
@@ -374,6 +409,8 @@ class Command(BaseCommand):
             elif state == AI_NOT_CONFIGURED or not answer:
                 await update.message.reply_text(t("ai.not_configured", lang))
             else:
+                history.extend([("user", text), ("assistant", answer)])
+                context.user_data["ai_history"] = history[-8:]
                 await update.message.reply_text(answer)
 
         async def post_init(app):
@@ -382,18 +419,18 @@ class Command(BaseCommand):
             commands = {
                 None: [  # standart (til aniqlanmaganda)
                     ("start", "Botni ishga tushirish"), ("whoami", "Profil ma'lumotlari"),
-                    ("miniapp", "Veb-ilova havolasi"), ("link", "Hisobni ulash"),
-                    ("unlink", "Hisobni uzish"), ("help", "Yordam"),
+                    ("link", "Hisobni ulash"), ("unlink", "Hisobni uzish"),
+                    ("help", "Yordam"),
                 ],
                 "ru": [
                     ("start", "Запустить бота"), ("whoami", "Данные профиля"),
-                    ("miniapp", "Ссылка на веб-приложение"), ("link", "Привязать аккаунт"),
-                    ("unlink", "Отвязать аккаунт"), ("help", "Помощь"),
+                    ("link", "Привязать аккаунт"), ("unlink", "Отвязать аккаунт"),
+                    ("help", "Помощь"),
                 ],
                 "en": [
                     ("start", "Start the bot"), ("whoami", "Profile info"),
-                    ("miniapp", "Web app link"), ("link", "Link account"),
-                    ("unlink", "Unlink account"), ("help", "Help"),
+                    ("link", "Link account"), ("unlink", "Unlink account"),
+                    ("help", "Help"),
                 ],
             }
             for language_code, items in commands.items():
@@ -412,7 +449,6 @@ class Command(BaseCommand):
         application.add_handler(CommandHandler("help", help_cmd))
         application.add_handler(CommandHandler("whoami", whoami))
         application.add_handler(CommandHandler("myinfo", whoami))
-        application.add_handler(CommandHandler("miniapp", miniapp))
         application.add_handler(CommandHandler("link", link))
         application.add_handler(CommandHandler("unlink", unlink))
         application.add_handler(MessageHandler(filters.Document.ALL | filters.PHOTO, receive_file))

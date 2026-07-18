@@ -159,3 +159,5 @@ ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
 AI_MODEL = env("AI_MODEL", default="claude-opus-4-8")
 GEMINI_API_KEY = env("GEMINI_API_KEY", default="")
 GEMINI_MODEL = env("GEMINI_MODEL", default="gemini-3.5-flash")
+# Asosiy model band (503) bo'lganda ishlatiladigan zaxira model.
+GEMINI_FALLBACK_MODEL = env("GEMINI_FALLBACK_MODEL", default="gemini-3.1-flash-lite")

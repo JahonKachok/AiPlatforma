@@ -9,10 +9,10 @@ LANGS = ["uz", "ru", "en"]
 T = {
     # --- Pastki menyu tugmalari -------------------------------------------
     "menu.profile": {"uz": "👤 Profil", "ru": "👤 Профиль", "en": "👤 Profile"},
-    "menu.miniapp": {"uz": "🌐 Veb-ilova", "ru": "🌐 Веб-приложение", "en": "🌐 Web app"},
     "menu.upload": {"uz": "📎 Hujjat yuklash", "ru": "📎 Загрузить документ", "en": "📎 Upload document"},
     "menu.settings": {"uz": "⚙️ Sozlamalar", "ru": "⚙️ Настройки", "en": "⚙️ Settings"},
     "menu.help": {"uz": "ℹ️ Yordam", "ru": "ℹ️ Помощь", "en": "ℹ️ Help"},
+    "menu.report": {"uz": "📊 AI hisobot", "ru": "📊 AI-отчёт", "en": "📊 AI report"},
 
     # --- Asosiy buyruqlar ---------------------------------------------------
     "start": {
@@ -33,24 +33,39 @@ T = {
         "uz": "/start — botni ishga tushirish\n"
               "/link &lt;token&gt; — hisobni ulash\n"
               "/unlink — hisobni uzish\n"
-              "/whoami — profil ma'lumotlari\n"
-              "/miniapp — veb-ilova havolasi\n\n"
+              "/whoami — profil ma'lumotlari\n\n"
               "📎 Admin/menejerlar fayl yuborib, izohida mazmunini yozsa, "
-              "u platformadagi hujjatlar bo'limiga saqlanadi.",
+              "u platformadagi hujjatlar bo'limiga saqlanadi.\n\n"
+              "🤖 AI yordamchi: oddiy xabar yozing — loyihalar va vazifalar "
+              "bo'yicha javob beradi. Admin/menejerlar buyruq ham bera oladi:\n"
+              "• «Ofis binosi loyihasini yarat, muddati 2026-12-31»\n"
+              "• «Sardorga chizmalarni tekshirish vazifasini ber»\n"
+              "• «Chizmalar vazifasini yakunlanganga o'tkaz»\n"
+              "• «Shartnoma degan hujjatni top»",
         "ru": "/start — запустить бота\n"
               "/link &lt;token&gt; — привязать аккаунт\n"
               "/unlink — отвязать аккаунт\n"
-              "/whoami — данные профиля\n"
-              "/miniapp — ссылка на веб-приложение\n\n"
+              "/whoami — данные профиля\n\n"
               "📎 Если админ/менеджер отправит файл с описанием в подписи, "
-              "он сохранится в разделе документов платформы.",
+              "он сохранится в разделе документов платформы.\n\n"
+              "🤖 AI-помощник: напишите обычное сообщение — ответит по проектам "
+              "и задачам. Админы/менеджеры могут давать команды:\n"
+              "• «Создай проект Офисное здание со сроком 2026-12-31»\n"
+              "• «Поручи Сардору проверку чертежей»\n"
+              "• «Переведи задачу по чертежам в завершённые»\n"
+              "• «Найди документ со словом договор»",
         "en": "/start — start the bot\n"
               "/link &lt;token&gt; — link account\n"
               "/unlink — unlink account\n"
-              "/whoami — profile info\n"
-              "/miniapp — web app link\n\n"
+              "/whoami — profile info\n\n"
               "📎 When an admin/manager sends a file with a caption describing it, "
-              "it is saved to the platform's documents section.",
+              "it is saved to the platform's documents section.\n\n"
+              "🤖 AI assistant: just type a message — it answers about projects "
+              "and tasks. Admins/managers can also give commands:\n"
+              "• \"Create the Office Building project due 2026-12-31\"\n"
+              "• \"Assign drawing review to Sardor\"\n"
+              "• \"Mark the drawings task as completed\"\n"
+              "• \"Find the contract document\"",
     },
     "not_linked": {
         "uz": "Hisobingiz hali ulanmagan. /link <token> dan foydalaning.",
@@ -191,6 +206,21 @@ T = {
         "ru": "AI-помощник пока не настроен.",
         "en": "The AI assistant is not configured yet.",
     },
+    "report.generating": {
+        "uz": "⏳ Hisobot tayyorlanmoqda...",
+        "ru": "⏳ Отчёт готовится...",
+        "en": "⏳ Preparing the report...",
+    },
+    "report.empty": {
+        "uz": "✅ Muddati o'tgan yoki yaqin muddatli ochiq vazifalar yo'q — hammasi nazoratda.",
+        "ru": "✅ Просроченных или срочных открытых задач нет — всё под контролем.",
+        "en": "✅ No overdue or due-soon open tasks — everything is under control.",
+    },
+    "report.admins_only": {
+        "uz": "AI hisobot faqat admin va menejerlar uchun.",
+        "ru": "AI-отчёт доступен только админам и менеджерам.",
+        "en": "The AI report is for admins and managers only.",
+    },
     "ai.rate_limited": {
         "uz": "So'rovlar juda tez-tez yuborilmoqda. Bir necha daqiqadan "
               "keyin qayta urinib ko'ring.",
@@ -223,7 +253,7 @@ T = {
     },
 }
 
-MENU_KEYS = ["menu.profile", "menu.miniapp", "menu.upload", "menu.settings", "menu.help"]
+MENU_KEYS = ["menu.profile", "menu.upload", "menu.settings", "menu.help", "menu.report"]
 
 LANGUAGE_LABELS = {"uz": "🇺🇿 Oʻzbekcha", "ru": "🇷🇺 Русский", "en": "🇬🇧 English"}
 

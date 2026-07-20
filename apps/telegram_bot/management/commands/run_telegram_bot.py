@@ -18,6 +18,7 @@ class Command(BaseCommand):
             BotCommand,
             InlineKeyboardButton,
             InlineKeyboardMarkup,
+            InputFile,
             ReplyKeyboardMarkup,
             Update,
         )
@@ -264,22 +265,20 @@ class Command(BaseCommand):
                 lang = await get_lang(update, context)
                 await update.message.reply_text(t("upload.hint", lang))
 
-        # --- Fayl/hujjat qabul qilish (adminlar uchun) --------------------
+        # --- Fayl/hujjat qabul qilish (barcha ulangan foydalanuvchilar
+        #     uchun — saytdagi hujjat yuklash bilan bir xil: ko'rinadigan
+        #     loyihalardan biriga yuklash mumkin, rol cheklovi yo'q) --------
 
         @sync_to_async
         def _get_uploader(chat_id):
-            """Fayl yuklashga ruxsati bor foydalanuvchini qaytaradi.
-
-            (user, projects) — ruxsat bor; (user, None) — rol yetarli emas;
-            (None, None) — hisob ulanmagan."""
+            """Fayl yuklay oladigan foydalanuvchi va uning ko'rinadigan
+            loyihalarini qaytaradi. (None, None) — hisob ulanmagan."""
             from apps.accounts.models import User
             from apps.projects.permissions import visible_projects_for
 
             user = User.objects.filter(telegram_chat_id=str(chat_id)).first()
             if user is None:
                 return None, None
-            if not (user.is_superuser or user.role in (User.Role.ADMIN, User.Role.MANAGER)):
-                return user, None
             projects = list(visible_projects_for(user).order_by("-created_at").values_list("id", "name")[:20])
             return user, projects
 
@@ -313,15 +312,12 @@ class Command(BaseCommand):
             return document
 
         async def receive_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
-            """Admin yuborgan fayl/rasmni qabul qilib, loyiha tanlashni so'raydi."""
+            """Yuborilgan fayl/rasmni qabul qilib, loyiha tanlashni so'raydi."""
             message = update.message
             lang = await get_lang(update, context)
             user, projects = await _get_uploader(update.effective_chat.id)
             if user is None:
                 await message.reply_text(t("not_linked", lang))
-                return
-            if projects is None:
-                await message.reply_text(t("upload.admins_only", lang))
                 return
             if not projects:
                 await message.reply_text(t("upload.no_projects", lang))
@@ -408,12 +404,42 @@ class Command(BaseCommand):
 
             user = User.objects.filter(telegram_chat_id=str(chat_id)).first()
             if user is None:
-                return AI_NOT_LINKED, ""
+                return AI_NOT_LINKED, "", []
             if not services.is_configured():
-                return AI_NOT_CONFIGURED, ""
+                return AI_NOT_CONFIGURED, "", []
             if services.rate_limited(user):
-                return AI_RATE_LIMITED, ""
-            return "ok", services.answer_telegram(user, text, lang=lang, history=history)
+                return AI_RATE_LIMITED, "", []
+            answer, documents = services.answer_telegram(user, text, lang=lang, history=history)
+            return "ok", answer, documents
+
+        # AI qidiruvida topilgan hujjatlardan chatga avtomatik yuboriladigan
+        # eng ko'p soni — Telegram'ni fayllar bilan to'ldirib yubormaslik uchun.
+        MAX_AUTO_SENT_DOCUMENTS = 5
+
+        @sync_to_async
+        def _read_document_file(doc_id):
+            from apps.documents.models import Document
+
+            doc = Document.objects.filter(pk=doc_id).first()
+            if doc is None or not doc.file:
+                return None
+            with doc.file.open("rb") as f:
+                data = f.read()
+            file_name = doc.file.name.rsplit("/", 1)[-1]
+            return data, file_name, doc.name
+
+        async def _send_found_documents(update: Update, documents):
+            """AI find_documents orqali topgan hujjat fayllarini haqiqiy
+            Telegram-fayl sifatida yuboradi (matnli javobdan keyin)."""
+            for item in documents[:MAX_AUTO_SENT_DOCUMENTS]:
+                result = await _read_document_file(item["id"])
+                if not result:
+                    continue
+                data, file_name, doc_name = result
+                await update.effective_chat.send_document(
+                    document=InputFile(bytes(data), filename=file_name),
+                    caption=doc_name[:1024],
+                )
 
         async def ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
             """Oddiy matnli xabarlarga platforma konteksti asosida AI javob beradi.
@@ -426,7 +452,7 @@ class Command(BaseCommand):
             history = context.user_data.get("ai_history", [])
             await update.effective_chat.send_action("typing")
             try:
-                state, answer = await _ai_answer(update.effective_chat.id, text, lang, history)
+                state, answer, documents = await _ai_answer(update.effective_chat.id, text, lang, history)
             except Exception:
                 await update.message.reply_text(t("ai.error", lang))
                 raise
@@ -440,6 +466,8 @@ class Command(BaseCommand):
                 history.extend([("user", text), ("assistant", answer)])
                 context.user_data["ai_history"] = history[-8:]
                 await update.message.reply_text(answer)
+                if documents:
+                    await _send_found_documents(update, documents)
 
         VOICE_MAX_SECONDS = 180  # 3 daqiqa
 
@@ -450,15 +478,15 @@ class Command(BaseCommand):
 
             user = User.objects.filter(telegram_chat_id=str(chat_id)).first()
             if user is None:
-                return AI_NOT_LINKED, ""
+                return AI_NOT_LINKED, "", []
             if not services.is_configured():
-                return AI_NOT_CONFIGURED, ""
+                return AI_NOT_CONFIGURED, "", []
             if services.rate_limited(user):
-                return AI_RATE_LIMITED, ""
-            answer = services.answer_telegram(
+                return AI_RATE_LIMITED, "", []
+            answer, documents = services.answer_telegram(
                 user, "", lang=lang, history=history, audio=(audio_bytes, mime_type)
             )
-            return "ok", answer
+            return "ok", answer, documents
 
         async def voice_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             """Ovozli xabarni Gemini'ga uzatib, AI javobini qaytaradi."""
@@ -472,7 +500,7 @@ class Command(BaseCommand):
             try:
                 tg_file = await context.bot.get_file(voice.file_id)
                 data = bytes(await tg_file.download_as_bytearray())
-                state, answer = await _ai_voice_answer(
+                state, answer, documents = await _ai_voice_answer(
                     update.effective_chat.id, data,
                     voice.mime_type or "audio/ogg", lang, history,
                 )
@@ -489,6 +517,8 @@ class Command(BaseCommand):
                 history.extend([("user", f"[ovozli xabar, {voice.duration}s]"), ("assistant", answer)])
                 context.user_data["ai_history"] = history[-8:]
                 await update.message.reply_text(answer)
+                if documents:
+                    await _send_found_documents(update, documents)
 
         async def post_init(app):
             # Telegram'ning chap pastki "Menu" tugmasidagi buyruqlar ro'yxati —

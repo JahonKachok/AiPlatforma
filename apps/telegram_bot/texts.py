@@ -22,7 +22,7 @@ T = {
               "🔔 Vazifalar, muddatlar va tasdiqlashlar haqida bildirishnoma yuboraman\n"
               "🤖 Loyihalar va vazifalar bo'yicha AI yordamida javob beraman — "
               "oddiy xabar yozing (🎤 ovozli xabar ham bo'ladi)\n"
-              "📎 Hujjatlarni to'g'ridan-to'g'ri platformaga yuklayman (admin/menejerlar)\n"
+              "📎 Hujjatlarni to'g'ridan-to'g'ri platformaga yuklayman\n"
               "📊 Rahbarlar uchun AI muddat-hisobotini tayyorlayman\n\n"
               "Boshlash uchun hisobingizni ulang: saytdagi profil sahifasida "
               "<b>Telegram → Ulash</b> tugmasini bosing yoki /link &lt;token&gt; "
@@ -34,7 +34,7 @@ T = {
               "🔔 Присылаю уведомления о задачах, сроках и согласованиях\n"
               "🤖 Отвечаю на вопросы по проектам и задачам с помощью AI — "
               "просто напишите сообщение (🎤 можно и голосом)\n"
-              "📎 Загружаю документы прямо на платформу (для админов/менеджеров)\n"
+              "📎 Загружаю документы прямо на платформу\n"
               "📊 Готовлю AI-отчёт по срокам для руководителей\n\n"
               "Чтобы начать, привяжите аккаунт: в профиле на сайте нажмите "
               "<b>Telegram → Привязать</b> или отправьте /link &lt;token&gt;. "
@@ -46,7 +46,7 @@ T = {
               "🔔 Send notifications about tasks, deadlines and approvals\n"
               "🤖 Answer questions about projects and tasks with AI — "
               "just type a message (🎤 voice messages work too)\n"
-              "📎 Upload documents straight to the platform (admins/managers)\n"
+              "📎 Upload documents straight to the platform\n"
               "📊 Prepare an AI deadline report for managers\n\n"
               "To get started, link your account: on your profile page press "
               "<b>Telegram → Link</b>, or send /link &lt;token&gt;. "
@@ -58,7 +58,7 @@ T = {
               "/link &lt;token&gt; — hisobni ulash\n"
               "/unlink — hisobni uzish\n"
               "/whoami — profil ma'lumotlari\n\n"
-              "📎 Admin/menejerlar fayl yuborib, izohida mazmunini yozsa, "
+              "📎 Fayl yuborib, izohida mazmunini yozsangiz, "
               "u platformadagi hujjatlar bo'limiga saqlanadi.\n\n"
               "🤖 AI yordamchi: oddiy xabar yozing — loyihalar va vazifalar "
               "bo'yicha javob beradi. Admin/menejerlar buyruq ham bera oladi:\n"
@@ -71,7 +71,7 @@ T = {
               "/link &lt;token&gt; — привязать аккаунт\n"
               "/unlink — отвязать аккаунт\n"
               "/whoami — данные профиля\n\n"
-              "📎 Если админ/менеджер отправит файл с описанием в подписи, "
+              "📎 Если вы отправите файл с описанием в подписи, "
               "он сохранится в разделе документов платформы.\n\n"
               "🤖 AI-помощник: напишите обычное сообщение — ответит по проектам "
               "и задачам. Админы/менеджеры могут давать команды:\n"
@@ -84,7 +84,7 @@ T = {
               "/link &lt;token&gt; — link account\n"
               "/unlink — unlink account\n"
               "/whoami — profile info\n\n"
-              "📎 When an admin/manager sends a file with a caption describing it, "
+              "📎 When you send a file with a caption describing it, "
               "it is saved to the platform's documents section.\n\n"
               "🤖 AI assistant: just type a message — it answers about projects "
               "and tasks. Admins/managers can also give commands:\n"
@@ -134,20 +134,15 @@ T = {
         "uz": "📎 Faylni shu chatga yuboring va izohida (caption) hujjat "
               "mazmunini yozing — u hujjat nomi sifatida saqlanadi.\n"
               "Keyin qaysi loyihaga saqlashni tanlaysiz.\n\n"
-              "Eslatma: fayl yuklash admin va menejerlar uchun, hajmi 20 MB gacha.",
+              "Eslatma: fayl hajmi 20 MB gacha bo'lishi kerak.",
         "ru": "📎 Отправьте файл в этот чат и в подписи (caption) опишите "
               "содержание документа — это станет его названием.\n"
               "Затем выберите проект для сохранения.\n\n"
-              "Примечание: загрузка доступна админам и менеджерам, до 20 МБ.",
+              "Примечание: размер файла — до 20 МБ.",
         "en": "📎 Send a file to this chat with a caption describing the "
               "document — the caption becomes its name.\n"
               "Then choose which project to save it to.\n\n"
-              "Note: uploads are for admins and managers, up to 20 MB.",
-    },
-    "upload.admins_only": {
-        "uz": "Fayl yuklash faqat admin va menejerlar uchun.",
-        "ru": "Загрузка файлов доступна только админам и менеджерам.",
-        "en": "File uploads are for admins and managers only.",
+              "Note: file size must be under 20 MB.",
     },
     "upload.no_projects": {
         "uz": "Platformada hali loyihalar yo'q — avval loyiha yarating.",

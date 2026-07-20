@@ -32,8 +32,13 @@ def _can_mutate(user) -> bool:
     return user.is_superuser or user.role in (User.Role.ADMIN, User.Role.MANAGER)
 
 
-def build_telegram_tools(user):
-    """Foydalanuvchi uchun ruxsat etilgan AI vositalari ro'yxati."""
+def build_telegram_tools(user, found_documents: list | None = None):
+    """Foydalanuvchi uchun ruxsat etilgan AI vositalari ro'yxati.
+
+    `found_documents` berilsa (bo'sh list), `find_documents` topgan va faylga
+    ega hujjatlarning {"id", "name"} yozuvlarini shu ro'yxatga qo'shadi —
+    chaqiruvchi tomon (Telegram handler) shu asosda haqiqiy fayllarni
+    foydalanuvchiga yuborishi mumkin."""
     from apps.documents.models import AuditLog, Document
     from apps.notifications.services import notify_user
     from apps.projects.models import Project
@@ -55,15 +60,24 @@ def build_telegram_tools(user):
     # --- O'qish vositalari (hamma uchun) ---------------------------------
 
     def find_documents(query: str) -> str:
-        """Hujjatlarni nomi bo'yicha qidiradi va havolalari bilan ro'yxat qaytaradi.
+        """Hujjatlarni qidiradi (nomi yoki tegishli loyiha nomi bo'yicha)
+        va havolalari bilan ro'yxat qaytaradi.
 
-        query: hujjat nomining bir qismi.
+        query: hujjat nomining yoki loyiha nomining bir qismi (masalan,
+        "shartnoma" yoki "45-maktab binosi" — ikkalasi ham ishlaydi).
         """
-        docs = (Document.objects.filter(
-            project__in=visible_projects_for(user), name__icontains=query.strip())
+        from django.db.models import Q
+
+        q = query.strip()
+        docs = list(Document.objects.filter(project__in=visible_projects_for(user))
+            .filter(Q(name__icontains=q) | Q(project__name__icontains=q))
             .select_related("project")[:MAX_RESULTS])
         if not docs:
-            return f"'{query}' bo'yicha hujjat topilmadi."
+            return f"'{q}' bo'yicha hujjat topilmadi."
+        if found_documents is not None:
+            found_documents.extend(
+                {"id": str(d.pk), "name": d.name} for d in docs if d.file
+            )
         lines = [
             f"- {d.name} (loyiha: {d.project.name}, holat: {d.get_status_display()}) "
             f"{settings.FRONTEND_URL}/documents/{d.pk}/"

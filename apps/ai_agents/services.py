@@ -265,6 +265,9 @@ amal so'rasa va ma'lumot yetarli bo'lsa — funksiyani chaqirib bajar.
 taxmin qilma, bitta qisqa savol bilan aniqlashtir.
 - Funksiya natijasini foydalanuvchiga aniq va qisqa yetkaz (nima bajarildi, \
 havola bo'lsa havola bilan).
+- find_documents topgan hujjat fayllari javobingizdan keyin foydalanuvchiga \
+avtomatik yuboriladi — shuni bilib, "mana fayl(lar)" kabi ishonch bilan yoz, \
+"faylni yuklab bo'lmaydi" deb yozma.
 - Funksiyalarda yo'q amallarni (o'chirish, foydalanuvchi qo'shish, to'lovlar \
 kabi) bajarishga va'da berma — saytning tegishli bo'limini tavsiya qil.
 """
@@ -313,13 +316,16 @@ def collect_chat_context(user) -> str:
 
 def answer_telegram(user, text: str, lang: str = "uz",
                     history: list[tuple[str, str]] | None = None,
-                    audio: tuple[bytes, str] | None = None) -> str:
+                    audio: tuple[bytes, str] | None = None) -> tuple[str, list[dict]]:
     """Telegram'dagi oddiy xabarga platforma konteksti asosida AI javobi.
 
     `lang` — foydalanuvchi botda tanlagan til (uz/ru/en); AI shu tilda javob
     beradi. `history` — oxirgi suhbat almashinuvlari [(rol, matn), ...]; AI
     "uni", "o'sha vazifani" kabi murojaatlarni tushunishi uchun. `audio` —
-    ovozli xabar (baytlar, mime_type); berilsa AI uni tinglab javob beradi."""
+    ovozli xabar (baytlar, mime_type); berilsa AI uni tinglab javob beradi.
+
+    (javob_matni, topilgan_hujjatlar) qaytaradi — ikkinchisi AI `find_documents`
+    vositasini chaqirgan bo'lsa haqiqiy fayl(lar)ni yuborish uchun ishlatiladi."""
     from . import agent_tools
 
     lang_rule = TELEGRAM_CHAT_LANG_RULES.get(lang, TELEGRAM_CHAT_LANG_RULES["uz"])
@@ -341,8 +347,10 @@ def answer_telegram(user, text: str, lang: str = "uz",
         user_block = f"FOYDALANUVCHI XABARI:\n{text[:2000]}"
 
     prompt = f"{context}\n\n{history_block}{user_block}"
-    tools = agent_tools.build_telegram_tools(user)
-    return ask_ai(system, prompt, agent="telegram", tools=tools, audio=audio)
+    found_documents: list[dict] = []
+    tools = agent_tools.build_telegram_tools(user, found_documents)
+    answer = ask_ai(system, prompt, agent="telegram", tools=tools, audio=audio)
+    return answer, found_documents
 
 
 # ---------------------------------------------------------------------------

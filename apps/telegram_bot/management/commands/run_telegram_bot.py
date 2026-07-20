@@ -156,7 +156,10 @@ class Command(BaseCommand):
         async def record_update(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if update.effective_chat and update.effective_message:
                 message = update.effective_message
-                await _record_event(update.effective_chat.id, message.text or message.caption)
+                text = message.text or message.caption
+                if not text and message.voice:
+                    text = f"[ovozli xabar, {message.voice.duration}s]"
+                await _record_event(update.effective_chat.id, text)
 
         # --- Sozlamalar -------------------------------------------------------
 
@@ -413,6 +416,55 @@ class Command(BaseCommand):
                 context.user_data["ai_history"] = history[-8:]
                 await update.message.reply_text(answer)
 
+        VOICE_MAX_SECONDS = 180  # 3 daqiqa
+
+        @sync_to_async
+        def _ai_voice_answer(chat_id, audio_bytes, mime_type, lang, history):
+            from apps.accounts.models import User
+            from apps.ai_agents import services
+
+            user = User.objects.filter(telegram_chat_id=str(chat_id)).first()
+            if user is None:
+                return AI_NOT_LINKED, ""
+            if not services.is_configured():
+                return AI_NOT_CONFIGURED, ""
+            if services.rate_limited(user):
+                return AI_RATE_LIMITED, ""
+            answer = services.answer_telegram(
+                user, "", lang=lang, history=history, audio=(audio_bytes, mime_type)
+            )
+            return "ok", answer
+
+        async def voice_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+            """Ovozli xabarni Gemini'ga uzatib, AI javobini qaytaradi."""
+            lang = await get_lang(update, context)
+            voice = update.message.voice
+            if voice.duration and voice.duration > VOICE_MAX_SECONDS:
+                await update.message.reply_text(t("voice.too_long", lang))
+                return
+            history = context.user_data.get("ai_history", [])
+            await update.effective_chat.send_action("typing")
+            try:
+                tg_file = await context.bot.get_file(voice.file_id)
+                data = bytes(await tg_file.download_as_bytearray())
+                state, answer = await _ai_voice_answer(
+                    update.effective_chat.id, data,
+                    voice.mime_type or "audio/ogg", lang, history,
+                )
+            except Exception:
+                await update.message.reply_text(t("ai.error", lang))
+                raise
+            if state == AI_NOT_LINKED:
+                await update.message.reply_text(t("ai.not_linked", lang))
+            elif state == AI_RATE_LIMITED:
+                await update.message.reply_text(t("ai.rate_limited", lang))
+            elif state == AI_NOT_CONFIGURED or not answer:
+                await update.message.reply_text(t("ai.not_configured", lang))
+            else:
+                history.extend([("user", f"[ovozli xabar, {voice.duration}s]"), ("assistant", answer)])
+                context.user_data["ai_history"] = history[-8:]
+                await update.message.reply_text(answer)
+
         async def post_init(app):
             # Telegram'ning chap pastki "Menu" tugmasidagi buyruqlar ro'yxati —
             # har bir interfeys tili uchun alohida o'rnatiladi.
@@ -452,6 +504,7 @@ class Command(BaseCommand):
         application.add_handler(CommandHandler("link", link))
         application.add_handler(CommandHandler("unlink", unlink))
         application.add_handler(MessageHandler(filters.Document.ALL | filters.PHOTO, receive_file))
+        application.add_handler(MessageHandler(filters.VOICE, voice_message))
         application.add_handler(CallbackQueryHandler(choose_project, pattern=r"^tgdoc:"))
         application.add_handler(CallbackQueryHandler(settings_callback, pattern=r"^settings:"))
         application.add_handler(CallbackQueryHandler(set_language, pattern=r"^setlang:"))

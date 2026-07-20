@@ -57,7 +57,8 @@ def rate_limited(user) -> bool:
 
 
 def ask_ai(system: str, prompt: str, max_tokens: int = 4000, agent: str = "",
-           effort: str = "low", tools: list | None = None) -> str:
+           effort: str = "low", tools: list | None = None,
+           audio: tuple[bytes, str] | None = None) -> str:
     """Sozlangan provayderga bitta so'rov yuborib, javob matnini qaytaradi.
 
     Agentlarimiz qisqa javoblar beradi, shuning uchun standart effort="low" —
@@ -75,12 +76,13 @@ def ask_ai(system: str, prompt: str, max_tokens: int = 4000, agent: str = "",
     try:
         if provider == "gemini":
             try:
-                text, model = _ask_gemini_resilient(system, prompt, max_tokens, tools, effort)
+                text, model = _ask_gemini_resilient(system, prompt, max_tokens, tools, effort, audio)
             except Exception as exc:
                 # Gemini butunlay ishlamasa va Claude kaliti sozlangan bo'lsa —
                 # so'rov yo'qolmasin, Claude zaxira provayder bo'lib javob beradi.
-                # Eslatma: zaxira yo'lda vositalar (amallar) ishlamaydi, faqat javob.
-                if not settings.ANTHROPIC_API_KEY:
+                # Eslatma: zaxira yo'lda vositalar (amallar) ishlamaydi, faqat
+                # javob; audio esa Claude'ga uzatilmaydi — xato qaytariladi.
+                if not settings.ANTHROPIC_API_KEY or audio is not None:
                     raise
                 logger.warning("Gemini ishlamadi (%s) — Claude zaxira sifatida ishlatilmoqda", exc)
                 provider, model = "anthropic", settings.AI_MODEL
@@ -99,7 +101,7 @@ def ask_ai(system: str, prompt: str, max_tokens: int = 4000, agent: str = "",
                 provider=provider or "",
                 model=model,
                 system=system[:AILOG_TEXT_LIMIT],
-                prompt=prompt[:AILOG_TEXT_LIMIT],
+                prompt=("[OVOZLI XABAR] " if audio else "") + prompt[:AILOG_TEXT_LIMIT],
                 response=text[:AILOG_TEXT_LIMIT],
                 status=status,
                 error=error,
@@ -157,22 +159,31 @@ def ask_claude(system: str, prompt: str, max_tokens: int = 4000, effort: str = "
 
 
 def ask_gemini(system: str, prompt: str, max_tokens: int = 4000, model: str = "",
-               tools: list | None = None, effort: str = "low") -> str:
+               tools: list | None = None, effort: str = "low",
+               audio: tuple[bytes, str] | None = None) -> str:
     """Gemini'ga bitta so'rov yuborib, javob matnini qaytaradi.
 
     `tools` — Python funksiyalar ro'yxati (agent_tools). Berilsa, SDK'ning
     avtomatik function calling sikli ishlaydi: model funksiyani chaqiradi,
     natija qaytariladi va model yakuniy matn javobini yozadi.
 
+    `audio` — (baytlar, mime_type) jufti: ovozli xabar to'g'ridan-to'g'ri
+    modelga uzatiladi, alohida transkripsiya bosqichi kerak emas.
+
     effort="low" da fikrlash (thinking) 512 token bilan chegaralanadi —
     oddiy chat-javoblarda bu chiqish tokenlarining asosiy sarfini kesadi;
     yuqoriroq effort'da model o'zi hal qiladi."""
     from google.genai import types
 
+    contents = prompt
+    if audio is not None:
+        data, mime_type = audio
+        contents = [prompt, types.Part.from_bytes(data=data, mime_type=mime_type)]
+
     thinking = types.ThinkingConfig(thinking_budget=512) if effort == "low" else None
     response = _get_gemini_client().models.generate_content(
         model=model or settings.GEMINI_MODEL,
-        contents=prompt,
+        contents=contents,
         config=types.GenerateContentConfig(
             system_instruction=system,
             max_output_tokens=max_tokens,
@@ -193,7 +204,8 @@ def _is_overloaded(exc: Exception) -> bool:
 
 
 def _ask_gemini_resilient(system: str, prompt: str, max_tokens: int,
-                          tools: list | None = None, effort: str = "low") -> tuple[str, str]:
+                          tools: list | None = None, effort: str = "low",
+                          audio: tuple[bytes, str] | None = None) -> tuple[str, str]:
     """Gemini so'rovi: asosiy model band (503) bo'lsa zaxira modelga o'tadi,
     zaxira yo'q bo'lsa qisqa pauzadan keyin bir marta qayta urinadi.
 
@@ -203,7 +215,8 @@ def _ask_gemini_resilient(system: str, prompt: str, max_tokens: int,
 
     primary = settings.GEMINI_MODEL
     try:
-        return ask_gemini(system, prompt, max_tokens, model=primary, tools=tools, effort=effort), primary
+        return ask_gemini(system, prompt, max_tokens, model=primary,
+                          tools=tools, effort=effort, audio=audio), primary
     except Exception as exc:
         if not _is_overloaded(exc):
             raise
@@ -211,9 +224,11 @@ def _ask_gemini_resilient(system: str, prompt: str, max_tokens: int,
         if fallback and fallback != primary:
             logger.warning("Gemini %s band (%s) — zaxira model %s ishlatilmoqda",
                            primary, exc, fallback)
-            return ask_gemini(system, prompt, max_tokens, model=fallback, tools=tools, effort=effort), fallback
+            return ask_gemini(system, prompt, max_tokens, model=fallback,
+                              tools=tools, effort=effort, audio=audio), fallback
         time.sleep(2)
-        return ask_gemini(system, prompt, max_tokens, model=primary, tools=tools, effort=effort), primary
+        return ask_gemini(system, prompt, max_tokens, model=primary,
+                          tools=tools, effort=effort, audio=audio), primary
 
 
 # ---------------------------------------------------------------------------
@@ -297,12 +312,14 @@ def collect_chat_context(user) -> str:
 
 
 def answer_telegram(user, text: str, lang: str = "uz",
-                    history: list[tuple[str, str]] | None = None) -> str:
+                    history: list[tuple[str, str]] | None = None,
+                    audio: tuple[bytes, str] | None = None) -> str:
     """Telegram'dagi oddiy xabarga platforma konteksti asosida AI javobi.
 
     `lang` — foydalanuvchi botda tanlagan til (uz/ru/en); AI shu tilda javob
     beradi. `history` — oxirgi suhbat almashinuvlari [(rol, matn), ...]; AI
-    "uni", "o'sha vazifani" kabi murojaatlarni tushunishi uchun."""
+    "uni", "o'sha vazifani" kabi murojaatlarni tushunishi uchun. `audio` —
+    ovozli xabar (baytlar, mime_type); berilsa AI uni tinglab javob beradi."""
     from . import agent_tools
 
     lang_rule = TELEGRAM_CHAT_LANG_RULES.get(lang, TELEGRAM_CHAT_LANG_RULES["uz"])
@@ -317,9 +334,15 @@ def answer_telegram(user, text: str, lang: str = "uz",
         ]
         history_block = "OLDINGI SUHBAT (kontekst uchun):\n" + "\n".join(lines) + "\n\n"
 
-    prompt = f"{context}\n\n{history_block}FOYDALANUVCHI XABARI:\n{text[:2000]}"
+    if audio is not None:
+        user_block = ("FOYDALANUVCHI OVOZLI XABAR yubordi (ilova qilingan). "
+                      "Uni tinglab, odatdagidek javob ber yoki so'ralgan amalni bajar.")
+    else:
+        user_block = f"FOYDALANUVCHI XABARI:\n{text[:2000]}"
+
+    prompt = f"{context}\n\n{history_block}{user_block}"
     tools = agent_tools.build_telegram_tools(user)
-    return ask_ai(system, prompt, agent="telegram", tools=tools)
+    return ask_ai(system, prompt, agent="telegram", tools=tools, audio=audio)
 
 
 # ---------------------------------------------------------------------------

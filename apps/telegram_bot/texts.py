@@ -41,7 +41,8 @@ T = {
               "• «Ofis binosi loyihasini yarat, muddati 2026-12-31»\n"
               "• «Sardorga chizmalarni tekshirish vazifasini ber»\n"
               "• «Chizmalar vazifasini yakunlanganga o'tkaz»\n"
-              "• «Shartnoma degan hujjatni top»",
+              "• «Shartnoma degan hujjatni top»\n"
+              "🎤 Ovozli xabar ham yuborsangiz bo'ladi (3 daqiqagacha).",
         "ru": "/start — запустить бота\n"
               "/link &lt;token&gt; — привязать аккаунт\n"
               "/unlink — отвязать аккаунт\n"
@@ -53,7 +54,8 @@ T = {
               "• «Создай проект Офисное здание со сроком 2026-12-31»\n"
               "• «Поручи Сардору проверку чертежей»\n"
               "• «Переведи задачу по чертежам в завершённые»\n"
-              "• «Найди документ со словом договор»",
+              "• «Найди документ со словом договор»\n"
+              "🎤 Можно отправлять и голосовые сообщения (до 3 минут).",
         "en": "/start — start the bot\n"
               "/link &lt;token&gt; — link account\n"
               "/unlink — unlink account\n"
@@ -65,7 +67,8 @@ T = {
               "• \"Create the Office Building project due 2026-12-31\"\n"
               "• \"Assign drawing review to Sardor\"\n"
               "• \"Mark the drawings task as completed\"\n"
-              "• \"Find the contract document\"",
+              "• \"Find the contract document\"\n"
+              "🎤 You can also send voice messages (up to 3 minutes).",
     },
     "not_linked": {
         "uz": "Hisobingiz hali ulanmagan. /link <token> dan foydalaning.",
@@ -220,6 +223,14 @@ T = {
         "uz": "AI hisobot faqat admin va menejerlar uchun.",
         "ru": "AI-отчёт доступен только админам и менеджерам.",
         "en": "The AI report is for admins and managers only.",
+    },
+    "voice.too_long": {
+        "uz": "Ovozli xabar 3 daqiqadan oshmasligi kerak. Qisqaroq qilib "
+              "qayta yuboring.",
+        "ru": "Голосовое сообщение не должно быть длиннее 3 минут. "
+              "Отправьте покороче.",
+        "en": "Voice messages must be under 3 minutes. Please send a "
+              "shorter one.",
     },
     "ai.rate_limited": {
         "uz": "So'rovlar juda tez-tez yuborilmoqda. Bir necha daqiqadan "

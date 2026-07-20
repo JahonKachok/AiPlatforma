@@ -73,15 +73,43 @@ class Command(BaseCommand):
                 rows.insert(0, [t("menu.report", lang)])
             return ReplyKeyboardMarkup(rows, resize_keyboard=True, is_persistent=True)
 
+        def language_keyboard(prefix="setlang"):
+            return InlineKeyboardMarkup([
+                [InlineKeyboardButton(label, callback_data=f"{prefix}:{code}")]
+                for code, label in LANGUAGE_LABELS.items()
+            ])
+
         async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             args = context.args
             if args and args[0].startswith("link_"):
                 await link(update, context, token=args[0][len("link_"):])
                 return
             lang = await get_lang(update, context)
-            user = await _get_user_by_chat_id(update.effective_chat.id)
             await update.message.reply_html(
-                t("start", lang), reply_markup=main_keyboard(lang, _is_manager(user))
+                t("start", lang), reply_markup=language_keyboard("startlang")
+            )
+
+        async def start_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
+            """/start ostidagi til tugmasi: tilni saqlab, xabarni shu tilda
+            qayta chizadi va pastki menyuni yangi tilda o'rnatadi."""
+            query = update.callback_query
+            await query.answer()
+            lang = query.data.split(":", 1)[1]
+            if lang not in LANGUAGE_LABELS:
+                return
+            current = await get_lang(update, context)
+            await _set_chat_lang(update.effective_chat.id, lang)
+            context.user_data["lang"] = lang
+            if lang != current:  # bir xil matnni edit qilish Telegram'da xato beradi
+                await query.edit_message_text(
+                    t("start", lang), parse_mode="HTML",
+                    reply_markup=language_keyboard("startlang"),
+                )
+            user = await _get_user_by_chat_id(update.effective_chat.id)
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=t("settings.language_saved", lang),
+                reply_markup=main_keyboard(lang, _is_manager(user)),
             )
 
         async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -175,12 +203,9 @@ class Command(BaseCommand):
             await query.answer()
             lang = await get_lang(update, context)
             if query.data == "settings:lang":
-                keyboard = InlineKeyboardMarkup([
-                    [InlineKeyboardButton(label, callback_data=f"setlang:{code}")]
-                    for code, label in LANGUAGE_LABELS.items()
-                ])
                 await query.edit_message_text(
-                    t("settings.choose_language", lang), reply_markup=keyboard
+                    t("settings.choose_language", lang),
+                    reply_markup=language_keyboard("setlang"),
                 )
 
         async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -508,6 +533,7 @@ class Command(BaseCommand):
         application.add_handler(CallbackQueryHandler(choose_project, pattern=r"^tgdoc:"))
         application.add_handler(CallbackQueryHandler(settings_callback, pattern=r"^settings:"))
         application.add_handler(CallbackQueryHandler(set_language, pattern=r"^setlang:"))
+        application.add_handler(CallbackQueryHandler(start_language, pattern=r"^startlang:"))
         # Menyu tugmalari ai_chat'dan oldin turishi shart — aks holda tugma
         # matni AI'ga oddiy savol sifatida ketadi.
         application.add_handler(MessageHandler(filters.Text(all_menu_labels()), menu_router))

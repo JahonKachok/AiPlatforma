@@ -16,18 +16,42 @@ T = {
 
     # --- Asosiy buyruqlar ---------------------------------------------------
     "start": {
-        "uz": "\U0001F44B Salom! AiPlatforma botiga xush kelibsiz.\n"
-              "/link &lt;token&gt; — hisobingizni ulash\n"
-              "/whoami — profil ma'lumotlari\n"
-              "/help — yordam",
-        "ru": "\U0001F44B Здравствуйте! Добро пожаловать в бот AiPlatforma.\n"
-              "/link &lt;token&gt; — привязать аккаунт\n"
-              "/whoami — данные профиля\n"
-              "/help — помощь",
-        "en": "\U0001F44B Hello! Welcome to the AiPlatforma bot.\n"
-              "/link &lt;token&gt; — link your account\n"
-              "/whoami — profile info\n"
-              "/help — help",
+        "uz": "\U0001F44B Salom! Men <b>BuildFlow</b> botiman — qurilishni "
+              "avtomatlashtirish platformasining rasmiy yordamchisi.\n\n"
+              "Nimalar qila olaman:\n"
+              "🔔 Vazifalar, muddatlar va tasdiqlashlar haqida bildirishnoma yuboraman\n"
+              "🤖 Loyihalar va vazifalar bo'yicha AI yordamida javob beraman — "
+              "oddiy xabar yozing (🎤 ovozli xabar ham bo'ladi)\n"
+              "📎 Hujjatlarni to'g'ridan-to'g'ri platformaga yuklayman (admin/menejerlar)\n"
+              "📊 Rahbarlar uchun AI muddat-hisobotini tayyorlayman\n\n"
+              "Boshlash uchun hisobingizni ulang: saytdagi profil sahifasida "
+              "<b>Telegram → Ulash</b> tugmasini bosing yoki /link &lt;token&gt; "
+              "yuboring. To'liq yordam — /help\n\n"
+              "🌐 Interfeys tilini tanlang:",
+        "ru": "\U0001F44B Здравствуйте! Я бот <b>BuildFlow</b> — официальный "
+              "помощник платформы автоматизации строительства.\n\n"
+              "Что я умею:\n"
+              "🔔 Присылаю уведомления о задачах, сроках и согласованиях\n"
+              "🤖 Отвечаю на вопросы по проектам и задачам с помощью AI — "
+              "просто напишите сообщение (🎤 можно и голосом)\n"
+              "📎 Загружаю документы прямо на платформу (для админов/менеджеров)\n"
+              "📊 Готовлю AI-отчёт по срокам для руководителей\n\n"
+              "Чтобы начать, привяжите аккаунт: в профиле на сайте нажмите "
+              "<b>Telegram → Привязать</b> или отправьте /link &lt;token&gt;. "
+              "Полная справка — /help\n\n"
+              "🌐 Выберите язык интерфейса:",
+        "en": "\U0001F44B Hello! I'm the <b>BuildFlow</b> bot — the official "
+              "assistant of the Construction Automation Platform.\n\n"
+              "What I can do:\n"
+              "🔔 Send notifications about tasks, deadlines and approvals\n"
+              "🤖 Answer questions about projects and tasks with AI — "
+              "just type a message (🎤 voice messages work too)\n"
+              "📎 Upload documents straight to the platform (admins/managers)\n"
+              "📊 Prepare an AI deadline report for managers\n\n"
+              "To get started, link your account: on your profile page press "
+              "<b>Telegram → Link</b>, or send /link &lt;token&gt;. "
+              "Full help — /help\n\n"
+              "🌐 Choose your interface language:",
     },
     "help": {
         "uz": "/start — botni ishga tushirish\n"

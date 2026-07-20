@@ -1,16 +1,20 @@
-/* AiPlatforma design layer — loaded AFTER tailwind.css. Tailwind is
+/* BuildFlow design layer — loaded AFTER tailwind.css. Tailwind is
    precompiled (no Node at runtime), so the modern component design lives
    here and overrides the base component classes. Dark mode: html.dark. */
 
 :root {
-  /* GASTEC dizayn tizimi: to'q ko'k — ishonch va professionallik */
-  --ap-primary: #0056d2;
-  --ap-primary-2: #2e7cf6;
-  --ap-primary-soft: rgba(0, 86, 210, 0.10);
-  --ap-ring: rgba(0, 86, 210, 0.30);
-  --ap-success: #05cd99;
+  /* BuildFlow brend ranglari — logodagi to'q ko'k (#0B3C5D) + yashil (#72C07D) */
+  --ap-primary: #0b3c5d;
+  --ap-primary-2: #1d6fa5;
+  --ap-primary-soft: rgba(11, 60, 93, 0.10);
+  --ap-ring: rgba(11, 60, 93, 0.30);
+  --ap-success: #72c07d;
   --ap-danger: #ee5d50;
 }
+
+/* BuildFlow logo belgisi — qorong'i fonda yorqinroq ko'rinadi */
+.ap-logo-mark { flex: none; }
+.dark .ap-logo-mark { filter: brightness(2.2) saturate(0.8); }
 
 /* Inter shrifti (base.html da ulanadi) */
 body {
@@ -36,10 +40,10 @@ html:not(.dark) body { background-color: #f4f7fe; color: #1b2559; }
   background-image: linear-gradient(135deg, var(--ap-primary), var(--ap-primary-2)) !important;
   background-color: var(--ap-primary) !important;
   color: #fff !important;
-  box-shadow: 0 2px 6px rgba(0, 86, 210, 0.35);
+  box-shadow: 0 2px 6px rgba(11, 60, 93, 0.35);
 }
 .btn-primary:hover {
-  box-shadow: 0 6px 16px rgba(0, 86, 210, 0.45);
+  box-shadow: 0 6px 16px rgba(11, 60, 93, 0.45);
   transform: translateY(-1px);
   filter: brightness(1.05);
 }
@@ -52,7 +56,7 @@ html:not(.dark) body { background-color: #f4f7fe; color: #1b2559; }
 }
 .btn-secondary:hover { border-color: #c7d2fe; color: var(--ap-primary) !important; background: #f5f6ff !important; }
 .dark .btn-secondary { background: #1f2937 !important; color: #d1d5db !important; border-color: #374151; }
-.dark .btn-secondary:hover { border-color: #0056d2; color: #a5b4fc !important; background: #0b1e3f !important; }
+.dark .btn-secondary:hover { border-color: #1d6fa5; color: #a5b4fc !important; background: #0b1e3f !important; }
 
 .btn-ghost:hover { color: var(--ap-primary); background: var(--ap-primary-soft) !important; }
 .dark .btn-ghost:hover { color: #a5b4fc; }
@@ -102,7 +106,7 @@ input[type="checkbox"]::before {
 input[type="checkbox"]:checked {
   border-color: transparent;
   background-image: linear-gradient(135deg, var(--ap-primary), var(--ap-primary-2));
-  box-shadow: 0 1px 4px rgba(0, 86, 210, 0.4);
+  box-shadow: 0 1px 4px rgba(11, 60, 93, 0.4);
 }
 input[type="checkbox"]:checked::before { transform: scale(1); }
 
@@ -161,7 +165,7 @@ aside nav a[class*="bg-blue-50"] {
   background: var(--ap-primary-soft) !important;
   color: var(--ap-primary) !important;
 }
-.dark aside nav a[class*="bg-blue-50"] { background: rgba(46, 124, 246, 0.18) !important; color: #a5b4fc !important; }
+.dark aside nav a[class*="bg-blue-50"] { background: rgba(29, 111, 165, 0.25) !important; color: #a5b4fc !important; }
 aside nav a[class*="bg-blue-50"]::before {
   content: "";
   position: absolute;
@@ -213,7 +217,7 @@ aside nav a[class*="bg-blue-50"]::before {
   justify-content: center;
   color: #fff;
   background: linear-gradient(135deg, var(--ap-primary), var(--ap-primary-2));
-  box-shadow: 0 4px 10px rgba(0, 86, 210, 0.30);
+  box-shadow: 0 4px 10px rgba(11, 60, 93, 0.30);
 }
 .ap-stat-icon.is-blue    { background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 4px 10px rgba(59,130,246,.30); }
 .ap-stat-icon.is-green   { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 10px rgba(16,185,129,.30); }

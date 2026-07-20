@@ -1,11 +1,11 @@
-# AiPlatforma — lokal development'da hammasini birga ishga tushirish.
+# BuildFlow — lokal development'da hammasini birga ishga tushirish.
 # Foydalanish:  .\start-dev.ps1
 # To'xtatish: ochilgan oynalarni yoping yoki .\stop-dev.ps1
 
 $python = Join-Path $PSScriptRoot ".venv\Scripts\python.exe"
 $celery = Join-Path $PSScriptRoot ".venv\Scripts\celery.exe"
 
-Write-Host "AiPlatforma ishga tushmoqda..." -ForegroundColor Cyan
+Write-Host "BuildFlow ishga tushmoqda..." -ForegroundColor Cyan
 
 Start-Process -FilePath $python -ArgumentList "manage.py", "runserver", "8000" `
     -WorkingDirectory $PSScriptRoot -WindowStyle Minimized

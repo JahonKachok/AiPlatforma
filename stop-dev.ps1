@@ -1,4 +1,4 @@
-# AiPlatforma — start-dev.ps1 ochgan barcha jarayonlarni to'xtatish.
+# BuildFlow — start-dev.ps1 ochgan barcha jarayonlarni to'xtatish.
 $patterns = "runserver", "run_telegram_bot", "celery"
 
 Get-CimInstance Win32_Process -Filter "Name like 'python%.exe' or Name like 'celery%.exe'" |
@@ -8,4 +8,4 @@ Get-CimInstance Win32_Process -Filter "Name like 'python%.exe' or Name like 'cel
         Write-Host "to'xtatildi: PID $($_.ProcessId)"
     }
 
-Write-Host "Barcha AiPlatforma jarayonlari to'xtatildi." -ForegroundColor Cyan
+Write-Host "Barcha BuildFlow jarayonlari to'xtatildi." -ForegroundColor Cyan

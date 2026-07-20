@@ -1,4 +1,4 @@
-# AiPlatforma
+# BuildFlow — Construction Automation Platform
 
 Construction-company project management platform: projects, tasks (kanban/list/calendar), document approval workflows, finance, requests, document-generation templates, organization chart, and Telegram bot notifications. Built as a single Django app (server-rendered templates, minimal vanilla JS) — no separate frontend/backend split.
 

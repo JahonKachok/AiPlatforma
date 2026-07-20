@@ -181,7 +181,7 @@ def two_factor_setup(request):
         request.session["pending_totp_secret"] = secret
 
     totp = pyotp.TOTP(secret)
-    uri = totp.provisioning_uri(name=request.user.email, issuer_name="AiPlatforma")
+    uri = totp.provisioning_uri(name=request.user.email, issuer_name="BuildFlow")
     qr_img = qrcode.make(uri)
     buf = io.BytesIO()
     qr_img.save(buf, format="PNG")

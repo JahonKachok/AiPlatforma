@@ -13,6 +13,16 @@ class TaskForm(StyledFormMixin, forms.ModelForm):
             "description": forms.Textarea(attrs={"rows": 3}),
             "deadline": forms.DateInput(attrs={"type": "date"}),
         }
+        help_texts = {
+            "title": "Vazifaning qisqa va aniq nomi.",
+            "description": "Vazifa haqida batafsil ma'lumot: nima qilish kerak, qanday natija kutilyapti.",
+            "project": "Vazifa qaysi loyihaga tegishli ekanligi.",
+            "section": "Loyiha ichidagi qaysi bo'limga (section) tegishli ekanligi (ixtiyoriy).",
+            "assignee": "Vazifani bajarishga mas'ul xodim. Tanlansa, unga bildirishnoma yuboriladi.",
+            "status": "Vazifaning joriy holati (bajarilishi kerak, jarayonda, bajarildi va h.k.).",
+            "priority": "Vazifaning muhimlik darajasi.",
+            "deadline": "Vazifani bajarish uchun belgilangan muddat.",
+        }
 
     def __init__(self, *args, project=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -26,9 +36,11 @@ class TaskCommentForm(StyledFormMixin, forms.ModelForm):
         model = TaskComment
         fields = ["content"]
         widgets = {"content": forms.Textarea(attrs={"rows": 2, "placeholder": "Write a comment..."})}
+        help_texts = {"content": "Vazifa bo'yicha izoh yoki savolingizni shu yerga yozing."}
 
 
 class TaskAttachmentForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = TaskAttachment
         fields = ["file"]
+        help_texts = {"file": "Vazifaga tegishli faylni yuklash (maksimal hajm — 50MB)."}

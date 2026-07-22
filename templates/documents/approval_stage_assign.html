@@ -10,11 +10,11 @@
     {% for form in formset %}
       <div class="flex flex-wrap items-end gap-2 border-b border-gray-100 pb-3 dark:border-gray-700">
         <div>
-          <label class="field-label">{% trans "Stage name" %}</label>
+          <label class="field-label inline-flex items-center">{% with field=form.stage_name %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
           {{ form.stage_name }}
         </div>
         <div>
-          <label class="field-label">{% trans "Reviewer" %}</label>
+          <label class="field-label inline-flex items-center">{% with field=form.reviewer %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
           {{ form.reviewer }}
         </div>
         {% if form.DELETE %}<label class="text-xs">{{ form.DELETE }} {% trans "Remove" %}</label>{% endif %}

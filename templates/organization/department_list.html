@@ -16,7 +16,7 @@
   <h2 class="mb-3 font-semibold">{% trans "New department" %}</h2>
   <form method="post" action="{% url 'organization:create' %}" class="flex flex-wrap gap-2">
     {% csrf_token %}
-    {% for field in department_form %}{{ field }}{% endfor %}
+    {% for field in department_form %}{% include "partials/field_with_info.html" %}{% endfor %}
     <button type="submit" class="btn btn-primary btn-sm">{% trans "Create" %}</button>
   </form>
 </div>
@@ -77,7 +77,9 @@
                     <option value="{{ u.pk }}">{{ u.full_name }}</option>
                   {% endfor %}
                 </select>
+                {% with text="Bo'linmaga qo'shilayotgan xodim." %}{% include "partials/static_info.html" %}{% endwith %}
                 <input type="text" name="role_in_unit" placeholder="{% trans 'Role' %}" class="field-input w-auto text-xs">
+                {% with text="Xodimning shu bo'linmadagi lavozimi (erkin matn, ixtiyoriy)." %}{% include "partials/static_info.html" %}{% endwith %}
                 <button type="submit" class="btn btn-secondary btn-sm">{% trans "Add" %}</button>
               </form>
             {% endif %}
@@ -90,7 +92,9 @@
           <form method="post" action="{% url 'organization:add_unit' department.pk %}" class="flex flex-wrap gap-2">
             {% csrf_token %}
             <input type="text" name="name" placeholder="{% trans 'Unit name' %}" class="field-input w-auto text-xs" required>
+            {% with text="Bo'linmaning nomi." %}{% include "partials/static_info.html" %}{% endwith %}
             <input type="text" name="code" placeholder="{% trans 'Code' %}" class="field-input w-auto text-xs">
+            {% with text="Bo'linma uchun qisqa kod (ixtiyoriy)." %}{% include "partials/static_info.html" %}{% endwith %}
             <button type="submit" class="btn btn-secondary btn-sm">{% trans "Add unit" %}</button>
           </form>
         {% endif %}

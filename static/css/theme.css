@@ -15,6 +15,10 @@
 /* BuildFlow logo belgisi — qorong'i fonda yorqinroq ko'rinadi */
 .ap-logo-mark { flex: none; }
 .dark .ap-logo-mark { filter: brightness(2.2) saturate(0.8); }
+/* Login/ro'yxatdan o'tish sahifasidagi katta logo — SVG'da width/height
+   atributi yo'q, shuning uchun aniq o'lcham bermasak brauzer uni juda
+   katta (default ~300px) chizadi. */
+.ap-logo-mark-lg { height: 44px; width: auto; }
 
 /* Inter shrifti (base.html da ulanadi) */
 body {
@@ -502,3 +506,28 @@ aside nav a[class*="bg-blue-50"]::before {
   align-items: center;
   column-gap: 1rem;
 }
+
+/* Forma maydonlari yonidagi "i" info tugmasi va uning tooltip'i.
+   position:relative + z-index o'zining "stacking context"ini hosil qiladi —
+   shu sababli popup formadagi keyingi (static) div'lar ostiga kirib
+   qolmay, ular ustida chiqadi. */
+.field-info { position: relative; display: inline-flex; vertical-align: middle; z-index: 1; }
+.field-info:hover, .field-info:focus-within { z-index: 60; }
+.field-info-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; margin-left: 4px; border-radius: 9999px; border: none;
+  background: #e5e7eb; color: #4b5563; font-size: 10px; font-weight: 700;
+  line-height: 1; cursor: help; padding: 0;
+}
+.field-info-btn:hover, .field-info-btn:focus { background: #d1d5db; outline: none; }
+.dark .field-info-btn { background: #374151; color: #d1d5db; }
+.dark .field-info-btn:hover, .dark .field-info-btn:focus { background: #4b5563; }
+.field-info-popup {
+  position: absolute; left: 50%; top: 100%; transform: translateX(-50%);
+  margin-top: 6px; width: 240px; max-width: 60vw; background: #111827; color: #fff;
+  font-size: 11px; font-weight: 400; line-height: 1.4; padding: 8px 10px; border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.25); opacity: 0; pointer-events: none;
+  transition: opacity .15s ease; z-index: 60; text-align: left;
+}
+.field-info-btn:hover + .field-info-popup,
+.field-info-btn:focus + .field-info-popup { opacity: 1; pointer-events: auto; }

@@ -33,7 +33,7 @@
       </ul>
       <form method="post" class="flex gap-2">
         {% csrf_token %}
-        {{ comment_form.content }}
+        {% with field=comment_form.content %}{% include "partials/field_with_info.html" %}{% endwith %}
         <button type="submit" class="btn btn-primary btn-sm">{% trans "Send" %}</button>
       </form>
     </div>

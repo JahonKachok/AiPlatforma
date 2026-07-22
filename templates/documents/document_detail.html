@@ -42,8 +42,8 @@
       </ul>
       <form method="post" action="{% url 'documents:add_version' document.pk %}" enctype="multipart/form-data" class="flex flex-wrap gap-2">
         {% csrf_token %}
-        {{ version_form.file }}
-        {{ version_form.notes }}
+        {% with field=version_form.file %}{% include "partials/field_with_info.html" %}{% endwith %}
+        {% with field=version_form.notes %}{% include "partials/field_with_info.html" %}{% endwith %}
         <button type="submit" class="btn btn-secondary btn-sm">{% trans "Add version" %}</button>
       </form>
     </div>

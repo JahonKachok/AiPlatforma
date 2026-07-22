@@ -7,7 +7,7 @@
   {% csrf_token %}
   <p class="text-sm text-gray-500 dark:text-gray-400">{% trans "Stage" %}: {{ stage.stage_name }}</p>
   <div>
-    <label class="field-label">{% trans "Decision" %}</label>
+    <label class="field-label inline-flex items-center">{% trans "Decision" %}{% if form.status.help_text %}<span class="field-info"><button type="button" class="field-info-btn" aria-label="{% trans 'Info' %}">i</button><span class="field-info-popup" role="tooltip">{{ form.status.help_text }}</span></span>{% endif %}</label>
     <div class="flex gap-4">
       {% for radio in form.status %}
         <label class="flex items-center gap-1 text-sm">{{ radio.tag }} {{ radio.choice_label }}</label>
@@ -15,7 +15,7 @@
     </div>
   </div>
   <div>
-    <label class="field-label" for="{{ form.comment.id_for_label }}">{% trans "Comment" %}</label>
+    <label class="field-label inline-flex items-center" for="{{ form.comment.id_for_label }}">{% with field=form.comment %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
     {{ form.comment }}
   </div>
   <div class="flex gap-3">

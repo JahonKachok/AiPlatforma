@@ -8,7 +8,10 @@
     <p class="mb-6 text-sm text-gray-500 dark:text-gray-400">{% trans "Enter the 6-digit code from your authenticator app." %}</p>
     <form method="post" novalidate class="space-y-4">
       {% csrf_token %}
-      {{ form.code }}
+      <div>
+        <label class="field-label inline-flex items-center" for="{{ form.code.id_for_label }}">{% with field=form.code %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+        {{ form.code }}
+      </div>
       {% if form.errors %}<p class="text-xs text-red-600 dark:text-red-400">{{ form.errors.code|join:", " }}</p>{% endif %}
       <button type="submit" class="btn btn-primary btn-md w-full">{% trans "Verify" %}</button>
     </form>

@@ -4,17 +4,17 @@
 {% block auth_content %}
 <div class="flex min-h-screen items-center justify-center px-4 py-8">
   <div class="w-full max-w-md card p-6">
-    <div class="mb-1 flex items-center gap-2">
-      <img src="{% static 'img/logo-mark.svg' %}" alt="" class="ap-logo-mark h-9 w-auto">
+    <div class="mb-4 flex flex-col items-center gap-2 text-center">
+      <img src="{% static 'img/logo-mark.svg' %}" alt="" class="ap-logo-mark ap-logo-mark-lg">
       <span class="text-xl font-bold tracking-wide text-[#0B3C5D] dark:text-white">BUILDFLOW</span>
     </div>
-    <p class="mb-1 text-xs text-gray-500 dark:text-gray-400">{% trans "Construction Automation Platform" %}</p>
-    <p class="mb-6 text-sm text-gray-500 dark:text-gray-400">{% trans "Create an account" %}</p>
+    <p class="mb-1 text-center text-xs text-gray-500 dark:text-gray-400">{% trans "Construction Automation Platform" %}</p>
+    <p class="mb-6 text-center text-sm text-gray-500 dark:text-gray-400">{% trans "Create an account" %}</p>
     <form method="post" novalidate class="space-y-4">
       {% csrf_token %}
       {% for field in form %}
         <div>
-          <label class="field-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          <label class="field-label inline-flex items-center" for="{{ field.id_for_label }}">{% include "partials/field_label_info.html" %}</label>
           {{ field }}
           {% if field.errors %}
             <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ field.errors|join:", " }}</p>

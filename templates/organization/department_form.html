@@ -7,7 +7,7 @@
   {% csrf_token %}
   {% for field in form %}
     <div>
-      <label class="field-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+      <label class="field-label inline-flex items-center" for="{{ field.id_for_label }}">{% include "partials/field_label_info.html" %}</label>
       {{ field }}
     </div>
   {% endfor %}

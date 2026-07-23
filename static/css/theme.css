@@ -523,8 +523,11 @@ aside nav a[class*="bg-blue-50"]::before {
 .dark .field-info-btn { background: #374151; color: #d1d5db; }
 .dark .field-info-btn:hover, .dark .field-info-btn:focus { background: #4b5563; }
 .field-info-popup {
-  position: absolute; left: 50%; top: 100%; transform: translateX(-50%);
-  margin-top: 6px; width: 240px; max-width: 60vw; background: #111827; color: #fff;
+  /* Tugma tagida markazlashtirish o'rniga chapdan boshlab o'ngga o'sadi —
+     shunda ekranning chap chetiga yaqin maydonlarda popup asosiy oyna
+     tashqarisiga (yon panel ustiga) chiqib, kesilib qolmaydi. */
+  position: absolute; left: 0; top: 100%;
+  margin-top: 6px; width: 220px; max-width: calc(100vw - 2.5rem); background: #111827; color: #fff;
   font-size: 11px; font-weight: 400; line-height: 1.4; padding: 8px 10px; border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0,0,0,.25); opacity: 0; pointer-events: none;
   transition: opacity .15s ease; z-index: 60; text-align: left;

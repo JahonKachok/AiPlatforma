@@ -2,6 +2,7 @@
 {% load i18n core_extras project_extras task_extras %}
 {% block title %}{% trans "Dashboard" %}{% endblock %}
 {% block page_title %}{% trans "Dashboard" %}{% endblock %}
+{% block page_help %}{% with text="Barcha loyihalar, vazifalar va bildirishnomalar bo'yicha umumiy ko'rinish — tizimdagi joriy holatni bir qarashda kuzatish uchun." %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
 {% block page_subtitle %}{% blocktrans with name=user.get_short_name %}Welcome back, {{ name }}{% endblocktrans %}{% endblock %}
 {% block content %}
 <div class="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">

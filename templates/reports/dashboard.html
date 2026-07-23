@@ -2,6 +2,7 @@
 {% load i18n core_extras %}
 {% block title %}{% trans "Reports" %}{% endblock %}
 {% block page_title %}{% trans "Reports" %}{% endblock %}
+{% block page_help %}{% with text="Loyihalar, vazifalar, moliya va xodimlar bo'yicha hisobotlarni ko'rish va Excel/CSV formatida eksport qilish uchun." %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
 {% block content %}
 <div class="mb-6 flex flex-wrap gap-2">
   <a href="{% url 'reports:export' 'projects' %}" class="btn btn-secondary btn-sm">{% trans "Export projects" %}</a>

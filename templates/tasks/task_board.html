@@ -2,6 +2,7 @@
 {% load i18n static core_extras task_extras %}
 {% block title %}{% trans "Tasks" %}{% endblock %}
 {% block page_title %}{% trans "Tasks" %}{% endblock %}
+{% block page_help %}{% with text="Vazifalarni holati bo'yicha ustunlarga ajratilgan (kanban) taxta ko'rinishida boshqarish, xodimlarga biriktirish va muddatlarni kuzatish uchun." %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/kanban.css' %}">{% endblock %}
 {% block content %}
 {% include "partials/stat_cards.html" %}

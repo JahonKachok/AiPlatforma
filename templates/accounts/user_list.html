@@ -2,6 +2,7 @@
 {% load i18n core_extras %}
 {% block title %}{% trans "Users" %}{% endblock %}
 {% block page_title %}{% trans "Users" %}{% endblock %}
+{% block page_help %}{% with text="Tizim foydalanuvchilarini (xodimlarni) boshqarish: yangi xodim qo'shish, rollarini o'zgartirish va hisoblarini faollashtirish/o'chirish uchun." %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
 {% block content %}
 <div class="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
   <div class="card p-4"><p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Total" %}</p><p class="text-xl font-semibold">{{ stats.total }}</p></div>

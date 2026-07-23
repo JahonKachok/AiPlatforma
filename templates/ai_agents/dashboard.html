@@ -2,6 +2,7 @@
 {% load i18n %}
 {% block title %}{% trans "AI ecosystem" %}{% endblock %}
 {% block page_title %}🤖 {% trans "AI ecosystem" %}{% endblock %}
+{% block page_help %}{% with text="AI agentlarni sozlash, jadval bo'yicha avtomatik ishga tushirish va ularning bajargan ishlari tarixini (audit log) kuzatish uchun bo'lim." %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
 {% block page_subtitle %}{% trans "Agents, schedules and audit log" %}{% endblock %}
 {% block content %}
 

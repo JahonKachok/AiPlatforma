@@ -2,6 +2,7 @@
 {% load i18n core_extras document_extras %}
 {% block title %}{% trans "Approvals" %}{% endblock %}
 {% block page_title %}{% trans "Approvals" %}{% endblock %}
+{% block page_help %}{% with text="Sizga tekshirish uchun yuborilgan hujjatlarni ko'rib chiqish, tasdiqlash yoki rad etish uchun bo'lim." %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
 {% block content %}
 {% include "partials/stat_cards.html" %}
 <div class="mb-4 flex gap-2">

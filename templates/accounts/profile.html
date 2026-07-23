@@ -2,6 +2,7 @@
 {% load i18n core_extras %}
 {% block title %}{% trans "Settings" %}{% endblock %}
 {% block page_title %}{% trans "Settings" %}{% endblock %}
+{% block page_help %}{% with text="Profilingizni, xavfsizlik (parol, 2FA) sozlamalarini va bildirishnoma kanallarini boshqarish uchun bo'lim." %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
 {% block page_subtitle %}{% trans "Manage your profile, security and notifications" %}{% endblock %}
 {% block content %}
 <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">

@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import User
 from apps.core.forms import StyledFormMixin
@@ -16,26 +17,26 @@ class DocumentTemplateForm(StyledFormMixin, forms.ModelForm):
             "content": forms.Textarea(attrs={"rows": 12, "class": "font-mono"}),
         }
         help_texts = {
-            "name": "Shablon nomi — hujjat yaratishda ro'yxatda shu nom bilan ko'rinadi.",
-            "template_type": "Shablon qaysi hujjat turi uchun ekanligi (shartnoma, akt va h.k.).",
-            "description": "Shablon haqida qisqa izoh (ixtiyoriy).",
-            "content": "Hujjat matni. {{client_name}}, {{project_name}}, {{budget}}, {{deadline}} kabi "
-                       "{{placeholder}} tokenlari hujjat generatsiya qilinganda haqiqiy qiymatlarga almashtiriladi.",
+            "name": _("The template's name — shown under this name in the list when creating a document."),
+            "template_type": _("Which document type the template is for (contract, act, etc.)."),
+            "description": _("A short description of the template (optional)."),
+            "content": _("The document text. {{placeholder}} tokens such as {{client_name}}, {{project_name}}, "
+                        "{{budget}}, {{deadline}} are replaced with real values when the document is generated."),
         }
 
 
 class TemplateGenerateForm(StyledFormMixin, forms.Form):
     project = forms.ModelChoiceField(
         queryset=Project.objects.none(),
-        help_text="Hujjat qaysi loyiha uchun generatsiya qilinishi — {{placeholder}} tokenlari shu loyiha ma'lumotlari bilan to'ldiriladi.",
+        help_text=_("Which project the document is generated for — {{placeholder}} tokens are filled with this project's data."),
     )
     employee = forms.ModelChoiceField(
         queryset=User.objects.filter(is_active=True), required=False,
-        help_text="Hujjatda xodim ma'lumoti kerak bo'lsa (masalan shartnoma), shu yerdan tanlanadi (ixtiyoriy).",
+        help_text=_("If the document needs employee info (e.g. a contract), select it here (optional)."),
     )
     save_as_document = forms.BooleanField(
         required=False, initial=True,
-        help_text="Belgilansa, generatsiya qilingan hujjat loyihaning 'Hujjatlar' bo'limiga ham saqlanadi.",
+        help_text=_("If checked, the generated document is also saved to the project's 'Documents' section."),
     )
 
     def __init__(self, *args, projects=None, **kwargs):

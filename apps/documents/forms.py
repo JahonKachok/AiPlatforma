@@ -1,5 +1,6 @@
 from django import forms
 from django.forms import formset_factory
+from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import User
 from apps.core.forms import StyledFormMixin
@@ -13,13 +14,13 @@ class DocumentUploadForm(StyledFormMixin, forms.ModelForm):
         fields = ["name", "doc_type", "project", "section", "version", "deadline", "file"]
         widgets = {"deadline": forms.DateInput(attrs={"type": "date"})}
         help_texts = {
-            "name": "Hujjatning nomi — ro'yxatda shu nom bilan ko'rinadi.",
-            "doc_type": "Hujjat turi (chizma, smeta, shartnoma va h.k.).",
-            "project": "Hujjat qaysi loyihaga tegishli ekanligi.",
-            "section": "Loyiha ichidagi qaysi bo'limga (section) tegishli ekanligi (ixtiyoriy).",
-            "version": "Hujjat versiyasi, masalan: v1, v2.1 (ixtiyoriy).",
-            "deadline": "Hujjat bo'yicha muddat bo'lsa, shu yerda ko'rsatiladi (ixtiyoriy).",
-            "file": "Yuklanadigan fayl (maksimal hajm — 50MB).",
+            "name": _("The document's name — shown under this name in lists."),
+            "doc_type": _("The document type (drawing, estimate, contract, etc.)."),
+            "project": _("Which project the document belongs to."),
+            "section": _("Which section within the project it belongs to (optional)."),
+            "version": _("The document version, e.g. v1, v2.1 (optional)."),
+            "deadline": _("The deadline for the document, if any (optional)."),
+            "file": _("The file to upload (maximum size — 50MB)."),
         }
 
     def __init__(self, *args, project=None, **kwargs):
@@ -31,21 +32,21 @@ class DocumentUploadForm(StyledFormMixin, forms.ModelForm):
 
 class DocumentVersionForm(StyledFormMixin, forms.Form):
     file = forms.FileField(
-        label="File", help_text="Hujjatning yangi versiyasi uchun faylni yuklang.",
+        label="File", help_text=_("Upload the file for the document's new version."),
     )
     notes = forms.CharField(
         required=False, widget=forms.Textarea(attrs={"rows": 2}),
-        help_text="Bu versiyada nima o'zgarganini qisqa yozib qo'ying (ixtiyoriy).",
+        help_text=_("Briefly note what changed in this version (optional)."),
     )
 
 
 class ApprovalStageAssignForm(StyledFormMixin, forms.Form):
     stage_name = forms.CharField(
-        max_length=100, help_text="Tasdiqlash bosqichining nomi (masalan: 'Bosh muhandis tekshiruvi').",
+        max_length=100, help_text=_("The approval stage's name (e.g. 'Chief engineer review')."),
     )
     reviewer = forms.ModelChoiceField(
         queryset=User.objects.filter(is_active=True),
-        help_text="Shu bosqichda hujjatni ko'rib chiqadigan xodim.",
+        help_text=_("The employee who reviews the document at this stage."),
     )
 
 
@@ -55,8 +56,8 @@ ApprovalStageFormSet = formset_factory(ApprovalStageAssignForm, extra=1, can_del
 class ApprovalReviewForm(StyledFormMixin, forms.Form):
     status = forms.ChoiceField(choices=[
         ("approved", "Approve"), ("rejected", "Reject"), ("revision", "Needs revision"),
-    ], widget=forms.RadioSelect, help_text="Hujjat bo'yicha qaroringiz: tasdiqlash, rad etish yoki qayta ko'rib chiqishga yuborish.")
+    ], widget=forms.RadioSelect, help_text=_("Your decision on the document: approve, reject, or send back for revision."))
     comment = forms.CharField(
         required=False, widget=forms.Textarea(attrs={"rows": 2}),
-        help_text="Qaroringiz sababini yoki izohingizni yozing (ixtiyoriy).",
+        help_text=_("Write the reason for your decision or your comment (optional)."),
     )

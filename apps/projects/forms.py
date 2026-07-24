@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import User
 from apps.core.forms import StyledFormMixin
@@ -10,7 +11,7 @@ class ProjectForm(StyledFormMixin, forms.ModelForm):
     gip = forms.ModelChoiceField(
         queryset=User.objects.filter(role__in=[User.Role.GIP, User.Role.MANAGER, User.Role.ADMIN]),
         required=False, label="GIP",
-        help_text="Loyihaning bosh inshoot arxitektori (GIP) — loyihaga mas'ul xodim (ixtiyoriy).",
+        help_text=_("The project's chief architect (GIP) — the employee responsible for the project (optional)."),
     )
 
     class Meta:
@@ -25,17 +26,17 @@ class ProjectForm(StyledFormMixin, forms.ModelForm):
             "description": forms.Textarea(attrs={"rows": 3}),
         }
         help_texts = {
-            "name": "Loyihaning nomi — ro'yxatda va hisobotlarda shu nom bilan ko'rinadi.",
-            "description": "Loyiha haqida qisqa tavsif (ixtiyoriy).",
-            "client_name": "Buyurtmachi (mijoz) tashkilot yoki shaxsning nomi.",
-            "client_contact": "Buyurtmachining aloqa ma'lumoti — telefon yoki email.",
-            "address": "Loyiha (qurilish) manzili.",
-            "stage": "Loyihaning joriy bosqichi (masalan: loyihalash, qurilish).",
-            "status": "Loyihaning holati (faol, to'xtatilgan, yakunlangan va h.k.).",
-            "start_date": "Loyiha boshlangan sana.",
-            "deadline": "Loyihani yakunlash uchun belgilangan muddat.",
-            "budget": "Loyihaning umumiy byudjeti (summa).",
-            "paid_amount": "Hozirgacha to'langan summa — byudjetdan qancha qismi to'langanini ko'rsatadi.",
+            "name": _("The project's name — shown under this name in lists and reports."),
+            "description": _("A short description of the project (optional)."),
+            "client_name": _("The name of the client organization or person."),
+            "client_contact": _("The client's contact info — phone or email."),
+            "address": _("The project's (construction) address."),
+            "stage": _("The project's current stage (e.g. design, construction)."),
+            "status": _("The project's status (active, on hold, completed, etc.)."),
+            "start_date": _("The date the project started."),
+            "deadline": _("The deadline set for completing the project."),
+            "budget": _("The project's total budget (amount)."),
+            "paid_amount": _("The amount paid so far — shows what share of the budget has been paid."),
         }
 
     def __init__(self, *args, **kwargs):
@@ -59,10 +60,10 @@ class ProjectMemberForm(StyledFormMixin, forms.ModelForm):
         fields = ["user", "role_in_project", "can_edit", "expires_at"]
         widgets = {"expires_at": forms.DateTimeInput(attrs={"type": "datetime-local"})}
         help_texts = {
-            "user": "Loyihaga qo'shilayotgan xodim.",
-            "role_in_project": "Xodimning loyihadagi roli (masalan: GIP, muhandis).",
-            "can_edit": "Belgilansa, xodim loyiha ma'lumotlarini tahrirlashi mumkin.",
-            "expires_at": "Xodimning loyihaga kirish huquqi tugaydigan sana (ixtiyoriy).",
+            "user": _("The employee being added to the project."),
+            "role_in_project": _("The employee's role in the project (e.g. GIP, engineer)."),
+            "can_edit": _("If checked, the employee can edit the project's data."),
+            "expires_at": _("The date the employee's access to the project expires (optional)."),
         }
 
 
@@ -71,10 +72,10 @@ class SubObjectForm(StyledFormMixin, forms.ModelForm):
         model = SubObject
         fields = ["name", "address", "gip", "status"]
         help_texts = {
-            "name": "Sub-obyekt nomi.",
-            "address": "Sub-obyektning manzili (ixtiyoriy).",
-            "gip": "Sub-obyektga mas'ul bosh inshoot arxitektori (GIP) (ixtiyoriy).",
-            "status": "Sub-obyektning joriy holati.",
+            "name": _("The sub-object's name."),
+            "address": _("The sub-object's address (optional)."),
+            "gip": _("The chief architect (GIP) responsible for the sub-object (optional)."),
+            "status": _("The sub-object's current status."),
         }
 
 
@@ -83,11 +84,11 @@ class SectionForm(StyledFormMixin, forms.ModelForm):
         model = Section
         fields = ["sub_object", "code", "name", "gip", "status"]
         help_texts = {
-            "sub_object": "Bo'lim qaysi sub-obyektga tegishli ekanligi.",
-            "code": "Bo'lim uchun qisqa kod.",
-            "name": "Bo'limning nomi.",
-            "gip": "Bo'limga mas'ul bosh inshoot arxitektori (GIP) (ixtiyoriy).",
-            "status": "Bo'limning joriy holati.",
+            "sub_object": _("Which sub-object this section belongs to."),
+            "code": _("A short code for the section."),
+            "name": _("The section's name."),
+            "gip": _("The chief architect (GIP) responsible for the section (optional)."),
+            "status": _("The section's current status."),
         }
 
     def __init__(self, *args, project=None, **kwargs):

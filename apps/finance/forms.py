@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.forms import StyledFormMixin
 
@@ -11,13 +12,13 @@ class FinancialRecordForm(StyledFormMixin, forms.ModelForm):
         fields = ["type", "amount", "currency", "description", "category", "date", "status"]
         widgets = {"date": forms.DateInput(attrs={"type": "date"})}
         help_texts = {
-            "type": "Yozuv turi — kirim (to'lov) yoki chiqim (xarajat).",
-            "amount": "Summa miqdori.",
-            "currency": "Summaning valyutasi.",
-            "description": "Yozuv haqida qisqa izoh (ixtiyoriy).",
-            "category": "Xarajat/kirim toifasi (ixtiyoriy).",
-            "date": "Operatsiya sanasi.",
-            "status": "Yozuvning holati (masalan: kutilmoqda, tasdiqlangan).",
+            "type": _("The record type — income (payment) or expense."),
+            "amount": _("The amount."),
+            "currency": _("The amount's currency."),
+            "description": _("A short description of the record (optional)."),
+            "category": _("The expense/income category (optional)."),
+            "date": _("The date of the transaction."),
+            "status": _("The record's status (e.g. pending, confirmed)."),
         }
 
 
@@ -31,14 +32,14 @@ class ContractForm(StyledFormMixin, forms.ModelForm):
             "notes": forms.Textarea(attrs={"rows": 2}),
         }
         help_texts = {
-            "client_name": "Shartnoma tuzilgan mijoz/tashkilot nomi.",
-            "contract_number": "Shartnomaning raqami (noyob identifikator).",
-            "amount": "Shartnoma summasi.",
-            "signed_date": "Shartnoma imzolangan sana.",
-            "deadline": "Shartnoma bo'yicha bajarish muddati.",
-            "status": "Shartnomaning joriy holati.",
-            "file": "Shartnoma faylini yuklash (ixtiyoriy).",
-            "notes": "Qo'shimcha izohlar (ixtiyoriy).",
+            "client_name": _("The name of the client/organization the contract is with."),
+            "contract_number": _("The contract number (a unique identifier)."),
+            "amount": _("The contract amount."),
+            "signed_date": _("The date the contract was signed."),
+            "deadline": _("The contract's deadline."),
+            "status": _("The contract's current status."),
+            "file": _("Upload the contract file (optional)."),
+            "notes": _("Additional notes (optional)."),
         }
 
 
@@ -48,11 +49,11 @@ class EmployeeContractForm(StyledFormMixin, forms.ModelForm):
         fields = ["user", "project", "amount", "advance", "paid", "status", "notes"]
         widgets = {"notes": forms.Textarea(attrs={"rows": 2})}
         help_texts = {
-            "user": "Shartnoma tuzilgan xodim.",
-            "project": "Xodim ishlaydigan loyiha.",
-            "amount": "Shartnoma bo'yicha umumiy summa.",
-            "advance": "Xodimga berilgan avans summasi.",
-            "paid": "Hozirgacha to'langan summa.",
-            "status": "Shartnomaning joriy holati.",
-            "notes": "Qo'shimcha izohlar (ixtiyoriy).",
+            "user": _("The employee the contract is with."),
+            "project": _("The project the employee works on."),
+            "amount": _("The total amount under the contract."),
+            "advance": _("The advance amount given to the employee."),
+            "paid": _("The amount paid so far."),
+            "status": _("The contract's current status."),
+            "notes": _("Additional notes (optional)."),
         }

@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.forms import StyledFormMixin
 
@@ -15,11 +16,11 @@ class DepartmentForm(StyledFormMixin, forms.ModelForm):
             "description": forms.Textarea(attrs={"rows": 2, "placeholder": "Tavsif (ixtiyoriy)"}),
         }
         help_texts = {
-            "name": "Bo'limning nomi — ro'yxatda shu nom bilan ko'rinadi.",
-            "code": "Bo'lim uchun noyob qisqa kod, boshqa bo'limlarda takrorlanmasligi kerak.",
-            "description": "Bo'lim haqida qisqa izoh (ixtiyoriy).",
-            "head": "Shu bo'limga mas'ul rahbar xodim (ixtiyoriy).",
-            "status": "Bo'limning joriy holati: Faol, Nofaol yoki Arxivlangan.",
+            "name": _("The department's name — shown under this name in lists."),
+            "code": _("A unique short code for the department; it must not repeat across other departments."),
+            "description": _("A short description of the department (optional)."),
+            "head": _("The manager responsible for this department (optional)."),
+            "status": _("The department's current status: Active, Inactive, or Archived."),
         }
 
     def __init__(self, *args, **kwargs):
@@ -33,12 +34,12 @@ class OrganizationalUnitForm(StyledFormMixin, forms.ModelForm):
         fields = ["name", "code", "description", "manager", "level", "status"]
         widgets = {"description": forms.Textarea(attrs={"rows": 2})}
         help_texts = {
-            "name": "Bo'linmaning nomi.",
-            "code": "Bo'linma uchun qisqa kod (ixtiyoriy).",
-            "description": "Bo'linma haqida qisqa izoh (ixtiyoriy).",
-            "manager": "Shu bo'linmaga mas'ul menejer (ixtiyoriy).",
-            "level": "Bo'linmaning ierarxik darajasi (raqam).",
-            "status": "Bo'linmaning joriy holati.",
+            "name": _("The unit's name."),
+            "code": _("A short code for the unit (optional)."),
+            "description": _("A short description of the unit (optional)."),
+            "manager": _("The manager responsible for this unit (optional)."),
+            "level": _("The unit's hierarchical level (a number)."),
+            "status": _("The unit's current status."),
         }
 
 
@@ -47,8 +48,8 @@ class DepartmentMemberForm(StyledFormMixin, forms.ModelForm):
         model = DepartmentMember
         fields = ["user", "role_in_unit", "manager", "is_primary"]
         help_texts = {
-            "user": "Bo'linmaga qo'shilayotgan xodim.",
-            "role_in_unit": "Xodimning shu bo'linmadagi lavozimi/roli (erkin matn).",
-            "manager": "Xodimning bevosita rahbari (ixtiyoriy).",
-            "is_primary": "Belgilansa, bu xodimning asosiy (birlamchi) bo'linmasi hisoblanadi.",
+            "user": _("The employee being added to the unit."),
+            "role_in_unit": _("The employee's position/role in this unit (free text)."),
+            "manager": _("The employee's direct manager (optional)."),
+            "is_primary": _("If checked, this is considered the employee's primary unit."),
         }

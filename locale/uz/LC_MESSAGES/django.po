@@ -88,6 +88,9 @@ msgstr "Tasdiqlashlar"
 msgid "Approved"
 msgstr "Tasdiqlangan"
 
+msgid "Archived"
+msgstr "Arxivlangan"
+
 msgid "Are you sure you want to delete \"%(name)s\"?"
 msgstr "\"%(name)s\" ni o'chirishga ishonchingiz komilmi?"
 
@@ -141,6 +144,9 @@ msgstr "Parolni o'zgartirish"
 msgid "Client"
 msgstr "Mijoz"
 
+msgid "Closed"
+msgstr "Yopilgan"
+
 msgid "Code"
 msgstr "Kod"
 
@@ -155,6 +161,9 @@ msgstr "Yakunlangan"
 
 msgid "Concept"
 msgstr "Konsepsiya"
+
+msgid "Confirmed"
+msgstr "Tasdiqlangan"
 
 msgid "Connect"
 msgstr "Ulash"
@@ -182,6 +191,9 @@ msgstr "Zaxira nusxa yaratish"
 
 msgid "Created by"
 msgstr "Yaratuvchi"
+
+msgid "Critical"
+msgstr "Kritik"
 
 msgid "Dashboard"
 msgstr "Boshqaruv paneli"
@@ -254,6 +266,9 @@ msgstr "Hujjatlar"
 
 msgid "Documents approved"
 msgstr "Tasdiqlangan hujjatlar"
+
+msgid "Draft"
+msgstr "Qoralama"
 
 msgid "Download"
 msgstr "Yuklab olish"
@@ -354,6 +369,9 @@ msgstr "Generatsiya — %(name)s"
 msgid "Head"
 msgstr "Rahbar"
 
+msgid "High"
+msgstr "Yuqori"
+
 msgid "History"
 msgstr "Tarix"
 
@@ -365,6 +383,12 @@ msgstr "IP manzil"
 
 msgid "In progress"
 msgstr "Jarayonda"
+
+msgid "In review"
+msgstr "Ko'rib chiqilmoqda"
+
+msgid "Inactive"
+msgstr "Faol emas"
 
 msgid "Income"
 msgstr "Daromad"
@@ -387,6 +411,9 @@ msgstr "Chiqish"
 msgid "Login history"
 msgstr "Kirish tarixi"
 
+msgid "Low"
+msgstr "Past"
+
 msgid "Manage your profile, security and notifications"
 msgstr "Profil, xavfsizlik va bildirishnomalarni boshqarish"
 
@@ -398,6 +425,9 @@ msgstr "Barchasini o'qilgan deb belgilash"
 
 msgid "Mark read"
 msgstr "O'qilgan deb belgilash"
+
+msgid "Medium"
+msgstr "O'rta"
 
 msgid "Name"
 msgstr "Nomi"
@@ -513,6 +543,9 @@ msgstr "Hali versiyalar yo'q."
 msgid "Not connected"
 msgstr "Ulanmagan"
 
+msgid "Not started"
+msgstr "Boshlanmagan"
+
 msgid "Nothing here."
 msgstr "Bu yerda hech narsa yo'q."
 
@@ -602,6 +635,9 @@ msgstr "Hisobotlar"
 
 msgid "Requests"
 msgstr "So'rovlar"
+
+msgid "Resolved"
+msgstr "Hal qilingan"
 
 msgid "Review"
 msgstr "Ko'rib chiqish"
@@ -704,6 +740,9 @@ msgstr "Jamoa"
 
 msgid "Templates"
 msgstr "Shablonlar"
+
+msgid "Terminated"
+msgstr "Tugatilgan"
 
 msgid "Toggle dark mode"
 msgstr "Tungi rejimni almashtirish"
@@ -935,3 +974,369 @@ msgstr "Obyektlar va bo'limlar"
 
 msgid "Connect Telegram"
 msgstr "Telegram'ni ulash"
+
+msgid "Task assigned"
+msgstr "Vazifa tayinlandi"
+
+msgid "Deadline approaching"
+msgstr "Muddat yaqinlashmoqda"
+
+msgid "Approval required"
+msgstr "Tasdiqlash talab qilinadi"
+
+msgid "New comment"
+msgstr "Yangi izoh"
+
+msgid "Finance update"
+msgstr "Moliyaviy yangilanish"
+
+msgid "Document uploaded"
+msgstr "Hujjat yuklandi"
+
+msgid "System notices"
+msgstr "Tizim xabarnomalari"
+
+msgid "Your current password used to sign in to your account."
+msgstr "Hisobingizga kirish uchun ishlatadigan joriy parolingiz."
+
+msgid "The new password must be at least 8 characters long and cannot be entirely numeric."
+msgstr "Yangi parol kamida 8 belgidan iborat bo'lishi va faqat raqamlardan tashkil topmasligi kerak."
+
+msgid "Enter the new password again to avoid mistakes."
+msgstr "Xatolikka yo'l qo'ymaslik uchun yangi parolni qayta kiriting."
+
+msgid "The email address you registered with."
+msgstr "Ro'yxatdan o'tishda ko'rsatgan email manzilingiz."
+
+msgid "The password set for your account."
+msgstr "Hisobingiz uchun belgilangan parol."
+
+msgid "6-digit code"
+msgstr "6 xonali kod"
+
+msgid "The 6-digit code shown in your authenticator app (Google Authenticator, etc.)."
+msgstr "Autentifikator ilovangizda (Google Authenticator va h.k.) ko'rsatilayotgan 6 xonali kod."
+
+msgid "The email address used to sign in — this is used as your login."
+msgstr "Tizimga kirish uchun ishlatiladigan email manzil — login sifatida shu ishlatiladi."
+
+msgid "Your full name, shown to other employees under this name."
+msgstr "Ism va familiyangiz, boshqa xodimlarga shu nom bilan ko'rinadi."
+
+msgid "Your role in the system — permissions and visible sections are set based on this."
+msgstr "Tizimdagi rolingiz — huquqlar va ko'rinadigan bo'limlar shu bo'yicha belgilanadi."
+
+msgid "The name of the department you work in (free text)."
+msgstr "Ishlaydigan bo'limingiz nomi (erkin matn)."
+
+msgid "A contact phone number, e.g. +998901234567."
+msgstr "Aloqa uchun telefon raqam, masalan: +998901234567."
+
+msgid "Profile picture — a square image looks best."
+msgstr "Profil rasmi — kvadrat shakldagi rasm eng yaxshi ko'rinadi."
+
+msgid "The new employee's email address, used as their login."
+msgstr "Yangi xodimning login sifatida ishlatiladigan email manzili."
+
+msgid "The employee's full name."
+msgstr "Xodimning to'liq ismi."
+
+msgid "The employee's role in the system — permissions are set based on this."
+msgstr "Xodimning tizimdagi roli — huquqlar shu bo'yicha belgilanadi."
+
+msgid "The name of the department the employee works in (free text)."
+msgstr "Xodim ishlaydigan bo'lim nomi (erkin matn)."
+
+msgid "If unchecked, the employee cannot sign in (the account is blocked, but its data is kept)."
+msgstr "O'chirilsa, xodim tizimga kira olmaydi (hisob bloklanadi, lekin ma'lumotlari saqlanib qoladi)."
+
+msgid "The document's name — shown under this name in lists."
+msgstr "Hujjatning nomi — ro'yxatda shu nom bilan ko'rinadi."
+
+msgid "The document type (drawing, estimate, contract, etc.)."
+msgstr "Hujjat turi (chizma, smeta, shartnoma va h.k.)."
+
+msgid "Which project the document belongs to."
+msgstr "Hujjat qaysi loyihaga tegishli ekanligi."
+
+msgid "Which section within the project it belongs to (optional)."
+msgstr "Loyiha ichidagi qaysi bo'limga (section) tegishli ekanligi (ixtiyoriy)."
+
+msgid "The document version, e.g. v1, v2.1 (optional)."
+msgstr "Hujjat versiyasi, masalan: v1, v2.1 (ixtiyoriy)."
+
+msgid "The deadline for the document, if any (optional)."
+msgstr "Hujjat bo'yicha muddat bo'lsa, shu yerda ko'rsatiladi (ixtiyoriy)."
+
+msgid "The file to upload (maximum size — 50MB)."
+msgstr "Yuklanadigan fayl (maksimal hajm — 50MB)."
+
+msgid "Upload the file for the document's new version."
+msgstr "Hujjatning yangi versiyasi uchun faylni yuklang."
+
+msgid "Briefly note what changed in this version (optional)."
+msgstr "Bu versiyada nima o'zgarganini qisqa yozib qo'ying (ixtiyoriy)."
+
+msgid "The approval stage's name (e.g. 'Chief engineer review')."
+msgstr "Tasdiqlash bosqichining nomi (masalan: 'Bosh muhandis tekshiruvi')."
+
+msgid "The employee who reviews the document at this stage."
+msgstr "Shu bosqichda hujjatni ko'rib chiqadigan xodim."
+
+msgid "Your decision on the document: approve, reject, or send back for revision."
+msgstr "Hujjat bo'yicha qaroringiz: tasdiqlash, rad etish yoki qayta ko'rib chiqishga yuborish."
+
+msgid "Write the reason for your decision or your comment (optional)."
+msgstr "Qaroringiz sababini yoki izohingizni yozing (ixtiyoriy)."
+
+msgid "The template's name — shown under this name in the list when creating a document."
+msgstr "Shablon nomi — hujjat yaratishda ro'yxatda shu nom bilan ko'rinadi."
+
+msgid "Which document type the template is for (contract, act, etc.)."
+msgstr "Shablon qaysi hujjat turi uchun ekanligi (shartnoma, akt va h.k.)."
+
+msgid "A short description of the template (optional)."
+msgstr "Shablon haqida qisqa izoh (ixtiyoriy)."
+
+msgid "The document text. {{placeholder}} tokens such as {{client_name}}, {{project_name}}, {{budget}}, {{deadline}} are replaced with real values when the document is generated."
+msgstr "Hujjat matni. {{client_name}}, {{project_name}}, {{budget}}, {{deadline}} kabi {{placeholder}} tokenlari hujjat generatsiya qilinganda haqiqiy qiymatlarga almashtiriladi."
+
+msgid "Which project the document is generated for — {{placeholder}} tokens are filled with this project's data."
+msgstr "Hujjat qaysi loyiha uchun generatsiya qilinishi — {{placeholder}} tokenlari shu loyiha ma'lumotlari bilan to'ldiriladi."
+
+msgid "If the document needs employee info (e.g. a contract), select it here (optional)."
+msgstr "Hujjatda xodim ma'lumoti kerak bo'lsa (masalan shartnoma), shu yerdan tanlanadi (ixtiyoriy)."
+
+msgid "If checked, the generated document is also saved to the project's 'Documents' section."
+msgstr "Belgilansa, generatsiya qilingan hujjat loyihaning 'Hujjatlar' bo'limiga ham saqlanadi."
+
+msgid "The record type — income (payment) or expense."
+msgstr "Yozuv turi — kirim (to'lov) yoki chiqim (xarajat)."
+
+msgid "The amount."
+msgstr "Summa miqdori."
+
+msgid "The amount's currency."
+msgstr "Summaning valyutasi."
+
+msgid "A short description of the record (optional)."
+msgstr "Yozuv haqida qisqa izoh (ixtiyoriy)."
+
+msgid "The expense/income category (optional)."
+msgstr "Xarajat/kirim toifasi (ixtiyoriy)."
+
+msgid "The date of the transaction."
+msgstr "Operatsiya sanasi."
+
+msgid "The record's status (e.g. pending, confirmed)."
+msgstr "Yozuvning holati (masalan: kutilmoqda, tasdiqlangan)."
+
+msgid "The name of the client/organization the contract is with."
+msgstr "Shartnoma tuzilgan mijoz/tashkilot nomi."
+
+msgid "The contract number (a unique identifier)."
+msgstr "Shartnomaning raqami (noyob identifikator)."
+
+msgid "The contract amount."
+msgstr "Shartnoma summasi."
+
+msgid "The date the contract was signed."
+msgstr "Shartnoma imzolangan sana."
+
+msgid "The contract's deadline."
+msgstr "Shartnoma bo'yicha bajarish muddati."
+
+msgid "The contract's current status."
+msgstr "Shartnomaning joriy holati."
+
+msgid "Upload the contract file (optional)."
+msgstr "Shartnoma faylini yuklash (ixtiyoriy)."
+
+msgid "Additional notes (optional)."
+msgstr "Qo'shimcha izohlar (ixtiyoriy)."
+
+msgid "The employee the contract is with."
+msgstr "Shartnoma tuzilgan xodim."
+
+msgid "The project the employee works on."
+msgstr "Xodim ishlaydigan loyiha."
+
+msgid "The total amount under the contract."
+msgstr "Shartnoma bo'yicha umumiy summa."
+
+msgid "The advance amount given to the employee."
+msgstr "Xodimga berilgan avans summasi."
+
+msgid "The amount paid so far."
+msgstr "Hozirgacha to'langan summa."
+
+msgid "The department's name — shown under this name in lists."
+msgstr "Bo'limning nomi — ro'yxatda shu nom bilan ko'rinadi."
+
+msgid "A unique short code for the department; it must not repeat across other departments."
+msgstr "Bo'lim uchun noyob qisqa kod, boshqa bo'limlarda takrorlanmasligi kerak."
+
+msgid "A short description of the department (optional)."
+msgstr "Bo'lim haqida qisqa izoh (ixtiyoriy)."
+
+msgid "The manager responsible for this department (optional)."
+msgstr "Shu bo'limga mas'ul rahbar xodim (ixtiyoriy)."
+
+msgid "The department's current status: Active, Inactive, or Archived."
+msgstr "Bo'limning joriy holati: Faol, Nofaol yoki Arxivlangan."
+
+msgid "The unit's name."
+msgstr "Bo'linmaning nomi."
+
+msgid "A short code for the unit (optional)."
+msgstr "Bo'linma uchun qisqa kod (ixtiyoriy)."
+
+msgid "A short description of the unit (optional)."
+msgstr "Bo'linma haqida qisqa izoh (ixtiyoriy)."
+
+msgid "The manager responsible for this unit (optional)."
+msgstr "Shu bo'linmaga mas'ul menejer (ixtiyoriy)."
+
+msgid "The unit's hierarchical level (a number)."
+msgstr "Bo'linmaning ierarxik darajasi (raqam)."
+
+msgid "The unit's current status."
+msgstr "Bo'linmaning joriy holati."
+
+msgid "The employee being added to the unit."
+msgstr "Bo'linmaga qo'shilayotgan xodim."
+
+msgid "The employee's position/role in this unit (free text)."
+msgstr "Xodimning shu bo'linmadagi lavozimi/roli (erkin matn)."
+
+msgid "The employee's direct manager (optional)."
+msgstr "Xodimning bevosita rahbari (ixtiyoriy)."
+
+msgid "If checked, this is considered the employee's primary unit."
+msgstr "Belgilansa, bu xodimning asosiy (birlamchi) bo'linmasi hisoblanadi."
+
+msgid "The project's chief architect (GIP) — the employee responsible for the project (optional)."
+msgstr "Loyihaning bosh inshoot arxitektori (GIP) — loyihaga mas'ul xodim (ixtiyoriy)."
+
+msgid "The project's name — shown under this name in lists and reports."
+msgstr "Loyihaning nomi — ro'yxatda va hisobotlarda shu nom bilan ko'rinadi."
+
+msgid "A short description of the project (optional)."
+msgstr "Loyiha haqida qisqa tavsif (ixtiyoriy)."
+
+msgid "The name of the client organization or person."
+msgstr "Buyurtmachi (mijoz) tashkilot yoki shaxsning nomi."
+
+msgid "The client's contact info — phone or email."
+msgstr "Buyurtmachining aloqa ma'lumoti — telefon yoki email."
+
+msgid "The project's (construction) address."
+msgstr "Loyiha (qurilish) manzili."
+
+msgid "The project's current stage (e.g. design, construction)."
+msgstr "Loyihaning joriy bosqichi (masalan: loyihalash, qurilish)."
+
+msgid "The project's status (active, on hold, completed, etc.)."
+msgstr "Loyihaning holati (faol, to'xtatilgan, yakunlangan va h.k.)."
+
+msgid "The date the project started."
+msgstr "Loyiha boshlangan sana."
+
+msgid "The deadline set for completing the project."
+msgstr "Loyihani yakunlash uchun belgilangan muddat."
+
+msgid "The project's total budget (amount)."
+msgstr "Loyihaning umumiy byudjeti (summa)."
+
+msgid "The amount paid so far — shows what share of the budget has been paid."
+msgstr "Hozirgacha to'langan summa — byudjetdan qancha qismi to'langanini ko'rsatadi."
+
+msgid "The employee being added to the project."
+msgstr "Loyihaga qo'shilayotgan xodim."
+
+msgid "The employee's role in the project (e.g. GIP, engineer)."
+msgstr "Xodimning loyihadagi roli (masalan: GIP, muhandis)."
+
+msgid "If checked, the employee can edit the project's data."
+msgstr "Belgilansa, xodim loyiha ma'lumotlarini tahrirlashi mumkin."
+
+msgid "The date the employee's access to the project expires (optional)."
+msgstr "Xodimning loyihaga kirish huquqi tugaydigan sana (ixtiyoriy)."
+
+msgid "The sub-object's name."
+msgstr "Sub-obyekt nomi."
+
+msgid "The sub-object's address (optional)."
+msgstr "Sub-obyektning manzili (ixtiyoriy)."
+
+msgid "The chief architect (GIP) responsible for the sub-object (optional)."
+msgstr "Sub-obyektga mas'ul bosh inshoot arxitektori (GIP) (ixtiyoriy)."
+
+msgid "The sub-object's current status."
+msgstr "Sub-obyektning joriy holati."
+
+msgid "Which sub-object this section belongs to."
+msgstr "Bo'lim qaysi sub-obyektga tegishli ekanligi."
+
+msgid "A short code for the section."
+msgstr "Bo'lim uchun qisqa kod."
+
+msgid "The section's name."
+msgstr "Bo'limning nomi."
+
+msgid "The chief architect (GIP) responsible for the section (optional)."
+msgstr "Bo'limga mas'ul bosh inshoot arxitektori (GIP) (ixtiyoriy)."
+
+msgid "The section's current status."
+msgstr "Bo'limning joriy holati."
+
+msgid "A short, clear title for the request. E.g. \"Change facade color\"."
+msgstr "So'rovning qisqa va aniq nomi. Masalan: \"Fasad rangini o'zgartirish\"."
+
+msgid "Details about the request: what is needed, why, and what result is expected."
+msgstr "So'rov haqida batafsil ma'lumot: nima kerak, nima uchun kerak, qanday natija kutilyapti."
+
+msgid "The request type — Change: modify something existing; Clarification: ask a question; Improvement: suggest an enhancement; Issue: report a bug or defect."
+msgstr "So'rov turi — Change: mavjud narsani o'zgartirish; Clarification: savol/aniqlik so'rash; Improvement: yaxshilash taklifi; Issue: xato yoki nosozlik haqida xabar."
+
+msgid "Which project the request belongs to. Members of the selected project can see this request."
+msgstr "So'rov qaysi loyihaga tegishli. Tanlangan loyiha a'zolari bu so'rovni ko'ra oladi."
+
+msgid "The employee responsible for handling the request. If set, they get an automatic notification."
+msgstr "So'rovni bajarishga mas'ul xodim. Tanlansa, unga avtomatik bildirishnoma yuboriladi."
+
+msgid "The request's current status: Open → In progress → Resolved → Closed."
+msgstr "So'rovning joriy holati: Open (ochiq) → In progress (jarayonda) → Resolved (hal qilindi) → Closed (yopilgan)."
+
+msgid "The request's priority level: Low, Medium, or High."
+msgstr "So'rovning muhimlik darajasi: Low, Medium yoki High."
+
+msgid "Write your comment or reply about the request here."
+msgstr "So'rov bo'yicha izoh yoki javobingizni shu yerga yozing."
+
+msgid "A short, clear title for the task."
+msgstr "Vazifaning qisqa va aniq nomi."
+
+msgid "Details about the task: what needs to be done, what result is expected."
+msgstr "Vazifa haqida batafsil ma'lumot: nima qilish kerak, qanday natija kutilyapti."
+
+msgid "Which project the task belongs to."
+msgstr "Vazifa qaysi loyihaga tegishli ekanligi."
+
+msgid "The employee responsible for completing the task. If set, they get a notification."
+msgstr "Vazifani bajarishga mas'ul xodim. Tanlansa, unga bildirishnoma yuboriladi."
+
+msgid "The task's current status (to do, in progress, done, etc.)."
+msgstr "Vazifaning joriy holati (bajarilishi kerak, jarayonda, bajarildi va h.k.)."
+
+msgid "The task's priority level."
+msgstr "Vazifaning muhimlik darajasi."
+
+msgid "The deadline set for completing the task."
+msgstr "Vazifani bajarish uchun belgilangan muddat."
+
+msgid "Write your comment or question about the task here."
+msgstr "Vazifa bo'yicha izoh yoki savolingizni shu yerga yozing."
+
+msgid "Upload a file related to the task (maximum size — 50MB)."
+msgstr "Vazifaga tegishli faylni yuklash (maksimal hajm — 50MB)."

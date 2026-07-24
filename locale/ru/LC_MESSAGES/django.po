@@ -87,6 +87,9 @@ msgstr "Согласования"
 msgid "Approved"
 msgstr "Утверждено"
 
+msgid "Archived"
+msgstr "В архиве"
+
 msgid "Are you sure you want to delete \"%(name)s\"?"
 msgstr "Вы уверены, что хотите удалить \"%(name)s\"?"
 
@@ -139,6 +142,9 @@ msgstr "Изменить пароль"
 msgid "Client"
 msgstr "Клиент"
 
+msgid "Closed"
+msgstr "Закрыто"
+
 msgid "Code"
 msgstr "Код"
 
@@ -153,6 +159,9 @@ msgstr "Завершено"
 
 msgid "Concept"
 msgstr "Концепция"
+
+msgid "Confirmed"
+msgstr "Подтверждено"
 
 msgid "Connect"
 msgstr "Подключить"
@@ -180,6 +189,9 @@ msgstr "Создать резервную копию"
 
 msgid "Created by"
 msgstr "Создал"
+
+msgid "Critical"
+msgstr "Критический"
 
 msgid "Dashboard"
 msgstr "Панель управления"
@@ -252,6 +264,9 @@ msgstr "Документы"
 
 msgid "Documents approved"
 msgstr "Утверждённые документы"
+
+msgid "Draft"
+msgstr "Черновик"
 
 msgid "Download"
 msgstr "Скачать"
@@ -352,6 +367,9 @@ msgstr "Генерация — %(name)s"
 msgid "Head"
 msgstr "Руководитель"
 
+msgid "High"
+msgstr "Высокий"
+
 msgid "History"
 msgstr "История"
 
@@ -363,6 +381,12 @@ msgstr "IP-адрес"
 
 msgid "In progress"
 msgstr "В процессе"
+
+msgid "In review"
+msgstr "На рассмотрении"
+
+msgid "Inactive"
+msgstr "Неактивен"
 
 msgid "Income"
 msgstr "Доход"
@@ -385,6 +409,9 @@ msgstr "Выйти"
 msgid "Login history"
 msgstr "История входов"
 
+msgid "Low"
+msgstr "Низкий"
+
 msgid "Manage your profile, security and notifications"
 msgstr "Управление профилем, безопасностью и уведомлениями"
 
@@ -396,6 +423,9 @@ msgstr "Отметить всё как прочитанное"
 
 msgid "Mark read"
 msgstr "Отметить прочитанным"
+
+msgid "Medium"
+msgstr "Средний"
 
 msgid "Name"
 msgstr "Название"
@@ -511,6 +541,9 @@ msgstr "Версий пока нет."
 msgid "Not connected"
 msgstr "Не подключено"
 
+msgid "Not started"
+msgstr "Не начато"
+
 msgid "Nothing here."
 msgstr "Здесь пока пусто."
 
@@ -600,6 +633,9 @@ msgstr "Отчёты"
 
 msgid "Requests"
 msgstr "Запросы"
+
+msgid "Resolved"
+msgstr "Решено"
 
 msgid "Review"
 msgstr "Проверка"
@@ -702,6 +738,9 @@ msgstr "Команда"
 
 msgid "Templates"
 msgstr "Шаблоны"
+
+msgid "Terminated"
+msgstr "Расторгнут"
 
 msgid "Toggle dark mode"
 msgstr "Переключить тёмную тему"
@@ -933,3 +972,369 @@ msgstr "Объекты и разделы"
 
 msgid "Connect Telegram"
 msgstr "Подключение Telegram"
+
+msgid "Task assigned"
+msgstr "Задача назначена"
+
+msgid "Deadline approaching"
+msgstr "Приближается срок"
+
+msgid "Approval required"
+msgstr "Требуется согласование"
+
+msgid "New comment"
+msgstr "Новый комментарий"
+
+msgid "Finance update"
+msgstr "Обновление по финансам"
+
+msgid "Document uploaded"
+msgstr "Документ загружен"
+
+msgid "System notices"
+msgstr "Системные уведомления"
+
+msgid "Your current password used to sign in to your account."
+msgstr "Ваш текущий пароль для входа в аккаунт."
+
+msgid "The new password must be at least 8 characters long and cannot be entirely numeric."
+msgstr "Новый пароль должен содержать не менее 8 символов и не может состоять только из цифр."
+
+msgid "Enter the new password again to avoid mistakes."
+msgstr "Введите новый пароль ещё раз, чтобы избежать ошибок."
+
+msgid "The email address you registered with."
+msgstr "Email адрес, указанный при регистрации."
+
+msgid "The password set for your account."
+msgstr "Пароль, установленный для вашего аккаунта."
+
+msgid "6-digit code"
+msgstr "6-значный код"
+
+msgid "The 6-digit code shown in your authenticator app (Google Authenticator, etc.)."
+msgstr "6-значный код, отображаемый в приложении-аутентификаторе (Google Authenticator и т.д.)."
+
+msgid "The email address used to sign in — this is used as your login."
+msgstr "Email адрес для входа в систему — используется как логин."
+
+msgid "Your full name, shown to other employees under this name."
+msgstr "Ваше полное имя, отображается другим сотрудникам под этим именем."
+
+msgid "Your role in the system — permissions and visible sections are set based on this."
+msgstr "Ваша роль в системе — права доступа и видимые разделы определяются на основе этого."
+
+msgid "The name of the department you work in (free text)."
+msgstr "Название отдела, в котором вы работаете (произвольный текст)."
+
+msgid "A contact phone number, e.g. +998901234567."
+msgstr "Контактный номер телефона, например: +998901234567."
+
+msgid "Profile picture — a square image looks best."
+msgstr "Фото профиля — лучше всего смотрится квадратное изображение."
+
+msgid "The new employee's email address, used as their login."
+msgstr "Email адрес нового сотрудника, используется как логин."
+
+msgid "The employee's full name."
+msgstr "Полное имя сотрудника."
+
+msgid "The employee's role in the system — permissions are set based on this."
+msgstr "Роль сотрудника в системе — права доступа определяются на основе этого."
+
+msgid "The name of the department the employee works in (free text)."
+msgstr "Название отдела, в котором работает сотрудник (произвольный текст)."
+
+msgid "If unchecked, the employee cannot sign in (the account is blocked, but its data is kept)."
+msgstr "Если снято, сотрудник не сможет войти в систему (аккаунт блокируется, но данные сохраняются)."
+
+msgid "The document's name — shown under this name in lists."
+msgstr "Название документа — отображается под этим названием в списках."
+
+msgid "The document type (drawing, estimate, contract, etc.)."
+msgstr "Тип документа (чертёж, смета, договор и т.д.)."
+
+msgid "Which project the document belongs to."
+msgstr "К какому проекту относится документ."
+
+msgid "Which section within the project it belongs to (optional)."
+msgstr "К какому разделу внутри проекта он относится (необязательно)."
+
+msgid "The document version, e.g. v1, v2.1 (optional)."
+msgstr "Версия документа, например: v1, v2.1 (необязательно)."
+
+msgid "The deadline for the document, if any (optional)."
+msgstr "Срок по документу, если есть (необязательно)."
+
+msgid "The file to upload (maximum size — 50MB)."
+msgstr "Загружаемый файл (максимальный размер — 50МБ)."
+
+msgid "Upload the file for the document's new version."
+msgstr "Загрузите файл для новой версии документа."
+
+msgid "Briefly note what changed in this version (optional)."
+msgstr "Кратко опишите, что изменилось в этой версии (необязательно)."
+
+msgid "The approval stage's name (e.g. 'Chief engineer review')."
+msgstr "Название этапа согласования (например: 'Проверка главного инженера')."
+
+msgid "The employee who reviews the document at this stage."
+msgstr "Сотрудник, проверяющий документ на этом этапе."
+
+msgid "Your decision on the document: approve, reject, or send back for revision."
+msgstr "Ваше решение по документу: утвердить, отклонить или отправить на доработку."
+
+msgid "Write the reason for your decision or your comment (optional)."
+msgstr "Укажите причину решения или ваш комментарий (необязательно)."
+
+msgid "The template's name — shown under this name in the list when creating a document."
+msgstr "Название шаблона — отображается под этим названием в списке при создании документа."
+
+msgid "Which document type the template is for (contract, act, etc.)."
+msgstr "Для какого типа документа предназначен шаблон (договор, акт и т.д.)."
+
+msgid "A short description of the template (optional)."
+msgstr "Краткое описание шаблона (необязательно)."
+
+msgid "The document text. {{placeholder}} tokens such as {{client_name}}, {{project_name}}, {{budget}}, {{deadline}} are replaced with real values when the document is generated."
+msgstr "Текст документа. Токены {{placeholder}}, такие как {{client_name}}, {{project_name}}, {{budget}}, {{deadline}}, заменяются реальными значениями при генерации документа."
+
+msgid "Which project the document is generated for — {{placeholder}} tokens are filled with this project's data."
+msgstr "Для какого проекта генерируется документ — токены {{placeholder}} заполняются данными этого проекта."
+
+msgid "If the document needs employee info (e.g. a contract), select it here (optional)."
+msgstr "Если документу нужна информация о сотруднике (например, договор), выберите его здесь (необязательно)."
+
+msgid "If checked, the generated document is also saved to the project's 'Documents' section."
+msgstr "Если отмечено, сгенерированный документ также сохраняется в раздел 'Документы' проекта."
+
+msgid "The record type — income (payment) or expense."
+msgstr "Тип записи — приход (оплата) или расход."
+
+msgid "The amount."
+msgstr "Сумма."
+
+msgid "The amount's currency."
+msgstr "Валюта суммы."
+
+msgid "A short description of the record (optional)."
+msgstr "Краткое описание записи (необязательно)."
+
+msgid "The expense/income category (optional)."
+msgstr "Категория расхода/прихода (необязательно)."
+
+msgid "The date of the transaction."
+msgstr "Дата операции."
+
+msgid "The record's status (e.g. pending, confirmed)."
+msgstr "Статус записи (например: в ожидании, подтверждено)."
+
+msgid "The name of the client/organization the contract is with."
+msgstr "Название клиента/организации, с которой заключён договор."
+
+msgid "The contract number (a unique identifier)."
+msgstr "Номер договора (уникальный идентификатор)."
+
+msgid "The contract amount."
+msgstr "Сумма договора."
+
+msgid "The date the contract was signed."
+msgstr "Дата подписания договора."
+
+msgid "The contract's deadline."
+msgstr "Срок исполнения договора."
+
+msgid "The contract's current status."
+msgstr "Текущий статус договора."
+
+msgid "Upload the contract file (optional)."
+msgstr "Загрузите файл договора (необязательно)."
+
+msgid "Additional notes (optional)."
+msgstr "Дополнительные заметки (необязательно)."
+
+msgid "The employee the contract is with."
+msgstr "Сотрудник, с которым заключён договор."
+
+msgid "The project the employee works on."
+msgstr "Проект, над которым работает сотрудник."
+
+msgid "The total amount under the contract."
+msgstr "Общая сумма по договору."
+
+msgid "The advance amount given to the employee."
+msgstr "Сумма аванса, выданная сотруднику."
+
+msgid "The amount paid so far."
+msgstr "Сумма, выплаченная на данный момент."
+
+msgid "The department's name — shown under this name in lists."
+msgstr "Название отдела — отображается под этим названием в списках."
+
+msgid "A unique short code for the department; it must not repeat across other departments."
+msgstr "Уникальный короткий код отдела; не должен повторяться в других отделах."
+
+msgid "A short description of the department (optional)."
+msgstr "Краткое описание отдела (необязательно)."
+
+msgid "The manager responsible for this department (optional)."
+msgstr "Руководитель, ответственный за этот отдел (необязательно)."
+
+msgid "The department's current status: Active, Inactive, or Archived."
+msgstr "Текущий статус отдела: Активен, Неактивен или В архиве."
+
+msgid "The unit's name."
+msgstr "Название подразделения."
+
+msgid "A short code for the unit (optional)."
+msgstr "Короткий код подразделения (необязательно)."
+
+msgid "A short description of the unit (optional)."
+msgstr "Краткое описание подразделения (необязательно)."
+
+msgid "The manager responsible for this unit (optional)."
+msgstr "Менеджер, ответственный за это подразделение (необязательно)."
+
+msgid "The unit's hierarchical level (a number)."
+msgstr "Иерархический уровень подразделения (число)."
+
+msgid "The unit's current status."
+msgstr "Текущий статус подразделения."
+
+msgid "The employee being added to the unit."
+msgstr "Сотрудник, добавляемый в подразделение."
+
+msgid "The employee's position/role in this unit (free text)."
+msgstr "Должность/роль сотрудника в этом подразделении (произвольный текст)."
+
+msgid "The employee's direct manager (optional)."
+msgstr "Непосредственный руководитель сотрудника (необязательно)."
+
+msgid "If checked, this is considered the employee's primary unit."
+msgstr "Если отмечено, это подразделение считается основным для сотрудника."
+
+msgid "The project's chief architect (GIP) — the employee responsible for the project (optional)."
+msgstr "Главный инженер проекта (ГИП) — сотрудник, ответственный за проект (необязательно)."
+
+msgid "The project's name — shown under this name in lists and reports."
+msgstr "Название проекта — отображается под этим названием в списках и отчётах."
+
+msgid "A short description of the project (optional)."
+msgstr "Краткое описание проекта (необязательно)."
+
+msgid "The name of the client organization or person."
+msgstr "Название организации-заказчика или имя заказчика."
+
+msgid "The client's contact info — phone or email."
+msgstr "Контактные данные заказчика — телефон или email."
+
+msgid "The project's (construction) address."
+msgstr "Адрес проекта (строительства)."
+
+msgid "The project's current stage (e.g. design, construction)."
+msgstr "Текущий этап проекта (например: проектирование, строительство)."
+
+msgid "The project's status (active, on hold, completed, etc.)."
+msgstr "Статус проекта (активен, приостановлен, завершён и т.д.)."
+
+msgid "The date the project started."
+msgstr "Дата начала проекта."
+
+msgid "The deadline set for completing the project."
+msgstr "Срок, установленный для завершения проекта."
+
+msgid "The project's total budget (amount)."
+msgstr "Общий бюджет проекта (сумма)."
+
+msgid "The amount paid so far — shows what share of the budget has been paid."
+msgstr "Сумма, выплаченная на данный момент — показывает, какая часть бюджета оплачена."
+
+msgid "The employee being added to the project."
+msgstr "Сотрудник, добавляемый в проект."
+
+msgid "The employee's role in the project (e.g. GIP, engineer)."
+msgstr "Роль сотрудника в проекте (например: ГИП, инженер)."
+
+msgid "If checked, the employee can edit the project's data."
+msgstr "Если отмечено, сотрудник может редактировать данные проекта."
+
+msgid "The date the employee's access to the project expires (optional)."
+msgstr "Дата, когда истекает доступ сотрудника к проекту (необязательно)."
+
+msgid "The sub-object's name."
+msgstr "Название суб-объекта."
+
+msgid "The sub-object's address (optional)."
+msgstr "Адрес суб-объекта (необязательно)."
+
+msgid "The chief architect (GIP) responsible for the sub-object (optional)."
+msgstr "Главный инженер (ГИП), ответственный за суб-объект (необязательно)."
+
+msgid "The sub-object's current status."
+msgstr "Текущий статус суб-объекта."
+
+msgid "Which sub-object this section belongs to."
+msgstr "К какому суб-объекту относится раздел."
+
+msgid "A short code for the section."
+msgstr "Короткий код раздела."
+
+msgid "The section's name."
+msgstr "Название раздела."
+
+msgid "The chief architect (GIP) responsible for the section (optional)."
+msgstr "Главный инженер (ГИП), ответственный за раздел (необязательно)."
+
+msgid "The section's current status."
+msgstr "Текущий статус раздела."
+
+msgid "A short, clear title for the request. E.g. \"Change facade color\"."
+msgstr "Краткое и понятное название запроса. Например: \"Изменить цвет фасада\"."
+
+msgid "Details about the request: what is needed, why, and what result is expected."
+msgstr "Подробная информация о запросе: что нужно, зачем и какой результат ожидается."
+
+msgid "The request type — Change: modify something existing; Clarification: ask a question; Improvement: suggest an enhancement; Issue: report a bug or defect."
+msgstr "Тип запроса — Change: изменить что-то существующее; Clarification: задать вопрос/уточнение; Improvement: предложение по улучшению; Issue: сообщение об ошибке или неполадке."
+
+msgid "Which project the request belongs to. Members of the selected project can see this request."
+msgstr "К какому проекту относится запрос. Участники выбранного проекта смогут видеть этот запрос."
+
+msgid "The employee responsible for handling the request. If set, they get an automatic notification."
+msgstr "Сотрудник, ответственный за обработку запроса. Если указан, ему автоматически отправляется уведомление."
+
+msgid "The request's current status: Open → In progress → Resolved → Closed."
+msgstr "Текущий статус запроса: Open (открыт) → In progress (в процессе) → Resolved (решён) → Closed (закрыт)."
+
+msgid "The request's priority level: Low, Medium, or High."
+msgstr "Уровень приоритета запроса: Low, Medium или High."
+
+msgid "Write your comment or reply about the request here."
+msgstr "Напишите здесь комментарий или ответ по запросу."
+
+msgid "A short, clear title for the task."
+msgstr "Краткое и понятное название задачи."
+
+msgid "Details about the task: what needs to be done, what result is expected."
+msgstr "Подробная информация о задаче: что нужно сделать, какой результат ожидается."
+
+msgid "Which project the task belongs to."
+msgstr "К какому проекту относится задача."
+
+msgid "The employee responsible for completing the task. If set, they get a notification."
+msgstr "Сотрудник, ответственный за выполнение задачи. Если указан, ему отправляется уведомление."
+
+msgid "The task's current status (to do, in progress, done, etc.)."
+msgstr "Текущий статус задачи (к выполнению, в процессе, выполнено и т.д.)."
+
+msgid "The task's priority level."
+msgstr "Уровень приоритета задачи."
+
+msgid "The deadline set for completing the task."
+msgstr "Срок, установленный для выполнения задачи."
+
+msgid "Write your comment or question about the task here."
+msgstr "Напишите здесь комментарий или вопрос по задаче."
+
+msgid "Upload a file related to the task (maximum size — 50MB)."
+msgstr "Загрузите файл, относящийся к задаче (максимальный размер — 50МБ)."

@@ -10,26 +10,26 @@ from .models import User
 class StyledPasswordChangeForm(StyledFormMixin, PasswordChangeForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["old_password"].help_text = "Hisobingizga kirish uchun ishlatadigan joriy parolingiz."
+        self.fields["old_password"].help_text = _("Your current password used to sign in to your account.")
         self.fields["new_password1"].help_text = (
-            "Yangi parol kamida 8 belgidan iborat bo'lishi va faqat raqamlardan tashkil topmasligi kerak."
+            _("The new password must be at least 8 characters long and cannot be entirely numeric.")
         )
-        self.fields["new_password2"].help_text = "Xatolikka yo'l qo'ymaslik uchun yangi parolni qayta kiriting."
+        self.fields["new_password2"].help_text = _("Enter the new password again to avoid mistakes.")
 
 
 class EmailLoginForm(StyledFormMixin, forms.Form):
     email = forms.EmailField(
-        label=_("Email"), help_text="Ro'yxatdan o'tishda ko'rsatgan email manzilingiz.",
+        label=_("Email"), help_text=_("The email address you registered with."),
     )
     password = forms.CharField(
-        label=_("Password"), widget=forms.PasswordInput, help_text="Hisobingiz uchun belgilangan parol.",
+        label=_("Password"), widget=forms.PasswordInput, help_text=_("The password set for your account."),
     )
 
 
 class TOTPForm(StyledFormMixin, forms.Form):
     code = forms.CharField(
         label=_("6-digit code"), max_length=6, min_length=6,
-        help_text="Autentifikator ilovangizda (Google Authenticator va h.k.) ko'rsatilayotgan 6 xonali kod.",
+        help_text=_("The 6-digit code shown in your authenticator app (Google Authenticator, etc.)."),
     )
 
 
@@ -43,11 +43,11 @@ class RegisterForm(StyledFormMixin, UserCreationForm):
             ]),
         }
         help_texts = {
-            "email": "Tizimga kirish uchun ishlatiladigan email manzil — login sifatida shu ishlatiladi.",
-            "full_name": "Ism va familiyangiz to'liq holda, boshqa xodimlarga shu nom bilan ko'rinadi.",
-            "role": "Tizimdagi rolingiz — huquqlar va ko'rinadigan bo'limlar shu bo'yicha belgilanadi.",
-            "department": "Ishlaydigan bo'limingiz nomi (erkin matn).",
-            "phone": "Aloqa uchun telefon raqam, masalan: +998901234567.",
+            "email": _("The email address used to sign in — this is used as your login."),
+            "full_name": _("Your full name, shown to other employees under this name."),
+            "role": _("Your role in the system — permissions and visible sections are set based on this."),
+            "department": _("The name of the department you work in (free text)."),
+            "phone": _("A contact phone number, e.g. +998901234567."),
         }
 
     def save(self, commit=True):
@@ -63,10 +63,10 @@ class ProfileForm(StyledFormMixin, forms.ModelForm):
         model = User
         fields = ["full_name", "phone", "department", "avatar"]
         help_texts = {
-            "full_name": "Ism va familiyangiz, boshqa xodimlarga shu nom bilan ko'rinadi.",
-            "phone": "Aloqa uchun telefon raqam, masalan: +998901234567.",
-            "department": "Ishlaydigan bo'limingiz nomi (erkin matn).",
-            "avatar": "Profil rasmi — kvadrat shakldagi rasm eng yaxshi ko'rinadi.",
+            "full_name": _("Your full name, shown to other employees under this name."),
+            "phone": _("A contact phone number, e.g. +998901234567."),
+            "department": _("The name of the department you work in (free text)."),
+            "avatar": _("Profile picture — a square image looks best."),
         }
 
 
@@ -127,11 +127,11 @@ class UserCreateForm(StyledFormMixin, forms.ModelForm):
         model = User
         fields = ["email", "full_name", "role", "department", "phone"]
         help_texts = {
-            "email": "Yangi xodimning login sifatida ishlatiladigan email manzili.",
-            "full_name": "Xodimning to'liq ismi.",
-            "role": "Xodimning tizimdagi roli — huquqlar shu bo'yicha belgilanadi.",
-            "department": "Xodim ishlaydigan bo'lim nomi (erkin matn).",
-            "phone": "Aloqa uchun telefon raqam, masalan: +998901234567.",
+            "email": _("The new employee's email address, used as their login."),
+            "full_name": _("The employee's full name."),
+            "role": _("The employee's role in the system — permissions are set based on this."),
+            "department": _("The name of the department the employee works in (free text)."),
+            "phone": _("A contact phone number, e.g. +998901234567."),
         }
 
     def save(self, commit=True):
@@ -152,9 +152,9 @@ class UserAdminEditForm(StyledFormMixin, forms.ModelForm):
         model = User
         fields = ["full_name", "role", "department", "phone", "is_active"]
         help_texts = {
-            "full_name": "Xodimning to'liq ismi.",
-            "role": "Xodimning tizimdagi roli — huquqlar shu bo'yicha belgilanadi.",
-            "department": "Xodim ishlaydigan bo'lim nomi (erkin matn).",
-            "phone": "Aloqa uchun telefon raqam, masalan: +998901234567.",
-            "is_active": "O'chirilsa, xodim tizimga kira olmaydi (hisob bloklanadi, lekin ma'lumotlari saqlanib qoladi).",
+            "full_name": _("The employee's full name."),
+            "role": _("The employee's role in the system — permissions are set based on this."),
+            "department": _("The name of the department the employee works in (free text)."),
+            "phone": _("A contact phone number, e.g. +998901234567."),
+            "is_active": _("If unchecked, the employee cannot sign in (the account is blocked, but its data is kept)."),
         }

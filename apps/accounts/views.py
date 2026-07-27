@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordChangeView
+from django.db.models import ProtectedError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
@@ -16,6 +17,7 @@ from django.views import View
 from apps.core.permissions import role_required
 
 from .forms import (
+    DisciplineForm,
     EmailLoginForm,
     NotificationPreferenceForm,
     ProfileForm,
@@ -25,7 +27,7 @@ from .forms import (
     UserAdminEditForm,
     UserCreateForm,
 )
-from .models import LoginJournal, User
+from .models import Discipline, LoginJournal, User
 
 MANAGE_ROLES = (User.Role.ADMIN, User.Role.MANAGER)
 
@@ -235,7 +237,7 @@ def login_journal(request):
 
 @login_required
 def user_list(request):
-    users = User.objects.all()
+    users = User.objects.all().prefetch_related("disciplines")
     role = request.GET.get("role")
     if role:
         users = users.filter(role=role)
@@ -288,3 +290,38 @@ def user_update(request, pk):
     else:
         form = UserAdminEditForm(instance=user)
     return render(request, "accounts/user_form.html", {"form": form, "user_obj": user, "is_create": False})
+
+
+@login_required
+def discipline_list(request):
+    can_manage = request.user.is_superuser or request.user.role in MANAGE_ROLES
+    return render(request, "accounts/discipline_list.html", {
+        "disciplines": Discipline.objects.all(),
+        "discipline_form": DisciplineForm(),
+        "can_manage": can_manage,
+    })
+
+
+@role_required(*MANAGE_ROLES)
+def discipline_create(request):
+    if request.method == "POST":
+        form = DisciplineForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _("Discipline created."))
+    return redirect("accounts:discipline_list")
+
+
+@role_required(*MANAGE_ROLES)
+def discipline_delete(request, pk):
+    discipline = get_object_or_404(Discipline, pk=pk)
+    if request.method == "POST":
+        try:
+            discipline.delete()
+            messages.success(request, _("Discipline deleted."))
+        except ProtectedError:
+            messages.error(
+                request,
+                _("This discipline is used by one or more sub-objects and cannot be deleted."),
+            )
+    return redirect("accounts:discipline_list")

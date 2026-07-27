@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Disciplines" %}{% endblock %}
+{% block page_title %}{% trans "Disciplines" %}{% endblock %}
+{% block page_help %}{% with text="Xodimlar va loyiha pastki obyektlariga biriktiriladigan ish sohalari (mutaxassisliklar) ro'yxati." %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
+{% block content %}
+{% if can_manage %}
+<div class="card mb-6 p-4">
+  <h2 class="mb-3 font-semibold">{% trans "New discipline" %}</h2>
+  <form method="post" action="{% url 'accounts:discipline_create' %}" class="flex flex-wrap gap-2">
+    {% csrf_token %}
+    {% for field in discipline_form %}{% include "partials/field_with_info.html" %}{% endfor %}
+    <button type="submit" class="btn btn-primary btn-sm">{% trans "Create" %}</button>
+  </form>
+</div>
+{% endif %}
+
+<div class="card overflow-x-auto p-4">
+  <table class="w-full text-left text-sm">
+    <thead class="text-gray-500 dark:text-gray-400">
+      <tr><th class="py-1">{% trans "Code" %}</th><th>{% trans "Name" %}</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for discipline in disciplines %}
+        <tr class="border-t border-gray-100 dark:border-gray-700">
+          <td class="py-1"><span class="badge badge-info">{{ discipline.code }}</span></td>
+          <td>{{ discipline.name }}</td>
+          <td class="text-right">
+            {% if can_manage %}
+            <form method="post" action="{% url 'accounts:discipline_delete' discipline.pk %}" class="inline" onsubmit="return confirm('{% trans "Delete this discipline?" %}');">
+              {% csrf_token %}
+              <button type="submit" class="text-xs text-red-500 hover:underline">{% trans "Delete" %}</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3" class="py-3 text-center text-gray-500 dark:text-gray-400">{% trans "No disciplines yet." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

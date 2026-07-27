@@ -37,6 +37,12 @@
       </div>
       <p class="text-sm text-gray-500 dark:text-gray-400">{{ u.department|default:"—" }}</p>
       <p class="text-sm text-gray-500 dark:text-gray-400">{{ u.email }}</p>
+      {% if u.disciplines.all or u.discipline_other %}
+      <p class="mt-1 flex flex-wrap gap-1">
+        {% for d in u.disciplines.all %}<span class="badge badge-info">{{ d.name }}</span>{% endfor %}
+        {% if u.discipline_other %}<span class="badge badge-default">{{ u.discipline_other }}</span>{% endif %}
+      </p>
+      {% endif %}
       {% if can_manage %}
         <a href="{% url 'accounts:user_update' u.pk %}" class="mt-2 inline-block text-xs text-blue-600 hover:underline dark:text-blue-400">{% trans "Edit" %}</a>
       {% endif %}

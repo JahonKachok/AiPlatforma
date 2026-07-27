@@ -34,8 +34,8 @@ class SubObjectAdmin(admin.ModelAdmin):
 
 @admin.register(Section)
 class SectionAdmin(admin.ModelAdmin):
-    list_display = ["code", "name", "project", "gip", "status"]
-    list_filter = ["status"]
+    list_display = ["discipline", "name", "project", "gip", "status"]
+    list_filter = ["status", "discipline"]
 
 
 @admin.register(ProjectMember)

@@ -1,17 +1,32 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {% block title %}{% if is_create %}{% trans "New project" %}{% else %}{% trans "Edit project" %}{% endif %}{% endblock %}
 {% block page_title %}{% if is_create %}{% trans "New project" %}{% else %}{% trans "Edit project" %}{% endif %}{% endblock %}
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'vendor/leaflet/leaflet.css' %}">
+  <style>#project-map { height: 320px; }</style>
+{% endblock %}
 {% block content %}
 <form method="post" class="card max-w-3xl space-y-4 p-6">
   {% csrf_token %}
   <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
     {% for field in form %}
+      {% if field.is_hidden %}
+        {{ field }}
+      {% else %}
       <div class="{% if field.name == 'description' %}sm:col-span-2{% endif %}">
         <label class="field-label inline-flex items-center" for="{{ field.id_for_label }}">{% include "partials/field_label_info.html" %}</label>
         {{ field }}
         {% if field.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ field.errors|join:", " }}</p>{% endif %}
       </div>
+      {% endif %}
+      {% if field.name == 'address' %}
+        <div class="sm:col-span-2">
+          <label class="field-label">{% trans "Location on map" %}</label>
+          <p class="mb-1 text-xs text-gray-500 dark:text-gray-400">{% trans "Select the region above, then click the map to pin the exact location." %}</p>
+          <div id="project-map" class="rounded-lg"></div>
+        </div>
+      {% endif %}
     {% endfor %}
   </div>
   <div class="flex gap-3">
@@ -23,4 +38,9 @@
     {% endif %}
   </div>
 </form>
+{% endblock %}
+{% block extra_scripts %}
+  <script src="{% static 'vendor/leaflet/leaflet.js' %}"></script>
+  <script>window.REGION_CENTERS = {{ region_centers_json|safe }};</script>
+  <script src="{% static 'js/project-map.js' %}"></script>
 {% endblock %}

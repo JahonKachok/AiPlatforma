@@ -1340,3 +1340,141 @@ msgstr "Vazifa bo'yicha izoh yoki savolingizni shu yerga yozing."
 
 msgid "Upload a file related to the task (maximum size — 50MB)."
 msgstr "Vazifaga tegishli faylni yuklash (maksimal hajm — 50MB)."
+
+msgid "Disciplines"
+msgstr "Sohalar"
+
+msgid "Other discipline"
+msgstr "Boshqa soha"
+
+msgid "The disciplines (specializations) the employee can work in — select all that apply."
+msgstr "Xodim ishlashi mumkin bo'lgan sohalar (mutaxassisliklar) — tegishlilarini belgilang."
+
+msgid "If the employee's discipline isn't listed above, specify it here (optional)."
+msgstr "Agar xodimning sohasi yuqorida ko'rsatilmagan bo'lsa, shu yerda ko'rsating (ixtiyoriy)."
+
+msgid "Which object this sub-object belongs to."
+msgstr "Ushbu pastki obyekt qaysi obyektga tegishli ekanligi."
+
+msgid "The work discipline (specialization) this sub-object covers."
+msgstr "Ushbu pastki obyekt qamrab oladigan ish sohasi (mutaxassislik)."
+
+msgid "The object's name."
+msgstr "Obyektning nomi."
+
+msgid "The object's address (optional)."
+msgstr "Obyektning manzili (ixtiyoriy)."
+
+msgid "The chief architect (GIP) responsible for the object (optional)."
+msgstr "Obyektga mas'ul bosh inshoot arxitektori (GIP) (ixtiyoriy)."
+
+msgid "The object's current status."
+msgstr "Obyektning joriy holati."
+
+msgid "Objects & sub-objects"
+msgstr "Obyektlar va pastki obyektlar"
+
+msgid "Objects"
+msgstr "Obyektlar"
+
+msgid "No objects yet."
+msgstr "Hali obyektlar yo'q."
+
+msgid "Sub-objects without an object"
+msgstr "Obyektsiz pastki obyektlar"
+
+msgid "None."
+msgstr "Yo'q."
+
+msgid "Region"
+msgstr "Viloyat"
+
+msgid "District"
+msgstr "Tuman"
+
+msgid "Tashkent city"
+msgstr "Toshkent shahri"
+
+msgid "Tashkent region"
+msgstr "Toshkent viloyati"
+
+msgid "Andijan region"
+msgstr "Andijon viloyati"
+
+msgid "Fergana region"
+msgstr "Farg'ona viloyati"
+
+msgid "Namangan region"
+msgstr "Namangan viloyati"
+
+msgid "Sirdaryo region"
+msgstr "Sirdaryo viloyati"
+
+msgid "Jizzakh region"
+msgstr "Jizzax viloyati"
+
+msgid "Samarkand region"
+msgstr "Samarqand viloyati"
+
+msgid "Bukhara region"
+msgstr "Buxoro viloyati"
+
+msgid "Navoi region"
+msgstr "Navoiy viloyati"
+
+msgid "Kashkadarya region"
+msgstr "Qashqadaryo viloyati"
+
+msgid "Surkhandarya region"
+msgstr "Surxondaryo viloyati"
+
+msgid "Khorezm region"
+msgstr "Xorazm viloyati"
+
+msgid "Republic of Karakalpakstan"
+msgstr "Qoraqalpog'iston Respublikasi"
+
+msgid "The region (viloyat) the project is located in."
+msgstr "Loyiha joylashgan viloyat."
+
+msgid "The district (tuman) the project is located in."
+msgstr "Loyiha joylashgan tuman."
+
+msgid "The mahalla, street, and house/building number."
+msgstr "Mahalla, ko'cha va uy/bino raqami."
+
+msgid "Location on map"
+msgstr "Xaritada joylashuv"
+
+msgid "Select the region above, then click the map to pin the exact location."
+msgstr "Yuqorida viloyatni tanlang, so'ng aniq joyni belgilash uchun xaritani bosing."
+
+msgid "All objects"
+msgstr "Barcha obyektlar"
+
+msgid "All sub-objects"
+msgstr "Barcha pastki obyektlar"
+
+msgid "New discipline"
+msgstr "Yangi soha"
+
+msgid "No disciplines yet."
+msgstr "Hali sohalar yo'q."
+
+msgid "Delete this discipline?"
+msgstr "Ushbu soha o'chirilsinmi?"
+
+msgid "Discipline created."
+msgstr "Soha yaratildi."
+
+msgid "Discipline deleted."
+msgstr "Soha o'chirildi."
+
+msgid "This discipline is used by one or more sub-objects and cannot be deleted."
+msgstr "Ushbu soha bir yoki bir nechta pastki obyektda ishlatilgan, shuning uchun o'chirib bo'lmaydi."
+
+msgid "A short unique code, e.g. AR, KR."
+msgstr "Qisqa noyob kod, masalan: AR, KR."
+
+msgid "The discipline's full name."
+msgstr "Sohaning to'liq nomi."

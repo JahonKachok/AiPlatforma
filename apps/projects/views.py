@@ -1,3 +1,4 @@
+import json
 from datetime import date
 
 from django.contrib import messages
@@ -14,9 +15,12 @@ from apps.tasks.models import Task
 from .forms import ProjectForm, ProjectMemberForm, SectionForm, SubObjectForm
 from .models import Project, ProjectMember
 from .permissions import can_create_project, can_edit_project, visible_projects_for
+from .uz_regions import REGION_CENTERS
+
+REGION_CENTERS_JSON = json.dumps(REGION_CENTERS)
 
 TRACKED_FIELDS = [
-    "name", "description", "client_name", "client_contact", "address",
+    "name", "description", "client_name", "client_contact", "region", "district", "address",
     "stage", "status", "start_date", "deadline", "budget", "paid_amount",
 ]
 
@@ -81,16 +85,23 @@ def project_create(request):
             return redirect("projects:detail", pk=project.pk)
     else:
         form = ProjectForm()
-    return render(request, "projects/project_form.html", {"form": form, "is_create": True})
+    return render(request, "projects/project_form.html", {
+        "form": form, "is_create": True, "region_centers_json": REGION_CENTERS_JSON,
+    })
 
 
 @login_required
 def project_detail(request, pk):
     project = get_object_or_404(
-        Project.objects.prefetch_related("members__user", "sub_objects", "sections"), pk=pk
+        Project.objects.prefetch_related(
+            "members__user", "sub_objects__sections__discipline", "sections__discipline",
+        ),
+        pk=pk,
     )
     if project not in visible_projects_for(request.user):
         raise PermissionDenied
+
+    orphan_sections = [section for section in project.sections.all() if not section.sub_object_id]
 
     tasks = project.tasks.select_related("assignee")[:6]
     task_stats = {
@@ -110,6 +121,7 @@ def project_detail(request, pk):
         "income": income,
         "expense": expense,
         "can_edit": can_edit_project(request.user, project),
+        "orphan_sections": orphan_sections,
         "sub_object_form": SubObjectForm(),
         "section_form": SectionForm(project=project),
         "member_form": ProjectMemberForm(),
@@ -136,7 +148,9 @@ def project_update(request, pk):
             return redirect("projects:detail", pk=project.pk)
     else:
         form = ProjectForm(instance=project)
-    return render(request, "projects/project_form.html", {"form": form, "project": project, "is_create": False})
+    return render(request, "projects/project_form.html", {
+        "form": form, "project": project, "is_create": False, "region_centers_json": REGION_CENTERS_JSON,
+    })
 
 
 @login_required

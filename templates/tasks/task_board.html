@@ -17,6 +17,20 @@
         <option value="{{ project.pk }}" {% if project_id == project.pk|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
       {% endfor %}
     </select>
+    {% if project_id %}
+    <select name="object" onchange="this.form.submit()" class="field-input w-auto">
+      <option value="">{% trans "All objects" %}</option>
+      {% for obj in objects %}
+        <option value="{{ obj.pk }}" {% if object_id == obj.pk|stringformat:"s" %}selected{% endif %}>{{ obj.name }}</option>
+      {% endfor %}
+    </select>
+    <select name="subobject" onchange="this.form.submit()" class="field-input w-auto">
+      <option value="">{% trans "All sub-objects" %}</option>
+      {% for sub in subobjects %}
+        <option value="{{ sub.pk }}" {% if subobject_id == sub.pk|stringformat:"s" %}selected{% endif %}>{{ sub.discipline.code }} — {{ sub.name }}</option>
+      {% endfor %}
+    </select>
+    {% endif %}
     <select name="assignee" onchange="this.form.submit()" class="field-input w-auto">
       <option value="">{% trans "All assignees" %}</option>
       {% for a in assignees %}
@@ -25,9 +39,9 @@
     </select>
   </form>
   <div class="flex items-center gap-2">
-    <a href="?view=kanban&project={{ project_id }}&assignee={{ assignee_id }}" class="btn {% if view == 'kanban' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">{% trans "Kanban" %}</a>
-    <a href="?view=list&project={{ project_id }}&assignee={{ assignee_id }}" class="btn {% if view == 'list' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">{% trans "List" %}</a>
-    <a href="?view=calendar&project={{ project_id }}&assignee={{ assignee_id }}" class="btn {% if view == 'calendar' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">{% trans "Calendar" %}</a>
+    <a href="?view=kanban&project={{ project_id }}&object={{ object_id }}&subobject={{ subobject_id }}&assignee={{ assignee_id }}" class="btn {% if view == 'kanban' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">{% trans "Kanban" %}</a>
+    <a href="?view=list&project={{ project_id }}&object={{ object_id }}&subobject={{ subobject_id }}&assignee={{ assignee_id }}" class="btn {% if view == 'list' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">{% trans "List" %}</a>
+    <a href="?view=calendar&project={{ project_id }}&object={{ object_id }}&subobject={{ subobject_id }}&assignee={{ assignee_id }}" class="btn {% if view == 'calendar' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">{% trans "Calendar" %}</a>
     <a href="{% url 'tasks:create' %}" class="btn btn-primary btn-md">{% trans "New task" %}</a>
   </div>
 </div>
@@ -63,9 +77,9 @@
 {% elif view == "calendar" %}
   <div class="card p-4">
     <div class="mb-4 flex items-center justify-between">
-      <a href="?view=calendar&year={{ prev_year }}&month={{ prev_month }}&project={{ project_id }}&assignee={{ assignee_id }}" class="btn btn-ghost btn-sm">←</a>
+      <a href="?view=calendar&year={{ prev_year }}&month={{ prev_month }}&project={{ project_id }}&object={{ object_id }}&subobject={{ subobject_id }}&assignee={{ assignee_id }}" class="btn btn-ghost btn-sm">←</a>
       <h2 class="font-semibold">{{ current_month|date:"F Y" }}</h2>
-      <a href="?view=calendar&year={{ next_year }}&month={{ next_month }}&project={{ project_id }}&assignee={{ assignee_id }}" class="btn btn-ghost btn-sm">→</a>
+      <a href="?view=calendar&year={{ next_year }}&month={{ next_month }}&project={{ project_id }}&object={{ object_id }}&subobject={{ subobject_id }}&assignee={{ assignee_id }}" class="btn btn-ghost btn-sm">→</a>
     </div>
     <div class="ap-cal-scroll">
       <div class="grid grid-cols-7 gap-1 text-xs">

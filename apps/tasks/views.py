@@ -12,6 +12,7 @@ from django.views.decorators.http import require_POST
 from apps.accounts.models import User
 from apps.documents.models import AuditLog
 from apps.notifications.services import notify_user
+from apps.projects.models import Section, SubObject
 from apps.projects.permissions import ensure_project_member, visible_projects_for
 
 from .forms import TaskAttachmentForm, TaskCommentForm, TaskForm
@@ -31,12 +32,26 @@ def task_board(request):
     project_id = request.GET.get("project")
     if project_id:
         tasks = tasks.filter(project_id=project_id)
+    object_id = request.GET.get("object")
+    if object_id:
+        tasks = tasks.filter(section__sub_object_id=object_id)
+    subobject_id = request.GET.get("subobject")
+    if subobject_id:
+        tasks = tasks.filter(section_id=subobject_id)
     assignee_id = request.GET.get("assignee")
     if assignee_id:
         tasks = tasks.filter(assignee_id=assignee_id)
     search = request.GET.get("search")
     if search:
         tasks = tasks.filter(title__icontains=search)
+
+    objects_qs = SubObject.objects.none()
+    subobjects_qs = Section.objects.none()
+    if project_id:
+        objects_qs = SubObject.objects.filter(project_id=project_id)
+        subobjects_qs = Section.objects.filter(project_id=project_id)
+        if object_id:
+            subobjects_qs = subobjects_qs.filter(sub_object_id=object_id)
 
     view = request.GET.get("view", "kanban")
     all_tasks = _visible_tasks(request.user)
@@ -53,9 +68,13 @@ def task_board(request):
     context = {
         "view": view,
         "project_id": project_id or "",
+        "object_id": object_id or "",
+        "subobject_id": subobject_id or "",
         "assignee_id": assignee_id or "",
         "search": search or "",
         "projects": visible_projects_for(request.user),
+        "objects": objects_qs,
+        "subobjects": subobjects_qs,
         "assignees": User.objects.filter(is_active=True),
         "stat_cards": stat_cards,
     }

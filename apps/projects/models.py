@@ -4,6 +4,8 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from .uz_regions import REGION_CHOICES
+
 
 class Project(models.Model):
     class Stage(models.TextChoices):
@@ -25,6 +27,10 @@ class Project(models.Model):
     client_name = models.CharField(max_length=255, blank=True, null=True)
     client_contact = models.CharField(max_length=255, blank=True, null=True)
     address = models.CharField(max_length=500, blank=True, null=True)
+    region = models.CharField(max_length=30, choices=REGION_CHOICES, blank=True, null=True, verbose_name=_("Region"))
+    district = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("District"))
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
     stage = models.CharField(max_length=20, choices=Stage.choices, default=Stage.CONCEPT)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE)
     start_date = models.DateField(blank=True, null=True)
@@ -82,7 +88,9 @@ class Section(models.Model):
     sub_object = models.ForeignKey(
         SubObject, on_delete=models.SET_NULL, null=True, blank=True, related_name="sections"
     )
-    code = models.CharField(max_length=50)
+    discipline = models.ForeignKey(
+        "accounts.Discipline", on_delete=models.PROTECT, related_name="sections",
+    )
     name = models.CharField(max_length=255)
     gip = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
@@ -92,10 +100,10 @@ class Section(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["code"]
+        ordering = ["discipline__code"]
 
     def __str__(self):
-        return f"{self.code} — {self.name}"
+        return f"{self.discipline.code} — {self.name}"
 
 
 class ProjectMember(models.Model):

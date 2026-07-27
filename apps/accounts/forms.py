@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core.forms import StyledFormMixin
 
-from .models import User
+from .models import Discipline, User
 
 
 class StyledPasswordChangeForm(StyledFormMixin, PasswordChangeForm):
@@ -125,12 +125,15 @@ class NotificationPreferenceForm(forms.Form):
 class UserCreateForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = User
-        fields = ["email", "full_name", "role", "department", "phone"]
+        fields = ["email", "full_name", "role", "department", "disciplines", "discipline_other", "phone"]
+        widgets = {"disciplines": forms.CheckboxSelectMultiple}
         help_texts = {
             "email": _("The new employee's email address, used as their login."),
             "full_name": _("The employee's full name."),
             "role": _("The employee's role in the system — permissions are set based on this."),
             "department": _("The name of the department the employee works in (free text)."),
+            "disciplines": _("The disciplines (specializations) the employee can work in — select all that apply."),
+            "discipline_other": _("If the employee's discipline isn't listed above, specify it here (optional)."),
             "phone": _("A contact phone number, e.g. +998901234567."),
         }
 
@@ -143,6 +146,7 @@ class UserCreateForm(StyledFormMixin, forms.ModelForm):
         user.set_password(temp_password)
         if commit:
             user.save()
+            self.save_m2m()
         user.temp_password = temp_password  # surfaced once to the creating admin, not persisted
         return user
 
@@ -150,11 +154,24 @@ class UserCreateForm(StyledFormMixin, forms.ModelForm):
 class UserAdminEditForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = User
-        fields = ["full_name", "role", "department", "phone", "is_active"]
+        fields = ["full_name", "role", "department", "disciplines", "discipline_other", "phone", "is_active"]
+        widgets = {"disciplines": forms.CheckboxSelectMultiple}
         help_texts = {
             "full_name": _("The employee's full name."),
             "role": _("The employee's role in the system — permissions are set based on this."),
             "department": _("The name of the department the employee works in (free text)."),
+            "disciplines": _("The disciplines (specializations) the employee can work in — select all that apply."),
+            "discipline_other": _("If the employee's discipline isn't listed above, specify it here (optional)."),
             "phone": _("A contact phone number, e.g. +998901234567."),
             "is_active": _("If unchecked, the employee cannot sign in (the account is blocked, but its data is kept)."),
+        }
+
+
+class DisciplineForm(StyledFormMixin, forms.ModelForm):
+    class Meta:
+        model = Discipline
+        fields = ["code", "name"]
+        help_texts = {
+            "code": _("A short unique code, e.g. AR, KR."),
+            "name": _("The discipline's full name."),
         }

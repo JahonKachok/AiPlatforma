@@ -37,6 +37,22 @@ class UserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 
+class Discipline(models.Model):
+    """A specialization/work area an employee can be assigned to (e.g. Architecture,
+    Structural). Managed as data (via the admin) so new ones can be added without a
+    code change."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    code = models.CharField(max_length=20, unique=True)
+    name = models.CharField(max_length=100)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
 class User(AbstractBaseUser, PermissionsMixin):
     class Role(models.TextChoices):
         ADMIN = "admin", _("Admin")
@@ -52,6 +68,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     full_name = models.CharField(max_length=255)
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.DESIGNER)
     department = models.CharField(max_length=255, blank=True, null=True)
+    disciplines = models.ManyToManyField(Discipline, blank=True, related_name="users", verbose_name=_("Disciplines"))
+    discipline_other = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Other discipline"))
     phone = models.CharField(max_length=50, blank=True, null=True)
     avatar = models.ImageField(
         upload_to="avatars/", blank=True, null=True,

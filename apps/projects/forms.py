@@ -17,20 +17,25 @@ class ProjectForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = Project
         fields = [
-            "name", "description", "client_name", "client_contact", "address",
+            "name", "description", "client_name", "client_contact",
+            "region", "district", "address", "latitude", "longitude",
             "stage", "status", "start_date", "deadline", "budget", "paid_amount",
         ]
         widgets = {
             "start_date": forms.DateInput(attrs={"type": "date"}),
             "deadline": forms.DateInput(attrs={"type": "date"}),
             "description": forms.Textarea(attrs={"rows": 3}),
+            "latitude": forms.HiddenInput(),
+            "longitude": forms.HiddenInput(),
         }
         help_texts = {
             "name": _("The project's name — shown under this name in lists and reports."),
             "description": _("A short description of the project (optional)."),
             "client_name": _("The name of the client organization or person."),
             "client_contact": _("The client's contact info — phone or email."),
-            "address": _("The project's (construction) address."),
+            "region": _("The region (viloyat) the project is located in."),
+            "district": _("The district (tuman) the project is located in."),
+            "address": _("The mahalla, street, and house/building number."),
             "stage": _("The project's current stage (e.g. design, construction)."),
             "status": _("The project's status (active, on hold, completed, etc.)."),
             "start_date": _("The date the project started."),
@@ -72,26 +77,27 @@ class SubObjectForm(StyledFormMixin, forms.ModelForm):
         model = SubObject
         fields = ["name", "address", "gip", "status"]
         help_texts = {
-            "name": _("The sub-object's name."),
-            "address": _("The sub-object's address (optional)."),
-            "gip": _("The chief architect (GIP) responsible for the sub-object (optional)."),
-            "status": _("The sub-object's current status."),
+            "name": _("The object's name."),
+            "address": _("The object's address (optional)."),
+            "gip": _("The chief architect (GIP) responsible for the object (optional)."),
+            "status": _("The object's current status."),
         }
 
 
 class SectionForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = Section
-        fields = ["sub_object", "code", "name", "gip", "status"]
+        fields = ["sub_object", "discipline", "name", "gip", "status"]
         help_texts = {
-            "sub_object": _("Which sub-object this section belongs to."),
-            "code": _("A short code for the section."),
-            "name": _("The section's name."),
-            "gip": _("The chief architect (GIP) responsible for the section (optional)."),
-            "status": _("The section's current status."),
+            "sub_object": _("Which object this sub-object belongs to."),
+            "discipline": _("The work discipline (specialization) this sub-object covers."),
+            "name": _("The sub-object's name."),
+            "gip": _("The chief architect (GIP) responsible for the sub-object (optional)."),
+            "status": _("The sub-object's current status."),
         }
 
     def __init__(self, *args, project=None, **kwargs):
         super().__init__(*args, **kwargs)
         if project is not None:
             self.fields["sub_object"].queryset = project.sub_objects.all()
+        self.fields["sub_object"].required = True

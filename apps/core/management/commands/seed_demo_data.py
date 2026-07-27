@@ -9,7 +9,7 @@ from datetime import date, timedelta
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from apps.accounts.models import User
+from apps.accounts.models import Discipline, User
 from apps.document_templates.models import DocumentTemplate, TemplateType
 from apps.documents.models import ApprovalStage, ApprovalStatus, Document, DocumentStatus
 from apps.finance.models import FinancialRecord, RecordStatus, RecordType
@@ -205,10 +205,12 @@ class Command(BaseCommand):
                 if user.role != User.Role.CLIENT:
                     ProjectMember.objects.get_or_create(project=project, user=user)
 
+        discipline_ar = Discipline.objects.get(code="AR")
+        discipline_kr = Discipline.objects.get(code="KR")
         for idx, project in enumerate(projects[:2]):
-            Section.objects.create(project=project, name="Arxitektura bo'limi", code="AR", gip=users_by_email["gip1@platform.uz"], status=SectionStatus.IN_PROGRESS)
-            Section.objects.create(project=project, name="Konstruksiya bo'limi", code="KR", gip=users_by_email["gip2@platform.uz"], status=SectionStatus.IN_PROGRESS)
-            SubObject.objects.create(project=project, name=f"{idx + 1}-korpus", gip=users_by_email["gip1@platform.uz"], status=SectionStatus.IN_PROGRESS)
+            sub_object = SubObject.objects.create(project=project, name=f"{idx + 1}-korpus", gip=users_by_email["gip1@platform.uz"], status=SectionStatus.IN_PROGRESS)
+            Section.objects.create(project=project, sub_object=sub_object, name="Arxitektura bo'limi", discipline=discipline_ar, gip=users_by_email["gip1@platform.uz"], status=SectionStatus.IN_PROGRESS)
+            Section.objects.create(project=project, sub_object=sub_object, name="Konstruksiya bo'limi", discipline=discipline_kr, gip=users_by_email["gip2@platform.uz"], status=SectionStatus.IN_PROGRESS)
 
         for project_idx, title, description, assignee_email, status, priority, deadline_offset in SEED_TASKS:
             task = Task.objects.create(

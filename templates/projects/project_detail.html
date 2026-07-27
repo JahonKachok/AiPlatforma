@@ -20,7 +20,7 @@
   <div class="lg:col-span-2">
     <div class="ap-tabs mb-4" data-tabs>
       <button type="button" data-tab="info" class="ap-tab is-active">{% trans "Overview" %}</button>
-      <button type="button" data-tab="structure" class="ap-tab">{% trans "Sub-objects & sections" %}</button>
+      <button type="button" data-tab="structure" class="ap-tab">{% trans "Objects & sub-objects" %}</button>
       <button type="button" data-tab="tasks" class="ap-tab">{% trans "Tasks" %}</button>
       <button type="button" data-tab="finance" class="ap-tab">{% trans "Finance" %}</button>
     </div>
@@ -41,15 +41,27 @@
     <div data-tab-panel="structure" class="hidden space-y-6">
     <div class="card p-6">
       <div class="mb-3 flex items-center justify-between">
-        <h2 class="font-semibold">{% trans "Sub-objects" %}</h2>
+        <h2 class="font-semibold">{% trans "Objects" %}</h2>
       </div>
       <ul class="mb-3 space-y-2 text-sm">
         {% for obj in project.sub_objects.all %}
-          <li class="flex items-center justify-between border-b border-gray-100 py-1 dark:border-gray-700">
-            <span>{{ obj.name }} <span class="text-gray-400">{{ obj.address|default:"" }}</span></span>
-            <span class="text-gray-500 dark:text-gray-400">{{ obj.gip|default:"—" }}</span>
+          <li class="border-b border-gray-100 py-1 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+              <span>{{ obj.name }} <span class="text-gray-400">{{ obj.address|default:"" }}</span></span>
+              <span class="text-gray-500 dark:text-gray-400">{{ obj.gip|default:"—" }}</span>
+            </div>
+            {% if obj.sections.all %}
+            <ul class="mt-1 ml-4 space-y-1 border-l border-gray-100 pl-3 dark:border-gray-700">
+              {% for section in obj.sections.all %}
+                <li class="flex items-center justify-between text-xs">
+                  <span><span class="badge badge-info">{{ section.discipline.code }}</span> {{ section.name }}</span>
+                  <span class="text-gray-500 dark:text-gray-400">{{ section.gip|default:"—" }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+            {% endif %}
           </li>
-        {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No sub-objects yet." %}</li>{% endfor %}
+        {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No objects yet." %}</li>{% endfor %}
       </ul>
       {% if can_edit %}
       <form method="post" action="{% url 'projects:add_subobject' project.pk %}" class="flex flex-wrap gap-2">
@@ -61,14 +73,14 @@
     </div>
 
     <div class="card p-6">
-      <h2 class="mb-3 font-semibold">{% trans "Sections" %}</h2>
+      <h2 class="mb-3 font-semibold">{% trans "Sub-objects without an object" %}</h2>
       <ul class="mb-3 space-y-2 text-sm">
-        {% for section in project.sections.all %}
+        {% for section in orphan_sections %}
           <li class="flex items-center justify-between border-b border-gray-100 py-1 dark:border-gray-700">
-            <span><span class="badge badge-info">{{ section.code }}</span> {{ section.name }}</span>
+            <span><span class="badge badge-info">{{ section.discipline.code }}</span> {{ section.name }}</span>
             <span class="text-gray-500 dark:text-gray-400">{{ section.gip|default:"—" }}</span>
           </li>
-        {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No sections yet." %}</li>{% endfor %}
+        {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "None." %}</li>{% endfor %}
       </ul>
       {% if can_edit %}
       <form method="post" action="{% url 'projects:add_section' project.pk %}" class="flex flex-wrap gap-2">

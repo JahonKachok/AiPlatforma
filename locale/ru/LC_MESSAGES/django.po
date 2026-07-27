@@ -1338,3 +1338,141 @@ msgstr "Напишите здесь комментарий или вопрос �
 
 msgid "Upload a file related to the task (maximum size — 50MB)."
 msgstr "Загрузите файл, относящийся к задаче (максимальный размер — 50МБ)."
+
+msgid "Disciplines"
+msgstr "Направления"
+
+msgid "Other discipline"
+msgstr "Другое направление"
+
+msgid "The disciplines (specializations) the employee can work in — select all that apply."
+msgstr "Направления (специализации), в которых может работать сотрудник — отметьте все подходящие."
+
+msgid "If the employee's discipline isn't listed above, specify it here (optional)."
+msgstr "Если направление сотрудника не указано выше, укажите его здесь (необязательно)."
+
+msgid "Which object this sub-object belongs to."
+msgstr "К какому объекту относится этот подобъект."
+
+msgid "The work discipline (specialization) this sub-object covers."
+msgstr "Направление работ (специализация), которое охватывает этот подобъект."
+
+msgid "The object's name."
+msgstr "Название объекта."
+
+msgid "The object's address (optional)."
+msgstr "Адрес объекта (необязательно)."
+
+msgid "The chief architect (GIP) responsible for the object (optional)."
+msgstr "Главный инженер (ГИП), ответственный за объект (необязательно)."
+
+msgid "The object's current status."
+msgstr "Текущий статус объекта."
+
+msgid "Objects & sub-objects"
+msgstr "Объекты и подобъекты"
+
+msgid "Objects"
+msgstr "Объекты"
+
+msgid "No objects yet."
+msgstr "Пока нет объектов."
+
+msgid "Sub-objects without an object"
+msgstr "Подобъекты без объекта"
+
+msgid "None."
+msgstr "Нет."
+
+msgid "Region"
+msgstr "Регион"
+
+msgid "District"
+msgstr "Район"
+
+msgid "Tashkent city"
+msgstr "город Ташкент"
+
+msgid "Tashkent region"
+msgstr "Ташкентская область"
+
+msgid "Andijan region"
+msgstr "Андижанская область"
+
+msgid "Fergana region"
+msgstr "Ферганская область"
+
+msgid "Namangan region"
+msgstr "Наманганская область"
+
+msgid "Sirdaryo region"
+msgstr "Сырдарьинская область"
+
+msgid "Jizzakh region"
+msgstr "Джизакская область"
+
+msgid "Samarkand region"
+msgstr "Самаркандская область"
+
+msgid "Bukhara region"
+msgstr "Бухарская область"
+
+msgid "Navoi region"
+msgstr "Навоийская область"
+
+msgid "Kashkadarya region"
+msgstr "Кашкадарьинская область"
+
+msgid "Surkhandarya region"
+msgstr "Сурхандарьинская область"
+
+msgid "Khorezm region"
+msgstr "Хорезмская область"
+
+msgid "Republic of Karakalpakstan"
+msgstr "Республика Каракалпакстан"
+
+msgid "The region (viloyat) the project is located in."
+msgstr "Регион (область), в котором расположен проект."
+
+msgid "The district (tuman) the project is located in."
+msgstr "Район, в котором расположен проект."
+
+msgid "The mahalla, street, and house/building number."
+msgstr "Махалля, улица и номер дома/здания."
+
+msgid "Location on map"
+msgstr "Расположение на карте"
+
+msgid "Select the region above, then click the map to pin the exact location."
+msgstr "Выберите регион выше, затем нажмите на карту, чтобы отметить точное место."
+
+msgid "All objects"
+msgstr "Все объекты"
+
+msgid "All sub-objects"
+msgstr "Все подобъекты"
+
+msgid "New discipline"
+msgstr "Новое направление"
+
+msgid "No disciplines yet."
+msgstr "Пока нет направлений."
+
+msgid "Delete this discipline?"
+msgstr "Удалить это направление?"
+
+msgid "Discipline created."
+msgstr "Направление создано."
+
+msgid "Discipline deleted."
+msgstr "Направление удалено."
+
+msgid "This discipline is used by one or more sub-objects and cannot be deleted."
+msgstr "Это направление используется в одном или нескольких подобъектах и не может быть удалено."
+
+msgid "A short unique code, e.g. AR, KR."
+msgstr "Короткий уникальный код, например: AR, KR."
+
+msgid "The discipline's full name."
+msgstr "Полное название направления."

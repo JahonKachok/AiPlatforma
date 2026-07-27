@@ -53,9 +53,24 @@
             {% if obj.sections.all %}
             <ul class="mt-1 ml-4 space-y-1 border-l border-gray-100 pl-3 dark:border-gray-700">
               {% for section in obj.sections.all %}
-                <li class="flex items-center justify-between text-xs">
-                  <span><span class="badge badge-info">{{ section.discipline.code }}</span> {{ section.name }}</span>
-                  <span class="text-gray-500 dark:text-gray-400">{{ section.gip|default:"—" }}</span>
+                <li class="text-xs">
+                  <details>
+                    <summary class="flex cursor-pointer list-none items-center justify-between">
+                      <span><span class="badge badge-info">{{ section.discipline.code }}</span> {{ section.name }}</span>
+                      <span class="text-gray-500 dark:text-gray-400">{{ section.gip|default:"—" }}</span>
+                    </summary>
+                    <div class="mt-1 mb-2 ml-2 space-y-1">
+                      <p class="text-gray-400">{% trans "Employees in this discipline:" %}</p>
+                      {% for u in section.qualified_employees %}
+                        <span class="mr-2 inline-flex items-center gap-1">
+                          <span class="flex h-6 w-6 items-center justify-center rounded-full text-xs text-white" style="background-color: {{ u.full_name|avatar_color }};">{{ u.full_name|initials }}</span>
+                          {{ u.full_name }}
+                        </span>
+                      {% empty %}
+                        <span class="text-gray-400">{% trans "No employees found for this discipline." %}</span>
+                      {% endfor %}
+                    </div>
+                  </details>
                 </li>
               {% endfor %}
             </ul>
@@ -76,9 +91,24 @@
       <h2 class="mb-3 font-semibold">{% trans "Sub-objects without an object" %}</h2>
       <ul class="mb-3 space-y-2 text-sm">
         {% for section in orphan_sections %}
-          <li class="flex items-center justify-between border-b border-gray-100 py-1 dark:border-gray-700">
-            <span><span class="badge badge-info">{{ section.discipline.code }}</span> {{ section.name }}</span>
-            <span class="text-gray-500 dark:text-gray-400">{{ section.gip|default:"—" }}</span>
+          <li class="border-b border-gray-100 py-1 dark:border-gray-700">
+            <details>
+              <summary class="flex cursor-pointer list-none items-center justify-between">
+                <span><span class="badge badge-info">{{ section.discipline.code }}</span> {{ section.name }}</span>
+                <span class="text-gray-500 dark:text-gray-400">{{ section.gip|default:"—" }}</span>
+              </summary>
+              <div class="mt-1 mb-2 ml-2 space-y-1 text-xs">
+                <p class="text-gray-400">{% trans "Employees in this discipline:" %}</p>
+                {% for u in section.qualified_employees %}
+                  <span class="mr-2 inline-flex items-center gap-1">
+                    <span class="flex h-6 w-6 items-center justify-center rounded-full text-xs text-white" style="background-color: {{ u.full_name|avatar_color }};">{{ u.full_name|initials }}</span>
+                    {{ u.full_name }}
+                  </span>
+                {% empty %}
+                  <span class="text-gray-400">{% trans "No employees found for this discipline." %}</span>
+                {% endfor %}
+              </div>
+            </details>
           </li>
         {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "None." %}</li>{% endfor %}
       </ul>

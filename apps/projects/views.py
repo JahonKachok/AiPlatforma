@@ -8,6 +8,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext_lazy as _
 
+from apps.accounts.models import User
 from apps.documents.models import AuditLog
 from apps.finance.forms import FinancialRecordForm
 from apps.tasks.models import Task
@@ -102,6 +103,23 @@ def project_detail(request, pk):
         raise PermissionDenied
 
     orphan_sections = [section for section in project.sections.all() if not section.sub_object_id]
+
+    discipline_ids = {section.discipline_id for section in project.sections.all()}
+    employees_by_discipline = {}
+    if discipline_ids:
+        qualified_users = User.objects.filter(
+            disciplines__in=discipline_ids, is_active=True,
+        ).distinct().prefetch_related("disciplines")
+        for user in qualified_users:
+            for discipline in user.disciplines.all():
+                if discipline.id in discipline_ids:
+                    employees_by_discipline.setdefault(discipline.id, []).append(user)
+
+    for sub_object in project.sub_objects.all():
+        for section in sub_object.sections.all():
+            section.qualified_employees = employees_by_discipline.get(section.discipline_id, [])
+    for section in orphan_sections:
+        section.qualified_employees = employees_by_discipline.get(section.discipline_id, [])
 
     tasks = project.tasks.select_related("assignee")[:6]
     task_stats = {

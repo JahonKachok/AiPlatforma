@@ -1478,3 +1478,9 @@ msgstr "Qisqa noyob kod, masalan: AR, KR."
 
 msgid "The discipline's full name."
 msgstr "Sohaning to'liq nomi."
+
+msgid "Employees in this discipline:"
+msgstr "Ushbu soha bo'yicha xodimlar:"
+
+msgid "No employees found for this discipline."
+msgstr "Ushbu soha bo'yicha xodim topilmadi."

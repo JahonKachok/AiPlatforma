@@ -1476,3 +1476,9 @@ msgstr "Короткий уникальный код, например: AR, KR."
 
 msgid "The discipline's full name."
 msgstr "Полное название направления."
+
+msgid "Employees in this discipline:"
+msgstr "Сотрудники по этому направлению:"
+
+msgid "No employees found for this discipline."
+msgstr "Сотрудники по этому направлению не найдены."

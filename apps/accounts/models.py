@@ -57,6 +57,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Role(models.TextChoices):
         ADMIN = "admin", _("Admin")
         MANAGER = "manager", _("Manager")
+        FINANCE = "finance", _("Finance")
         GIP = "gip", _("GIP")
         GIP_ASSISTANT = "gip_assistant", _("GIP assistant")
         DESIGNER = "designer", _("Designer")

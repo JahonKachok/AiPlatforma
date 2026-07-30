@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n core_extras finance_extras %}
+{% load i18n static core_extras finance_extras %}
 {% block title %}{% trans "Finance" %}{% endblock %}
 {% block page_title %}{% trans "Finance" %}{% endblock %}
 {% block page_help %}{% with text="Loyihalar bo'yicha kirim-chiqim yozuvlarini, shartnomalarni va xodimlar bilan tuzilgan shartnomalarni moliyaviy nazorat qilish uchun bo'lim." %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
@@ -84,28 +84,194 @@
   </div>
 
 {% else %}
-  <div class="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-    <div class="card p-4"><p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Total budget" %}</p><p class="text-xl font-semibold">{{ total_budget|millions }} {% trans "mln" %}</p></div>
-    <div class="card p-4"><p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Received" %}</p><p class="text-xl font-semibold text-green-600 dark:text-green-400">{{ received|millions }} {% trans "mln" %}</p></div>
-    <div class="card p-4"><p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Expenses" %}</p><p class="text-xl font-semibold text-red-600 dark:text-red-400">{{ expenses|millions }} {% trans "mln" %}</p></div>
-    <div class="card p-4"><p class="text-xs text-gray-500 dark:text-gray-400">{% trans "Pending" %}</p><p class="text-xl font-semibold text-amber-600 dark:text-amber-400">{{ pending|millions }} {% trans "mln" %}</p></div>
-  </div>
-
-  <div class="card p-4">
-    <h2 class="mb-3 font-semibold">{% trans "Projects" %}</h2>
-    <div class="space-y-3">
+  <form method="get" class="mb-4 flex items-center justify-between gap-2">
+    <input type="hidden" name="tab" value="overview">
+    <select name="project" onchange="this.form.submit()" class="field-input w-auto">
       {% for project in projects %}
-        <div>
-          <div class="mb-1 flex items-center justify-between text-sm">
-            <a href="{% url 'projects:detail' project.pk %}" class="hover:underline">{{ project.name }}</a>
-            <span class="text-gray-500 dark:text-gray-400">{{ project.paid_amount|millions }} / {{ project.budget|millions }} {% trans "mln" %}</span>
-          </div>
-          <div class="h-2 w-full rounded-full bg-gray-100 dark:bg-gray-700">
-            <div class="h-2 rounded-full bg-blue-500" style="width: {{ project.paid_percentage }}%"></div>
-          </div>
-        </div>
-      {% empty %}<p class="text-sm text-gray-500 dark:text-gray-400">{% trans "No projects yet." %}</p>{% endfor %}
+        <option value="{{ project.pk }}" {% if selected_project.pk == project.pk %}selected{% endif %}>{{ project.name }}</option>
+      {% endfor %}
+    </select>
+    {% if selected_project and can_edit %}
+      <button type="button" class="btn btn-primary btn-sm" data-modal-open="payment-request-modal">
+        {% trans "+ New payment request" %}
+      </button>
+    {% endif %}
+  </form>
+
+  {% if not selected_project %}
+    <div class="card p-6 text-center text-sm text-gray-500 dark:text-gray-400">{% trans "No projects yet." %}</div>
+  {% else %}
+
+  <div class="mb-4 grid grid-cols-2 gap-4 md:grid-cols-4">
+    <div class="card p-4">
+      <p class="ap-stat-label">{% trans "Total budget (EVM)" %}</p>
+      <p class="ap-stat-value mt-1">{{ selected_project.budget|money }}</p>
+      <div class="ap-progress mt-3"><div style="width: {{ selected_project.paid_percentage }}%"></div></div>
+      <div class="mt-1 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+        <span>{% trans "Spent" %}: {{ selected_project.paid_amount|money }}</span>
+        <span class="font-semibold">{{ selected_project.paid_percentage }}%</span>
+      </div>
+    </div>
+
+    <div class="card p-4">
+      <p class="ap-stat-label">{% trans "Expected receivables" %}</p>
+      <p class="ap-stat-value mt-1">{{ receivable_total|money }}</p>
+      {% if receivable_overdue %}
+        <span class="badge badge-warning mt-2 inline-block">{% blocktrans count c=receivable_overdue %}{{ c }} overdue payment{% plural %}{{ c }} overdue payments{% endblocktrans %}</span>
+      {% else %}
+        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">{% trans "No overdue payments" %}</p>
+      {% endif %}
+    </div>
+
+    <div class="card p-4">
+      <p class="ap-stat-label">{% trans "Planned payables" %}</p>
+      <p class="ap-stat-value mt-1">{{ payable_net|money }}</p>
+      <div class="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+        <span>{% trans "Retainage held" %}</span>
+        <span class="font-semibold">{{ retainage_total|money }}</span>
+      </div>
+    </div>
+
+    <div class="card p-4">
+      <p class="ap-stat-label">{% trans "Net margin" %}</p>
+      <p class="ap-stat-value mt-1">{{ margin|money }} <small class="text-sm font-normal text-gray-400">({{ margin_pct }}%)</small></p>
+      <div class="mt-2 flex gap-4 text-xs">
+        <div><b class="block text-sm font-semibold {% if cpi and cpi >= 1 %}text-green-600 dark:text-green-400{% elif cpi %}text-amber-600 dark:text-amber-400{% endif %}">{{ cpi|default:"—" }}</b>CPI</div>
+        <div><b class="block text-sm font-semibold {% if spi and spi >= 1 %}text-green-600 dark:text-green-400{% elif spi %}text-amber-600 dark:text-amber-400{% endif %}">{{ spi|default:"—" }}</b>SPI</div>
+      </div>
+      <p class="mt-1 text-[10px] text-gray-400">{% trans "CPI/SPI are approximate estimates" %}</p>
     </div>
   </div>
+
+  <div class="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+    <div class="card overflow-x-auto lg:col-span-2">
+      <div class="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
+        <div>
+          <h2 class="font-semibold">{% trans "Cost code control" %}</h2>
+          <span class="text-xs text-gray-400">{% trans "Budget vs. actual, by CSI cost code" %}</span>
+        </div>
+        {% if can_edit %}<button type="button" class="btn btn-secondary btn-sm" data-modal-open="cost-code-modal">{% trans "+ Add" %}</button>{% endif %}
+      </div>
+      <table class="w-full text-left text-sm">
+        <thead class="text-gray-500 dark:text-gray-400">
+          <tr>
+            <th class="px-4 py-2">{% trans "Code" %}</th>
+            <th class="px-4 py-2">{% trans "Category" %}</th>
+            <th class="px-4 py-2 text-right">{% trans "Budget" %}</th>
+            <th class="px-4 py-2 text-right">{% trans "Actual" %}</th>
+            <th class="px-4 py-2 text-right">{% trans "Diff" %}</th>
+            <th class="px-4 py-2">{% trans "Status" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in cost_code_rows %}
+            <tr class="border-t border-gray-100 dark:border-gray-700">
+              <td class="px-4 py-2"><code class="text-xs text-blue-600 dark:text-blue-400">{{ row.cost_code.code }}</code></td>
+              <td class="px-4 py-2">{{ row.cost_code.category }}</td>
+              <td class="px-4 py-2 text-right">{{ row.cost_code.budget|money }}</td>
+              <td class="px-4 py-2 text-right">{{ row.actual|money }}</td>
+              <td class="px-4 py-2 text-right {% if row.diff >= 0 %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">{{ row.diff|money }}</td>
+              <td class="px-4 py-2"><span class="{{ row.status_variant|badge }}">{{ row.status_label }}</span></td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">{% trans "No cost codes yet — add them from the admin panel." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card p-4">
+      <div class="mb-2 flex items-center justify-between">
+        <h2 class="font-semibold">{% trans "Cash flow (last 6 months)" %}</h2>
+      </div>
+      <div class="mb-2 flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+        <span class="flex items-center gap-2"><span class="rounded" style="display:inline-block;width:10px;height:10px;background:var(--ap-success)"></span>{% trans "Income" %}</span>
+        <span class="flex items-center gap-2"><span class="rounded" style="display:inline-block;width:10px;height:10px;background:var(--ap-danger)"></span>{% trans "Expense" %}</span>
+      </div>
+      {{ cash_flow_json|json_script:"cash-flow-data" }}
+      <svg id="cash-flow-chart" viewBox="0 0 260 160" class="w-full" style="height:160px" preserveAspectRatio="none"></svg>
+      <details class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+        <summary class="cursor-pointer">{% trans "View as table" %}</summary>
+        <table class="mt-2 w-full text-left">
+          <thead><tr><th>{% trans "Month" %}</th><th class="text-right">{% trans "Income" %}</th><th class="text-right">{% trans "Expense" %}</th></tr></thead>
+          <tbody>
+            {% for c in cash_flow %}
+              <tr><td>{{ c.label }}</td><td class="text-right">{{ c.income|money }}</td><td class="text-right">{{ c.expense|money }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </details>
+    </div>
+  </div>
+
+  <div class="card overflow-x-auto">
+    <div class="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
+      <div>
+        <h2 class="font-semibold">{% trans "Payment matrix & journal" %}</h2>
+        <span class="text-xs text-gray-400">{% trans "3-stage approval: GIP → Finance → Manager" %}</span>
+      </div>
+      {% if can_edit %}<button type="button" class="btn btn-secondary btn-sm" data-modal-open="contractor-modal">{% trans "+ Add contractor" %}</button>{% endif %}
+    </div>
+    <table class="w-full text-left text-sm">
+      <thead class="text-gray-500 dark:text-gray-400">
+        <tr>
+          <th class="px-4 py-2">{% trans "Contractor" %}</th>
+          <th class="px-4 py-2">{% trans "Cost code" %}</th>
+          <th class="px-4 py-2 text-right">{% trans "Amount" %}</th>
+          <th class="px-4 py-2">{% trans "Approval stage" %}</th>
+          <th class="px-4 py-2"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in payment_rows %}
+          <tr class="border-t border-gray-100 dark:border-gray-700">
+            <td class="px-4 py-2">{{ row.payment.contractor.name }}</td>
+            <td class="px-4 py-2"><code class="text-xs text-blue-600 dark:text-blue-400">{{ row.payment.cost_code.code }}</code></td>
+            <td class="px-4 py-2 text-right">{{ row.payment.amount|money }}</td>
+            <td class="px-4 py-2">
+              <div class="flex items-center gap-1">
+                {% for stage in row.stages %}
+                  {% if stage.status == 'approved' %}
+                    <span title="{{ stage.stage_name }}" class="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-semibold text-white" style="background:var(--ap-success)">&check;</span>
+                  {% elif stage.status == 'rejected' %}
+                    <span title="{{ stage.stage_name }}" class="flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-[10px] font-semibold text-white">&times;</span>
+                  {% elif stage.status == 'skipped' %}
+                    <span title="{{ stage.stage_name }}" class="ap-dashed flex h-6 w-6 items-center justify-center rounded-full border border-gray-300 text-[10px] font-semibold text-gray-400 dark:border-gray-700">&ndash;</span>
+                  {% elif row.next_stage.pk == stage.pk %}
+                    <span title="{{ stage.stage_name }}" class="flex h-6 w-6 items-center justify-center rounded-full border text-[10px] font-semibold" style="border-width:2px;border-color:var(--ap-primary);color:var(--ap-primary)">{{ stage.stage_order }}</span>
+                  {% else %}
+                    <span title="{{ stage.stage_name }}" class="flex h-6 w-6 items-center justify-center rounded-full border border-gray-300 text-[10px] font-semibold text-gray-400 dark:border-gray-700">{{ stage.stage_order }}</span>
+                  {% endif %}
+                  {% if not forloop.last %}<span class="ap-connector" style="display:inline-block;width:12px;height:1px"></span>{% endif %}
+                {% endfor %}
+              </div>
+            </td>
+            <td class="px-4 py-2 text-right">
+              {% if row.can_review %}
+                <a href="{% url 'finance:payment_stage_review' row.next_stage.pk %}" class="text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400">{% trans "Review" %}</a>
+              {% elif row.payment.status == 'rejected' %}
+                <span class="badge badge-danger">{% trans "Rejected" %}</span>
+              {% elif row.payment.status == 'approved' %}
+                <span class="badge badge-success">{% trans "Approved" %}</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">{% trans "No payment requests yet." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% include "finance/_payment_request_modal.html" %}
+  {% include "finance/_cost_code_modal.html" %}
+  {% include "finance/_contractor_modal.html" %}
+  {% endif %}
 {% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+  {% if selected_project %}
+    <script src="{% static 'js/finance.js' %}" defer></script>
+  {% endif %}
 {% endblock %}

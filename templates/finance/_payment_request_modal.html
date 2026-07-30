@@ -1,0 +1,96 @@
+{% load i18n %}
+{% comment %}
+"New payment request" modal for the finance overview tab. Toggled by
+static/js/finance.js via [data-modal-open]/[data-modal-close] on
+#payment-request-modal. Expects `selected_project` and `payment_request_form`
+(scoped to that project) and `manager_threshold` in context.
+{% endcomment %}
+<div id="payment-request-modal" class="ap-modal-backdrop" data-modal-backdrop data-manager-threshold="{{ manager_threshold }}">
+  <div class="card ap-modal-card">
+    <div class="flex items-center justify-between border-b border-gray-200 px-4 py-4 dark:border-gray-700">
+      <div>
+        <h3 class="font-semibold">{% trans "New payment request" %}</h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400">{{ selected_project.name }}</p>
+      </div>
+      <button type="button" class="btn btn-secondary btn-sm" data-modal-close aria-label="{% trans 'Close' %}">&times;</button>
+    </div>
+
+    <form method="post" action="{% url 'finance:add_payment_request' selected_project.pk %}" enctype="multipart/form-data" class="space-y-4 px-4 py-4">
+      {% csrf_token %}
+
+      <div class="ap-dashed rounded-lg border border-gray-300 p-3 dark:border-gray-600">
+        <label class="field-label" for="{{ payment_request_form.invoice_file.id_for_label }}">{% with field=payment_request_form.invoice_file %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+        {{ payment_request_form.invoice_file }}
+        <p class="mt-1 text-xs text-gray-400">{% trans "Attach the invoice or contract document (optional)." %}</p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label class="field-label" for="{{ payment_request_form.cost_code.id_for_label }}">{% with field=payment_request_form.cost_code %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+          {{ payment_request_form.cost_code }}
+        </div>
+        <div>
+          <label class="field-label" for="{{ payment_request_form.sub_object.id_for_label }}">{% with field=payment_request_form.sub_object %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+          {{ payment_request_form.sub_object }}
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label class="field-label" for="{{ payment_request_form.contractor.id_for_label }}">{% with field=payment_request_form.contractor %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+          {{ payment_request_form.contractor }}
+        </div>
+        <div>
+          <label class="field-label" for="{{ payment_request_form.payment_type.id_for_label }}">{% with field=payment_request_form.payment_type %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+          {{ payment_request_form.payment_type }}
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label class="field-label" for="{{ payment_request_form.amount.id_for_label }}">{% with field=payment_request_form.amount %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+          {{ payment_request_form.amount }}
+        </div>
+        <div>
+          <label class="field-label">{% trans "Retainage" %} <span class="text-xs text-gray-400">{% trans "auto · 5%" %}</span></label>
+          <input type="text" class="field-input" id="payment-retainage-preview" value="0" readonly>
+        </div>
+      </div>
+      <p class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+        <span>{% trans "Net amount to contractor" %}</span>
+        <b id="payment-net-preview" class="text-sm text-gray-900 dark:text-gray-100">0</b>
+      </p>
+
+      <div>
+        <label class="field-label" for="{{ payment_request_form.comment.id_for_label }}">{% with field=payment_request_form.comment %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+        {{ payment_request_form.comment }}
+      </div>
+
+      <div>
+        <p class="field-label mb-2">{% trans "Automatic approval chain" %}</p>
+        <div class="flex items-center gap-1 text-xs">
+          <div class="flex flex-1 flex-col items-center gap-1 text-center">
+            <span class="flex h-8 w-8 items-center justify-center rounded-full font-semibold text-blue-600 dark:text-blue-400" style="border:2px solid var(--ap-primary)">1</span>
+            <span class="text-gray-500 dark:text-gray-400">{% trans "GIP approval" %}</span>
+          </div>
+          <span class="ap-connector mb-4" style="display:inline-block;width:24px;height:1px"></span>
+          <div class="flex flex-1 flex-col items-center gap-1 text-center">
+            <span class="flex h-8 w-8 items-center justify-center rounded-full border border-gray-300 font-semibold text-gray-400 dark:border-gray-600" style="border-width:2px">2</span>
+            <span class="text-gray-500 dark:text-gray-400">{% trans "Finance review" %}</span>
+          </div>
+          <span class="ap-connector mb-4" style="display:inline-block;width:24px;height:1px"></span>
+          <div class="flex flex-1 flex-col items-center gap-1 text-center" id="payment-stage-3">
+            <span class="ap-dashed flex h-8 w-8 items-center justify-center rounded-full border border-gray-300 font-semibold text-gray-400 dark:border-gray-600" style="border-width:2px">3</span>
+            <span class="text-gray-500 dark:text-gray-400">{% trans "Manager approval" %}</span>
+            <span class="text-[10px] text-gray-400" id="payment-stage-3-note" data-label-required="{% trans 'Required' %}">{% blocktrans with threshold=manager_threshold %}not required (&lt; {{ threshold }}){% endblocktrans %}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 border-t border-gray-200 dark:border-gray-700" style="padding-top:1rem">
+        <button type="button" class="btn btn-secondary btn-md" data-modal-close>{% trans "Cancel" %}</button>
+        <button type="submit" class="btn btn-primary btn-md">{% trans "Submit request" %}</button>
+      </div>
+    </form>
+  </div>
+</div>

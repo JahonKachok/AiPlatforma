@@ -70,11 +70,6 @@
       {% if request.path == users_url %}bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300{% else %}text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700{% endif %}">
       {% trans "Users" %}
     </a>
-    {% url 'accounts:discipline_list' as disciplines_url %}
-    <a href="{{ disciplines_url }}" class="flex items-center gap-3 rounded-lg px-3 py-2 font-medium
-      {% if request.path == disciplines_url %}bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300{% else %}text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700{% endif %}">
-      {% trans "Disciplines" %}
-    </a>
   </nav>
   <div class="border-t border-gray-200 p-3 dark:border-gray-700">
     <a href="{% url 'accounts:profile' %}" class="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">

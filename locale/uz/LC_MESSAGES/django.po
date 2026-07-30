@@ -8,6 +8,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 
 msgid ""
 "A random temporary password will be generated and shown once after creation."
@@ -999,8 +1000,12 @@ msgstr "Tizim xabarnomalari"
 msgid "Your current password used to sign in to your account."
 msgstr "Hisobingizga kirish uchun ishlatadigan joriy parolingiz."
 
-msgid "The new password must be at least 8 characters long and cannot be entirely numeric."
-msgstr "Yangi parol kamida 8 belgidan iborat bo'lishi va faqat raqamlardan tashkil topmasligi kerak."
+msgid ""
+"The new password must be at least 8 characters long and cannot be entirely "
+"numeric."
+msgstr ""
+"Yangi parol kamida 8 belgidan iborat bo'lishi va faqat raqamlardan tashkil "
+"topmasligi kerak."
 
 msgid "Enter the new password again to avoid mistakes."
 msgstr "Xatolikka yo'l qo'ymaslik uchun yangi parolni qayta kiriting."
@@ -1014,17 +1019,27 @@ msgstr "Hisobingiz uchun belgilangan parol."
 msgid "6-digit code"
 msgstr "6 xonali kod"
 
-msgid "The 6-digit code shown in your authenticator app (Google Authenticator, etc.)."
-msgstr "Autentifikator ilovangizda (Google Authenticator va h.k.) ko'rsatilayotgan 6 xonali kod."
+msgid ""
+"The 6-digit code shown in your authenticator app (Google Authenticator, "
+"etc.)."
+msgstr ""
+"Autentifikator ilovangizda (Google Authenticator va h.k.) ko'rsatilayotgan 6"
+" xonali kod."
 
 msgid "The email address used to sign in — this is used as your login."
-msgstr "Tizimga kirish uchun ishlatiladigan email manzil — login sifatida shu ishlatiladi."
+msgstr ""
+"Tizimga kirish uchun ishlatiladigan email manzil — login sifatida shu "
+"ishlatiladi."
 
 msgid "Your full name, shown to other employees under this name."
 msgstr "Ism va familiyangiz, boshqa xodimlarga shu nom bilan ko'rinadi."
 
-msgid "Your role in the system — permissions and visible sections are set based on this."
-msgstr "Tizimdagi rolingiz — huquqlar va ko'rinadigan bo'limlar shu bo'yicha belgilanadi."
+msgid ""
+"Your role in the system — permissions and visible sections are set based on "
+"this."
+msgstr ""
+"Tizimdagi rolingiz — huquqlar va ko'rinadigan bo'limlar shu bo'yicha "
+"belgilanadi."
 
 msgid "The name of the department you work in (free text)."
 msgstr "Ishlaydigan bo'limingiz nomi (erkin matn)."
@@ -1047,8 +1062,12 @@ msgstr "Xodimning tizimdagi roli — huquqlar shu bo'yicha belgilanadi."
 msgid "The name of the department the employee works in (free text)."
 msgstr "Xodim ishlaydigan bo'lim nomi (erkin matn)."
 
-msgid "If unchecked, the employee cannot sign in (the account is blocked, but its data is kept)."
-msgstr "O'chirilsa, xodim tizimga kira olmaydi (hisob bloklanadi, lekin ma'lumotlari saqlanib qoladi)."
+msgid ""
+"If unchecked, the employee cannot sign in (the account is blocked, but its "
+"data is kept)."
+msgstr ""
+"O'chirilsa, xodim tizimga kira olmaydi (hisob bloklanadi, lekin ma'lumotlari"
+" saqlanib qoladi)."
 
 msgid "The document's name — shown under this name in lists."
 msgstr "Hujjatning nomi — ro'yxatda shu nom bilan ko'rinadi."
@@ -1060,7 +1079,8 @@ msgid "Which project the document belongs to."
 msgstr "Hujjat qaysi loyihaga tegishli ekanligi."
 
 msgid "Which section within the project it belongs to (optional)."
-msgstr "Loyiha ichidagi qaysi bo'limga (section) tegishli ekanligi (ixtiyoriy)."
+msgstr ""
+"Loyiha ichidagi qaysi bo'limga (section) tegishli ekanligi (ixtiyoriy)."
 
 msgid "The document version, e.g. v1, v2.1 (optional)."
 msgstr "Hujjat versiyasi, masalan: v1, v2.1 (ixtiyoriy)."
@@ -1083,13 +1103,18 @@ msgstr "Tasdiqlash bosqichining nomi (masalan: 'Bosh muhandis tekshiruvi')."
 msgid "The employee who reviews the document at this stage."
 msgstr "Shu bosqichda hujjatni ko'rib chiqadigan xodim."
 
-msgid "Your decision on the document: approve, reject, or send back for revision."
-msgstr "Hujjat bo'yicha qaroringiz: tasdiqlash, rad etish yoki qayta ko'rib chiqishga yuborish."
+msgid ""
+"Your decision on the document: approve, reject, or send back for revision."
+msgstr ""
+"Hujjat bo'yicha qaroringiz: tasdiqlash, rad etish yoki qayta ko'rib "
+"chiqishga yuborish."
 
 msgid "Write the reason for your decision or your comment (optional)."
 msgstr "Qaroringiz sababini yoki izohingizni yozing (ixtiyoriy)."
 
-msgid "The template's name — shown under this name in the list when creating a document."
+msgid ""
+"The template's name — shown under this name in the list when creating a "
+"document."
 msgstr "Shablon nomi — hujjat yaratishda ro'yxatda shu nom bilan ko'rinadi."
 
 msgid "Which document type the template is for (contract, act, etc.)."
@@ -1098,17 +1123,35 @@ msgstr "Shablon qaysi hujjat turi uchun ekanligi (shartnoma, akt va h.k.)."
 msgid "A short description of the template (optional)."
 msgstr "Shablon haqida qisqa izoh (ixtiyoriy)."
 
-msgid "The document text. {{placeholder}} tokens such as {{client_name}}, {{project_name}}, {{budget}}, {{deadline}} are replaced with real values when the document is generated."
-msgstr "Hujjat matni. {{client_name}}, {{project_name}}, {{budget}}, {{deadline}} kabi {{placeholder}} tokenlari hujjat generatsiya qilinganda haqiqiy qiymatlarga almashtiriladi."
+msgid ""
+"The document text. {{placeholder}} tokens such as {{client_name}}, "
+"{{project_name}}, {{budget}}, {{deadline}} are replaced with real values "
+"when the document is generated."
+msgstr ""
+"Hujjat matni. {{client_name}}, {{project_name}}, {{budget}}, {{deadline}} "
+"kabi {{placeholder}} tokenlari hujjat generatsiya qilinganda haqiqiy "
+"qiymatlarga almashtiriladi."
 
-msgid "Which project the document is generated for — {{placeholder}} tokens are filled with this project's data."
-msgstr "Hujjat qaysi loyiha uchun generatsiya qilinishi — {{placeholder}} tokenlari shu loyiha ma'lumotlari bilan to'ldiriladi."
+msgid ""
+"Which project the document is generated for — {{placeholder}} tokens are "
+"filled with this project's data."
+msgstr ""
+"Hujjat qaysi loyiha uchun generatsiya qilinishi — {{placeholder}} tokenlari "
+"shu loyiha ma'lumotlari bilan to'ldiriladi."
 
-msgid "If the document needs employee info (e.g. a contract), select it here (optional)."
-msgstr "Hujjatda xodim ma'lumoti kerak bo'lsa (masalan shartnoma), shu yerdan tanlanadi (ixtiyoriy)."
+msgid ""
+"If the document needs employee info (e.g. a contract), select it here "
+"(optional)."
+msgstr ""
+"Hujjatda xodim ma'lumoti kerak bo'lsa (masalan shartnoma), shu yerdan "
+"tanlanadi (ixtiyoriy)."
 
-msgid "If checked, the generated document is also saved to the project's 'Documents' section."
-msgstr "Belgilansa, generatsiya qilingan hujjat loyihaning 'Hujjatlar' bo'limiga ham saqlanadi."
+msgid ""
+"If checked, the generated document is also saved to the project's "
+"'Documents' section."
+msgstr ""
+"Belgilansa, generatsiya qilingan hujjat loyihaning 'Hujjatlar' bo'limiga ham"
+" saqlanadi."
 
 msgid "The record type — income (payment) or expense."
 msgstr "Yozuv turi — kirim (to'lov) yoki chiqim (xarajat)."
@@ -1173,8 +1216,11 @@ msgstr "Hozirgacha to'langan summa."
 msgid "The department's name — shown under this name in lists."
 msgstr "Bo'limning nomi — ro'yxatda shu nom bilan ko'rinadi."
 
-msgid "A unique short code for the department; it must not repeat across other departments."
-msgstr "Bo'lim uchun noyob qisqa kod, boshqa bo'limlarda takrorlanmasligi kerak."
+msgid ""
+"A unique short code for the department; it must not repeat across other "
+"departments."
+msgstr ""
+"Bo'lim uchun noyob qisqa kod, boshqa bo'limlarda takrorlanmasligi kerak."
 
 msgid "A short description of the department (optional)."
 msgstr "Bo'lim haqida qisqa izoh (ixtiyoriy)."
@@ -1215,8 +1261,12 @@ msgstr "Xodimning bevosita rahbari (ixtiyoriy)."
 msgid "If checked, this is considered the employee's primary unit."
 msgstr "Belgilansa, bu xodimning asosiy (birlamchi) bo'linmasi hisoblanadi."
 
-msgid "The project's chief architect (GIP) — the employee responsible for the project (optional)."
-msgstr "Loyihaning bosh inshoot arxitektori (GIP) — loyihaga mas'ul xodim (ixtiyoriy)."
+msgid ""
+"The project's chief architect (GIP) — the employee responsible for the "
+"project (optional)."
+msgstr ""
+"Loyihaning bosh inshoot arxitektori (GIP) — loyihaga mas'ul xodim "
+"(ixtiyoriy)."
 
 msgid "The project's name — shown under this name in lists and reports."
 msgstr "Loyihaning nomi — ro'yxatda va hisobotlarda shu nom bilan ko'rinadi."
@@ -1249,7 +1299,9 @@ msgid "The project's total budget (amount)."
 msgstr "Loyihaning umumiy byudjeti (summa)."
 
 msgid "The amount paid so far — shows what share of the budget has been paid."
-msgstr "Hozirgacha to'langan summa — byudjetdan qancha qismi to'langanini ko'rsatadi."
+msgstr ""
+"Hozirgacha to'langan summa — byudjetdan qancha qismi to'langanini "
+"ko'rsatadi."
 
 msgid "The employee being added to the project."
 msgstr "Loyihaga qo'shilayotgan xodim."
@@ -1293,20 +1345,39 @@ msgstr "Bo'limning joriy holati."
 msgid "A short, clear title for the request. E.g. \"Change facade color\"."
 msgstr "So'rovning qisqa va aniq nomi. Masalan: \"Fasad rangini o'zgartirish\"."
 
-msgid "Details about the request: what is needed, why, and what result is expected."
-msgstr "So'rov haqida batafsil ma'lumot: nima kerak, nima uchun kerak, qanday natija kutilyapti."
+msgid ""
+"Details about the request: what is needed, why, and what result is expected."
+msgstr ""
+"So'rov haqida batafsil ma'lumot: nima kerak, nima uchun kerak, qanday natija"
+" kutilyapti."
 
-msgid "The request type — Change: modify something existing; Clarification: ask a question; Improvement: suggest an enhancement; Issue: report a bug or defect."
-msgstr "So'rov turi — Change: mavjud narsani o'zgartirish; Clarification: savol/aniqlik so'rash; Improvement: yaxshilash taklifi; Issue: xato yoki nosozlik haqida xabar."
+msgid ""
+"The request type — Change: modify something existing; Clarification: ask a "
+"question; Improvement: suggest an enhancement; Issue: report a bug or "
+"defect."
+msgstr ""
+"So'rov turi — Change: mavjud narsani o'zgartirish; Clarification: "
+"savol/aniqlik so'rash; Improvement: yaxshilash taklifi; Issue: xato yoki "
+"nosozlik haqida xabar."
 
-msgid "Which project the request belongs to. Members of the selected project can see this request."
-msgstr "So'rov qaysi loyihaga tegishli. Tanlangan loyiha a'zolari bu so'rovni ko'ra oladi."
+msgid ""
+"Which project the request belongs to. Members of the selected project can "
+"see this request."
+msgstr ""
+"So'rov qaysi loyihaga tegishli. Tanlangan loyiha a'zolari bu so'rovni ko'ra "
+"oladi."
 
-msgid "The employee responsible for handling the request. If set, they get an automatic notification."
-msgstr "So'rovni bajarishga mas'ul xodim. Tanlansa, unga avtomatik bildirishnoma yuboriladi."
+msgid ""
+"The employee responsible for handling the request. If set, they get an "
+"automatic notification."
+msgstr ""
+"So'rovni bajarishga mas'ul xodim. Tanlansa, unga avtomatik bildirishnoma "
+"yuboriladi."
 
 msgid "The request's current status: Open → In progress → Resolved → Closed."
-msgstr "So'rovning joriy holati: Open (ochiq) → In progress (jarayonda) → Resolved (hal qilindi) → Closed (yopilgan)."
+msgstr ""
+"So'rovning joriy holati: Open (ochiq) → In progress (jarayonda) → Resolved "
+"(hal qilindi) → Closed (yopilgan)."
 
 msgid "The request's priority level: Low, Medium, or High."
 msgstr "So'rovning muhimlik darajasi: Low, Medium yoki High."
@@ -1317,17 +1388,24 @@ msgstr "So'rov bo'yicha izoh yoki javobingizni shu yerga yozing."
 msgid "A short, clear title for the task."
 msgstr "Vazifaning qisqa va aniq nomi."
 
-msgid "Details about the task: what needs to be done, what result is expected."
-msgstr "Vazifa haqida batafsil ma'lumot: nima qilish kerak, qanday natija kutilyapti."
+msgid ""
+"Details about the task: what needs to be done, what result is expected."
+msgstr ""
+"Vazifa haqida batafsil ma'lumot: nima qilish kerak, qanday natija "
+"kutilyapti."
 
 msgid "Which project the task belongs to."
 msgstr "Vazifa qaysi loyihaga tegishli ekanligi."
 
-msgid "The employee responsible for completing the task. If set, they get a notification."
-msgstr "Vazifani bajarishga mas'ul xodim. Tanlansa, unga bildirishnoma yuboriladi."
+msgid ""
+"The employee responsible for completing the task. If set, they get a "
+"notification."
+msgstr ""
+"Vazifani bajarishga mas'ul xodim. Tanlansa, unga bildirishnoma yuboriladi."
 
 msgid "The task's current status (to do, in progress, done, etc.)."
-msgstr "Vazifaning joriy holati (bajarilishi kerak, jarayonda, bajarildi va h.k.)."
+msgstr ""
+"Vazifaning joriy holati (bajarilishi kerak, jarayonda, bajarildi va h.k.)."
 
 msgid "The task's priority level."
 msgstr "Vazifaning muhimlik darajasi."
@@ -1347,11 +1425,18 @@ msgstr "Sohalar"
 msgid "Other discipline"
 msgstr "Boshqa soha"
 
-msgid "The disciplines (specializations) the employee can work in — select all that apply."
-msgstr "Xodim ishlashi mumkin bo'lgan sohalar (mutaxassisliklar) — tegishlilarini belgilang."
+msgid ""
+"The disciplines (specializations) the employee can work in — select all that"
+" apply."
+msgstr ""
+"Xodim ishlashi mumkin bo'lgan sohalar (mutaxassisliklar) — tegishlilarini "
+"belgilang."
 
-msgid "If the employee's discipline isn't listed above, specify it here (optional)."
-msgstr "Agar xodimning sohasi yuqorida ko'rsatilmagan bo'lsa, shu yerda ko'rsating (ixtiyoriy)."
+msgid ""
+"If the employee's discipline isn't listed above, specify it here (optional)."
+msgstr ""
+"Agar xodimning sohasi yuqorida ko'rsatilmagan bo'lsa, shu yerda ko'rsating "
+"(ixtiyoriy)."
 
 msgid "Which object this sub-object belongs to."
 msgstr "Ushbu pastki obyekt qaysi obyektga tegishli ekanligi."
@@ -1447,7 +1532,9 @@ msgid "Location on map"
 msgstr "Xaritada joylashuv"
 
 msgid "Select the region above, then click the map to pin the exact location."
-msgstr "Yuqorida viloyatni tanlang, so'ng aniq joyni belgilash uchun xaritani bosing."
+msgstr ""
+"Yuqorida viloyatni tanlang, so'ng aniq joyni belgilash uchun xaritani "
+"bosing."
 
 msgid "All objects"
 msgstr "Barcha obyektlar"
@@ -1470,8 +1557,11 @@ msgstr "Soha yaratildi."
 msgid "Discipline deleted."
 msgstr "Soha o'chirildi."
 
-msgid "This discipline is used by one or more sub-objects and cannot be deleted."
-msgstr "Ushbu soha bir yoki bir nechta pastki obyektda ishlatilgan, shuning uchun o'chirib bo'lmaydi."
+msgid ""
+"This discipline is used by one or more sub-objects and cannot be deleted."
+msgstr ""
+"Ushbu soha bir yoki bir nechta pastki obyektda ishlatilgan, shuning uchun "
+"o'chirib bo'lmaydi."
 
 msgid "A short unique code, e.g. AR, KR."
 msgstr "Qisqa noyob kod, masalan: AR, KR."
@@ -1484,3 +1574,277 @@ msgstr "Ushbu soha bo'yicha xodimlar:"
 
 msgid "No employees found for this discipline."
 msgstr "Ushbu soha bo'yicha xodim topilmadi."
+
+msgid "+ Add"
+msgstr "+ Qo'shish"
+
+msgid "+ Add contractor"
+msgstr "+ Pudratchi qo'shish"
+
+msgid "+ New payment request"
+msgstr "+ Yangi to'lov so'rovi"
+
+msgid "3-stage approval: GIP → Finance → Manager"
+msgstr "3 bosqichli tasdiqlash: GIP → Moliya → Menejer"
+
+msgid "Actual"
+msgstr "Amalda"
+
+msgid "Add contractor"
+msgstr "Pudratchi qo'shish"
+
+msgid "Add cost code"
+msgstr "Smeta kodi qo'shish"
+
+msgid "Approval stage"
+msgstr "Tasdiqlash bosqichi"
+
+msgid "Attach the invoice or contract document (optional)."
+msgstr "Hisob-faktura yoki shartnoma hujjatini biriktiring (ixtiyoriy)."
+
+msgid "Automatic approval chain"
+msgstr "Avtomatik tasdiqlash zanjiri"
+
+msgid "Budget"
+msgstr "Byudjet"
+
+msgid "Budget vs. actual, by CSI cost code"
+msgstr "CSI smeta kodi bo'yicha byudjet va amaldagi xarajat"
+
+msgid "CPI/SPI are approximate estimates"
+msgstr "CPI/SPI taxminiy ko'rsatkichlar"
+
+msgid "Cash flow (last 6 months)"
+msgstr "Pul oqimi (so'nggi 6 oy)"
+
+msgid "Category"
+msgstr "Toifa"
+
+msgid "Contractor"
+msgstr "Pudratchi"
+
+msgid "Cost code"
+msgstr "Smeta kodi"
+
+msgid "Cost code control"
+msgstr "Smeta kodlari nazorati"
+
+msgid "Diff"
+msgstr "Farq"
+
+msgid "Expected receivables"
+msgstr "Kutilayotgan tushumlar"
+
+msgid "Finance review"
+msgstr "Moliya ko'rib chiqishi"
+
+msgid "GIP approval"
+msgstr "GIP tasdiqlashi"
+
+msgid "Manager approval"
+msgstr "Menejer tasdiqlashi"
+
+msgid "Month"
+msgstr "Oy"
+
+msgid "Net amount to contractor"
+msgstr "Pudratchiga sof summa"
+
+msgid "Net margin"
+msgstr "Sof foyda"
+
+msgid "New payment request"
+msgstr "Yangi to'lov so'rovi"
+
+msgid "No cost codes yet — add them from the admin panel."
+msgstr "Hozircha smeta kodlari yo'q — ularni admin paneldan qo'shing."
+
+msgid "No overdue payments"
+msgstr "Muddati o'tgan to'lovlar yo'q"
+
+msgid "No payment requests yet."
+msgstr "Hozircha to'lov so'rovlari yo'q."
+
+msgid "Payment matrix & journal"
+msgstr "To'lovlar jadvali va jurnali"
+
+msgid "Planned payables"
+msgstr "Rejalashtirilgan to'lovlar"
+
+msgid "Retainage"
+msgstr "Ushlab qolinadigan summa"
+
+msgid "Retainage held"
+msgstr "Ushlab qolingan summa"
+
+msgid "Review payment request"
+msgstr "To'lov so'rovini ko'rib chiqish"
+
+msgid "Shared contractor directory"
+msgstr "Umumiy pudratchilar ro'yxati"
+
+msgid "Spent"
+msgstr "Sarflandi"
+
+msgid "Submit request"
+msgstr "So'rovni yuborish"
+
+msgid "Total budget (EVM)"
+msgstr "Umumiy byudjet (EVM)"
+
+msgid "View as table"
+msgstr "Jadval ko'rinishida"
+
+msgid "auto · 5%"
+msgstr "avtomatik · 5%"
+
+msgid "net"
+msgstr "sof"
+
+msgid "Close"
+msgstr "Yopish"
+
+msgid "Info"
+msgstr "Ma'lumot"
+
+msgid "Required"
+msgstr "Talab qilinadi"
+
+msgid "not required (&lt; %(threshold)s)"
+msgstr "shart emas (&lt; %(threshold)s)"
+
+msgid "Advance"
+msgstr "Avans"
+
+msgid "Payment"
+msgstr "To'lov"
+
+msgid "Subcontract"
+msgstr "Subpudrat"
+
+msgid "Invoice"
+msgstr "Hisob-faktura"
+
+msgid "Skipped"
+msgstr "O'tkazib yuborildi"
+
+msgid "Approve"
+msgstr "Tasdiqlash"
+
+msgid "Reject"
+msgstr "Rad etish"
+
+msgid "Under budget"
+msgstr "Byudjetdan past"
+
+msgid "Over budget"
+msgstr "Byudjetdan oshgan"
+
+msgid "On track"
+msgstr "Reja bo'yicha"
+
+msgid "The CSI-style code, e.g. \"03-30-00\"."
+msgstr "CSI uslubidagi kod, masalan, \"03-30-00\"."
+
+msgid "The category name, e.g. \"Concrete works\"."
+msgstr "Toifa nomi, masalan, \"Beton ishlari\"."
+
+msgid "The planned budget for this cost code."
+msgstr "Ushbu smeta kodi uchun rejalashtirilgan byudjet."
+
+msgid "The contractor/organization's name."
+msgstr "Pudratchi/tashkilot nomi."
+
+msgid "A contact phone number (optional)."
+msgstr "Aloqa uchun telefon raqami (ixtiyoriy)."
+
+msgid "The sub-object this payment relates to (optional)."
+msgstr "Ushbu to'lov tegishli bo'lgan sub-obyekt (ixtiyoriy)."
+
+msgid "The budget line (cost code) this payment is charged against."
+msgstr "Ushbu to'lov hisobga olinadigan byudjet bandi (smeta kodi)."
+
+msgid "The contractor/organization being paid."
+msgstr "To'lov qilinayotgan pudratchi/tashkilot."
+
+msgid "The type of payment — subcontract, advance, or invoice."
+msgstr "To'lov turi — subpudrat, avans yoki hisob-faktura."
+
+msgid "The gross amount requested. A 5% retainage is withheld automatically."
+msgstr ""
+"So'ralayotgan yalpi summa. 5% ushlab qolish avtomatik ravishda amalga "
+"oshiriladi."
+
+msgid "A short note on what this payment is for (optional)."
+msgstr "Ushbu to'lov nima uchunligi haqida qisqacha izoh (ixtiyoriy)."
+
+msgid "Attach the invoice/contract document (optional, max 25MB)."
+msgstr ""
+"Hisob-faktura/shartnoma hujjatini biriktiring (ixtiyoriy, maks. 25MB)."
+
+msgid "Your decision on this payment request."
+msgstr "Ushbu to'lov so'rovi bo'yicha qaroringiz."
+
+msgid "Cost code added."
+msgstr "Smeta kodi qo'shildi."
+
+msgid "This cost code already exists for this project."
+msgstr "Bu smeta kodi ushbu loyiha uchun allaqachon mavjud."
+
+msgid "Could not add the cost code — please check the form."
+msgstr "Smeta kodini qo'shib bo'lmadi — formani tekshiring."
+
+msgid "Contractor added."
+msgstr "Pudratchi qo'shildi."
+
+msgid "Could not add the contractor — please check the form."
+msgstr "Pudratchini qo'shib bo'lmadi — formani tekshiring."
+
+msgid "Payment request submitted."
+msgstr "To'lov so'rovi yuborildi."
+
+msgid "Could not submit the payment request — please check the form."
+msgstr "To'lov so'rovini yuborib bo'lmadi — formani tekshiring."
+
+msgid "Review submitted."
+msgstr "Ko'rib chiqish natijasi yuborildi."
+
+msgid "New payment request to review"
+msgstr "Ko'rib chiqish uchun yangi to'lov so'rovi"
+
+msgid "Payment request rejected"
+msgstr "To'lov so'rovi rad etildi"
+
+msgid "Payment request approved"
+msgstr "To'lov so'rovi tasdiqlandi"
+
+msgid "Finance record added."
+msgstr "Moliyaviy yozuv qo'shildi."
+
+msgid "Record deleted."
+msgstr "Yozuv o'chirildi."
+
+msgid "Employee contract added."
+msgstr "Xodim shartnomasi qo'shildi."
+
+msgid "Employee contract deleted."
+msgstr "Xodim shartnomasi o'chirildi."
+
+msgid "Contract added."
+msgstr "Shartnoma qo'shildi."
+
+msgid "%(contractor)s — %(amount)s needs your approval."
+msgstr "%(contractor)s — %(amount)s tasdig'ingizni talab qiladi."
+
+msgid "Automatic: amount under $%(threshold)s."
+msgstr "Avtomatik: summa $%(threshold)s dan kam."
+
+msgid "Your payment request for %(contractor)s was rejected."
+msgstr "%(contractor)s uchun to'lov so'rovingiz rad etildi."
+
+msgid "Your payment request for %(contractor)s was fully approved."
+msgstr "%(contractor)s uchun to'lov so'rovingiz to'liq tasdiqlandi."
+
+msgid "%(c)s overdue payment"
+msgid_plural "%(c)s overdue payments"
+msgstr[0] "%(c)s ta muddati o'tgan to'lov"

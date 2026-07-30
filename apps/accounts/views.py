@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordChangeView
 from django.db.models import ProtectedError
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views import View
 
@@ -245,18 +245,21 @@ def user_list(request):
     if search:
         users = users.filter(full_name__icontains=search) | users.filter(email__icontains=search)
 
+    can_manage = request.user.is_superuser or request.user.role in MANAGE_ROLES
     return render(request, "accounts/user_list.html", {
         "users": users,
         "role": role or "",
         "search": search or "",
         "roles": User.Role.choices,
-        "can_manage": request.user.is_superuser or request.user.role in MANAGE_ROLES,
+        "can_manage": can_manage,
         "stats": {
             "total": User.objects.count(),
             "active": User.objects.filter(is_active=True).count(),
             "gip": User.objects.filter(role=User.Role.GIP).count(),
             "designer": User.objects.filter(role=User.Role.DESIGNER).count(),
         },
+        "disciplines": Discipline.objects.all(),
+        "discipline_form": DisciplineForm(),
     })
 
 
@@ -292,16 +295,6 @@ def user_update(request, pk):
     return render(request, "accounts/user_form.html", {"form": form, "user_obj": user, "is_create": False})
 
 
-@login_required
-def discipline_list(request):
-    can_manage = request.user.is_superuser or request.user.role in MANAGE_ROLES
-    return render(request, "accounts/discipline_list.html", {
-        "disciplines": Discipline.objects.all(),
-        "discipline_form": DisciplineForm(),
-        "can_manage": can_manage,
-    })
-
-
 @role_required(*MANAGE_ROLES)
 def discipline_create(request):
     if request.method == "POST":
@@ -309,7 +302,7 @@ def discipline_create(request):
         if form.is_valid():
             form.save()
             messages.success(request, _("Discipline created."))
-    return redirect("accounts:discipline_list")
+    return redirect(reverse("accounts:user_list") + "#tab-disciplines")
 
 
 @role_required(*MANAGE_ROLES)
@@ -324,4 +317,4 @@ def discipline_delete(request, pk):
                 request,
                 _("This discipline is used by one or more sub-objects and cannot be deleted."),
             )
-    return redirect("accounts:discipline_list")
+    return redirect(reverse("accounts:user_list") + "#tab-disciplines")

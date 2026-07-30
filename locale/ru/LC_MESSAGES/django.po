@@ -8,6 +8,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
 
 msgid ""
 "A random temporary password will be generated and shown once after creation."
@@ -644,7 +645,7 @@ msgid "Review document"
 msgstr "Проверить документ"
 
 msgid "Review — %(name)s"
-msgstr "Проверка — %(name)s"
+msgstr "Рассмотрение — %(name)s"
 
 msgid "Reviewer"
 msgstr "Проверяющий"
@@ -997,8 +998,12 @@ msgstr "Системные уведомления"
 msgid "Your current password used to sign in to your account."
 msgstr "Ваш текущий пароль для входа в аккаунт."
 
-msgid "The new password must be at least 8 characters long and cannot be entirely numeric."
-msgstr "Новый пароль должен содержать не менее 8 символов и не может состоять только из цифр."
+msgid ""
+"The new password must be at least 8 characters long and cannot be entirely "
+"numeric."
+msgstr ""
+"Новый пароль должен содержать не менее 8 символов и не может состоять только"
+" из цифр."
 
 msgid "Enter the new password again to avoid mistakes."
 msgstr "Введите новый пароль ещё раз, чтобы избежать ошибок."
@@ -1012,8 +1017,12 @@ msgstr "Пароль, установленный для вашего аккау�
 msgid "6-digit code"
 msgstr "6-значный код"
 
-msgid "The 6-digit code shown in your authenticator app (Google Authenticator, etc.)."
-msgstr "6-значный код, отображаемый в приложении-аутентификаторе (Google Authenticator и т.д.)."
+msgid ""
+"The 6-digit code shown in your authenticator app (Google Authenticator, "
+"etc.)."
+msgstr ""
+"6-значный код, отображаемый в приложении-аутентификаторе (Google "
+"Authenticator и т.д.)."
 
 msgid "The email address used to sign in — this is used as your login."
 msgstr "Email адрес для входа в систему — используется как логин."
@@ -1021,8 +1030,12 @@ msgstr "Email адрес для входа в систему — использ�
 msgid "Your full name, shown to other employees under this name."
 msgstr "Ваше полное имя, отображается другим сотрудникам под этим именем."
 
-msgid "Your role in the system — permissions and visible sections are set based on this."
-msgstr "Ваша роль в системе — права доступа и видимые разделы определяются на основе этого."
+msgid ""
+"Your role in the system — permissions and visible sections are set based on "
+"this."
+msgstr ""
+"Ваша роль в системе — права доступа и видимые разделы определяются на основе"
+" этого."
 
 msgid "The name of the department you work in (free text)."
 msgstr "Название отдела, в котором вы работаете (произвольный текст)."
@@ -1040,13 +1053,18 @@ msgid "The employee's full name."
 msgstr "Полное имя сотрудника."
 
 msgid "The employee's role in the system — permissions are set based on this."
-msgstr "Роль сотрудника в системе — права доступа определяются на основе этого."
+msgstr ""
+"Роль сотрудника в системе — права доступа определяются на основе этого."
 
 msgid "The name of the department the employee works in (free text)."
 msgstr "Название отдела, в котором работает сотрудник (произвольный текст)."
 
-msgid "If unchecked, the employee cannot sign in (the account is blocked, but its data is kept)."
-msgstr "Если снято, сотрудник не сможет войти в систему (аккаунт блокируется, но данные сохраняются)."
+msgid ""
+"If unchecked, the employee cannot sign in (the account is blocked, but its "
+"data is kept)."
+msgstr ""
+"Если снято, сотрудник не сможет войти в систему (аккаунт блокируется, но "
+"данные сохраняются)."
 
 msgid "The document's name — shown under this name in lists."
 msgstr "Название документа — отображается под этим названием в списках."
@@ -1081,14 +1099,20 @@ msgstr "Название этапа согласования (например: 
 msgid "The employee who reviews the document at this stage."
 msgstr "Сотрудник, проверяющий документ на этом этапе."
 
-msgid "Your decision on the document: approve, reject, or send back for revision."
-msgstr "Ваше решение по документу: утвердить, отклонить или отправить на доработку."
+msgid ""
+"Your decision on the document: approve, reject, or send back for revision."
+msgstr ""
+"Ваше решение по документу: утвердить, отклонить или отправить на доработку."
 
 msgid "Write the reason for your decision or your comment (optional)."
 msgstr "Укажите причину решения или ваш комментарий (необязательно)."
 
-msgid "The template's name — shown under this name in the list when creating a document."
-msgstr "Название шаблона — отображается под этим названием в списке при создании документа."
+msgid ""
+"The template's name — shown under this name in the list when creating a "
+"document."
+msgstr ""
+"Название шаблона — отображается под этим названием в списке при создании "
+"документа."
 
 msgid "Which document type the template is for (contract, act, etc.)."
 msgstr "Для какого типа документа предназначен шаблон (договор, акт и т.д.)."
@@ -1096,17 +1120,35 @@ msgstr "Для какого типа документа предназначен
 msgid "A short description of the template (optional)."
 msgstr "Краткое описание шаблона (необязательно)."
 
-msgid "The document text. {{placeholder}} tokens such as {{client_name}}, {{project_name}}, {{budget}}, {{deadline}} are replaced with real values when the document is generated."
-msgstr "Текст документа. Токены {{placeholder}}, такие как {{client_name}}, {{project_name}}, {{budget}}, {{deadline}}, заменяются реальными значениями при генерации документа."
+msgid ""
+"The document text. {{placeholder}} tokens such as {{client_name}}, "
+"{{project_name}}, {{budget}}, {{deadline}} are replaced with real values "
+"when the document is generated."
+msgstr ""
+"Текст документа. Токены {{placeholder}}, такие как {{client_name}}, "
+"{{project_name}}, {{budget}}, {{deadline}}, заменяются реальными значениями "
+"при генерации документа."
 
-msgid "Which project the document is generated for — {{placeholder}} tokens are filled with this project's data."
-msgstr "Для какого проекта генерируется документ — токены {{placeholder}} заполняются данными этого проекта."
+msgid ""
+"Which project the document is generated for — {{placeholder}} tokens are "
+"filled with this project's data."
+msgstr ""
+"Для какого проекта генерируется документ — токены {{placeholder}} "
+"заполняются данными этого проекта."
 
-msgid "If the document needs employee info (e.g. a contract), select it here (optional)."
-msgstr "Если документу нужна информация о сотруднике (например, договор), выберите его здесь (необязательно)."
+msgid ""
+"If the document needs employee info (e.g. a contract), select it here "
+"(optional)."
+msgstr ""
+"Если документу нужна информация о сотруднике (например, договор), выберите "
+"его здесь (необязательно)."
 
-msgid "If checked, the generated document is also saved to the project's 'Documents' section."
-msgstr "Если отмечено, сгенерированный документ также сохраняется в раздел 'Документы' проекта."
+msgid ""
+"If checked, the generated document is also saved to the project's "
+"'Documents' section."
+msgstr ""
+"Если отмечено, сгенерированный документ также сохраняется в раздел "
+"'Документы' проекта."
 
 msgid "The record type — income (payment) or expense."
 msgstr "Тип записи — приход (оплата) или расход."
@@ -1171,8 +1213,11 @@ msgstr "Сумма, выплаченная на данный момент."
 msgid "The department's name — shown under this name in lists."
 msgstr "Название отдела — отображается под этим названием в списках."
 
-msgid "A unique short code for the department; it must not repeat across other departments."
-msgstr "Уникальный короткий код отдела; не должен повторяться в других отделах."
+msgid ""
+"A unique short code for the department; it must not repeat across other "
+"departments."
+msgstr ""
+"Уникальный короткий код отдела; не должен повторяться в других отделах."
 
 msgid "A short description of the department (optional)."
 msgstr "Краткое описание отдела (необязательно)."
@@ -1213,11 +1258,16 @@ msgstr "Непосредственный руководитель сотрудн
 msgid "If checked, this is considered the employee's primary unit."
 msgstr "Если отмечено, это подразделение считается основным для сотрудника."
 
-msgid "The project's chief architect (GIP) — the employee responsible for the project (optional)."
-msgstr "Главный инженер проекта (ГИП) — сотрудник, ответственный за проект (необязательно)."
+msgid ""
+"The project's chief architect (GIP) — the employee responsible for the "
+"project (optional)."
+msgstr ""
+"Главный инженер проекта (ГИП) — сотрудник, ответственный за проект "
+"(необязательно)."
 
 msgid "The project's name — shown under this name in lists and reports."
-msgstr "Название проекта — отображается под этим названием в списках и отчётах."
+msgstr ""
+"Название проекта — отображается под этим названием в списках и отчётах."
 
 msgid "A short description of the project (optional)."
 msgstr "Краткое описание проекта (необязательно)."
@@ -1247,7 +1297,9 @@ msgid "The project's total budget (amount)."
 msgstr "Общий бюджет проекта (сумма)."
 
 msgid "The amount paid so far — shows what share of the budget has been paid."
-msgstr "Сумма, выплаченная на данный момент — показывает, какая часть бюджета оплачена."
+msgstr ""
+"Сумма, выплаченная на данный момент — показывает, какая часть бюджета "
+"оплачена."
 
 msgid "The employee being added to the project."
 msgstr "Сотрудник, добавляемый в проект."
@@ -1291,20 +1343,39 @@ msgstr "Текущий статус раздела."
 msgid "A short, clear title for the request. E.g. \"Change facade color\"."
 msgstr "Краткое и понятное название запроса. Например: \"Изменить цвет фасада\"."
 
-msgid "Details about the request: what is needed, why, and what result is expected."
-msgstr "Подробная информация о запросе: что нужно, зачем и какой результат ожидается."
+msgid ""
+"Details about the request: what is needed, why, and what result is expected."
+msgstr ""
+"Подробная информация о запросе: что нужно, зачем и какой результат "
+"ожидается."
 
-msgid "The request type — Change: modify something existing; Clarification: ask a question; Improvement: suggest an enhancement; Issue: report a bug or defect."
-msgstr "Тип запроса — Change: изменить что-то существующее; Clarification: задать вопрос/уточнение; Improvement: предложение по улучшению; Issue: сообщение об ошибке или неполадке."
+msgid ""
+"The request type — Change: modify something existing; Clarification: ask a "
+"question; Improvement: suggest an enhancement; Issue: report a bug or "
+"defect."
+msgstr ""
+"Тип запроса — Change: изменить что-то существующее; Clarification: задать "
+"вопрос/уточнение; Improvement: предложение по улучшению; Issue: сообщение об"
+" ошибке или неполадке."
 
-msgid "Which project the request belongs to. Members of the selected project can see this request."
-msgstr "К какому проекту относится запрос. Участники выбранного проекта смогут видеть этот запрос."
+msgid ""
+"Which project the request belongs to. Members of the selected project can "
+"see this request."
+msgstr ""
+"К какому проекту относится запрос. Участники выбранного проекта смогут "
+"видеть этот запрос."
 
-msgid "The employee responsible for handling the request. If set, they get an automatic notification."
-msgstr "Сотрудник, ответственный за обработку запроса. Если указан, ему автоматически отправляется уведомление."
+msgid ""
+"The employee responsible for handling the request. If set, they get an "
+"automatic notification."
+msgstr ""
+"Сотрудник, ответственный за обработку запроса. Если указан, ему "
+"автоматически отправляется уведомление."
 
 msgid "The request's current status: Open → In progress → Resolved → Closed."
-msgstr "Текущий статус запроса: Open (открыт) → In progress (в процессе) → Resolved (решён) → Closed (закрыт)."
+msgstr ""
+"Текущий статус запроса: Open (открыт) → In progress (в процессе) → Resolved "
+"(решён) → Closed (закрыт)."
 
 msgid "The request's priority level: Low, Medium, or High."
 msgstr "Уровень приоритета запроса: Low, Medium или High."
@@ -1315,14 +1386,20 @@ msgstr "Напишите здесь комментарий или ответ п�
 msgid "A short, clear title for the task."
 msgstr "Краткое и понятное название задачи."
 
-msgid "Details about the task: what needs to be done, what result is expected."
-msgstr "Подробная информация о задаче: что нужно сделать, какой результат ожидается."
+msgid ""
+"Details about the task: what needs to be done, what result is expected."
+msgstr ""
+"Подробная информация о задаче: что нужно сделать, какой результат ожидается."
 
 msgid "Which project the task belongs to."
 msgstr "К какому проекту относится задача."
 
-msgid "The employee responsible for completing the task. If set, they get a notification."
-msgstr "Сотрудник, ответственный за выполнение задачи. Если указан, ему отправляется уведомление."
+msgid ""
+"The employee responsible for completing the task. If set, they get a "
+"notification."
+msgstr ""
+"Сотрудник, ответственный за выполнение задачи. Если указан, ему отправляется"
+" уведомление."
 
 msgid "The task's current status (to do, in progress, done, etc.)."
 msgstr "Текущий статус задачи (к выполнению, в процессе, выполнено и т.д.)."
@@ -1345,11 +1422,18 @@ msgstr "Направления"
 msgid "Other discipline"
 msgstr "Другое направление"
 
-msgid "The disciplines (specializations) the employee can work in — select all that apply."
-msgstr "Направления (специализации), в которых может работать сотрудник — отметьте все подходящие."
+msgid ""
+"The disciplines (specializations) the employee can work in — select all that"
+" apply."
+msgstr ""
+"Направления (специализации), в которых может работать сотрудник — отметьте "
+"все подходящие."
 
-msgid "If the employee's discipline isn't listed above, specify it here (optional)."
-msgstr "Если направление сотрудника не указано выше, укажите его здесь (необязательно)."
+msgid ""
+"If the employee's discipline isn't listed above, specify it here (optional)."
+msgstr ""
+"Если направление сотрудника не указано выше, укажите его здесь "
+"(необязательно)."
 
 msgid "Which object this sub-object belongs to."
 msgstr "К какому объекту относится этот подобъект."
@@ -1445,7 +1529,8 @@ msgid "Location on map"
 msgstr "Расположение на карте"
 
 msgid "Select the region above, then click the map to pin the exact location."
-msgstr "Выберите регион выше, затем нажмите на карту, чтобы отметить точное место."
+msgstr ""
+"Выберите регион выше, затем нажмите на карту, чтобы отметить точное место."
 
 msgid "All objects"
 msgstr "Все объекты"
@@ -1468,8 +1553,11 @@ msgstr "Направление создано."
 msgid "Discipline deleted."
 msgstr "Направление удалено."
 
-msgid "This discipline is used by one or more sub-objects and cannot be deleted."
-msgstr "Это направление используется в одном или нескольких подобъектах и не может быть удалено."
+msgid ""
+"This discipline is used by one or more sub-objects and cannot be deleted."
+msgstr ""
+"Это направление используется в одном или нескольких подобъектах и не может "
+"быть удалено."
 
 msgid "A short unique code, e.g. AR, KR."
 msgstr "Короткий уникальный код, например: AR, KR."
@@ -1482,3 +1570,277 @@ msgstr "Сотрудники по этому направлению:"
 
 msgid "No employees found for this discipline."
 msgstr "Сотрудники по этому направлению не найдены."
+
+msgid "+ Add"
+msgstr "+ Добавить"
+
+msgid "+ Add contractor"
+msgstr "+ Добавить подрядчика"
+
+msgid "+ New payment request"
+msgstr "+ Новая заявка на платёж"
+
+msgid "3-stage approval: GIP → Finance → Manager"
+msgstr "3-этапное утверждение: ГИП → Финансы → Менеджер"
+
+msgid "Actual"
+msgstr "Факт"
+
+msgid "Add contractor"
+msgstr "Добавить подрядчика"
+
+msgid "Add cost code"
+msgstr "Добавить код сметы"
+
+msgid "Approval stage"
+msgstr "Этап утверждения"
+
+msgid "Attach the invoice or contract document (optional)."
+msgstr "Прикрепите счёт-фактуру или договор (необязательно)."
+
+msgid "Automatic approval chain"
+msgstr "Автоматическая цепочка утверждения"
+
+msgid "Budget"
+msgstr "Бюджет"
+
+msgid "Budget vs. actual, by CSI cost code"
+msgstr "Бюджет и факт по кодам сметы CSI"
+
+msgid "CPI/SPI are approximate estimates"
+msgstr "CPI/SPI являются приблизительными показателями"
+
+msgid "Cash flow (last 6 months)"
+msgstr "Денежный поток (последние 6 месяцев)"
+
+msgid "Category"
+msgstr "Категория"
+
+msgid "Contractor"
+msgstr "Подрядчик"
+
+msgid "Cost code"
+msgstr "Код сметы"
+
+msgid "Cost code control"
+msgstr "Контроль кодов сметы"
+
+msgid "Diff"
+msgstr "Разница"
+
+msgid "Expected receivables"
+msgstr "Ожидаемые поступления"
+
+msgid "Finance review"
+msgstr "Проверка финансами"
+
+msgid "GIP approval"
+msgstr "Утверждение ГИП"
+
+msgid "Manager approval"
+msgstr "Утверждение менеджера"
+
+msgid "Month"
+msgstr "Месяц"
+
+msgid "Net amount to contractor"
+msgstr "Чистая сумма подрядчику"
+
+msgid "Net margin"
+msgstr "Чистая маржа"
+
+msgid "New payment request"
+msgstr "Новая заявка на платёж"
+
+msgid "No cost codes yet — add them from the admin panel."
+msgstr "Кодов сметы пока нет — добавьте их через панель администратора."
+
+msgid "No overdue payments"
+msgstr "Просроченных платежей нет"
+
+msgid "No payment requests yet."
+msgstr "Заявок на платёж пока нет."
+
+msgid "Payment matrix & journal"
+msgstr "Матрица и журнал платежей"
+
+msgid "Planned payables"
+msgstr "Плановые платежи"
+
+msgid "Retainage"
+msgstr "Удержание"
+
+msgid "Retainage held"
+msgstr "Удержанная сумма"
+
+msgid "Review payment request"
+msgstr "Рассмотрение заявки на платёж"
+
+msgid "Shared contractor directory"
+msgstr "Общий справочник подрядчиков"
+
+msgid "Spent"
+msgstr "Потрачено"
+
+msgid "Submit request"
+msgstr "Отправить заявку"
+
+msgid "Total budget (EVM)"
+msgstr "Общий бюджет (EVM)"
+
+msgid "View as table"
+msgstr "Показать в виде таблицы"
+
+msgid "auto · 5%"
+msgstr "авто · 5%"
+
+msgid "net"
+msgstr "нетто"
+
+msgid "Close"
+msgstr "Закрыть"
+
+msgid "Info"
+msgstr "Информация"
+
+msgid "Required"
+msgstr "Требуется"
+
+msgid "not required (&lt; %(threshold)s)"
+msgstr "не требуется (&lt; %(threshold)s)"
+
+msgid "Advance"
+msgstr "Аванс"
+
+msgid "Payment"
+msgstr "Платёж"
+
+msgid "Subcontract"
+msgstr "Субподряд"
+
+msgid "Invoice"
+msgstr "Счёт-фактура"
+
+msgid "Skipped"
+msgstr "Пропущено"
+
+msgid "Approve"
+msgstr "Утвердить"
+
+msgid "Reject"
+msgstr "Отклонить"
+
+msgid "Under budget"
+msgstr "Ниже бюджета"
+
+msgid "Over budget"
+msgstr "Превышение бюджета"
+
+msgid "On track"
+msgstr "По плану"
+
+msgid "The CSI-style code, e.g. \"03-30-00\"."
+msgstr "Код в стиле CSI, например \"03-30-00\"."
+
+msgid "The category name, e.g. \"Concrete works\"."
+msgstr "Название категории, например \"Бетонные работы\"."
+
+msgid "The planned budget for this cost code."
+msgstr "Плановый бюджет по этому коду сметы."
+
+msgid "The contractor/organization's name."
+msgstr "Название подрядчика/организации."
+
+msgid "A contact phone number (optional)."
+msgstr "Контактный номер телефона (необязательно)."
+
+msgid "The sub-object this payment relates to (optional)."
+msgstr "Суб-объект, к которому относится этот платёж (необязательно)."
+
+msgid "The budget line (cost code) this payment is charged against."
+msgstr "Статья бюджета (код сметы), по которой проводится этот платёж."
+
+msgid "The contractor/organization being paid."
+msgstr "Подрядчик/организация, которой производится оплата."
+
+msgid "The type of payment — subcontract, advance, or invoice."
+msgstr "Тип платежа — субподряд, аванс или счёт-фактура."
+
+msgid "The gross amount requested. A 5% retainage is withheld automatically."
+msgstr "Запрашиваемая валовая сумма. 5% удержание применяется автоматически."
+
+msgid "A short note on what this payment is for (optional)."
+msgstr "Короткая заметка о назначении платежа (необязательно)."
+
+msgid "Attach the invoice/contract document (optional, max 25MB)."
+msgstr "Прикрепите счёт-фактуру/договор (необязательно, макс. 25МБ)."
+
+msgid "Your decision on this payment request."
+msgstr "Ваше решение по этой заявке на платёж."
+
+msgid "Cost code added."
+msgstr "Код сметы добавлен."
+
+msgid "This cost code already exists for this project."
+msgstr "Такой код сметы уже существует для этого проекта."
+
+msgid "Could not add the cost code — please check the form."
+msgstr "Не удалось добавить код сметы — проверьте форму."
+
+msgid "Contractor added."
+msgstr "Подрядчик добавлен."
+
+msgid "Could not add the contractor — please check the form."
+msgstr "Не удалось добавить подрядчика — проверьте форму."
+
+msgid "Payment request submitted."
+msgstr "Заявка на платёж отправлена."
+
+msgid "Could not submit the payment request — please check the form."
+msgstr "Не удалось отправить заявку на платёж — проверьте форму."
+
+msgid "Review submitted."
+msgstr "Решение отправлено."
+
+msgid "New payment request to review"
+msgstr "Новая заявка на платёж для проверки"
+
+msgid "Payment request rejected"
+msgstr "Заявка на платёж отклонена"
+
+msgid "Payment request approved"
+msgstr "Заявка на платёж утверждена"
+
+msgid "Finance record added."
+msgstr "Финансовая запись добавлена."
+
+msgid "Record deleted."
+msgstr "Запись удалена."
+
+msgid "Employee contract added."
+msgstr "Договор с сотрудником добавлен."
+
+msgid "Employee contract deleted."
+msgstr "Договор с сотрудником удалён."
+
+msgid "Contract added."
+msgstr "Договор добавлен."
+
+msgid "%(contractor)s — %(amount)s needs your approval."
+msgstr "%(contractor)s — %(amount)s требует вашего утверждения."
+
+msgid "Automatic: amount under $%(threshold)s."
+msgstr "Автоматически: сумма меньше $%(threshold)s."
+
+msgid "Your payment request for %(contractor)s was rejected."
+msgstr "Ваша заявка на платёж для %(contractor)s была отклонена."
+
+msgid "Your payment request for %(contractor)s was fully approved."
+msgstr "Ваша заявка на платёж для %(contractor)s была полностью утверждена."
+
+msgid "%(c)s overdue payment"
+msgid_plural "%(c)s overdue payments"
+msgstr[0] "%(c)s просроченный платёж"
+msgstr[1] "%(c)s просроченных платежа"
+msgstr[2] "%(c)s просроченных платежей"
+msgstr[3] "%(c)s просроченных платежей"

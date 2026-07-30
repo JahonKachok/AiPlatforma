@@ -313,6 +313,34 @@ aside nav a[class*="bg-blue-50"]::before {
 /* ============ Badges ============ */
 .badge { font-weight: 600; letter-spacing: 0.01em; }
 
+/* ============ Modal ============
+   tailwind.css is precompiled offline (no Node at runtime), so utility
+   classes not already used elsewhere in the templates (fixed/inset-0/z-50/
+   bg-black opacity, etc.) aren't in the bundle. Hand-rolled here instead —
+   same reasoning as .switch and .field-info above. */
+.ap-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 2.5rem 1rem;
+  background: rgba(15, 23, 42, 0.6);
+}
+.ap-modal-backdrop.is-open { display: flex; }
+.ap-modal-card { width: 100%; max-width: 36rem; }
+
+/* Dashed border helper (optional/skipped approval stage) — border-dashed
+   isn't in the precompiled bundle. */
+.ap-dashed { border-style: dashed !important; }
+
+/* Approval-chain connector line, themed for both modes (no bg-gray-300/
+   dark:bg-gray-600 utilities in the bundle). */
+.ap-connector { background: #d1d5db; }
+.dark .ap-connector { background: #475569; }
+
 /* ============ Responsive (mobil) ============ */
 /* Hamburger tugma — faqat mobilda ko'rinadi */
 .ap-menu-btn { display: none; }

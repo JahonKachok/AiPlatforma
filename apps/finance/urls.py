@@ -11,4 +11,8 @@ urlpatterns = [
     path("projects/<uuid:project_pk>/contracts/add/", views.contract_create, name="add_contract"),
     path("employee-contracts/add/", views.employee_contract_create, name="add_employee_contract"),
     path("employee-contracts/<uuid:pk>/delete/", views.employee_contract_delete, name="delete_employee_contract"),
+    path("projects/<uuid:project_pk>/payments/add/", views.payment_request_create, name="add_payment_request"),
+    path("payments/stage/<uuid:stage_id>/review/", views.payment_stage_review, name="payment_stage_review"),
+    path("projects/<uuid:project_pk>/cost-codes/add/", views.cost_code_create, name="add_cost_code"),
+    path("projects/<uuid:project_pk>/contractors/add/", views.contractor_create, name="add_contractor"),
 ]

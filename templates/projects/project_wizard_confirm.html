@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ project.name }} — {% trans "Confirm" %}{% endblock %}
+{% block page_title %}{{ project.name }}{% endblock %}
+{% block page_subtitle %}{% trans "Review the information before finishing." %}{% endblock %}
+{% block content %}
+{% include "projects/_wizard_steps.html" with active_step=4 %}
+
+<form method="post" class="card wizard-fade-in max-w-3xl space-y-4 p-6">
+  {% csrf_token %}
+
+  <details open class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+    <summary class="cursor-pointer font-semibold">{% trans "Project" %}</summary>
+    <dl class="mt-2 grid grid-cols-2 gap-2 text-sm">
+      <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Name" %}</dt><dd>{{ project.name }}</dd></div>
+      <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Construction type" %}</dt><dd>{{ project.get_construction_type_display|default:"—" }}</dd></div>
+      <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Sector" %}</dt><dd>{{ project.sector|default:"—" }}</dd></div>
+      <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Region" %}</dt><dd>{{ project.get_region_display|default:"—" }}</dd></div>
+      <div><dt class="text-gray-500 dark:text-gray-400">{% trans "District" %}</dt><dd>{{ project.district|default:"—" }}</dd></div>
+      <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Address" %}</dt><dd>{{ project.address|default:"—" }}</dd></div>
+    </dl>
+  </details>
+
+  <details open class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+    <summary class="cursor-pointer font-semibold">{% trans "Client" %}</summary>
+    <dl class="mt-2 grid grid-cols-2 gap-2 text-sm">
+      <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Name" %}</dt><dd>{{ project.client_name|default:"—" }}</dd></div>
+      <div><dt class="text-gray-500 dark:text-gray-400">STIR</dt><dd>{{ project.client_stir|default:"—" }}</dd></div>
+      <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Phone" %}</dt><dd>{{ project.client_contact|default:"—" }}</dd></div>
+      <div><dt class="text-gray-500 dark:text-gray-400">Email</dt><dd>{{ project.client_email|default:"—" }}</dd></div>
+    </dl>
+  </details>
+
+  <details open class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+    <summary class="cursor-pointer font-semibold">{% trans "Documents" %}</summary>
+    <ul class="mt-2 space-y-1 text-sm">
+      {% for document in documents %}
+        <li>&#10003; {{ document.name }}</li>
+      {% empty %}
+        <li class="text-gray-400">{% trans "No documents uploaded." %}</li>
+      {% endfor %}
+    </ul>
+  </details>
+
+  <label class="flex items-start gap-2 text-sm">
+    <input type="checkbox" required class="mt-0.5">
+    {% trans "I confirm that the entered information is correct." %}
+  </label>
+
+  <div class="flex gap-3 pt-2">
+    <a href="{% url 'projects:wizard_documents' project.pk %}" class="btn btn-secondary btn-md">{% trans "Back" %}</a>
+    <button type="submit" class="btn btn-primary btn-md">{% trans "Create project" %}</button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,6 @@
+{% load i18n %}
+<li class="checklist-item flex items-center gap-2 text-sm" data-item-id="{{ item.pk }}">
+  <input type="checkbox" class="checklist-toggle" {% if item.is_done %}checked{% endif %}>
+  <span class="checklist-text flex-1 {% if item.is_done %}text-gray-400 line-through{% endif %}">{{ item.text }}</span>
+  <button type="button" class="checklist-delete-btn text-xs text-red-500 hover:text-red-700" aria-label="{% trans 'Delete' %}">&times;</button>
+</li>

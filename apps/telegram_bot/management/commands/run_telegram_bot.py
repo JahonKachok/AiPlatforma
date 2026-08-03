@@ -1,3 +1,5 @@
+import asyncio
+
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -570,4 +572,7 @@ class Command(BaseCommand):
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, ai_chat))
 
         self.stdout.write(self.style.SUCCESS("Starting Telegram bot (long polling)..."))
+        # Python 3.14 removed the implicit event-loop creation that
+        # application.run_polling() relies on internally — create one explicitly.
+        asyncio.set_event_loop(asyncio.new_event_loop())
         application.run_polling()

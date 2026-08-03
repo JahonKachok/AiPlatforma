@@ -1,0 +1,36 @@
+{% load i18n project_extras %}
+{% with tf=task|task_form %}
+<details class="task-item mb-2 rounded-lg border border-gray-200 dark:border-gray-700" data-task-id="{{ task.pk }}" draggable="true"
+         data-update-url="{% url 'projects:wizard_task_update' task.project_id task.pk %}"
+         data-delete-url="{% url 'projects:wizard_task_delete' task.project_id task.pk %}"
+         data-checklist-add-url="{% url 'projects:wizard_checklist_add' task.project_id task.pk %}"
+         data-checklist-toggle-url-template="{% url 'projects:wizard_checklist_toggle' task.project_id '00000000-0000-0000-0000-000000000000' %}"
+         data-checklist-delete-url-template="{% url 'projects:wizard_checklist_delete' task.project_id '00000000-0000-0000-0000-000000000000' %}">
+  <summary class="flex cursor-pointer list-none items-center gap-2 p-2 text-sm">
+    <span class="task-drag-handle cursor-move text-gray-400" title="{% trans 'Drag to reorder' %}">&#8942;&#8942;</span>
+    <span class="task-title-display flex-1 truncate">{{ task.title }}</span>
+    <span class="badge badge-default">{{ task.get_status_display }}</span>
+    <button type="button" class="task-delete-btn text-red-500 hover:text-red-700" aria-label="{% trans 'Delete' %}">&times;</button>
+  </summary>
+  <div class="space-y-2 border-t border-gray-100 p-3 dark:border-gray-700">
+    <form class="task-fields-form grid grid-cols-1 gap-2 sm:grid-cols-2">
+      {% for field in tf %}
+        <div class="{% if field.name == 'description' %}sm:col-span-2{% endif %}">
+          <label class="field-label text-xs">{{ field.label }}</label>
+          {{ field }}
+        </div>
+      {% endfor %}
+    </form>
+    <div class="checklist-section">
+      <p class="field-label text-xs">{% trans "Checklist" %}</p>
+      <ul class="checklist-list space-y-1">
+        {% for item in task.checklist_items.all %}{% include "projects/_wizard_checklist_item.html" %}{% endfor %}
+      </ul>
+      <div class="mt-1 flex gap-2">
+        <input type="text" class="checklist-new-input field-input text-xs" placeholder="{% trans 'New checklist item' %}">
+        <button type="button" class="checklist-add-btn btn btn-secondary btn-sm">+</button>
+      </div>
+    </div>
+  </div>
+</details>
+{% endwith %}

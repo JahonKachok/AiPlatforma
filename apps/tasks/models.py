@@ -17,7 +17,10 @@ def sanitize_path_segment(value):
 
 def task_upload_dir(task):
     """Проекты/<project>/Задачи/<sub_object>_<task>_<assignee>_<short id>/"""
-    sub_object = task.section.sub_object if task.section_id else None
+    if task.sub_object_id:
+        sub_object = task.sub_object
+    else:
+        sub_object = task.section.sub_object if task.section_id else None
     subobject_part = sanitize_path_segment(sub_object.name) if sub_object else "Umumiy"
     title_part = sanitize_path_segment(task.title)
     assignee_part = sanitize_path_segment(task.assignee.full_name) if task.assignee_id else "Biriktirilmagan"
@@ -53,6 +56,9 @@ class Task(models.Model):
     section = models.ForeignKey(
         "projects.Section", on_delete=models.SET_NULL, null=True, blank=True, related_name="tasks"
     )
+    sub_object = models.ForeignKey(
+        "projects.SubObject", on_delete=models.SET_NULL, null=True, blank=True, related_name="tasks"
+    )
     assignee = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="assigned_tasks"
     )
@@ -62,11 +68,12 @@ class Task(models.Model):
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.NEW)
     priority = models.CharField(max_length=20, choices=Priority.choices, default=Priority.MEDIUM)
     deadline = models.DateField(blank=True, null=True)
+    position = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["-created_at"]
+        ordering = ["position", "-created_at"]
 
     def __str__(self):
         return self.title
@@ -78,6 +85,21 @@ class Task(models.Model):
             and self.status not in (Task.Status.COMPLETED, Task.Status.APPROVED)
             and self.deadline < timezone.now().date()
         )
+
+
+class TaskChecklistItem(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="checklist_items")
+    text = models.CharField(max_length=500)
+    is_done = models.BooleanField(default=False)
+    position = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["position", "created_at"]
+
+    def __str__(self):
+        return self.text
 
 
 class TaskComment(models.Model):

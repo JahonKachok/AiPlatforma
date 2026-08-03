@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load i18n static project_extras %}
+{% block title %}{{ project.name }} — {% trans "Sub-objects" %}{% endblock %}
+{% block page_title %}{{ project.name }}{% endblock %}
+{% block page_subtitle %}{% trans "Add sub-objects, assign workers and tasks." %}{% endblock %}
+{% block content %}
+{% include "projects/_wizard_steps.html" with active_step=2 %}
+
+<div class="wizard-fade-in max-w-5xl space-y-4">
+  <div class="flex items-center justify-between">
+    <button type="button" id="subobject-add-btn" class="btn btn-primary btn-lg"
+            data-create-url="{% url 'projects:wizard_subobject_create' project.pk %}">
+      + {% trans "Add sub-object" %}
+    </button>
+  </div>
+
+  <div id="subobject-list" class="grid grid-cols-1 gap-4 lg:grid-cols-2"
+       data-reorder-url="{% url 'projects:wizard_subobject_reorder' project.pk %}">
+    {% for sub in sub_objects %}
+      {% include "projects/_wizard_subobject_card.html" with has_error=sub.has_error form=sub|subobject_form %}
+    {% endfor %}
+  </div>
+
+  <form method="post" class="flex gap-3 pt-2">
+    {% csrf_token %}
+    <a href="{% url 'projects:update' project.pk %}" class="btn btn-secondary btn-md">{% trans "Back" %}</a>
+    <button type="submit" class="btn btn-primary btn-md">{% trans "Continue" %}</button>
+  </form>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+  <script src="{% static 'js/wizard-subobjects.js' %}"></script>
+{% endblock %}

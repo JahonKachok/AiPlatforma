@@ -1,0 +1,7 @@
+{% load i18n %}
+<span class="worker-chip inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-1 text-xs text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+      data-worker-id="{{ worker.pk }}">
+  {{ worker.user.full_name }}
+  <span class="text-blue-400">· {{ worker.get_role_display }}</span>
+  <button type="button" class="worker-remove-btn ml-1 text-blue-500 hover:text-red-600" aria-label="{% trans 'Remove' %}">&times;</button>
+</span>

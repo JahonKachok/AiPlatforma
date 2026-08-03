@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core.forms import StyledFormMixin
 
-from .models import Task, TaskAttachment, TaskComment
+from .models import Task, TaskAttachment, TaskChecklistItem, TaskComment
 
 
 class TaskForm(StyledFormMixin, forms.ModelForm):
@@ -30,6 +30,31 @@ class TaskForm(StyledFormMixin, forms.ModelForm):
         if project is not None:
             self.fields["section"].queryset = project.sections.all()
             self.fields["project"].initial = project
+
+
+class SubObjectTaskForm(StyledFormMixin, forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = ["title", "description", "assignee", "priority", "status", "deadline"]
+        widgets = {
+            "description": forms.Textarea(attrs={"rows": 2}),
+            "deadline": forms.DateInput(attrs={"type": "date"}),
+        }
+        help_texts = {
+            "title": _("A short, clear title for the task."),
+            "description": _("Details about the task (optional)."),
+            "assignee": _("The employee responsible for this task (optional)."),
+            "priority": _("The task's priority level."),
+            "status": _("The task's current status."),
+            "deadline": _("The deadline for this task (optional)."),
+        }
+
+
+class TaskChecklistItemForm(StyledFormMixin, forms.ModelForm):
+    class Meta:
+        model = TaskChecklistItem
+        fields = ["text"]
+        help_texts = {"text": _("A short checklist item, e.g. 'Bring materials'.")}
 
 
 class TaskCommentForm(StyledFormMixin, forms.ModelForm):

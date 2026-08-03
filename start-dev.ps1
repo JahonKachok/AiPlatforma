@@ -7,7 +7,7 @@ $celery = Join-Path $PSScriptRoot ".venv\Scripts\celery.exe"
 
 Write-Host "BuildFlow ishga tushmoqda..." -ForegroundColor Cyan
 
-Start-Process -FilePath $python -ArgumentList "manage.py", "runserver", "8000" `
+Start-Process -FilePath $python -ArgumentList "manage.py", "runserver", "8000", "--noreload" `
     -WorkingDirectory $PSScriptRoot -WindowStyle Minimized
 Write-Host "  [1/4] Django server     -> http://localhost:8000" -ForegroundColor Green
 

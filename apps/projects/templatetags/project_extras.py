@@ -2,25 +2,6 @@ from django import template
 
 register = template.Library()
 
-
-@register.filter
-def abs_value(value):
-    return abs(value)
-
-
-@register.filter
-def task_form(task):
-    from apps.tasks.forms import SubObjectTaskForm
-
-    return SubObjectTaskForm(instance=task)
-
-
-@register.filter
-def subobject_form(sub_object):
-    from apps.projects.forms import SubObjectForm
-
-    return SubObjectForm(instance=sub_object)
-
 _STATUS_VARIANT = {
     "active": "success",
     "on_hold": "warning",

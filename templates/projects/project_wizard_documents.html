@@ -40,7 +40,7 @@
   </div>
 
   <div class="flex gap-3 pt-2">
-    <a href="{% url 'projects:wizard_client' project.pk %}" class="btn btn-secondary btn-md">{% trans "Back" %}</a>
+    <a href="{% url 'projects:wizard_subobjects' project.pk %}" class="btn btn-secondary btn-md">{% trans "Back" %}</a>
     <a href="{% url 'projects:wizard_confirm' project.pk %}" class="btn btn-primary btn-md">{% trans "Continue" %}</a>
   </div>
 </div>

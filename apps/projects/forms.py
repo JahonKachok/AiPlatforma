@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.accounts.models import User
 from apps.core.forms import StyledFormMixin
 
-from .models import Project, ProjectMember, Section, SubObject, SubObjectWorker
+from .models import Project, ProjectMember, Section, SubObject, SubObjectDiscipline
 
 WIZARD_DOCUMENT_EXTENSIONS = ["pdf", "doc", "docx", "xls", "xlsx", "zip", "rar"]
 
@@ -13,7 +13,7 @@ WIZARD_DOCUMENT_EXTENSIONS = ["pdf", "doc", "docx", "xls", "xlsx", "zip", "rar"]
 class ProjectForm(StyledFormMixin, forms.ModelForm):
     gip = forms.ModelChoiceField(
         queryset=User.objects.filter(role__in=[User.Role.GIP, User.Role.MANAGER, User.Role.ADMIN]),
-        required=False, label="GIP",
+        required=False, label=_("GIP"),
         help_text=_("The project's chief architect (GIP) — the employee responsible for the project (optional)."),
     )
 
@@ -137,29 +137,25 @@ class SubObjectForm(StyledFormMixin, forms.ModelForm):
             "status": _("The object's current status."),
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["deadline"].required = True
 
-
-class SubObjectWorkerForm(StyledFormMixin, forms.ModelForm):
+class SubObjectDisciplineForm(StyledFormMixin, forms.ModelForm):
     class Meta:
-        model = SubObjectWorker
-        fields = ["user", "role", "deadline", "status"]
+        model = SubObjectDiscipline
+        fields = ["assignee", "deadline", "status"]
         widgets = {"deadline": forms.DateInput(attrs={"type": "date"})}
         help_texts = {
-            "user": _("The employee assigned to this sub-object."),
-            "role": _("Their role on this sub-object."),
-            "deadline": _("Their personal deadline (optional)."),
-            "status": _("Their progress status."),
+            "assignee": _("The specialist responsible for this discipline (filtered to matching specialists)."),
+            "deadline": _("The deadline for this section (optional)."),
+            "status": _("This section's current status."),
         }
 
-    def __init__(self, *args, sub_object=None, **kwargs):
+    def __init__(self, *args, discipline=None, **kwargs):
         super().__init__(*args, **kwargs)
         queryset = User.objects.filter(is_active=True)
-        if sub_object is not None:
-            queryset = queryset.exclude(sub_object_assignments__sub_object=sub_object)
-        self.fields["user"].queryset = queryset
+        if discipline is not None:
+            queryset = queryset.filter(disciplines=discipline)
+        self.fields["assignee"].queryset = queryset.distinct()
+        self.fields["assignee"].required = False
 
 
 class SectionForm(StyledFormMixin, forms.ModelForm):

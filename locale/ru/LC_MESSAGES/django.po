@@ -15,6 +15,9 @@ msgid ""
 msgstr ""
 "После создания будет сгенерирован и один раз показан временный пароль."
 
+msgid "A short description (optional)."
+msgstr "Краткое описание (необязательно)."
+
 msgid "Action"
 msgstr "Действие"
 
@@ -39,6 +42,9 @@ msgid ""
 msgstr ""
 "Добавьте дополнительные строки этапов, изменив количество форм, либо "
 "отправьте с одним этапом для простой проверки в один шаг."
+
+msgid "Add object"
+msgstr "Добавить объект"
 
 msgid "Add record"
 msgstr "Добавить запись"
@@ -70,11 +76,19 @@ msgstr "Все роли"
 msgid "All statuses"
 msgstr "Все статусы"
 
+msgid "Allowed formats: pdf, doc, docx, xls, xlsx, zip, rar. Maximum size — 50MB."
+msgstr ""
+"Допустимые форматы: pdf, doc, docx, xls, xlsx, zip, rar. Максимальный "
+"размер — 50МБ."
+
 msgid "Already have an account?"
 msgstr "Уже есть аккаунт?"
 
 msgid "Amount"
 msgstr "Сумма"
+
+msgid "Any additional information about the client (optional)."
+msgstr "Дополнительная информация о клиенте (необязательно)."
 
 msgid "Approval route"
 msgstr "Маршрут согласования"
@@ -110,6 +124,9 @@ msgstr "Назначить маршрут согласования"
 msgid "Assigned tasks"
 msgstr "Назначенные задачи"
 
+msgid "Assigned to a project section"
+msgstr "Назначен на раздел проекта"
+
 msgid "Assignee"
 msgstr "Исполнитель"
 
@@ -131,17 +148,50 @@ msgstr "Баланс"
 msgid "Calendar"
 msgstr "Календарь"
 
+msgid "Can edit"
+msgstr "Может редактировать"
+
 msgid "Cancel"
 msgstr "Отмена"
 
 msgid "Cancelled"
 msgstr "Отменён"
 
+msgid "Capital repair"
+msgstr "Капитальный ремонт"
+
 msgid "Change password"
 msgstr "Изменить пароль"
 
 msgid "Client"
 msgstr "Клиент"
+
+msgid "Client contact"
+msgstr "Контакт клиента"
+
+msgid "Client contact person"
+msgstr "Контактное лицо клиента"
+
+msgid "Client information"
+msgstr "Информация о клиенте"
+
+msgid "Client information updated."
+msgstr "Информация о клиенте обновлена."
+
+msgid "Client name"
+msgstr "Имя клиента"
+
+msgid "Client notes"
+msgstr "Примечания о клиенте"
+
+msgid "Client position"
+msgstr "Должность представителя клиента"
+
+msgid "Client type"
+msgstr "Тип клиента"
+
+msgid "Client's own funds"
+msgstr "Собственные средства клиента"
 
 msgid "Closed"
 msgstr "Закрыто"
@@ -161,6 +211,9 @@ msgstr "Завершено"
 msgid "Concept"
 msgstr "Концепция"
 
+msgid "Confirm"
+msgstr "Подтверждение"
+
 msgid "Confirmed"
 msgstr "Подтверждено"
 
@@ -175,6 +228,18 @@ msgstr "Строительство"
 
 msgid "Construction Automation Platform"
 msgstr "Платформа автоматизации строительства"
+
+msgid "Construction area"
+msgstr "Площадь застройки"
+
+msgid "Construction type"
+msgstr "Тип строительства"
+
+msgid "Construction volume"
+msgstr "Объём строительства"
+
+msgid "Continue"
+msgstr "Продолжить"
 
 msgid "Contract amount"
 msgstr "Сумма контракта"
@@ -257,6 +322,9 @@ msgstr "Отключить двухфакторную аутентификаци
 msgid "Disabled"
 msgstr "Отключено"
 
+msgid "Discipline"
+msgstr "Направление"
+
 msgid "Disconnect"
 msgstr "Отключить"
 
@@ -274,6 +342,9 @@ msgstr "Скачать"
 
 msgid "Download selected"
 msgstr "Скачать выбранное"
+
+msgid "Drag a file here or click to choose"
+msgstr "Перетащите файл сюда или нажмите, чтобы выбрать"
 
 msgid "Edit"
 msgstr "Изменить"
@@ -320,6 +391,12 @@ msgstr "Введите 6-значный код из приложения-аут�
 msgid "Enter your current 6-digit code to confirm."
 msgstr "Введите текущий 6-значный код для подтверждения."
 
+msgid "Estimate"
+msgstr "Смета"
+
+msgid "Expansion"
+msgstr "Расширение"
+
 msgid "Expense"
 msgstr "Расход"
 
@@ -328,6 +405,9 @@ msgstr "Расходы"
 
 msgid "Expertise"
 msgstr "Экспертиза"
+
+msgid "Expires at"
+msgstr "Истекает"
 
 msgid "Export employees"
 msgstr "Экспорт сотрудников"
@@ -353,6 +433,9 @@ msgstr "Финансовые записи"
 msgid "Finance summary"
 msgstr "Финансовая сводка"
 
+msgid "Funding source"
+msgstr "Источник финансирования"
+
 msgid "GIP"
 msgstr "ГИП"
 
@@ -377,6 +460,9 @@ msgstr "История"
 msgid "History — %(name)s"
 msgstr "История — %(name)s"
 
+msgid "I confirm that the entered information is correct."
+msgstr "Подтверждаю, что введённая информация верна."
+
 msgid "IP address"
 msgstr "IP-адрес"
 
@@ -392,14 +478,29 @@ msgstr "Неактивен"
 msgid "Income"
 msgstr "Доход"
 
+msgid "Individual"
+msgstr "Физическое лицо"
+
 msgid "Integrations"
 msgstr "Интеграции"
+
+msgid "Investment"
+msgstr "Инвестиции"
 
 msgid "Kanban"
 msgstr "Канбан"
 
+msgid "Land area"
+msgstr "Площадь участка"
+
+msgid "Legal entity"
+msgstr "Юридическое лицо"
+
 msgid "List"
 msgstr "Список"
+
+msgid "Loan funds"
+msgstr "Кредитные средства"
 
 msgid "Log in"
 msgstr "Войти"
@@ -431,8 +532,17 @@ msgstr "Средний"
 msgid "Name"
 msgstr "Название"
 
+msgid "Name is required."
+msgstr "Название обязательно."
+
+msgid "New construction"
+msgstr "Новое строительство"
+
 msgid "New department"
 msgstr "Новый отдел"
+
+msgid "New object name"
+msgstr "Название нового объекта"
 
 msgid "New project"
 msgstr "Новый проект"
@@ -473,6 +583,9 @@ msgstr "Отделов пока нет."
 msgid "No description."
 msgstr "Без описания."
 
+msgid "No disciplines defined in the system yet."
+msgstr "В системе пока не определены направления."
+
 msgid "No documents found."
 msgstr "Документы не найдены."
 
@@ -496,6 +609,9 @@ msgstr "Уведомлений пока нет."
 
 msgid "No notifications."
 msgstr "Нет уведомлений."
+
+msgid "No objects yet — add one above."
+msgstr "Объектов пока нет — добавьте один выше."
 
 msgid "No projects found."
 msgstr "Проекты не найдены."
@@ -551,6 +667,12 @@ msgstr "Здесь пока пусто."
 msgid "Notifications"
 msgstr "Уведомления"
 
+msgid "Object"
+msgstr "Объект"
+
+msgid "Object type"
+msgstr "Тип объекта"
+
 msgid "On hold"
 msgstr "Приостановлен"
 
@@ -563,6 +685,9 @@ msgstr "Открыть все"
 msgid "Organization"
 msgstr "Организация"
 
+msgid "Other"
+msgstr "Другое"
+
 msgid "Overdue tasks"
 msgstr "Просроченные задачи"
 
@@ -572,6 +697,9 @@ msgstr "Обзор"
 msgid "Paid"
 msgstr "Оплачено"
 
+msgid "Paid amount"
+msgstr "Оплаченная сумма"
+
 msgid "Password"
 msgstr "Пароль"
 
@@ -580,6 +708,9 @@ msgstr "В ожидании"
 
 msgid "Pending approvals"
 msgstr "Ожидают согласования"
+
+msgid "Phone"
+msgstr "Телефон"
 
 msgid "Preliminary design"
 msgstr "Эскизный проект"
@@ -605,6 +736,12 @@ msgstr "Информация о проекте"
 msgid "Project status distribution"
 msgstr "Распределение по статусам проектов"
 
+msgid "Project structure"
+msgstr "Структура проекта"
+
+msgid "Project structure saved."
+msgstr "Структура проекта сохранена."
+
 msgid "Projects"
 msgstr "Проекты"
 
@@ -616,6 +753,9 @@ msgstr "Получено"
 
 msgid "Recent tasks"
 msgstr "Последние задачи"
+
+msgid "Reconstruction"
+msgstr "Реконструкция"
 
 msgid "Records"
 msgstr "Записи"
@@ -644,6 +784,9 @@ msgstr "Проверка"
 msgid "Review document"
 msgstr "Проверить документ"
 
+msgid "Review the information before finishing."
+msgstr "Проверьте информацию перед завершением."
+
 msgid "Review — %(name)s"
 msgstr "Рассмотрение — %(name)s"
 
@@ -653,8 +796,20 @@ msgstr "Проверяющий"
 msgid "Role"
 msgstr "Роль"
 
+msgid "Role in project"
+msgstr "Роль в проекте"
+
+msgid "STIR"
+msgstr "STIR"
+
+msgid "STIR must contain digits only."
+msgstr "STIR должен состоять только из цифр."
+
 msgid "Save"
 msgstr "Сохранить"
+
+msgid "Save and continue"
+msgstr "Сохранить и продолжить"
 
 msgid "Save route"
 msgstr "Сохранить маршрут"
@@ -680,8 +835,17 @@ msgstr "Раздел"
 msgid "Sections"
 msgstr "Разделы"
 
+msgid "Sector"
+msgstr "Отрасль"
+
 msgid "Security"
 msgstr "Безопасность"
+
+msgid "Select an object, then assign a specialist to each section."
+msgstr "Выберите объект, затем назначьте специалиста на каждый раздел."
+
+msgid "Select an object..."
+msgstr "Выберите объект..."
 
 msgid "Send"
 msgstr "Отправить"
@@ -707,11 +871,17 @@ msgstr "Название этапа"
 msgid "Start date"
 msgstr "Дата начала"
 
+msgid "State budget"
+msgstr "Государственный бюджет"
+
 msgid "Statistics"
 msgstr "Статистика"
 
 msgid "Status"
 msgstr "Статус"
+
+msgid "Sub-object"
+msgstr "Подобъект"
 
 msgid "Sub-objects"
 msgstr "Подобъекты"
@@ -743,6 +913,63 @@ msgstr "Шаблоны"
 msgid "Terminated"
 msgstr "Расторгнут"
 
+msgid "That person's position (optional)."
+msgstr "Должность этого лица (необязательно)."
+
+msgid "The client's email address (optional)."
+msgstr "Email клиента (необязательно)."
+
+msgid "The client's phone number."
+msgstr "Номер телефона клиента."
+
+msgid "The client's tax ID (STIR) — digits only (optional)."
+msgstr "Налоговый номер клиента (STIR) — только цифры (необязательно)."
+
+msgid "The construction area, m² (optional)."
+msgstr "Площадь застройки, м² (необязательно)."
+
+msgid "The construction volume (optional)."
+msgstr "Объём строительства (необязательно)."
+
+msgid "The deadline for this section (optional)."
+msgstr "Срок по этому разделу (необязательно)."
+
+msgid "The deadline for this sub-object."
+msgstr "Срок по этому объекту."
+
+msgid "The land plot area, m² (optional)."
+msgstr "Площадь земельного участка, м² (необязательно)."
+
+msgid "The object's category (e.g. Category II)."
+msgstr "Категория объекта (например: II категория)."
+
+msgid "The person responsible on the client's side (optional)."
+msgstr "Ответственное лицо со стороны клиента (необязательно)."
+
+msgid "The sector the project belongs to (e.g. trade, housing, education)."
+msgstr ""
+"Отрасль, к которой относится проект (например: торговля, жильё, "
+"образование)."
+
+msgid ""
+"The specialist responsible for this discipline (filtered to matching "
+"specialists)."
+msgstr ""
+"Специалист, ответственный за это направление (отфильтровано по подходящим "
+"специалистам)."
+
+msgid "The sub-object's priority."
+msgstr "Приоритет объекта."
+
+msgid "The type of construction work."
+msgstr "Тип строительных работ."
+
+msgid "This section's current status."
+msgstr "Текущий статус этого раздела."
+
+msgid "This user is already a member."
+msgstr "Этот пользователь уже является участником."
+
 msgid "Toggle dark mode"
 msgstr "Переключить тёмную тему"
 
@@ -766,6 +993,9 @@ msgstr "Тип"
 
 msgid "Unit name"
 msgstr "Название подразделения"
+
+msgid "Unknown document type."
+msgstr "Неизвестный тип документа."
 
 msgid "Upload"
 msgstr "Загрузить"
@@ -813,11 +1043,24 @@ msgstr "Смотреть все"
 msgid "Welcome back, %(name)s"
 msgstr "С возвращением, %(name)s"
 
+msgid "When work on this sub-object starts (optional)."
+msgstr "Дата начала работ по этому объекту (необязательно)."
+
+msgid "Where the construction funding comes from."
+msgstr "Источник финансирования строительства."
+
+msgid "Whether the client is a legal entity or an individual."
+msgstr "Является ли клиент юридическим или физическим лицом."
+
 msgid "Working documentation"
 msgstr "Рабочая документация"
 
 msgid "Workload (top 10)"
 msgstr "Загруженность (топ 10)"
+
+#, python-format
+msgid "You were assigned to %(discipline)s on %(sub_object)s."
+msgstr "Вы назначены на %(discipline)s в объекте %(sub_object)s."
 
 msgid "ago"
 msgstr "назад"

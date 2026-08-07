@@ -16,6 +16,9 @@ msgstr ""
 "Yaratilgandan so'ng bir martalik vaqtinchalik parol yaratiladi va "
 "ko'rsatiladi."
 
+msgid "A short description (optional)."
+msgstr "Qisqa tavsif (ixtiyoriy)."
+
 msgid "Action"
 msgstr "Amal"
 
@@ -40,6 +43,9 @@ msgid ""
 msgstr ""
 "Qo'shimcha bosqich qatorlarini forma sonini o'zgartirib qo'shing, yoki oddiy"
 " bir bosqichli ko'rib chiqish uchun bitta bosqich bilan yuboring."
+
+msgid "Add object"
+msgstr "Obyekt qo'shish"
 
 msgid "Add record"
 msgstr "Yozuv qo'shish"
@@ -71,11 +77,19 @@ msgstr "Barcha rollar"
 msgid "All statuses"
 msgstr "Barcha holatlar"
 
+msgid "Allowed formats: pdf, doc, docx, xls, xlsx, zip, rar. Maximum size — 50MB."
+msgstr ""
+"Ruxsat etilgan formatlar: pdf, doc, docx, xls, xlsx, zip, rar. Maksimal "
+"hajm — 50MB."
+
 msgid "Already have an account?"
 msgstr "Hisobingiz bormi?"
 
 msgid "Amount"
 msgstr "Summa"
+
+msgid "Any additional information about the client (optional)."
+msgstr "Mijoz haqida qo'shimcha ma'lumot (ixtiyoriy)."
 
 msgid "Approval route"
 msgstr "Tasdiqlash yo'nalishi"
@@ -112,6 +126,9 @@ msgstr "Tasdiqlash yo'nalishini belgilash"
 msgid "Assigned tasks"
 msgstr "Biriktirilgan vazifalar"
 
+msgid "Assigned to a project section"
+msgstr "Loyiha bo'limiga tayinlandingiz"
+
 msgid "Assignee"
 msgstr "Ijrochi"
 
@@ -133,17 +150,50 @@ msgstr "Qoldiq"
 msgid "Calendar"
 msgstr "Taqvim"
 
+msgid "Can edit"
+msgstr "Tahrirlash mumkin"
+
 msgid "Cancel"
 msgstr "Bekor qilish"
 
 msgid "Cancelled"
 msgstr "Bekor qilingan"
 
+msgid "Capital repair"
+msgstr "Kapital ta'mirlash"
+
 msgid "Change password"
 msgstr "Parolni o'zgartirish"
 
 msgid "Client"
 msgstr "Mijoz"
+
+msgid "Client contact"
+msgstr "Mijoz aloqasi"
+
+msgid "Client contact person"
+msgstr "Mijoz vakili"
+
+msgid "Client information"
+msgstr "Mijoz ma'lumotlari"
+
+msgid "Client information updated."
+msgstr "Mijoz ma'lumotlari yangilandi."
+
+msgid "Client name"
+msgstr "Mijoz nomi"
+
+msgid "Client notes"
+msgstr "Mijoz haqida izoh"
+
+msgid "Client position"
+msgstr "Mijoz vakilining lavozimi"
+
+msgid "Client type"
+msgstr "Mijoz turi"
+
+msgid "Client's own funds"
+msgstr "Mijozning o'z mablag'lari"
 
 msgid "Closed"
 msgstr "Yopilgan"
@@ -163,6 +213,9 @@ msgstr "Yakunlangan"
 msgid "Concept"
 msgstr "Konsepsiya"
 
+msgid "Confirm"
+msgstr "Tasdiqlash"
+
 msgid "Confirmed"
 msgstr "Tasdiqlangan"
 
@@ -177,6 +230,18 @@ msgstr "Qurilish"
 
 msgid "Construction Automation Platform"
 msgstr "Qurilishni avtomatlashtirish platformasi"
+
+msgid "Construction area"
+msgstr "Qurilish maydoni"
+
+msgid "Construction type"
+msgstr "Qurilish turi"
+
+msgid "Construction volume"
+msgstr "Qurilish hajmi"
+
+msgid "Continue"
+msgstr "Davom etish"
 
 msgid "Contract amount"
 msgstr "Shartnoma summasi"
@@ -259,6 +324,9 @@ msgstr "Ikki bosqichli autentifikatsiyani o'chirish"
 msgid "Disabled"
 msgstr "O'chirilgan"
 
+msgid "Discipline"
+msgstr "Soha"
+
 msgid "Disconnect"
 msgstr "Uzish"
 
@@ -276,6 +344,9 @@ msgstr "Yuklab olish"
 
 msgid "Download selected"
 msgstr "Tanlanganlarni yuklab olish"
+
+msgid "Drag a file here or click to choose"
+msgstr "Faylni shu yerga torting yoki tanlash uchun bosing"
 
 msgid "Edit"
 msgstr "Tahrirlash"
@@ -322,6 +393,12 @@ msgstr "Autentifikator ilovasidan 6 xonali kodni kiriting."
 msgid "Enter your current 6-digit code to confirm."
 msgstr "Tasdiqlash uchun joriy 6 xonali kodni kiriting."
 
+msgid "Estimate"
+msgstr "Smeta"
+
+msgid "Expansion"
+msgstr "Kengaytirish"
+
 msgid "Expense"
 msgstr "Xarajat"
 
@@ -330,6 +407,9 @@ msgstr "Xarajatlar"
 
 msgid "Expertise"
 msgstr "Ekspertiza"
+
+msgid "Expires at"
+msgstr "Tugash sanasi"
 
 msgid "Export employees"
 msgstr "Xodimlarni eksport qilish"
@@ -355,6 +435,9 @@ msgstr "Moliyaviy yozuvlar"
 msgid "Finance summary"
 msgstr "Moliya bo'yicha xulosa"
 
+msgid "Funding source"
+msgstr "Moliyalashtirish manbai"
+
 msgid "GIP"
 msgstr "GIP"
 
@@ -379,6 +462,9 @@ msgstr "Tarix"
 msgid "History — %(name)s"
 msgstr "Tarix — %(name)s"
 
+msgid "I confirm that the entered information is correct."
+msgstr "Kiritilgan ma'lumotlar to'g'ri ekanligini tasdiqlayman."
+
 msgid "IP address"
 msgstr "IP manzil"
 
@@ -394,14 +480,29 @@ msgstr "Faol emas"
 msgid "Income"
 msgstr "Daromad"
 
+msgid "Individual"
+msgstr "Jismoniy shaxs"
+
 msgid "Integrations"
 msgstr "Integratsiyalar"
+
+msgid "Investment"
+msgstr "Investitsiya"
 
 msgid "Kanban"
 msgstr "Kanban"
 
+msgid "Land area"
+msgstr "Yer maydoni"
+
+msgid "Legal entity"
+msgstr "Yuridik shaxs"
+
 msgid "List"
 msgstr "Ro'yxat"
+
+msgid "Loan funds"
+msgstr "Kredit mablag'lari"
 
 msgid "Log in"
 msgstr "Kirish"
@@ -433,8 +534,17 @@ msgstr "O'rta"
 msgid "Name"
 msgstr "Nomi"
 
+msgid "Name is required."
+msgstr "Nom kiritilishi shart."
+
+msgid "New construction"
+msgstr "Yangi qurilish"
+
 msgid "New department"
 msgstr "Yangi bo'lim"
+
+msgid "New object name"
+msgstr "Yangi obyekt nomi"
 
 msgid "New project"
 msgstr "Yangi loyiha"
@@ -475,6 +585,9 @@ msgstr "Hali bo'limlar yo'q."
 msgid "No description."
 msgstr "Tavsif yo'q."
 
+msgid "No disciplines defined in the system yet."
+msgstr "Tizimda hali sohalar belgilanmagan."
+
 msgid "No documents found."
 msgstr "Hujjatlar topilmadi."
 
@@ -498,6 +611,9 @@ msgstr "Hali bildirishnomalar yo'q."
 
 msgid "No notifications."
 msgstr "Bildirishnomalar yo'q."
+
+msgid "No objects yet — add one above."
+msgstr "Hali obyektlar yo'q — yuqorida birini qo'shing."
 
 msgid "No projects found."
 msgstr "Loyihalar topilmadi."
@@ -553,6 +669,12 @@ msgstr "Bu yerda hech narsa yo'q."
 msgid "Notifications"
 msgstr "Bildirishnomalar"
 
+msgid "Object"
+msgstr "Obyekt"
+
+msgid "Object type"
+msgstr "Obyekt turi"
+
 msgid "On hold"
 msgstr "To'xtatib turilgan"
 
@@ -565,6 +687,9 @@ msgstr "Barchasini ochish"
 msgid "Organization"
 msgstr "Tashkilot"
 
+msgid "Other"
+msgstr "Boshqa"
+
 msgid "Overdue tasks"
 msgstr "Muddati o'tgan vazifalar"
 
@@ -574,6 +699,9 @@ msgstr "Umumiy ko'rinish"
 msgid "Paid"
 msgstr "To'langan"
 
+msgid "Paid amount"
+msgstr "To'langan summa"
+
 msgid "Password"
 msgstr "Parol"
 
@@ -582,6 +710,9 @@ msgstr "Kutilmoqda"
 
 msgid "Pending approvals"
 msgstr "Tasdiqlash kutilayotganlar"
+
+msgid "Phone"
+msgstr "Telefon"
 
 msgid "Preliminary design"
 msgstr "Eskiz loyihasi"
@@ -607,6 +738,12 @@ msgstr "Loyiha haqida ma'lumot"
 msgid "Project status distribution"
 msgstr "Loyiha holatlari taqsimoti"
 
+msgid "Project structure"
+msgstr "Loyiha tuzilmasi"
+
+msgid "Project structure saved."
+msgstr "Loyiha tuzilmasi saqlandi."
+
 msgid "Projects"
 msgstr "Loyihalar"
 
@@ -618,6 +755,9 @@ msgstr "Qabul qilingan"
 
 msgid "Recent tasks"
 msgstr "So'nggi vazifalar"
+
+msgid "Reconstruction"
+msgstr "Rekonstruksiya"
 
 msgid "Records"
 msgstr "Yozuvlar"
@@ -646,6 +786,9 @@ msgstr "Ko'rib chiqish"
 msgid "Review document"
 msgstr "Hujjatni ko'rib chiqish"
 
+msgid "Review the information before finishing."
+msgstr "Yakunlashdan oldin ma'lumotlarni tekshirib chiqing."
+
 msgid "Review — %(name)s"
 msgstr "Ko'rib chiqish — %(name)s"
 
@@ -655,8 +798,20 @@ msgstr "Tekshiruvchi"
 msgid "Role"
 msgstr "Rol"
 
+msgid "Role in project"
+msgstr "Loyihadagi rol"
+
+msgid "STIR"
+msgstr "STIR"
+
+msgid "STIR must contain digits only."
+msgstr "STIR faqat raqamlardan iborat bo'lishi kerak."
+
 msgid "Save"
 msgstr "Saqlash"
+
+msgid "Save and continue"
+msgstr "Saqlash va davom etish"
 
 msgid "Save route"
 msgstr "Yo'nalishni saqlash"
@@ -682,8 +837,17 @@ msgstr "Bo'lim"
 msgid "Sections"
 msgstr "Bo'limlar"
 
+msgid "Sector"
+msgstr "Tarmoq"
+
 msgid "Security"
 msgstr "Xavfsizlik"
+
+msgid "Select an object, then assign a specialist to each section."
+msgstr "Obyektni tanlang, so'ngra har bir bo'limga mutaxassis tayinlang."
+
+msgid "Select an object..."
+msgstr "Obyektni tanlang..."
 
 msgid "Send"
 msgstr "Yuborish"
@@ -709,11 +873,17 @@ msgstr "Bosqich nomi"
 msgid "Start date"
 msgstr "Boshlanish sanasi"
 
+msgid "State budget"
+msgstr "Davlat byudjeti"
+
 msgid "Statistics"
 msgstr "Statistika"
 
 msgid "Status"
 msgstr "Holat"
+
+msgid "Sub-object"
+msgstr "Quyi obyekt"
 
 msgid "Sub-objects"
 msgstr "Quyi obyektlar"
@@ -745,6 +915,61 @@ msgstr "Shablonlar"
 msgid "Terminated"
 msgstr "Tugatilgan"
 
+msgid "That person's position (optional)."
+msgstr "Ushbu shaxsning lavozimi (ixtiyoriy)."
+
+msgid "The client's email address (optional)."
+msgstr "Mijozning email manzili (ixtiyoriy)."
+
+msgid "The client's phone number."
+msgstr "Mijozning telefon raqami."
+
+msgid "The client's tax ID (STIR) — digits only (optional)."
+msgstr "Mijozning STIR raqami — faqat raqamlar (ixtiyoriy)."
+
+msgid "The construction area, m² (optional)."
+msgstr "Qurilish maydoni, m² (ixtiyoriy)."
+
+msgid "The construction volume (optional)."
+msgstr "Qurilish hajmi (ixtiyoriy)."
+
+msgid "The deadline for this section (optional)."
+msgstr "Ushbu bo'lim uchun muddat (ixtiyoriy)."
+
+msgid "The deadline for this sub-object."
+msgstr "Ushbu obyekt uchun muddat."
+
+msgid "The land plot area, m² (optional)."
+msgstr "Yer uchastkasi maydoni, m² (ixtiyoriy)."
+
+msgid "The object's category (e.g. Category II)."
+msgstr "Obyektning toifasi (masalan: II toifa)."
+
+msgid "The person responsible on the client's side (optional)."
+msgstr "Mijoz tomonidan mas'ul shaxs (ixtiyoriy)."
+
+msgid "The sector the project belongs to (e.g. trade, housing, education)."
+msgstr "Loyiha tegishli bo'lgan soha (masalan: savdo, turar-joy, ta'lim)."
+
+msgid ""
+"The specialist responsible for this discipline (filtered to matching "
+"specialists)."
+msgstr ""
+"Ushbu soha bo'yicha mas'ul mutaxassis (mos mutaxassislar bilan "
+"filtrlangan)."
+
+msgid "The sub-object's priority."
+msgstr "Obyektning ustuvorligi."
+
+msgid "The type of construction work."
+msgstr "Qurilish ishining turi."
+
+msgid "This section's current status."
+msgstr "Ushbu bo'limning joriy holati."
+
+msgid "This user is already a member."
+msgstr "Bu foydalanuvchi allaqachon a'zo."
+
 msgid "Toggle dark mode"
 msgstr "Tungi rejimni almashtirish"
 
@@ -768,6 +993,9 @@ msgstr "Turi"
 
 msgid "Unit name"
 msgstr "Bo'linma nomi"
+
+msgid "Unknown document type."
+msgstr "Noma'lum hujjat turi."
 
 msgid "Upload"
 msgstr "Yuklash"
@@ -815,11 +1043,24 @@ msgstr "Barchasini ko'rish"
 msgid "Welcome back, %(name)s"
 msgstr "Xush kelibsiz, %(name)s"
 
+msgid "When work on this sub-object starts (optional)."
+msgstr "Ushbu obyektdagi ishlar boshlanadigan sana (ixtiyoriy)."
+
+msgid "Where the construction funding comes from."
+msgstr "Qurilish moliyalashtirilishi manbai."
+
+msgid "Whether the client is a legal entity or an individual."
+msgstr "Mijoz yuridik shaxsmi yoki jismoniy shaxsmi."
+
 msgid "Working documentation"
 msgstr "Ishchi hujjatlar"
 
 msgid "Workload (top 10)"
 msgstr "Ish yuki (top 10)"
+
+#, python-format
+msgid "You were assigned to %(discipline)s on %(sub_object)s."
+msgstr "Siz %(sub_object)s obyektidagi %(discipline)s bo'limiga tayinlandingiz."
 
 msgid "ago"
 msgstr "oldin"

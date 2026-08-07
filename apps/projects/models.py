@@ -42,34 +42,45 @@ class Project(models.Model):
         INDIVIDUAL = "individual", _("Individual")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255)
-    description = models.CharField(max_length=2000, blank=True, null=True)
-    client_name = models.CharField(max_length=255, blank=True, null=True)
-    client_contact = models.CharField(max_length=255, blank=True, null=True)
-    client_type = models.CharField(max_length=20, choices=ClientType.choices, blank=True, null=True)
-    client_stir = models.CharField(max_length=20, blank=True, null=True, validators=[stir_validator])
-    client_email = models.EmailField(blank=True, null=True)
-    client_contact_person = models.CharField(max_length=255, blank=True, null=True)
-    client_position = models.CharField(max_length=255, blank=True, null=True)
-    client_notes = models.CharField(max_length=2000, blank=True, null=True)
-    address = models.CharField(max_length=500, blank=True, null=True)
+    name = models.CharField(max_length=255, verbose_name=_("Name"))
+    description = models.CharField(max_length=2000, blank=True, null=True, verbose_name=_("Description"))
+    client_name = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Client name"))
+    client_contact = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Client contact"))
+    client_type = models.CharField(
+        max_length=20, choices=ClientType.choices, blank=True, null=True, verbose_name=_("Client type"),
+    )
+    client_stir = models.CharField(
+        max_length=20, blank=True, null=True, validators=[stir_validator], verbose_name=_("STIR"),
+    )
+    client_email = models.EmailField(blank=True, null=True, verbose_name=_("Email"))
+    client_contact_person = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name=_("Client contact person"),
+    )
+    client_position = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Client position"))
+    client_notes = models.CharField(max_length=2000, blank=True, null=True, verbose_name=_("Client notes"))
+    address = models.CharField(max_length=500, blank=True, null=True, verbose_name=_("Address"))
     region = models.CharField(max_length=30, choices=REGION_CHOICES, blank=True, null=True, verbose_name=_("Region"))
     district = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("District"))
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
-    construction_type = models.CharField(max_length=20, choices=ConstructionType.choices, blank=True, null=True)
-    sector = models.CharField(max_length=255, blank=True, null=True)
-    object_type = models.CharField(max_length=255, blank=True, null=True)
-    funding_source = models.CharField(max_length=20, choices=FundingSource.choices, blank=True, null=True)
-    construction_area = models.FloatField(blank=True, null=True)
-    land_area = models.FloatField(blank=True, null=True)
-    construction_volume = models.FloatField(blank=True, null=True)
-    stage = models.CharField(max_length=20, choices=Stage.choices, default=Stage.CONCEPT)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE)
-    start_date = models.DateField(blank=True, null=True)
-    deadline = models.DateField(blank=True, null=True)
-    budget = models.FloatField(default=0)
-    paid_amount = models.FloatField(default=0)
+    construction_type = models.CharField(
+        max_length=20, choices=ConstructionType.choices, blank=True, null=True,
+        verbose_name=_("Construction type"),
+    )
+    sector = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Sector"))
+    object_type = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Object type"))
+    funding_source = models.CharField(
+        max_length=20, choices=FundingSource.choices, blank=True, null=True, verbose_name=_("Funding source"),
+    )
+    construction_area = models.FloatField(blank=True, null=True, verbose_name=_("Construction area"))
+    land_area = models.FloatField(blank=True, null=True, verbose_name=_("Land area"))
+    construction_volume = models.FloatField(blank=True, null=True, verbose_name=_("Construction volume"))
+    stage = models.CharField(max_length=20, choices=Stage.choices, default=Stage.CONCEPT, verbose_name=_("Stage"))
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE, verbose_name=_("Status"))
+    start_date = models.DateField(blank=True, null=True, verbose_name=_("Start date"))
+    deadline = models.DateField(blank=True, null=True, verbose_name=_("Deadline"))
+    budget = models.FloatField(default=0, verbose_name=_("Budget"))
+    paid_amount = models.FloatField(default=0, verbose_name=_("Paid amount"))
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="created_projects"
     )
@@ -103,36 +114,24 @@ class Priority(models.TextChoices):
     CRITICAL = "critical", _("Critical")
 
 
-class WorkerRole(models.TextChoices):
-    LEAD = "lead", _("Lead")
-    ENGINEER = "engineer", _("Engineer")
-    ARCHITECT = "architect", _("Architect")
-    ELECTRICIAN = "electrician", _("Electrician")
-    ESTIMATOR = "estimator", _("Estimator")
-    SUPERVISOR = "supervisor", _("Supervisor")
-
-
-class WorkerAssignmentStatus(models.TextChoices):
-    PENDING = "pending", _("Pending")
-    IN_PROGRESS = "in_progress", _("In progress")
-    REVIEW = "review", _("Review")
-    COMPLETED = "completed", _("Completed")
-
-
 class SubObject(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="sub_objects")
-    name = models.CharField(max_length=255)
-    description = models.CharField(max_length=2000, blank=True, null=True)
-    address = models.CharField(max_length=500, blank=True, null=True)
+    name = models.CharField(max_length=255, verbose_name=_("Name"))
+    description = models.CharField(max_length=2000, blank=True, null=True, verbose_name=_("Description"))
+    address = models.CharField(max_length=500, blank=True, null=True, verbose_name=_("Address"))
     gip = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
-        related_name="gip_sub_objects",
+        related_name="gip_sub_objects", verbose_name=_("GIP"),
     )
-    priority = models.CharField(max_length=20, choices=Priority.choices, default=Priority.MEDIUM)
-    status = models.CharField(max_length=20, choices=SectionStatus.choices, default=SectionStatus.NOT_STARTED)
-    start_date = models.DateField(blank=True, null=True)
-    deadline = models.DateField(blank=True, null=True)
+    priority = models.CharField(
+        max_length=20, choices=Priority.choices, default=Priority.MEDIUM, verbose_name=_("Priority"),
+    )
+    status = models.CharField(
+        max_length=20, choices=SectionStatus.choices, default=SectionStatus.NOT_STARTED, verbose_name=_("Status"),
+    )
+    start_date = models.DateField(blank=True, null=True, verbose_name=_("Start date"))
+    deadline = models.DateField(blank=True, null=True, verbose_name=_("Deadline"))
     position = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -142,60 +141,51 @@ class SubObject(models.Model):
     def __str__(self):
         return f"{self.project.name} / {self.name}"
 
-    @property
-    def progress_percentage(self):
-        total = self.tasks.count()
-        if not total:
-            return 0
-        done = self.tasks.filter(status="completed").count()
-        return round(done / total * 100)
 
-    @property
-    def days_remaining(self):
-        if not self.deadline:
-            return None
-        from django.utils import timezone
-        return (self.deadline - timezone.localdate()).days
-
-
-class SubObjectWorker(models.Model):
+class SubObjectDiscipline(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    sub_object = models.ForeignKey(SubObject, on_delete=models.CASCADE, related_name="workers")
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="sub_object_assignments"
+    sub_object = models.ForeignKey(SubObject, on_delete=models.CASCADE, related_name="disciplines")
+    discipline = models.ForeignKey(
+        "accounts.Discipline", on_delete=models.CASCADE, related_name="sub_object_disciplines",
     )
-    role = models.CharField(max_length=20, choices=WorkerRole.choices, default=WorkerRole.ENGINEER)
-    deadline = models.DateField(blank=True, null=True)
+    assignee = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="assigned_sub_object_disciplines", verbose_name=_("Assignee"),
+    )
+    deadline = models.DateField(blank=True, null=True, verbose_name=_("Deadline"))
     status = models.CharField(
-        max_length=20, choices=WorkerAssignmentStatus.choices, default=WorkerAssignmentStatus.PENDING,
+        max_length=20, choices=SectionStatus.choices, default=SectionStatus.NOT_STARTED, verbose_name=_("Status"),
     )
-    assigned_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["sub_object", "user"], name="unique_sub_object_worker"),
+            models.UniqueConstraint(fields=["sub_object", "discipline"], name="unique_sub_object_discipline"),
         ]
-        ordering = ["assigned_at"]
+        ordering = ["discipline__code"]
 
     def __str__(self):
-        return f"{self.user} @ {self.sub_object}"
+        return f"{self.discipline.code} @ {self.sub_object}"
 
 
 class Section(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="sections")
     sub_object = models.ForeignKey(
-        SubObject, on_delete=models.SET_NULL, null=True, blank=True, related_name="sections"
+        SubObject, on_delete=models.SET_NULL, null=True, blank=True, related_name="sections",
+        verbose_name=_("Sub-object"),
     )
     discipline = models.ForeignKey(
-        "accounts.Discipline", on_delete=models.PROTECT, related_name="sections",
+        "accounts.Discipline", on_delete=models.PROTECT, related_name="sections", verbose_name=_("Discipline"),
     )
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, verbose_name=_("Name"))
     gip = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
-        related_name="gip_sections",
+        related_name="gip_sections", verbose_name=_("GIP"),
     )
-    status = models.CharField(max_length=20, choices=SectionStatus.choices, default=SectionStatus.NOT_STARTED)
+    status = models.CharField(
+        max_length=20, choices=SectionStatus.choices, default=SectionStatus.NOT_STARTED, verbose_name=_("Status"),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -209,11 +199,12 @@ class ProjectMember(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="members")
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="project_memberships"
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="project_memberships",
+        verbose_name=_("User"),
     )
-    role_in_project = models.CharField(max_length=100, blank=True, null=True)
-    can_edit = models.BooleanField(default=True)
-    expires_at = models.DateTimeField(blank=True, null=True)
+    role_in_project = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("Role in project"))
+    can_edit = models.BooleanField(default=True, verbose_name=_("Can edit"))
+    expires_at = models.DateTimeField(blank=True, null=True, verbose_name=_("Expires at"))
     joined_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

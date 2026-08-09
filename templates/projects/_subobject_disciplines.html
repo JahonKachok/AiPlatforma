@@ -1,0 +1,61 @@
+{% load i18n %}
+<div class="space-y-2">
+  {% if target.disciplines.all %}
+  <ul class="space-y-1">
+    {% for sd in target.disciplines.all %}
+      <li class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 py-1 dark:border-gray-700">
+        <span><span class="badge badge-info">{{ sd.discipline.code }}</span> {{ sd.discipline.name }}</span>
+        <span class="flex items-center gap-1">
+          {% if can_edit %}
+          <form method="post" action="{% url 'projects:wizard_discipline_assign' target.project_id sd.sub_object_id sd.discipline_id %}" class="flex items-center gap-1">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="detail">
+            <select name="assignee" class="field-input w-auto assignee-select" data-discipline="{{ sd.discipline_id }}" data-current="{{ sd.assignee_id|default:'' }}">
+              <option value="">{% trans "Not assigned" %}</option>
+            </select>
+            <button type="submit" class="btn btn-ghost btn-sm">{% trans "Assign" %}</button>
+          </form>
+          <form method="post" action="{% url 'projects:wizard_discipline_remove' target.project_id sd.sub_object_id sd.discipline_id %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="detail">
+            <button type="submit" class="rounded-full px-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950" aria-label="{% trans 'Remove' %}">&times;</button>
+          </form>
+          {% elif sd.assignee %}
+            <span class="text-gray-500 dark:text-gray-400">{{ sd.assignee.full_name }}</span>
+          {% else %}
+            <span class="text-gray-500 dark:text-gray-400">{% trans "Not assigned" %}</span>
+          {% endif %}
+        </span>
+      </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+    <p class="text-gray-400">{% trans "No disciplines assigned yet." %}</p>
+  {% endif %}
+
+  {% if can_edit and target.available_disciplines %}
+  <form method="post"
+        action="{% url 'projects:wizard_discipline_assign' target.project_id target.pk '00000000-0000-0000-0000-000000000000' %}"
+        data-url-template="{% url 'projects:wizard_discipline_assign' target.project_id target.pk '00000000-0000-0000-0000-000000000000' %}"
+        class="assign-discipline-form flex flex-wrap items-end gap-2 border-t border-gray-100 pt-2 dark:border-gray-700">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="detail">
+    <div>
+      <label class="field-label">{% trans "Discipline" %}</label>
+      <select name="discipline" class="field-input w-auto discipline-select" required>
+        <option value="">{% trans "Select a discipline..." %}</option>
+        {% for d in target.available_disciplines %}
+          <option value="{{ d.pk }}">{{ d.code }} — {{ d.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="field-label">{% trans "Employee" %}</label>
+      <select name="assignee" class="field-input w-auto assignee-select" disabled>
+        <option value="">{% trans "Select a discipline first" %}</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-secondary btn-sm">{% trans "Assign to this object" %}</button>
+  </form>
+  {% endif %}
+</div>

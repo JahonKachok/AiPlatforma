@@ -44,6 +44,14 @@ def _wizard_discipline_query(sub_object):
         return f"sub_object={sub_object.parent_id}&pod_object={sub_object.pk}"
     return f"sub_object={sub_object.pk}"
 
+
+def _next_or(request, project, fallback_url):
+    """Actions on the structure tab (project_detail) submit next=detail so they land back
+    on that tab instead of the wizard page these views were originally written for."""
+    if request.POST.get("next") == "detail":
+        return reverse("projects:detail", args=[project.pk]) + "#tab-structure"
+    return fallback_url
+
 REGION_CENTERS_JSON = json.dumps(REGION_CENTERS)
 
 TRACKED_FIELDS = [
@@ -123,7 +131,9 @@ def project_detail(request, pk):
         Project.objects.prefetch_related(
             "members__user", "sub_objects__sections__discipline", "sections__discipline",
             "sub_objects__pod_objects__disciplines__discipline",
+            "sub_objects__pod_objects__disciplines__assignee",
             "sub_objects__disciplines__discipline",
+            "sub_objects__disciplines__assignee",
         ),
         pk=pk,
     )
@@ -149,6 +159,31 @@ def project_detail(request, pk):
     for section in orphan_sections:
         section.qualified_employees = employees_by_discipline.get(section.discipline_id, [])
 
+    # Objects & sub-objects tab: a SubObject with parent=None is an "Object" (Объект),
+    # one with a parent is a "Pod object" (Подобъект) — build the object -> pod-object tree here
+    # instead of listing all SubObjects flat, and work out which disciplines each leaf node
+    # (a pod object, or an object with no pod objects) can still have added.
+    all_disciplines = list(Discipline.objects.all().order_by("code"))
+    top_objects = [obj for obj in project.sub_objects.all() if obj.parent_id is None]
+
+    def _attach_available_disciplines(target):
+        assigned_ids = {d.discipline_id for d in target.disciplines.all()}
+        target.available_disciplines = [d for d in all_disciplines if d.id not in assigned_ids]
+
+    for obj in top_objects:
+        _attach_available_disciplines(obj)
+        for pod in obj.pod_objects.all():
+            _attach_available_disciplines(pod)
+
+    # Maps discipline id -> list of active users with that discipline, used client-side to
+    # populate the "assignee" dropdown once a discipline is picked for a pod/object.
+    discipline_users = {}
+    for user in User.objects.filter(is_active=True).prefetch_related("disciplines"):
+        for discipline in user.disciplines.all():
+            discipline_users.setdefault(str(discipline.id), []).append(
+                {"id": str(user.id), "name": user.full_name or user.email}
+            )
+
     tasks = project.tasks.select_related("assignee")[:6]
     task_stats = {
         "total": project.tasks.count(),
@@ -168,6 +203,8 @@ def project_detail(request, pk):
         "expense": expense,
         "can_edit": can_edit_project(request.user, project),
         "orphan_sections": orphan_sections,
+        "top_objects": top_objects,
+        "discipline_users": discipline_users,
         "sub_object_form": SubObjectForm(),
         "section_form": SectionForm(project=project),
         "member_form": ProjectMemberForm(),
@@ -385,9 +422,9 @@ def wizard_pod_object_quick_create(request, pk, sub_id):
     base_url = reverse("projects:wizard_subobjects", args=[pk])
     if not name:
         messages.error(request, _("Name is required."))
-        return redirect(f"{base_url}?sub_object={sub_id}")
+        return redirect(_next_or(request, project, f"{base_url}?sub_object={sub_id}"))
     SubObject.objects.create(project=project, parent=parent, name=name)
-    return redirect(f"{base_url}?sub_object={sub_id}")
+    return redirect(_next_or(request, project, f"{base_url}?sub_object={sub_id}"))
 
 
 @login_required
@@ -409,7 +446,7 @@ def wizard_discipline_assign(request, pk, sub_id, discipline_id):
         messages.success(request, _("Section saved."))
     else:
         messages.error(request, form.errors.as_text())
-    return redirect(f"{base_url}?{query}")
+    return redirect(_next_or(request, project, f"{base_url}?{query}"))
 
 
 @login_required
@@ -440,7 +477,7 @@ def wizard_discipline_remove(request, pk, sub_id, discipline_id):
     query = _wizard_discipline_query(sub_object)
     SubObjectDiscipline.objects.filter(sub_object=sub_object, discipline_id=discipline_id).delete()
     messages.success(request, _("Discipline removed."))
-    return redirect(f"{base_url}?{query}")
+    return redirect(_next_or(request, project, f"{base_url}?{query}"))
 
 
 @login_required

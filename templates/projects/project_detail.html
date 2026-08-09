@@ -60,10 +60,11 @@
       <div class="mb-3 flex items-center justify-between">
         <h2 class="font-semibold">{% trans "Objects" %}</h2>
       </div>
-      <ul class="mb-3 space-y-2 text-sm">
-        {% for obj in project.sub_objects.all %}
-          <li class="border-b border-gray-100 py-1 dark:border-gray-700">
-            <div class="flex items-center justify-between">
+
+      <div class="space-y-2 text-sm">
+        {% for obj in top_objects %}
+          <details class="rounded-lg border border-gray-100 p-2 dark:border-gray-700">
+            <summary class="flex cursor-pointer list-none items-center justify-between">
               <span>{{ obj.name }} <span class="text-gray-400">{{ obj.address|default:"" }}</span></span>
               <span class="flex items-center gap-2">
                 <span class="text-xs text-gray-500 dark:text-gray-400">
@@ -71,43 +72,60 @@
                 </span>
                 <span class="text-gray-500 dark:text-gray-400">{{ obj.gip|default:"—" }}</span>
               </span>
-            </div>
-            {% if obj.sections.all %}
-            <ul class="mt-1 ml-4 space-y-1 border-l border-gray-100 pl-3 dark:border-gray-700">
-              {% for section in obj.sections.all %}
-                <li class="text-xs">
-                  <details>
-                    <summary class="flex cursor-pointer list-none items-center justify-between">
-                      <span><span class="badge badge-info">{{ section.discipline.code }}</span> {{ section.name }}</span>
-                      <span class="text-gray-500 dark:text-gray-400">{{ section.gip|default:"—" }}</span>
-                    </summary>
-                    <div class="mt-1 mb-2 ml-2 space-y-1">
-                      <p class="text-gray-400">{% trans "Employees in this discipline:" %}</p>
-                      {% for u in section.qualified_employees %}
-                        <span class="mr-2 inline-flex items-center gap-1">
-                          <span class="flex h-6 w-6 items-center justify-center rounded-full text-xs text-white" style="background-color: {{ u.full_name|avatar_color }};">{{ u.full_name|initials }}</span>
-                          {{ u.full_name }}
-                        </span>
-                      {% empty %}
-                        <span class="text-gray-400">{% trans "No employees found for this discipline." %}</span>
-                      {% endfor %}
-                    </div>
-                  </details>
-                </li>
+            </summary>
+
+            <div class="mt-2 ml-4 space-y-2 border-l border-gray-100 pl-3 dark:border-gray-700">
+              {% for pod in obj.pod_objects.all %}
+                <details class="rounded-lg border border-gray-100 p-2 dark:border-gray-700">
+                  <summary class="flex cursor-pointer list-none items-center justify-between">
+                    <span>{{ pod.name }}</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                      {% if pod.progress is not None %}{{ pod.progress }}%{% else %}{% trans "weights not assigned" %}{% endif %}
+                    </span>
+                  </summary>
+                  <div class="mt-2 ml-2 text-xs">
+                    {% include "projects/_subobject_disciplines.html" with target=pod %}
+                  </div>
+                </details>
+              {% empty %}
+                <p class="text-xs text-gray-400">{% trans "No pod objects yet." %}</p>
               {% endfor %}
-            </ul>
-            {% endif %}
-          </li>
-        {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No objects yet." %}</li>{% endfor %}
-      </ul>
+
+              {% if can_edit %}
+              <form method="post" action="{% url 'projects:wizard_pod_object_quick_create' project.pk obj.pk %}" class="flex flex-wrap gap-2 pt-1">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="detail">
+                <input type="text" name="name" class="field-input w-auto" placeholder="{% trans 'New pod object name' %}" required>
+                <button type="submit" class="btn btn-ghost btn-sm">{% trans "+ Add pod object" %}</button>
+              </form>
+              {% endif %}
+
+              {% if not obj.pod_objects.all %}
+                <div class="mt-2 text-xs">
+                  <p class="mb-1 text-gray-400">{% trans "Disciplines directly on this object:" %}</p>
+                  {% include "projects/_subobject_disciplines.html" with target=obj %}
+                </div>
+              {% endif %}
+            </div>
+          </details>
+        {% empty %}
+          <p class="text-gray-500 dark:text-gray-400">{% trans "No objects yet." %}</p>
+        {% endfor %}
+      </div>
+
       {% if can_edit %}
-      <form method="post" action="{% url 'projects:add_subobject' project.pk %}" class="flex flex-wrap gap-2">
-        {% csrf_token %}
-        {% for field in sub_object_form %}{% include "partials/field_with_info.html" %}{% endfor %}
-        <button type="submit" class="btn btn-secondary btn-sm">{% trans "Add" %}</button>
-      </form>
+      <details class="mt-3">
+        <summary class="cursor-pointer list-none text-sm text-blue-600 hover:underline dark:text-blue-400">{% trans "+ Add object" %}</summary>
+        <form method="post" action="{% url 'projects:add_subobject' project.pk %}" class="mt-2 flex flex-wrap gap-2">
+          {% csrf_token %}
+          {% for field in sub_object_form %}{% include "partials/field_with_info.html" %}{% endfor %}
+          <button type="submit" class="btn btn-secondary btn-sm">{% trans "Add" %}</button>
+        </form>
+      </details>
       {% endif %}
     </div>
+
+    {{ discipline_users|json_script:"discipline-users-data" }}
 
     <div class="card p-6">
       <h2 class="mb-3 font-semibold">{% trans "Sub-objects without an object" %}</h2>
@@ -266,4 +284,52 @@
   <script src="{% static 'vendor/leaflet/leaflet.js' %}"></script>
   <script src="{% static 'js/project-map-view.js' %}"></script>
   {% endif %}
+  <script>
+    (function () {
+      var dataEl = document.getElementById("discipline-users-data");
+      if (!dataEl) return;
+      var disciplineUsers = JSON.parse(dataEl.textContent || "{}");
+      var noneLabel = "{% trans 'Not assigned' %}";
+      var placeholder = "00000000-0000-0000-0000-000000000000";
+
+      function fillAssigneeSelect(select, disciplineId, currentId) {
+        var users = disciplineUsers[disciplineId] || [];
+        select.innerHTML = "";
+        var emptyOpt = document.createElement("option");
+        emptyOpt.value = "";
+        emptyOpt.textContent = noneLabel;
+        select.appendChild(emptyOpt);
+        users.forEach(function (u) {
+          var opt = document.createElement("option");
+          opt.value = u.id;
+          opt.textContent = u.name;
+          if (currentId && u.id === currentId) opt.selected = true;
+          select.appendChild(opt);
+        });
+        select.disabled = false;
+      }
+
+      document.querySelectorAll(".assignee-select[data-discipline]").forEach(function (select) {
+        fillAssigneeSelect(select, select.dataset.discipline, select.dataset.current || "");
+      });
+
+      document.querySelectorAll(".assign-discipline-form").forEach(function (form) {
+        var disciplineSelect = form.querySelector(".discipline-select");
+        var assigneeSelect = form.querySelector(".assignee-select");
+        if (!disciplineSelect || !assigneeSelect) return;
+        disciplineSelect.addEventListener("change", function () {
+          var disciplineId = disciplineSelect.value;
+          if (disciplineId) {
+            fillAssigneeSelect(assigneeSelect, disciplineId, "");
+          } else {
+            assigneeSelect.innerHTML = "";
+            assigneeSelect.disabled = true;
+          }
+          if (form.dataset.urlTemplate) {
+            form.action = form.dataset.urlTemplate.replace(placeholder, disciplineId || placeholder);
+          }
+        });
+      });
+    })();
+  </script>
 {% endblock %}

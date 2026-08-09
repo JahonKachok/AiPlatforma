@@ -1,5 +1,5 @@
 {% load i18n %}
-{# active_step: 1, 2, 3 or 4 #}
+{# active_step: 1, 2, 3, 4 or 5 #}
 <div class="card wizard-fade-in mb-6 flex items-center justify-center gap-1 p-4 sm:gap-3">
   <div class="flex items-center gap-2">
     <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold
@@ -43,7 +43,7 @@
     <span class="hidden text-sm sm:inline
       {% if active_step == 3 %}font-semibold text-blue-600 dark:text-blue-400
       {% elif active_step > 3 %}text-green-600 dark:text-green-400
-      {% else %}text-gray-500 dark:text-gray-400{% endif %}">{% trans "Documents" %}</span>
+      {% else %}text-gray-500 dark:text-gray-400{% endif %}">{% trans "Disciplines" %}</span>
   </div>
 
   <div class="h-0 w-4 border-t-2 border-dashed sm:w-10
@@ -51,10 +51,26 @@
 
   <div class="flex items-center gap-2">
     <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold
-      {% if active_step == 4 %}border-2 border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400
-      {% else %}bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400{% endif %}">4</span>
+      {% if active_step > 4 %}bg-green-500 text-white
+      {% elif active_step == 4 %}border-2 border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400
+      {% else %}bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400{% endif %}">
+      {% if active_step > 4 %}&#10003;{% else %}4{% endif %}
+    </span>
     <span class="hidden text-sm sm:inline
       {% if active_step == 4 %}font-semibold text-blue-600 dark:text-blue-400
+      {% elif active_step > 4 %}text-green-600 dark:text-green-400
+      {% else %}text-gray-500 dark:text-gray-400{% endif %}">{% trans "Documents" %}</span>
+  </div>
+
+  <div class="h-0 w-4 border-t-2 border-dashed sm:w-10
+    {% if active_step > 4 %}border-green-400{% else %}border-gray-300 dark:border-gray-600{% endif %}"></div>
+
+  <div class="flex items-center gap-2">
+    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold
+      {% if active_step == 5 %}border-2 border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400
+      {% else %}bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400{% endif %}">5</span>
+    <span class="hidden text-sm sm:inline
+      {% if active_step == 5 %}font-semibold text-blue-600 dark:text-blue-400
       {% else %}text-gray-500 dark:text-gray-400{% endif %}">{% trans "Confirm" %}</span>
   </div>
 </div>

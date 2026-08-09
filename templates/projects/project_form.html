@@ -8,21 +8,21 @@
 {% endblock %}
 {% block content %}
 {% if is_create %}{% include "projects/_wizard_steps.html" with active_step=1 %}{% endif %}
-<form method="post" class="card max-w-3xl space-y-4 p-6">
+<form method="post" class="card w-full space-y-4 p-6" {% if is_create %}data-draft-key="project-create-draft"{% endif %}>
   {% csrf_token %}
-  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
     {% for field in form %}
       {% if field.is_hidden %}
         {{ field }}
       {% else %}
-      <div class="{% if field.name == 'description' %}sm:col-span-2{% endif %}">
+      <div class="{% if field.name == 'description' %}sm:col-span-2 lg:col-span-3{% endif %}">
         <label class="field-label inline-flex items-center" for="{{ field.id_for_label }}">{% include "partials/field_label_info.html" %}</label>
         {{ field }}
         {% if field.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ field.errors|join:", " }}</p>{% endif %}
       </div>
       {% endif %}
       {% if field.name == 'address' %}
-        <div class="sm:col-span-2">
+        <div class="sm:col-span-2 lg:col-span-3">
           <label class="field-label">{% trans "Location on map" %}</label>
           <p class="mb-1 text-xs text-gray-500 dark:text-gray-400">{% trans "Select the region above, then click the map to pin the exact location." %}</p>
           <div id="project-map" class="rounded-lg"></div>
@@ -41,12 +41,12 @@
 </form>
 
 {% if not is_create %}
-<form method="post" action="{% url 'projects:update_client' project.pk %}" class="card mt-6 max-w-3xl space-y-4 p-6">
+<form method="post" action="{% url 'projects:update_client' project.pk %}" class="card mt-6 w-full space-y-4 p-6">
   {% csrf_token %}
   <h2 class="font-semibold">{% trans "Client information" %}</h2>
-  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
     {% for field in client_form %}
-      <div class="{% if field.name == 'client_notes' %}sm:col-span-2{% endif %}">
+      <div class="{% if field.name == 'client_notes' %}sm:col-span-2 lg:col-span-3{% endif %}">
         <label class="field-label inline-flex items-center" for="{{ field.id_for_label }}">{% include "partials/field_label_info.html" %}</label>
         {{ field }}
         {% if field.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ field.errors|join:", " }}</p>{% endif %}
@@ -58,6 +58,7 @@
 {% endif %}
 {% endblock %}
 {% block extra_scripts %}
+  {% if is_create %}<script src="{% static 'js/project-form-draft.js' %}"></script>{% endif %}
   <script src="{% static 'vendor/leaflet/leaflet.js' %}"></script>
   <script>window.REGION_CENTERS = {{ region_centers_json|safe }};</script>
   <script src="{% static 'js/project-map.js' %}"></script>

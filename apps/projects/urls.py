@@ -25,6 +25,19 @@ urlpatterns = [
         "<uuid:pk>/wizard/subobjects/<uuid:sub_id>/disciplines/<uuid:discipline_id>/assign/",
         views.wizard_discipline_assign, name="wizard_discipline_assign",
     ),
+    path(
+        "<uuid:pk>/wizard/subobjects/<uuid:sub_id>/pod-objects/quick-create/",
+        views.wizard_pod_object_quick_create, name="wizard_pod_object_quick_create",
+    ),
+    path("<uuid:pk>/wizard/disciplines/", views.project_wizard_disciplines, name="wizard_disciplines"),
+    path(
+        "<uuid:pk>/wizard/subobjects/<uuid:sub_id>/disciplines/bulk-add/",
+        views.wizard_discipline_bulk_add, name="wizard_discipline_bulk_add",
+    ),
+    path(
+        "<uuid:pk>/wizard/subobjects/<uuid:sub_id>/disciplines/<uuid:discipline_id>/remove/",
+        views.wizard_discipline_remove, name="wizard_discipline_remove",
+    ),
     path("<uuid:pk>/wizard/documents/", views.project_wizard_documents, name="wizard_documents"),
     path(
         "<uuid:pk>/wizard/documents/upload/",

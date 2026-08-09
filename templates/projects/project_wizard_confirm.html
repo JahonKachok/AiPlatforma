@@ -4,7 +4,7 @@
 {% block page_title %}{{ project.name }}{% endblock %}
 {% block page_subtitle %}{% trans "Review the information before finishing." %}{% endblock %}
 {% block content %}
-{% include "projects/_wizard_steps.html" with active_step=4 %}
+{% include "projects/_wizard_steps.html" with active_step=5 %}
 
 <form method="post" class="card wizard-fade-in max-w-3xl space-y-4 p-6">
   {% csrf_token %}

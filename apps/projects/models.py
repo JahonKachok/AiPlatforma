@@ -117,6 +117,10 @@ class Priority(models.TextChoices):
 class SubObject(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="sub_objects")
+    parent = models.ForeignKey(
+        "self", on_delete=models.CASCADE, null=True, blank=True,
+        related_name="pod_objects", verbose_name=_("Pod object of"),
+    )
     name = models.CharField(max_length=255, verbose_name=_("Name"))
     description = models.CharField(max_length=2000, blank=True, null=True, verbose_name=_("Description"))
     address = models.CharField(max_length=500, blank=True, null=True, verbose_name=_("Address"))

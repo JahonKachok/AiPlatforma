@@ -4,7 +4,7 @@
 {% block page_title %}{{ project.name }}{% endblock %}
 {% block page_subtitle %}{% trans "Upload the project's documents." %}{% endblock %}
 {% block content %}
-{% include "projects/_wizard_steps.html" with active_step=3 %}
+{% include "projects/_wizard_steps.html" with active_step=4 %}
 
 <div class="card wizard-fade-in max-w-3xl space-y-4 p-6">
   <div class="grid grid-cols-1 gap-4 sm:grid-cols-2" id="wizard-upload-grid"
@@ -40,7 +40,7 @@
   </div>
 
   <div class="flex gap-3 pt-2">
-    <a href="{% url 'projects:wizard_subobjects' project.pk %}" class="btn btn-secondary btn-md">{% trans "Back" %}</a>
+    <a href="{% url 'projects:wizard_disciplines' project.pk %}" class="btn btn-secondary btn-md">{% trans "Back" %}</a>
     <a href="{% url 'projects:wizard_confirm' project.pk %}" class="btn btn-primary btn-md">{% trans "Continue" %}</a>
   </div>
 </div>

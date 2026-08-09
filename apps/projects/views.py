@@ -26,11 +26,23 @@ from .permissions import can_create_project, can_edit_project, visible_projects_
 from .uz_regions import REGION_CENTERS
 
 WIZARD_DOC_TYPES = [
-    ("project_doc", _("Project document")),
-    ("estimate", _("Estimate")),
-    ("technical_task", _("Technical assignment")),
-    ("permit", _("Permit")),
+    ("tz", _("10_ТЗ")),
+    ("geology", _("20_Геология")),
+    ("ecology", _("30_Экология")),
+    ("cadastre", _("40_Кадастр")),
+    ("apz", _("50_АПЗ")),
+    ("tu", _("60_ТУ")),
+    ("kd_equipment", _("70_КД оборудования")),
+    ("photo_video", _("80_Фото и видео")),
 ]
+
+
+def _wizard_discipline_query(sub_object):
+    """GET query string that re-selects a sub-object (and its parent, if it's a pod object)
+    on the wizard disciplines step after a redirect."""
+    if sub_object.parent_id:
+        return f"sub_object={sub_object.parent_id}&pod_object={sub_object.pk}"
+    return f"sub_object={sub_object.pk}"
 
 REGION_CENTERS_JSON = json.dumps(REGION_CENTERS)
 
@@ -276,6 +288,30 @@ def project_wizard_subobjects(request, pk):
         raise PermissionDenied
 
     if request.method == "POST":
+        messages.success(request, _("Project structure saved."))
+        return redirect("projects:wizard_disciplines", pk=pk)
+
+    sub_objects = list(project.sub_objects.filter(parent__isnull=True))
+    selected_id = request.GET.get("sub_object") or (str(sub_objects[0].pk) if sub_objects else None)
+    selected = next((s for s in sub_objects if str(s.pk) == str(selected_id)), None) if selected_id else None
+
+    pod_objects = []
+    if selected:
+        pod_objects = list(selected.pod_objects.all())
+
+    return render(request, "projects/project_wizard_subobjects.html", {
+        "project": project, "sub_objects": sub_objects, "selected": selected,
+        "pod_objects": pod_objects,
+    })
+
+
+@login_required
+def project_wizard_disciplines(request, pk):
+    project = get_object_or_404(Project, pk=pk)
+    if not can_edit_project(request.user, project):
+        raise PermissionDenied
+
+    if request.method == "POST":
         assignments = SubObjectDiscipline.objects.filter(
             sub_object__project=project, assignee__isnull=False,
         ).select_related("assignee", "discipline", "sub_object")
@@ -288,30 +324,34 @@ def project_wizard_subobjects(request, pk):
                 },
                 link=f"/projects/{project.pk}/",
             )
-        messages.success(request, _("Project structure saved."))
+        messages.success(request, _("Disciplines saved."))
         return redirect("projects:wizard_documents", pk=pk)
 
-    sub_objects = list(project.sub_objects.all())
+    sub_objects = list(project.sub_objects.filter(parent__isnull=True))
     selected_id = request.GET.get("sub_object") or (str(sub_objects[0].pk) if sub_objects else None)
     selected = next((s for s in sub_objects if str(s.pk) == str(selected_id)), None) if selected_id else None
 
-    discipline_rows = []
+    pod_objects = []
+    selected_pod = None
     if selected:
-        assignments = {
-            a.discipline_id: a
-            for a in SubObjectDiscipline.objects.filter(sub_object=selected).select_related("assignee")
-        }
-        for discipline in Discipline.objects.all():
-            assignment = assignments.get(discipline.id)
-            discipline_rows.append({
-                "discipline": discipline,
-                "assignment": assignment,
-                "form": SubObjectDisciplineForm(instance=assignment, discipline=discipline),
-            })
+        pod_objects = list(selected.pod_objects.all())
+        pod_id = request.GET.get("pod_object")
+        selected_pod = next((p for p in pod_objects if str(p.pk) == str(pod_id)), None) if pod_id else None
 
-    return render(request, "projects/project_wizard_subobjects.html", {
+    target = selected_pod or selected
+    assignments = []
+    available_disciplines = []
+    if target:
+        assignments = list(
+            SubObjectDiscipline.objects.filter(sub_object=target).select_related("discipline")
+        )
+        assigned_ids = {a.discipline_id for a in assignments}
+        available_disciplines = list(Discipline.objects.exclude(id__in=assigned_ids))
+
+    return render(request, "projects/project_wizard_disciplines.html", {
         "project": project, "sub_objects": sub_objects, "selected": selected,
-        "discipline_rows": discipline_rows,
+        "pod_objects": pod_objects, "selected_pod": selected_pod, "target": target,
+        "assignments": assignments, "available_disciplines": available_disciplines,
     })
 
 
@@ -330,6 +370,21 @@ def wizard_subobject_quick_create(request, pk):
 
 
 @login_required
+def wizard_pod_object_quick_create(request, pk, sub_id):
+    project = get_object_or_404(Project, pk=pk)
+    if not can_edit_project(request.user, project) or request.method != "POST":
+        raise PermissionDenied
+    parent = get_object_or_404(SubObject, pk=sub_id, project=project)
+    name = request.POST.get("name", "").strip()
+    base_url = reverse("projects:wizard_subobjects", args=[pk])
+    if not name:
+        messages.error(request, _("Name is required."))
+        return redirect(f"{base_url}?sub_object={sub_id}")
+    SubObject.objects.create(project=project, parent=parent, name=name)
+    return redirect(f"{base_url}?sub_object={sub_id}")
+
+
+@login_required
 def wizard_discipline_assign(request, pk, sub_id, discipline_id):
     project = get_object_or_404(Project, pk=pk)
     if not can_edit_project(request.user, project) or request.method != "POST":
@@ -338,7 +393,8 @@ def wizard_discipline_assign(request, pk, sub_id, discipline_id):
     discipline = get_object_or_404(Discipline, pk=discipline_id)
     instance = SubObjectDiscipline.objects.filter(sub_object=sub_object, discipline=discipline).first()
     form = SubObjectDisciplineForm(request.POST, instance=instance, discipline=discipline)
-    base_url = reverse("projects:wizard_subobjects", args=[pk])
+    base_url = reverse("projects:wizard_disciplines", args=[pk])
+    query = _wizard_discipline_query(sub_object)
     if form.is_valid():
         assignment = form.save(commit=False)
         assignment.sub_object = sub_object
@@ -347,7 +403,38 @@ def wizard_discipline_assign(request, pk, sub_id, discipline_id):
         messages.success(request, _("Section saved."))
     else:
         messages.error(request, form.errors.as_text())
-    return redirect(f"{base_url}?sub_object={sub_id}")
+    return redirect(f"{base_url}?{query}")
+
+
+@login_required
+def wizard_discipline_bulk_add(request, pk, sub_id):
+    project = get_object_or_404(Project, pk=pk)
+    if not can_edit_project(request.user, project) or request.method != "POST":
+        raise PermissionDenied
+    sub_object = get_object_or_404(SubObject, pk=sub_id, project=project)
+    base_url = reverse("projects:wizard_disciplines", args=[pk])
+    query = _wizard_discipline_query(sub_object)
+    discipline_ids = request.POST.getlist("disciplines")
+    if not discipline_ids:
+        messages.error(request, _("Select at least one discipline."))
+        return redirect(f"{base_url}?{query}")
+    for discipline in Discipline.objects.filter(id__in=discipline_ids):
+        SubObjectDiscipline.objects.get_or_create(sub_object=sub_object, discipline=discipline)
+    messages.success(request, _("Disciplines added."))
+    return redirect(f"{base_url}?{query}")
+
+
+@login_required
+def wizard_discipline_remove(request, pk, sub_id, discipline_id):
+    project = get_object_or_404(Project, pk=pk)
+    if not can_edit_project(request.user, project) or request.method != "POST":
+        raise PermissionDenied
+    sub_object = get_object_or_404(SubObject, pk=sub_id, project=project)
+    base_url = reverse("projects:wizard_disciplines", args=[pk])
+    query = _wizard_discipline_query(sub_object)
+    SubObjectDiscipline.objects.filter(sub_object=sub_object, discipline_id=discipline_id).delete()
+    messages.success(request, _("Discipline removed."))
+    return redirect(f"{base_url}?{query}")
 
 
 @login_required

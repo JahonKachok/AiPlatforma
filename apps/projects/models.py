@@ -1,7 +1,7 @@
 import uuid
 
 from django.conf import settings
-from django.core.validators import RegexValidator
+from django.core.validators import MaxValueValidator, RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -40,6 +40,10 @@ class Project(models.Model):
     class ClientType(models.TextChoices):
         LEGAL_ENTITY = "legal_entity", _("Legal entity")
         INDIVIDUAL = "individual", _("Individual")
+
+    class Currency(models.TextChoices):
+        UZS = "UZS", _("So'm")
+        USD = "USD", _("Dollar")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, verbose_name=_("Name"))
@@ -81,6 +85,9 @@ class Project(models.Model):
     deadline = models.DateField(blank=True, null=True, verbose_name=_("Deadline"))
     budget = models.FloatField(default=0, verbose_name=_("Budget"))
     paid_amount = models.FloatField(default=0, verbose_name=_("Paid amount"))
+    currency = models.CharField(
+        max_length=10, choices=Currency.choices, default=Currency.UZS, verbose_name=_("Currency"),
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="created_projects"
     )
@@ -98,6 +105,13 @@ class Project(models.Model):
         if not self.budget:
             return 0
         return min(100, round(self.paid_amount / self.budget * 100))
+
+    @property
+    def progress(self):
+        values = [
+            s.progress for s in self.sub_objects.filter(parent__isnull=True) if s.progress is not None
+        ]
+        return round(sum(values) / len(values)) if values else None
 
 
 class SectionStatus(models.TextChoices):
@@ -145,6 +159,19 @@ class SubObject(models.Model):
     def __str__(self):
         return f"{self.project.name} / {self.name}"
 
+    @property
+    def progress(self):
+        pods = list(self.pod_objects.all())
+        if pods:
+            values = [p.progress for p in pods if p.progress is not None]
+            return round(sum(values) / len(values)) if values else None
+        disciplines = list(self.disciplines.all())
+        if not disciplines:
+            return None
+        if sum(d.weight for d in disciplines) != 100:
+            return None
+        return round(sum(d.progress * d.weight for d in disciplines) / 100)
+
 
 class SubObjectDiscipline(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -159,6 +186,16 @@ class SubObjectDiscipline(models.Model):
     deadline = models.DateField(blank=True, null=True, verbose_name=_("Deadline"))
     status = models.CharField(
         max_length=20, choices=SectionStatus.choices, default=SectionStatus.NOT_STARTED, verbose_name=_("Status"),
+    )
+    weight = models.PositiveSmallIntegerField(
+        default=0, validators=[MaxValueValidator(100)], verbose_name=_("Weight, %"),
+        help_text=_(
+            "This discipline's share of the sub-object's progress. "
+            "All disciplines of a sub-object must sum to 100%."
+        ),
+    )
+    progress = models.PositiveSmallIntegerField(
+        default=0, validators=[MaxValueValidator(100)], verbose_name=_("Progress, %"),
     )
     created_at = models.DateTimeField(auto_now_add=True)
 

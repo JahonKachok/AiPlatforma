@@ -48,7 +48,12 @@
           <li class="border-b border-gray-100 py-1 dark:border-gray-700">
             <div class="flex items-center justify-between">
               <span>{{ obj.name }} <span class="text-gray-400">{{ obj.address|default:"" }}</span></span>
-              <span class="text-gray-500 dark:text-gray-400">{{ obj.gip|default:"—" }}</span>
+              <span class="flex items-center gap-2">
+                <span class="text-xs text-gray-500 dark:text-gray-400">
+                  {% if obj.progress is not None %}{{ obj.progress }}%{% else %}{% trans "weights not assigned" %}{% endif %}
+                </span>
+                <span class="text-gray-500 dark:text-gray-400">{{ obj.gip|default:"—" }}</span>
+              </span>
             </div>
             {% if obj.sections.all %}
             <ul class="mt-1 ml-4 space-y-1 border-l border-gray-100 pl-3 dark:border-gray-700">
@@ -177,6 +182,18 @@
   </div>
 
   <div class="space-y-6">
+    <div class="card p-6">
+      <h2 class="mb-3 font-semibold">{% trans "Overall progress" %}</h2>
+      {% if project.progress is not None %}
+        <div class="mb-2 h-2 w-full rounded-full bg-gray-100 dark:bg-gray-700">
+          <div class="h-2 rounded-full bg-green-500" style="width: {{ project.progress }}%"></div>
+        </div>
+        <p class="text-sm text-gray-500 dark:text-gray-400">{{ project.progress }}%</p>
+      {% else %}
+        <p class="text-sm text-gray-500 dark:text-gray-400">{% trans "weights not assigned" %}</p>
+      {% endif %}
+    </div>
+
     <div class="card p-6">
       <h2 class="mb-3 font-semibold">{% trans "Finance summary" %}</h2>
       <div class="mb-2 h-2 w-full rounded-full bg-gray-100 dark:bg-gray-700">

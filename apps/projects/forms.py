@@ -24,7 +24,7 @@ class ProjectForm(StyledFormMixin, forms.ModelForm):
             "construction_type", "sector", "object_type", "funding_source",
             "construction_area", "land_area", "construction_volume",
             "region", "district", "address", "latitude", "longitude",
-            "stage", "status", "start_date", "deadline", "budget", "paid_amount",
+            "stage", "status", "start_date", "deadline", "budget", "paid_amount", "currency",
         ]
         widgets = {
             "start_date": forms.DateInput(attrs={"type": "date"}),
@@ -54,6 +54,7 @@ class ProjectForm(StyledFormMixin, forms.ModelForm):
             "deadline": _("The deadline set for completing the project."),
             "budget": _("The project's total budget (amount)."),
             "paid_amount": _("The amount paid so far — shows what share of the budget has been paid."),
+            "currency": _("The currency the budget and paid amount are in."),
         }
 
     REQUIRED_FIELDS = [

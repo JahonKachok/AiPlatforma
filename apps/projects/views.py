@@ -122,6 +122,8 @@ def project_detail(request, pk):
     project = get_object_or_404(
         Project.objects.prefetch_related(
             "members__user", "sub_objects__sections__discipline", "sections__discipline",
+            "sub_objects__pod_objects__disciplines__discipline",
+            "sub_objects__disciplines__discipline",
         ),
         pk=pk,
     )
@@ -205,6 +207,10 @@ def project_delete(request, pk):
         raise PermissionDenied
     if request.method == "POST":
         AuditLog.log(obj=project, action="deleted", user=request.user)
+        # PaymentRequest.cost_code is PROTECT, and CostCode cascades from Project —
+        # deleting payment requests first clears that protection before the project
+        # (and its cost codes) cascade-delete.
+        project.payment_requests.all().delete()
         project.delete()
         messages.success(request, _("Project deleted."))
         return redirect("projects:list")
@@ -434,6 +440,37 @@ def wizard_discipline_remove(request, pk, sub_id, discipline_id):
     query = _wizard_discipline_query(sub_object)
     SubObjectDiscipline.objects.filter(sub_object=sub_object, discipline_id=discipline_id).delete()
     messages.success(request, _("Discipline removed."))
+    return redirect(f"{base_url}?{query}")
+
+
+@login_required
+def wizard_discipline_weights_save(request, pk, sub_id):
+    project = get_object_or_404(Project, pk=pk)
+    if not can_edit_project(request.user, project) or request.method != "POST":
+        raise PermissionDenied
+    sub_object = get_object_or_404(SubObject, pk=sub_id, project=project)
+    base_url = reverse("projects:wizard_disciplines", args=[pk])
+    query = _wizard_discipline_query(sub_object)
+    assignments = list(SubObjectDiscipline.objects.filter(sub_object=sub_object))
+
+    updates = []
+    for assignment in assignments:
+        try:
+            weight = int(request.POST.get(f"weight_{assignment.pk}"))
+            progress = int(request.POST.get(f"progress_{assignment.pk}"))
+        except (TypeError, ValueError):
+            messages.error(request, _("Weight and progress must be whole numbers."))
+            return redirect(f"{base_url}?{query}")
+        if not (0 <= weight <= 100) or not (0 <= progress <= 100):
+            messages.error(request, _("Weight and progress must be between 0 and 100."))
+            return redirect(f"{base_url}?{query}")
+        assignment.weight = weight
+        assignment.progress = progress
+        updates.append(assignment)
+
+    if updates:
+        SubObjectDiscipline.objects.bulk_update(updates, ["weight", "progress"])
+    messages.success(request, _("Weights and progress saved."))
     return redirect(f"{base_url}?{query}")
 
 

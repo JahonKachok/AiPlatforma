@@ -14,10 +14,24 @@
     {% for field in form %}
       {% if field.is_hidden %}
         {{ field }}
+      {% elif field.name == 'currency' %}
+        {# rendered inline next to the budget and paid amount fields below #}
       {% else %}
       <div class="{% if field.name == 'description' %}sm:col-span-2 lg:col-span-3{% endif %}">
         <label class="field-label inline-flex items-center" for="{{ field.id_for_label }}">{% include "partials/field_label_info.html" %}</label>
-        {{ field }}
+        {% if field.name == 'budget' %}
+          <div class="flex gap-2">
+            <div class="flex-1">{{ field }}</div>
+            <div class="w-24 shrink-0">{{ form.currency }}</div>
+          </div>
+        {% elif field.name == 'paid_amount' %}
+          <div class="flex gap-2">
+            <div class="flex-1">{{ field }}</div>
+            <div id="paid-amount-currency" class="flex w-24 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400">{% if form.instance.currency == 'USD' %}${% else %}so'm{% endif %}</div>
+          </div>
+        {% else %}
+          {{ field }}
+        {% endif %}
         {% if field.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ field.errors|join:", " }}</p>{% endif %}
       </div>
       {% endif %}
@@ -62,4 +76,16 @@
   <script src="{% static 'vendor/leaflet/leaflet.js' %}"></script>
   <script>window.REGION_CENTERS = {{ region_centers_json|safe }};</script>
   <script src="{% static 'js/project-map.js' %}"></script>
+  <script>
+    (function () {
+      var currencySelect = document.getElementById("{{ form.currency.id_for_label }}");
+      var paidBadge = document.getElementById("paid-amount-currency");
+      if (!currencySelect || !paidBadge) return;
+      function syncPaidCurrency() {
+        paidBadge.textContent = currencySelect.value === "USD" ? "$" : "so'm";
+      }
+      currencySelect.addEventListener("change", syncPaidCurrency);
+      syncPaidCurrency();
+    })();
+  </script>
 {% endblock %}

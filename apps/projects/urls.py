@@ -38,6 +38,10 @@ urlpatterns = [
         "<uuid:pk>/wizard/subobjects/<uuid:sub_id>/disciplines/<uuid:discipline_id>/remove/",
         views.wizard_discipline_remove, name="wizard_discipline_remove",
     ),
+    path(
+        "<uuid:pk>/wizard/subobjects/<uuid:sub_id>/disciplines/weights/",
+        views.wizard_discipline_weights_save, name="wizard_discipline_weights_save",
+    ),
     path("<uuid:pk>/wizard/documents/", views.project_wizard_documents, name="wizard_documents"),
     path(
         "<uuid:pk>/wizard/documents/upload/",

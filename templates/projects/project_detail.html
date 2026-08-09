@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n static core_extras project_extras %}
+{% load i18n l10n static core_extras project_extras %}
 {% block title %}{{ project.name }}{% endblock %}
 {% block page_title %}{{ project.name }}{% endblock %}
 {% block page_subtitle %}
@@ -46,7 +46,9 @@
     <div class="card p-6">
       <h2 class="mb-3 font-semibold">{% trans "Location on map" %}</h2>
       {% if project.latitude is not None and project.longitude is not None %}
+        {% localize off %}
         <div id="project-overview-map" class="rounded-lg" data-lat="{{ project.latitude }}" data-lng="{{ project.longitude }}" data-address="{{ project.address|default:'' }}"></div>
+        {% endlocalize %}
       {% else %}
         <p class="text-sm text-gray-500 dark:text-gray-400">{% trans "No location was pinned for this project." %}</p>
       {% endif %}

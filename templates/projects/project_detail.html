@@ -29,6 +29,7 @@
       <button type="button" data-tab="structure" class="ap-tab">{% trans "Objects & sub-objects" %}</button>
       <button type="button" data-tab="tasks" class="ap-tab">{% trans "Tasks" %}</button>
       <button type="button" data-tab="finance" class="ap-tab">{% trans "Finance" %}</button>
+      <button type="button" data-tab="source_files" class="ap-tab">{% trans "Исходные файлы" %}</button>
     </div>
 
     <div data-tab-panel="info" class="space-y-6">
@@ -214,6 +215,58 @@
       {% endif %}
     </div>
     </div>
+
+    <div data-tab-panel="source_files" class="hidden space-y-6">
+    <div class="card p-6">
+      <h2 class="mb-3 font-semibold">{% trans "Исходные файлы" %}</h2>
+      {% if can_edit %}
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2" id="wizard-upload-grid"
+           data-upload-url="{% url 'projects:wizard_document_upload' project.pk %}"
+           data-delete-url-template="{% url 'projects:wizard_document_delete' project.pk '00000000-0000-0000-0000-000000000000' %}"
+           data-csrf="{{ csrf_token }}">
+        {% for item in source_files_checklist %}
+          <div class="upload-card rounded-lg border border-gray-200 p-4 dark:border-gray-700" data-doc-type="{{ item.key }}">
+            <p class="mb-2 text-sm font-medium">{{ item.label }}</p>
+
+            <div class="upload-drop-state {% if item.document %}hidden{% endif %}">
+              <label class="upload-drop flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-6 text-center text-xs text-gray-500 dark:border-gray-600 dark:text-gray-400">
+                <span>{% trans "Drag a file here or click to choose" %}</span>
+                <input type="file" class="hidden upload-file-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.rar">
+              </label>
+            </div>
+
+            <div class="upload-file-state flex items-center gap-3 {% if not item.document %}hidden{% endif %}"
+                 data-document-id="{% if item.document %}{{ item.document.pk }}{% endif %}">
+              <span class="text-2xl">📄</span>
+              <div class="min-w-0 flex-1">
+                <p class="upload-file-name truncate text-sm">{{ item.document.name|default:"" }}</p>
+                <div class="mt-1 h-1.5 w-full rounded-full bg-gray-100 dark:bg-gray-700">
+                  <div class="upload-progress-bar h-1.5 rounded-full bg-blue-500 transition-all duration-300" style="width: {% if item.document %}100{% else %}0{% endif %}%"></div>
+                </div>
+              </div>
+              <span class="upload-progress-pct text-xs text-gray-500 dark:text-gray-400">{% if item.document %}100%{% endif %}</span>
+              <button type="button" class="upload-delete-btn text-red-500 hover:text-red-700" aria-label="{% trans 'Delete' %}">✕</button>
+            </div>
+            <p class="upload-error mt-1 hidden text-xs text-red-600 dark:text-red-400"></p>
+          </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <ul class="space-y-2 text-sm">
+        {% for item in source_files_checklist %}
+          <li class="flex items-center justify-between border-b border-gray-100 py-1 dark:border-gray-700">
+            <span>{{ item.label }}</span>
+            {% if item.document %}
+              <a href="{{ item.document.file.url }}" target="_blank" rel="noopener" class="text-blue-600 hover:underline dark:text-blue-400">{{ item.document.name }}</a>
+            {% else %}
+              <span class="text-gray-400">{% trans "Not uploaded" %}</span>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+    </div>
   </div>
 
   <div class="space-y-6">
@@ -283,6 +336,9 @@
   {% if project.latitude is not None and project.longitude is not None %}
   <script src="{% static 'vendor/leaflet/leaflet.js' %}"></script>
   <script src="{% static 'js/project-map-view.js' %}"></script>
+  {% endif %}
+  {% if can_edit %}
+  <script src="{% static 'js/wizard-upload.js' %}"></script>
   {% endif %}
   <script>
     (function () {

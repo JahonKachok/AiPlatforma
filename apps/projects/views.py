@@ -191,7 +191,7 @@ def project_update(request, pk):
             if changes:
                 AuditLog.log(obj=project, action="updated", user=request.user, details=changes)
             messages.success(request, _("Project updated."))
-            return redirect("projects:detail", pk=project.pk)
+            return redirect("projects:wizard_subobjects", pk=project.pk)
     else:
         form = ProjectForm(instance=project)
     return render(request, "projects/project_form.html", {
@@ -560,7 +560,7 @@ def project_wizard_confirm(request, pk):
     documents = Document.objects.filter(project=project, doc_type__in=doc_type_keys)
     if request.method == "POST":
         AuditLog.log(obj=project, action="wizard_completed", user=request.user)
-        messages.success(request, _("Project created."))
+        messages.success(request, _("Project saved."))
         return redirect("projects:detail", pk=pk)
     return render(request, "projects/project_wizard_confirm.html", {
         "project": project, "documents": documents,

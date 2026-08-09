@@ -57,6 +57,22 @@ class ProjectVisibilityTests(TestCase):
         response = self.client.get(reverse("projects:update", args=[self.project.pk]))
         self.assertEqual(response.status_code, 403)
 
+    def test_edit_form_is_prefilled_with_existing_data(self):
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse("projects:update", args=[self.project.pk]))
+        self.assertContains(response, 'value="Visible to member"')
+
+    def test_saving_edit_form_continues_into_the_wizard(self):
+        self.client.force_login(self.admin)
+        response = self.client.post(reverse("projects:update", args=[self.project.pk]), {
+            "name": "Visible to member", "stage": "concept", "status": "active",
+            "budget": 1000, "paid_amount": 0, "currency": "UZS",
+            "construction_type": "new", "sector": "Housing", "object_type": "Category II",
+            "funding_source": "own_funds", "region": "tashkent_city", "district": "Yunusobod",
+            "address": "Test address 1",
+        })
+        self.assertRedirects(response, reverse("projects:wizard_subobjects", args=[self.project.pk]))
+
     def test_admin_can_delete_project_with_payment_requests(self):
         from apps.finance.models import Contractor, CostCode, PaymentRequest
 

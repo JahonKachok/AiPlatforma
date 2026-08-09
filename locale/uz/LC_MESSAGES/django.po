@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BuildFlow\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-09 16:20+0500\n"
+"POT-Creation-Date: 2026-08-09 17:16+0500\n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1085,13 +1085,13 @@ msgstr "Bo'linma nomi"
 msgid "Unit deleted."
 msgstr "Yozuv o'chirildi."
 
-#: .\apps\organization\views.py:122 .\apps\projects\views.py:240
+#: .\apps\organization\views.py:122 .\apps\projects\views.py:244
 #, fuzzy
 #| msgid "Members"
 msgid "Member added."
 msgstr "A'zolar"
 
-#: .\apps\organization\views.py:133 .\apps\projects\views.py:252
+#: .\apps\organization\views.py:133 .\apps\projects\views.py:256
 msgid "Member removed."
 msgstr ""
 
@@ -1681,7 +1681,7 @@ msgstr ""
 msgid "Deadline passed"
 msgstr "Muddati o'tgan"
 
-#: .\apps\projects\views.py:111 .\apps\projects\views.py:559
+#: .\apps\projects\views.py:111
 #, fuzzy
 #| msgid "Project structure saved."
 msgid "Project created."
@@ -1693,95 +1693,99 @@ msgstr "Loyiha tuzilmasi saqlandi."
 msgid "Project updated."
 msgstr "Loyiha tuzilmasi"
 
-#: .\apps\projects\views.py:211
+#: .\apps\projects\views.py:215
 #, fuzzy
 #| msgid "Record deleted."
 msgid "Project deleted."
 msgstr "Yozuv o'chirildi."
 
-#: .\apps\projects\views.py:242
+#: .\apps\projects\views.py:246
 msgid "This user is already a member."
 msgstr "Bu foydalanuvchi allaqachon a'zo."
 
-#: .\apps\projects\views.py:267
+#: .\apps\projects\views.py:271
 #, fuzzy
 #| msgid "Sub-object"
 msgid "Sub-object added."
 msgstr "Quyi obyekt"
 
-#: .\apps\projects\views.py:282
+#: .\apps\projects\views.py:286
 #, fuzzy
 #| msgid "Section"
 msgid "Section added."
 msgstr "Bo'lim"
 
-#: .\apps\projects\views.py:293
+#: .\apps\projects\views.py:297
 msgid "Project structure saved."
 msgstr "Loyiha tuzilmasi saqlandi."
 
-#: .\apps\projects\views.py:323
+#: .\apps\projects\views.py:327
 msgid "Assigned to a project section"
 msgstr "Loyiha bo'limiga tayinlandingiz"
 
-#: .\apps\projects\views.py:324
+#: .\apps\projects\views.py:328
 #, python-format
 msgid "You were assigned to %(discipline)s on %(sub_object)s."
 msgstr ""
 "Siz %(sub_object)s obyektidagi %(discipline)s bo'limiga tayinlandingiz."
 
-#: .\apps\projects\views.py:329
+#: .\apps\projects\views.py:333
 #, fuzzy
 #| msgid "Discipline created."
 msgid "Disciplines saved."
 msgstr "Soha yaratildi."
 
-#: .\apps\projects\views.py:368 .\apps\projects\views.py:383
+#: .\apps\projects\views.py:372 .\apps\projects\views.py:387
 msgid "Name is required."
 msgstr "Nom kiritilishi shart."
 
-#: .\apps\projects\views.py:405
+#: .\apps\projects\views.py:409
 #, fuzzy
 #| msgid "Sections"
 msgid "Section saved."
 msgstr "Bo'limlar"
 
-#: .\apps\projects\views.py:421
+#: .\apps\projects\views.py:425
 #, fuzzy
 #| msgid "Delete this discipline?"
 msgid "Select at least one discipline."
 msgstr "Ushbu soha o'chirilsinmi?"
 
-#: .\apps\projects\views.py:425
+#: .\apps\projects\views.py:429
 #, fuzzy
 #| msgid "Discipline created."
 msgid "Disciplines added."
 msgstr "Soha yaratildi."
 
-#: .\apps\projects\views.py:438
+#: .\apps\projects\views.py:442
 #, fuzzy
 #| msgid "Discipline created."
 msgid "Discipline removed."
 msgstr "Soha yaratildi."
 
-#: .\apps\projects\views.py:458
+#: .\apps\projects\views.py:462
 msgid "Weight and progress must be whole numbers."
 msgstr "Og'irlik va progress butun son bo'lishi kerak."
 
-#: .\apps\projects\views.py:461
+#: .\apps\projects\views.py:465
 msgid "Weight and progress must be between 0 and 100."
 msgstr "Og'irlik va progress 0 dan 100 gacha bo'lishi kerak."
 
-#: .\apps\projects\views.py:469
+#: .\apps\projects\views.py:473
 msgid "Weights and progress saved."
 msgstr "Vaznlar va progress saqlandi."
 
-#: .\apps\projects\views.py:482
+#: .\apps\projects\views.py:486
 msgid "Client information updated."
 msgstr "Mijoz ma'lumotlari yangilandi."
 
-#: .\apps\projects\views.py:514
+#: .\apps\projects\views.py:518
 msgid "Unknown document type."
 msgstr "Noma'lum hujjat turi."
+
+#: .\apps\projects\views.py:563
+msgid "Project saved."
+msgstr "Loyiha saqlandi."
 
 #: .\apps\requests_app\forms.py:15
 msgid "A short, clear title for the request. E.g. \"Change facade color\"."
@@ -2107,7 +2111,6 @@ msgstr "Profil, xavfsizlik va bildirishnomalarni boshqarish"
 #: .\templates\accounts\user_form.html:19
 #: .\templates\document_templates\template_form.html:17
 #: .\templates\organization\department_form.html:15
-#: .\templates\projects\project_form.html:48
 #: .\templates\projects\project_form.html:70
 #: .\templates\requests_app\request_form.html:16
 #: .\templates\tasks\task_form.html:16
@@ -3282,15 +3285,15 @@ msgid "I confirm that the entered information is correct."
 msgstr "Kiritilgan ma'lumotlar to'g'ri ekanligini tasdiqlayman."
 
 #: .\templates\projects\project_wizard_confirm.html:52
-#, fuzzy
-#| msgid "Delete project"
-msgid "Create project"
-msgstr "Loyihani o'chirish"
+msgid "Finish"
+msgstr "Yakunlash"
 
 #: .\templates\projects\project_wizard_disciplines.html:5
 msgid ""
 "Select an object and, if needed, a pod object, then assign its disciplines."
-msgstr "Obyektni va, zarur bo'lsa, quyi obyektni tanlang, so'ng uning fanlarini belgilang."
+msgstr ""
+"Obyektni va, zarur bo'lsa, quyi obyektni tanlang, so'ng uning fanlarini "
+"belgilang."
 
 #: .\templates\projects\project_wizard_disciplines.html:13
 #: .\templates\projects\project_wizard_subobjects.html:12
@@ -3367,7 +3370,9 @@ msgstr "Faylni shu yerga torting yoki tanlash uchun bosing"
 
 #: .\templates\projects\project_wizard_subobjects.html:5
 msgid "Add the project's objects and, if needed, pod objects within them."
-msgstr "Loyihaning obyektlarini va, zarur bo'lsa, ular ichidagi quyi obyektlarni qo'shing."
+msgstr ""
+"Loyihaning obyektlarini va, zarur bo'lsa, ular ichidagi quyi obyektlarni "
+"qo'shing."
 
 #: .\templates\projects\project_wizard_subobjects.html:25
 msgid "Pod objects"
@@ -3573,6 +3578,11 @@ msgstr "Vazifani tahrirlash"
 #: .\templates\telegram_bot\link_redirect.html:4
 msgid "Connect Telegram"
 msgstr "Telegram'ni ulash"
+
+#, fuzzy
+#~| msgid "Delete project"
+#~ msgid "Create project"
+#~ msgstr "Loyihani o'chirish"
 
 #, fuzzy
 #~| msgid "In progress"

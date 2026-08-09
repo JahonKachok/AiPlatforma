@@ -7,7 +7,7 @@
   <style>#project-map { height: 320px; }</style>
 {% endblock %}
 {% block content %}
-{% if is_create %}{% include "projects/_wizard_steps.html" with active_step=1 %}{% endif %}
+{% include "projects/_wizard_steps.html" with active_step=1 %}
 <form method="post" class="card w-full space-y-4 p-6" {% if is_create %}data-draft-key="project-create-draft"{% endif %}>
   {% csrf_token %}
   <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -45,7 +45,7 @@
     {% endfor %}
   </div>
   <div class="flex gap-3">
-    <button type="submit" class="btn btn-primary btn-md">{% if is_create %}{% trans "Continue" %}{% else %}{% trans "Save" %}{% endif %}</button>
+    <button type="submit" class="btn btn-primary btn-md">{% trans "Continue" %}</button>
     {% if project %}
       <a href="{% url 'projects:detail' project.pk %}" class="btn btn-secondary btn-md">{% trans "Cancel" %}</a>
     {% else %}

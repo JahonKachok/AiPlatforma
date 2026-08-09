@@ -53,23 +53,6 @@
     {% endif %}
   </div>
 </form>
-
-{% if not is_create %}
-<form method="post" action="{% url 'projects:update_client' project.pk %}" class="card mt-6 w-full space-y-4 p-6">
-  {% csrf_token %}
-  <h2 class="font-semibold">{% trans "Client information" %}</h2>
-  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    {% for field in client_form %}
-      <div class="{% if field.name == 'client_notes' %}sm:col-span-2 lg:col-span-3{% endif %}">
-        <label class="field-label inline-flex items-center" for="{{ field.id_for_label }}">{% include "partials/field_label_info.html" %}</label>
-        {{ field }}
-        {% if field.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ field.errors|join:", " }}</p>{% endif %}
-      </div>
-    {% endfor %}
-  </div>
-  <button type="submit" class="btn btn-primary btn-md">{% trans "Save" %}</button>
-</form>
-{% endif %}
 {% endblock %}
 {% block extra_scripts %}
   {% if is_create %}<script src="{% static 'js/project-form-draft.js' %}"></script>{% endif %}

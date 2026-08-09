@@ -159,6 +159,16 @@ def project_detail(request, pk):
     income = sum(r.amount for r in project.financial_records.filter(type="income"))
     expense = sum(r.amount for r in project.financial_records.filter(type="expense"))
 
+    doc_type_keys = [key for key, _label in WIZARD_DOC_TYPES]
+    documents_by_type = {
+        doc.doc_type: doc
+        for doc in Document.objects.filter(project=project, doc_type__in=doc_type_keys)
+    }
+    source_files_checklist = [
+        {"key": key, "label": label, "document": documents_by_type.get(key)}
+        for key, label in WIZARD_DOC_TYPES
+    ]
+
     return render(request, "projects/project_detail.html", {
         "project": project,
         "tasks": tasks,
@@ -172,6 +182,7 @@ def project_detail(request, pk):
         "section_form": SectionForm(project=project),
         "member_form": ProjectMemberForm(),
         "record_form": FinancialRecordForm(),
+        "source_files_checklist": source_files_checklist,
     })
 
 

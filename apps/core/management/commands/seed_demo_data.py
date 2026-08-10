@@ -12,7 +12,14 @@ from django.utils import timezone
 from apps.accounts.models import Discipline, User
 from apps.document_templates.models import DocumentTemplate, TemplateType
 from apps.documents.models import ApprovalStage, ApprovalStatus, Document, DocumentStatus
-from apps.finance.models import FinancialRecord, RecordStatus, RecordType
+from apps.finance.models import (
+    Account,
+    EmployeeContract,
+    FinanceSettings,
+    FinancialRecord,
+    RecordStatus,
+    RecordType,
+)
 from apps.projects.models import Project, ProjectMember, Section, SectionStatus, SubObject
 from apps.requests_app.models import Request, RequestComment, RequestPriority, RequestStatus, RequestType
 from apps.tasks.models import Task, TaskComment
@@ -82,12 +89,18 @@ SEED_DOCUMENTS = [
 ]
 
 SEED_FINANCIAL_RECORDS = [
-    (0, RecordType.INCOME, 900_000_000, "Mijozdan 2-bosqich to'lovi", "Shartnoma to'lovi", RecordStatus.CONFIRMED),
-    (0, RecordType.EXPENSE, 120_000_000, "Qurilish materiallari xaridi", "Materiallar", RecordStatus.CONFIRMED),
-    (1, RecordType.ADVANCE, 250_000_000, "Pudratchiga avans to'lovi", "Avans", RecordStatus.PENDING),
-    (1, RecordType.INCOME, 1_500_000_000, "Mijozdan asosiy to'lov", "Shartnoma to'lovi", RecordStatus.CONFIRMED),
-    (2, RecordType.EXPENSE, 60_000_000, "Geodezik tadqiqotlar", "Xizmatlar", RecordStatus.PENDING),
-    (3, RecordType.PAYMENT, 35_000_000, "Loyihalash xizmatlari uchun to'lov", "Xizmatlar", RecordStatus.CANCELLED),
+    (0, RecordType.INCOME, 900_000_000, "Mijozdan 2-bosqich to'lovi", "Shartnoma to'lovi", RecordStatus.CONFIRMED, Account.UZS_BANK),
+    (0, RecordType.EXPENSE, 120_000_000, "Qurilish materiallari xaridi", "Materiallar", RecordStatus.CONFIRMED, Account.UZS_BANK),
+    (1, RecordType.ADVANCE, 250_000_000, "Pudratchiga avans to'lovi", "Avans", RecordStatus.PENDING, None),
+    (1, RecordType.INCOME, 1_500_000_000, "Mijozdan asosiy to'lov", "Shartnoma to'lovi", RecordStatus.CONFIRMED, Account.UZS_BANK),
+    (2, RecordType.EXPENSE, 60_000_000, "Geodezik tadqiqotlar", "Xizmatlar", RecordStatus.PENDING, None),
+    (3, RecordType.PAYMENT, 35_000_000, "Loyihalash xizmatlari uchun to'lov", "Xizmatlar", RecordStatus.CANCELLED, None),
+    (0, RecordType.INCOME, 15_000, "Konsalting xizmati (USD)", "Xizmatlar", RecordStatus.CONFIRMED, Account.USD_CASH),
+]
+
+SEED_EMPLOYEE_CONTRACTS = [
+    (0, "designer1@platform.uz", 45_000_000, 20_000_000),
+    (1, "designer2@platform.uz", 38_000_000, 38_000_000),
 ]
 
 SEED_TEMPLATES = [
@@ -248,12 +261,21 @@ class Command(BaseCommand):
                     content=content, created_by=admin,
                 )
 
-        for project_idx, rtype, amount, description, category, status in SEED_FINANCIAL_RECORDS:
+        for project_idx, rtype, amount, description, category, status, account in SEED_FINANCIAL_RECORDS:
+            currency = "USD" if account == Account.USD_CASH else "UZS"
             FinancialRecord.objects.create(
-                project=projects[project_idx], type=rtype, amount=amount, currency="UZS",
+                project=projects[project_idx], type=rtype, amount=amount, currency=currency, account=account,
                 description=description, category=category, date=days(-(amount % 30)),
                 status=status, created_by=users_by_email["manager@platform.uz"],
             )
+
+        for project_idx, employee_email, amount, paid in SEED_EMPLOYEE_CONTRACTS:
+            EmployeeContract.objects.create(
+                user=users_by_email[employee_email], project=projects[project_idx],
+                amount=amount, paid=paid,
+            )
+
+        FinanceSettings.get_solo()
 
         for project_idx, title, description, rtype, creator_email, assignee_email, status, priority, comment in SEED_REQUESTS:
             req = Request.objects.create(

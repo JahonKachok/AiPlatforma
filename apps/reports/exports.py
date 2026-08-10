@@ -43,6 +43,15 @@ def build_finance_workbook(records):
     return _make_workbook(headers, rows)
 
 
+def build_cash_flow_workbook(records):
+    headers = ["Nomi", "Sana", "Kategoriya", "Valyuta", "Summa"]
+    rows = [
+        [r.description or "", r.date, r.get_type_display(), r.currency, r.amount]
+        for r in records
+    ]
+    return _make_workbook(headers, rows)
+
+
 def build_employees_workbook(rows_data):
     headers = ["Employee", "Tasks total", "Tasks completed", "Contract amount", "Paid", "Balance"]
     rows = [

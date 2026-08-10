@@ -255,10 +255,6 @@ def project_delete(request, pk):
         raise PermissionDenied
     if request.method == "POST":
         AuditLog.log(obj=project, action="deleted", user=request.user)
-        # PaymentRequest.cost_code is PROTECT, and CostCode cascades from Project —
-        # deleting payment requests first clears that protection before the project
-        # (and its cost codes) cascade-delete.
-        project.payment_requests.all().delete()
         project.delete()
         messages.success(request, _("Project deleted."))
         return redirect("projects:list")

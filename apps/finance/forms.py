@@ -1,9 +1,47 @@
 from django import forms
+from django.db.models import F
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.forms import StyledFormMixin
+from apps.projects.models import SubObject
 
-from .models import Contract, Contractor, CostCode, EmployeeContract, FinancialRecord, PaymentRequest
+from .models import Account, EmployeeContract, FinancialRecord, RecordType
+
+
+class TransactionForm(StyledFormMixin, forms.ModelForm):
+    class Meta:
+        model = FinancialRecord
+        fields = ["project", "sub_object", "type", "account", "amount", "date", "description"]
+        widgets = {
+            "type": forms.HiddenInput,
+            "date": forms.DateInput(attrs={"type": "date"}),
+        }
+        help_texts = {
+            "project": _("The project this transaction belongs to."),
+            "sub_object": _("The object/pod-object this transaction relates to (optional)."),
+            "account": _("The account the money moves through — determines its currency."),
+            "amount": _("The amount, in the account's currency."),
+            "date": _("The date of the transaction."),
+            "description": _("A short description of the transaction (optional)."),
+        }
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["type"].choices = [
+            (RecordType.INCOME, RecordType.INCOME.label), (RecordType.EXPENSE, RecordType.EXPENSE.label),
+        ]
+        self.fields["account"].required = True
+        if user is not None:
+            from apps.projects.permissions import visible_projects_for
+            self.fields["project"].queryset = visible_projects_for(user)
+        self.fields["sub_object"].queryset = SubObject.objects.select_related("project", "parent")
+
+    def clean(self):
+        cleaned = super().clean()
+        project, sub_object = cleaned.get("project"), cleaned.get("sub_object")
+        if project and sub_object and sub_object.project_id != project.id:
+            self.add_error("sub_object", _("This object does not belong to the selected project."))
+        return cleaned
 
 
 class FinancialRecordForm(StyledFormMixin, forms.ModelForm):
@@ -22,95 +60,46 @@ class FinancialRecordForm(StyledFormMixin, forms.ModelForm):
         }
 
 
-class ContractForm(StyledFormMixin, forms.ModelForm):
-    class Meta:
-        model = Contract
-        fields = ["client_name", "contract_number", "amount", "signed_date", "deadline", "status", "file", "notes"]
-        widgets = {
-            "signed_date": forms.DateInput(attrs={"type": "date"}),
-            "deadline": forms.DateInput(attrs={"type": "date"}),
-            "notes": forms.Textarea(attrs={"rows": 2}),
-        }
-        help_texts = {
-            "client_name": _("The name of the client/organization the contract is with."),
-            "contract_number": _("The contract number (a unique identifier)."),
-            "amount": _("The contract amount."),
-            "signed_date": _("The date the contract was signed."),
-            "deadline": _("The contract's deadline."),
-            "status": _("The contract's current status."),
-            "file": _("Upload the contract file (optional)."),
-            "notes": _("Additional notes (optional)."),
-        }
-
-
 class EmployeeContractForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = EmployeeContract
-        fields = ["user", "project", "amount", "advance", "paid", "status", "notes"]
+        fields = ["user", "project", "sub_object", "pod_object", "amount", "currency", "notes"]
         widgets = {"notes": forms.Textarea(attrs={"rows": 2})}
         help_texts = {
             "user": _("The employee the contract is with."),
             "project": _("The project the employee works on."),
+            "sub_object": _("The object the employee is assigned to (optional)."),
+            "pod_object": _("The pod-object the employee is assigned to (optional)."),
             "amount": _("The total amount under the contract."),
-            "advance": _("The advance amount given to the employee."),
-            "paid": _("The amount paid so far."),
-            "status": _("The contract's current status."),
+            "currency": _("The contract amount's currency."),
             "notes": _("Additional notes (optional)."),
         }
 
-
-class CostCodeForm(StyledFormMixin, forms.ModelForm):
-    class Meta:
-        model = CostCode
-        fields = ["code", "category", "budget"]
-        help_texts = {
-            "code": _("The CSI-style code, e.g. \"03-30-00\"."),
-            "category": _("The category name, e.g. \"Concrete works\"."),
-            "budget": _("The planned budget for this cost code."),
-        }
-
-
-class ContractorForm(StyledFormMixin, forms.ModelForm):
-    class Meta:
-        model = Contractor
-        fields = ["name", "phone", "notes"]
-        widgets = {"notes": forms.Textarea(attrs={"rows": 2})}
-        help_texts = {
-            "name": _("The contractor/organization's name."),
-            "phone": _("A contact phone number (optional)."),
-            "notes": _("Additional notes (optional)."),
-        }
-
-
-class PaymentRequestForm(StyledFormMixin, forms.ModelForm):
-    class Meta:
-        model = PaymentRequest
-        fields = ["sub_object", "cost_code", "contractor", "payment_type", "amount", "comment", "invoice_file"]
-        widgets = {"comment": forms.Textarea(attrs={"rows": 3})}
-        help_texts = {
-            "sub_object": _("The sub-object this payment relates to (optional)."),
-            "cost_code": _("The budget line (cost code) this payment is charged against."),
-            "contractor": _("The contractor/organization being paid."),
-            "payment_type": _("The type of payment — subcontract, advance, or invoice."),
-            "amount": _("The gross amount requested. A 5% retainage is withheld automatically."),
-            "comment": _("A short note on what this payment is for (optional)."),
-            "invoice_file": _("Attach the invoice/contract document (optional, max 25MB)."),
-        }
-
-    def __init__(self, *args, project=None, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if project is not None:
-            self.fields["sub_object"].queryset = project.sub_objects.all()
-            self.fields["cost_code"].queryset = project.cost_codes.all()
+        self.fields["sub_object"].queryset = SubObject.objects.filter(parent__isnull=True)
+        self.fields["pod_object"].queryset = SubObject.objects.filter(parent__isnull=False)
 
 
-class PaymentApprovalReviewForm(StyledFormMixin, forms.Form):
-    status = forms.ChoiceField(
-        choices=[("approved", _("Approve")), ("rejected", _("Reject"))],
-        widget=forms.RadioSelect,
-        help_text=_("Your decision on this payment request."),
+class EmployeeContractPayForm(StyledFormMixin, forms.Form):
+    employee_contract = forms.ModelChoiceField(
+        queryset=EmployeeContract.objects.none(),
+        label=_("Employee contract"),
+        help_text=_("The employee contract this payment is made against."),
     )
-    comment = forms.CharField(
-        required=False, widget=forms.Textarea(attrs={"rows": 2}),
-        help_text=_("Write the reason for your decision or your comment (optional)."),
+    amount = forms.FloatField(
+        min_value=0.01, help_text=_("The amount being paid now."),
     )
+    is_advance = forms.BooleanField(
+        required=False, label=_("This is an advance"),
+        help_text=_("Check if this payment is an advance rather than the final settlement."),
+    )
+    account = forms.ChoiceField(choices=Account.choices, help_text=_("The account the payment is made from."))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["employee_contract"].queryset = (
+            EmployeeContract.objects.select_related("user", "project")
+            .exclude(status__in=["completed", "terminated"])
+            .filter(paid__lt=F("amount"))
+        )

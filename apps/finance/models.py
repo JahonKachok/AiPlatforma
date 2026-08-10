@@ -4,15 +4,11 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.accounts.models import User
-from apps.core.validators import MaxFileSizeValidator
-
-
 class RecordType(models.TextChoices):
     INCOME = "income", _("Income")
     EXPENSE = "expense", _("Expense")
     ADVANCE = "advance", _("Advance")
-    PAYMENT = "payment", _("Payment")
+    PAYMENT = "payment", _("Salary")
 
 
 class RecordStatus(models.TextChoices):
@@ -28,10 +24,35 @@ class ContractStatus(models.TextChoices):
     TERMINATED = "terminated", _("Terminated")
 
 
+class Currency(models.TextChoices):
+    UZS = "UZS", _("So'm")
+    USD = "USD", _("Dollar")
+
+
+class Account(models.TextChoices):
+    USD_BANK = "usd_bank", _("Dollar hisob")
+    UZS_BANK = "uzs_bank", _("So'm hisob")
+    USD_CASH = "usd_cash", _("Naqd pul (USD)")
+
+
+ACCOUNT_CURRENCY = {
+    Account.USD_BANK: Currency.USD,
+    Account.UZS_BANK: Currency.UZS,
+    Account.USD_CASH: Currency.USD,
+}
+
+
 class FinancialRecord(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, related_name="financial_records")
+    sub_object = models.ForeignKey(
+        "projects.SubObject", on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="financial_records", verbose_name=_("Object / pod-object"),
+    )
     type = models.CharField(max_length=20, choices=RecordType.choices)
+    account = models.CharField(
+        max_length=20, choices=Account.choices, blank=True, null=True, verbose_name=_("Account"),
+    )
     amount = models.FloatField()
     currency = models.CharField(max_length=10, default="UZS")
     description = models.CharField(max_length=500, blank=True, null=True)
@@ -50,32 +71,7 @@ class FinancialRecord(models.Model):
 
     @property
     def signed_amount(self):
-        return -self.amount if self.type == RecordType.EXPENSE else self.amount
-
-
-class Contract(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, related_name="contracts")
-    client_name = models.CharField(max_length=255)
-    contract_number = models.CharField(max_length=100, blank=True, null=True)
-    amount = models.FloatField()
-    signed_date = models.DateField(blank=True, null=True)
-    deadline = models.DateField(blank=True, null=True)
-    status = models.CharField(max_length=20, choices=ContractStatus.choices, default=ContractStatus.DRAFT)
-    file = models.FileField(
-        upload_to="contracts/%Y/%m/", blank=True, null=True,
-        validators=[MaxFileSizeValidator(25)],
-    )
-    notes = models.CharField(max_length=1000, blank=True, null=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ["-created_at"]
-
-    def __str__(self):
-        return f"{self.client_name} — {self.contract_number or self.pk}"
+        return -self.amount if self.type in (RecordType.EXPENSE, RecordType.ADVANCE, RecordType.PAYMENT) else self.amount
 
 
 class EmployeeContract(models.Model):
@@ -84,7 +80,16 @@ class EmployeeContract(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="employee_contracts"
     )
     project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, related_name="employee_contracts")
+    sub_object = models.ForeignKey(
+        "projects.SubObject", on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="employee_contracts", verbose_name=_("Object"),
+    )
+    pod_object = models.ForeignKey(
+        "projects.SubObject", on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="employee_contracts_as_pod_object", verbose_name=_("Pod-object"),
+    )
     amount = models.FloatField()
+    currency = models.CharField(max_length=10, choices=Currency.choices, default=Currency.UZS)
     advance = models.FloatField(default=0)
     paid = models.FloatField(default=0)
     status = models.CharField(max_length=20, choices=ContractStatus.choices, default=ContractStatus.ACTIVE)
@@ -103,123 +108,24 @@ class EmployeeContract(models.Model):
         return self.amount - self.paid
 
 
-class CostCode(models.Model):
-    """A CSI-style budget line (smeta) within a project — e.g. "03-30-00 —
-    Beton ishlari" — used to track planned budget vs. actual spend."""
+class FinanceSettings(models.Model):
+    """Singleton row (pk=1) holding company-wide finance settings, e.g. the
+    manually-updated USD exchange rate used to combine multi-currency totals."""
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, related_name="cost_codes")
-    code = models.CharField(max_length=20)
-    category = models.CharField(max_length=255)
-    budget = models.FloatField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["code"]
-        constraints = [
-            models.UniqueConstraint(fields=["project", "code"], name="unique_project_cost_code"),
-        ]
-
-    def __str__(self):
-        return f"{self.code} — {self.category}"
-
-
-class Contractor(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255)
-    phone = models.CharField(max_length=50, blank=True, null=True)
-    notes = models.CharField(max_length=1000, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["name"]
-
-    def __str__(self):
-        return self.name
-
-
-class PaymentType(models.TextChoices):
-    SUBCONTRACT = "subcontract", _("Subcontract")
-    ADVANCE = "advance", _("Advance")
-    INVOICE = "invoice", _("Invoice")
-
-
-class PaymentStatus(models.TextChoices):
-    PENDING = "pending", _("Pending")
-    APPROVED = "approved", _("Approved")
-    REJECTED = "rejected", _("Rejected")
-
-
-class PaymentApprovalStatus(models.TextChoices):
-    PENDING = "pending", _("Pending")
-    APPROVED = "approved", _("Approved")
-    REJECTED = "rejected", _("Rejected")
-    SKIPPED = "skipped", _("Skipped")
-
-
-# Payment requests at or above this amount require the 3rd (Manager) approval stage.
-MANAGER_APPROVAL_THRESHOLD = 10_000
-
-
-class PaymentRequest(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, related_name="payment_requests")
-    sub_object = models.ForeignKey(
-        "projects.SubObject", on_delete=models.SET_NULL, null=True, blank=True, related_name="payment_requests"
-    )
-    cost_code = models.ForeignKey(CostCode, on_delete=models.PROTECT, related_name="payment_requests")
-    contractor = models.ForeignKey(Contractor, on_delete=models.PROTECT, related_name="payment_requests")
-    payment_type = models.CharField(max_length=20, choices=PaymentType.choices, default=PaymentType.INVOICE)
-    amount = models.FloatField()
-    retainage_rate = models.FloatField(default=0.05)
-    retainage_amount = models.FloatField(default=0)
-    comment = models.CharField(max_length=1000, blank=True, null=True)
-    invoice_file = models.FileField(
-        upload_to="payment_requests/%Y/%m/", blank=True, null=True,
-        validators=[MaxFileSizeValidator(25)],
-    )
-    status = models.CharField(max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING)
-    requested_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="payment_requests"
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
+    usd_rate = models.FloatField(default=12700)
     updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ["-created_at"]
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+    )
 
     def __str__(self):
-        return f"{self.contractor} — {self.amount} ({self.get_status_display()})"
+        return f"1 USD = {self.usd_rate} UZS"
 
-    @property
-    def net_amount(self):
-        return self.amount - self.retainage_amount
+    @classmethod
+    def get_solo(cls):
+        obj, _created = cls.objects.get_or_create(pk=1)
+        return obj
 
     def save(self, *args, **kwargs):
-        if self._state.adding:
-            self.retainage_amount = round(self.amount * self.retainage_rate, 2)
+        self.pk = 1
         super().save(*args, **kwargs)
-
-
-class PaymentApprovalStage(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    payment_request = models.ForeignKey(PaymentRequest, on_delete=models.CASCADE, related_name="approval_stages")
-    stage_order = models.PositiveIntegerField()
-    stage_name = models.CharField(max_length=100)
-    required_role = models.CharField(max_length=20, choices=User.Role.choices)
-    reviewer = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
-        related_name="payment_approval_stages",
-    )
-    status = models.CharField(
-        max_length=20, choices=PaymentApprovalStatus.choices, default=PaymentApprovalStatus.PENDING
-    )
-    comment = models.CharField(max_length=1000, blank=True, null=True)
-    reviewed_at = models.DateTimeField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["stage_order"]
-
-    def __str__(self):
-        return f"{self.payment_request_id} · stage {self.stage_order}: {self.stage_name}"

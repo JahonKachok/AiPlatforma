@@ -73,15 +73,10 @@ class ProjectVisibilityTests(TestCase):
         })
         self.assertRedirects(response, reverse("projects:wizard_subobjects", args=[self.project.pk]))
 
-    def test_admin_can_delete_project_with_payment_requests(self):
-        from apps.finance.models import Contractor, CostCode, PaymentRequest
+    def test_admin_can_delete_project_with_employee_contracts(self):
+        from apps.finance.models import EmployeeContract
 
-        cost_code = CostCode.objects.create(project=self.project, code="03-30-00", category="Beton", budget=1000)
-        contractor = Contractor.objects.create(name="ElektroServis LLC")
-        PaymentRequest.objects.create(
-            project=self.project, cost_code=cost_code, contractor=contractor,
-            amount=123123, requested_by=self.admin,
-        )
+        EmployeeContract.objects.create(user=self.admin, project=self.project, amount=123123)
         self.client.force_login(self.admin)
         response = self.client.post(reverse("projects:delete", args=[self.project.pk]))
         self.assertEqual(response.status_code, 302)

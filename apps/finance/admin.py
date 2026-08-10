@@ -1,54 +1,23 @@
 from django.contrib import admin
 
-from .models import (
-    Contract,
-    Contractor,
-    CostCode,
-    EmployeeContract,
-    FinancialRecord,
-    PaymentApprovalStage,
-    PaymentRequest,
-)
+from .models import EmployeeContract, FinanceSettings, FinancialRecord
 
 
 @admin.register(FinancialRecord)
 class FinancialRecordAdmin(admin.ModelAdmin):
-    list_display = ["project", "type", "amount", "currency", "status", "date"]
-    list_filter = ["type", "status"]
-
-
-@admin.register(Contract)
-class ContractAdmin(admin.ModelAdmin):
-    list_display = ["client_name", "project", "contract_number", "amount", "status"]
-    list_filter = ["status"]
+    list_display = ["project", "type", "amount", "currency", "account", "status", "date"]
+    list_filter = ["type", "status", "account"]
 
 
 @admin.register(EmployeeContract)
 class EmployeeContractAdmin(admin.ModelAdmin):
-    list_display = ["user", "project", "amount", "advance", "paid", "status"]
+    list_display = ["user", "project", "sub_object", "pod_object", "amount", "currency", "paid", "status"]
     list_filter = ["status"]
 
 
-@admin.register(CostCode)
-class CostCodeAdmin(admin.ModelAdmin):
-    list_display = ["code", "category", "project", "budget"]
-    list_filter = ["project"]
-    search_fields = ["code", "category"]
+@admin.register(FinanceSettings)
+class FinanceSettingsAdmin(admin.ModelAdmin):
+    list_display = ["usd_rate", "updated_by", "updated_at"]
 
-
-@admin.register(Contractor)
-class ContractorAdmin(admin.ModelAdmin):
-    list_display = ["name", "phone"]
-    search_fields = ["name"]
-
-
-class PaymentApprovalStageInline(admin.TabularInline):
-    model = PaymentApprovalStage
-    extra = 0
-
-
-@admin.register(PaymentRequest)
-class PaymentRequestAdmin(admin.ModelAdmin):
-    list_display = ["contractor", "project", "cost_code", "amount", "retainage_amount", "status", "created_at"]
-    list_filter = ["status", "payment_type"]
-    inlines = [PaymentApprovalStageInline]
+    def has_add_permission(self, request):
+        return not FinanceSettings.objects.exists()

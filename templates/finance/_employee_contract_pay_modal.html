@@ -1,0 +1,40 @@
+{% load i18n %}
+{% comment %}
+"Give salary" modal for the finance payroll tab. Row-level "Pay" links
+(data-modal-open="employee-contract-pay-modal" data-contract-id="...") set
+the employee_contract select via initPayModal() in static/js/finance.js.
+Expects `pay_form` in context.
+{% endcomment %}
+<div id="employee-contract-pay-modal" class="ap-modal-backdrop" data-modal-backdrop>
+  <div class="card ap-modal-card">
+    <div class="flex items-center justify-between border-b border-gray-200 px-4 py-4 dark:border-gray-700">
+      <h3 class="font-semibold">{% trans "Give salary" %}</h3>
+      <button type="button" class="btn btn-secondary btn-sm" data-modal-close aria-label="{% trans 'Close' %}">&times;</button>
+    </div>
+    <form method="post" action="{% url 'finance:pay_employee_contract' %}" class="space-y-4 px-4 py-4">
+      {% csrf_token %}
+      <div>
+        <label class="field-label" for="{{ pay_form.employee_contract.id_for_label }}">{% with field=pay_form.employee_contract %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+        {{ pay_form.employee_contract }}
+      </div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label class="field-label" for="{{ pay_form.amount.id_for_label }}">{% with field=pay_form.amount %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+          {{ pay_form.amount }}
+        </div>
+        <div>
+          <label class="field-label" for="{{ pay_form.account.id_for_label }}">{% with field=pay_form.account %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+          {{ pay_form.account }}
+        </div>
+      </div>
+      <label class="flex items-center gap-2 text-sm">
+        {{ pay_form.is_advance }}
+        {% with field=pay_form.is_advance %}{% include "partials/field_label_info.html" %}{% endwith %}
+      </label>
+      <div class="flex justify-end gap-2 border-t border-gray-200 dark:border-gray-700" style="padding-top:1rem">
+        <button type="button" class="btn btn-secondary btn-md" data-modal-close>{% trans "Cancel" %}</button>
+        <button type="submit" class="btn btn-primary btn-md">{% trans "Pay" %}</button>
+      </div>
+    </form>
+  </div>
+</div>

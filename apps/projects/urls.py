@@ -22,6 +22,14 @@ urlpatterns = [
         views.wizard_subobject_quick_create, name="wizard_subobject_quick_create",
     ),
     path(
+        "<uuid:pk>/wizard/subobjects/import/",
+        views.wizard_subobjects_import, name="wizard_subobjects_import",
+    ),
+    path(
+        "<uuid:pk>/wizard/subobjects/import-template/",
+        views.wizard_subobjects_import_template, name="wizard_subobjects_import_template",
+    ),
+    path(
         "<uuid:pk>/wizard/subobjects/<uuid:sub_id>/disciplines/<uuid:discipline_id>/assign/",
         views.wizard_discipline_assign, name="wizard_discipline_assign",
     ),
@@ -50,6 +58,10 @@ urlpatterns = [
     path(
         "<uuid:pk>/wizard/documents/<uuid:doc_id>/delete/",
         views.project_wizard_document_delete, name="wizard_document_delete",
+    ),
+    path(
+        "<uuid:pk>/documents/download-zip/",
+        views.project_documents_download_zip, name="documents_download_zip",
     ),
     path("<uuid:pk>/wizard/confirm/", views.project_wizard_confirm, name="wizard_confirm"),
 ]

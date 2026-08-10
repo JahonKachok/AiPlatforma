@@ -13,16 +13,16 @@ WIZARD_DOCUMENT_EXTENSIONS = ["pdf", "doc", "docx", "xls", "xlsx", "zip", "rar"]
 class ProjectForm(StyledFormMixin, forms.ModelForm):
     gip = forms.ModelChoiceField(
         queryset=User.objects.filter(role__in=[User.Role.GIP, User.Role.MANAGER, User.Role.ADMIN]),
-        required=False, label=_("GIP"),
-        help_text=_("The project's chief architect (GIP) — the employee responsible for the project (optional)."),
+        required=False, label=_("Responsible person (GIP)"),
+        help_text=_("The employee responsible for the project (optional)."),
     )
 
     class Meta:
         model = Project
         fields = [
             "name", "description", "client_name", "client_contact",
-            "construction_type", "sector", "object_type", "funding_source",
-            "construction_area", "land_area", "construction_volume",
+            "construction_type",
+            "construction_area", "construction_volume",
             "region", "district", "address", "latitude", "longitude",
             "stage", "status", "start_date", "deadline", "budget", "paid_amount", "currency",
         ]
@@ -36,14 +36,10 @@ class ProjectForm(StyledFormMixin, forms.ModelForm):
         help_texts = {
             "name": _("The project's name — shown under this name in lists and reports."),
             "description": _("A short description of the project (optional)."),
-            "client_name": _("The name of the client organization or person."),
+            "client_name": _("The name of the customer organization or person."),
             "client_contact": _("The client's contact info — phone or email."),
             "construction_type": _("The type of construction work."),
-            "sector": _("The sector the project belongs to (e.g. trade, housing, education)."),
-            "object_type": _("The object's category (e.g. Category II)."),
-            "funding_source": _("Where the construction funding comes from."),
             "construction_area": _("The construction area, m² (optional)."),
-            "land_area": _("The land plot area, m² (optional)."),
             "construction_volume": _("The construction volume (optional)."),
             "region": _("The region (viloyat) the project is located in."),
             "district": _("The district (tuman) the project is located in."),
@@ -58,7 +54,7 @@ class ProjectForm(StyledFormMixin, forms.ModelForm):
         }
 
     REQUIRED_FIELDS = [
-        "name", "construction_type", "sector", "object_type", "funding_source",
+        "name", "construction_type",
         "region", "district", "address",
     ]
 

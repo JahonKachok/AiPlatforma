@@ -15,33 +15,37 @@
       <div class="upload-card rounded-lg border border-gray-200 p-4 dark:border-gray-700" data-doc-type="{{ item.key }}">
         <p class="mb-2 text-sm font-medium">{{ item.label }}</p>
 
-        <div class="upload-drop-state {% if item.document %}hidden{% endif %}">
+        <div class="upload-drop-state">
           <label class="upload-drop flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-6 text-center text-xs text-gray-500 dark:border-gray-600 dark:text-gray-400">
-            <span>{% trans "Drag a file here or click to choose" %}</span>
-            <input type="file" class="hidden upload-file-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.rar">
+            <span>{% trans "Drag files here or click to choose (you can select several)" %}</span>
+            <input type="file" multiple class="hidden upload-file-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.rar">
           </label>
         </div>
 
-        <div class="upload-file-state flex items-center gap-3 {% if not item.document %}hidden{% endif %}"
-             data-document-id="{% if item.document %}{{ item.document.pk }}{% endif %}">
-          <span class="text-2xl">📄</span>
-          <div class="min-w-0 flex-1">
-            <p class="upload-file-name truncate text-sm">{{ item.document.name|default:"" }}</p>
-            <div class="mt-1 h-1.5 w-full rounded-full bg-gray-100 dark:bg-gray-700">
-              <div class="upload-progress-bar h-1.5 rounded-full bg-blue-500 transition-all duration-300" style="width: {% if item.document %}100{% else %}0{% endif %}%"></div>
+        <div class="upload-file-list space-y-2 {% if item.documents %}mt-2{% endif %}">
+          {% for document in item.documents %}
+            <div class="upload-file-state flex items-center gap-3" data-document-id="{{ document.pk }}">
+              <span class="text-2xl">📄</span>
+              <div class="min-w-0 flex-1">
+                <p class="upload-file-name truncate text-sm">{{ document.name }}</p>
+                <div class="mt-1 h-1.5 w-full rounded-full bg-gray-100 dark:bg-gray-700">
+                  <div class="upload-progress-bar h-1.5 rounded-full bg-blue-500 transition-all duration-300" style="width: 100%"></div>
+                </div>
+              </div>
+              <span class="upload-progress-pct text-xs text-gray-500 dark:text-gray-400">100%</span>
+              <button type="button" class="upload-delete-btn text-red-500 hover:text-red-700" aria-label="{% trans 'Delete' %}">✕</button>
             </div>
-          </div>
-          <span class="upload-progress-pct text-xs text-gray-500 dark:text-gray-400">{% if item.document %}100%{% endif %}</span>
-          <button type="button" class="upload-delete-btn text-red-500 hover:text-red-700" aria-label="{% trans 'Delete' %}">✕</button>
+          {% endfor %}
         </div>
         <p class="upload-error mt-1 hidden text-xs text-red-600 dark:text-red-400"></p>
       </div>
     {% endfor %}
   </div>
 
-  <div class="flex gap-3 pt-2">
+  <div class="flex flex-wrap gap-3 pt-2">
     <a href="{% url 'projects:wizard_disciplines' project.pk %}" class="btn btn-secondary btn-md">{% trans "Back" %}</a>
     <a href="{% url 'projects:wizard_confirm' project.pk %}" class="btn btn-primary btn-md">{% trans "Continue" %}</a>
+    <a href="{% url 'projects:documents_download_zip' project.pk %}" class="btn btn-secondary btn-md ml-auto">{% trans "Download all as ZIP" %}</a>
   </div>
 </div>
 {% endblock %}

@@ -1,11 +1,13 @@
+import io
 import json
+import zipfile
 from datetime import date
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -17,6 +19,7 @@ from apps.notifications.models import NotificationType
 from apps.notifications.services import notify_user
 from apps.tasks.models import Task
 
+from .excel_import import InvalidExcelStructureError, build_subobjects_import_template, import_subobjects_from_excel
 from .forms import (
     ProjectClientForm, ProjectForm, ProjectMemberForm, ProjectWizardDocumentForm,
     SectionForm, SubObjectDisciplineForm, SubObjectForm,
@@ -43,6 +46,48 @@ def _wizard_discipline_query(sub_object):
     if sub_object.parent_id:
         return f"sub_object={sub_object.parent_id}&pod_object={sub_object.pk}"
     return f"sub_object={sub_object.pk}"
+
+
+def _apply_discipline_weight_updates(sub_object, post_data):
+    """Parse weight_<pk>/progress_<pk> fields for sub_object's disciplines out of post_data
+    and persist them. Weight is required for an assignment to be touched; progress is only
+    updated when the caller actually posts a progress_<pk> field for it (the project-setup
+    wizard only collects weights — progress is tracked later, once work is underway).
+    Returns an error message on failure (nothing is saved), or None on success. A no-op if
+    post_data carries no weight fields for this sub_object at all (e.g. the wizard's
+    "continue" button was submitted with no object selected)."""
+    assignments = list(SubObjectDiscipline.objects.filter(sub_object=sub_object))
+    if not assignments or not any(f"weight_{a.pk}" in post_data for a in assignments):
+        return None
+
+    updates = []
+    for assignment in assignments:
+        raw_weight = post_data.get(f"weight_{assignment.pk}")
+        if raw_weight is None:
+            continue
+        try:
+            weight = int(raw_weight)
+        except (TypeError, ValueError):
+            return _("Weight must be a whole number.")
+        if not (0 <= weight <= 100):
+            return _("Weight must be between 0 and 100.")
+        assignment.weight = weight
+
+        raw_progress = post_data.get(f"progress_{assignment.pk}")
+        if raw_progress is not None:
+            try:
+                progress = int(raw_progress)
+            except (TypeError, ValueError):
+                return _("Progress must be a whole number.")
+            if not (0 <= progress <= 100):
+                return _("Progress must be between 0 and 100.")
+            assignment.progress = progress
+
+        updates.append(assignment)
+
+    if updates:
+        SubObjectDiscipline.objects.bulk_update(updates, ["weight", "progress"])
+    return None
 
 
 def _next_or(request, project, fallback_url):
@@ -195,12 +240,11 @@ def project_detail(request, pk):
     expense = sum(r.amount for r in project.financial_records.filter(type="expense"))
 
     doc_type_keys = [key for key, _label in WIZARD_DOC_TYPES]
-    documents_by_type = {
-        doc.doc_type: doc
-        for doc in Document.objects.filter(project=project, doc_type__in=doc_type_keys)
-    }
+    documents_by_type = {}
+    for doc in Document.objects.filter(project=project, doc_type__in=doc_type_keys).order_by("-created_at"):
+        documents_by_type.setdefault(doc.doc_type, []).append(doc)
     source_files_checklist = [
-        {"key": key, "label": label, "document": documents_by_type.get(key)}
+        {"key": key, "label": label, "documents": documents_by_type.get(key, [])}
         for key, label in WIZARD_DOC_TYPES
     ]
 
@@ -362,6 +406,16 @@ def project_wizard_disciplines(request, pk):
         raise PermissionDenied
 
     if request.method == "POST":
+        target_id = request.POST.get("target_id")
+        if target_id:
+            target = get_object_or_404(SubObject, pk=target_id, project=project)
+            error = _apply_discipline_weight_updates(target, request.POST)
+            if error:
+                messages.error(request, error)
+                base_url = reverse("projects:wizard_disciplines", args=[pk])
+                query = _wizard_discipline_query(target)
+                return redirect(f"{base_url}?{query}")
+
         assignments = SubObjectDiscipline.objects.filter(
             sub_object__project=project, assignee__isnull=False,
         ).select_related("assignee", "discipline", "sub_object")
@@ -435,6 +489,41 @@ def wizard_pod_object_quick_create(request, pk, sub_id):
 
 
 @login_required
+def wizard_subobjects_import_template(request, pk):
+    project = get_object_or_404(Project, pk=pk)
+    if not can_edit_project(request.user, project):
+        raise PermissionDenied
+    wb = build_subobjects_import_template()
+    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response["Content-Disposition"] = 'attachment; filename="object_structure_template.xlsx"'
+    wb.save(response)
+    return response
+
+
+@login_required
+def wizard_subobjects_import(request, pk):
+    project = get_object_or_404(Project, pk=pk)
+    if not can_edit_project(request.user, project) or request.method != "POST":
+        raise PermissionDenied
+    base_url = reverse("projects:wizard_subobjects", args=[pk])
+    uploaded = request.FILES.get("file")
+    if not uploaded:
+        messages.error(request, _("Choose a file to upload."))
+        return redirect(base_url)
+    try:
+        objects_created, pods_created = import_subobjects_from_excel(project, uploaded)
+    except InvalidExcelStructureError as exc:
+        messages.error(request, str(exc))
+        return redirect(base_url)
+    messages.success(
+        request,
+        _("Imported: %(objects)d objects, %(pods)d pod objects.")
+        % {"objects": objects_created, "pods": pods_created},
+    )
+    return redirect(base_url)
+
+
+@login_required
 def wizard_discipline_assign(request, pk, sub_id, discipline_id):
     project = get_object_or_404(Project, pk=pk)
     if not can_edit_project(request.user, project) or request.method != "POST":
@@ -495,25 +584,12 @@ def wizard_discipline_weights_save(request, pk, sub_id):
     sub_object = get_object_or_404(SubObject, pk=sub_id, project=project)
     base_url = reverse("projects:wizard_disciplines", args=[pk])
     query = _wizard_discipline_query(sub_object)
-    assignments = list(SubObjectDiscipline.objects.filter(sub_object=sub_object))
 
-    updates = []
-    for assignment in assignments:
-        try:
-            weight = int(request.POST.get(f"weight_{assignment.pk}"))
-            progress = int(request.POST.get(f"progress_{assignment.pk}"))
-        except (TypeError, ValueError):
-            messages.error(request, _("Weight and progress must be whole numbers."))
-            return redirect(f"{base_url}?{query}")
-        if not (0 <= weight <= 100) or not (0 <= progress <= 100):
-            messages.error(request, _("Weight and progress must be between 0 and 100."))
-            return redirect(f"{base_url}?{query}")
-        assignment.weight = weight
-        assignment.progress = progress
-        updates.append(assignment)
+    error = _apply_discipline_weight_updates(sub_object, request.POST)
+    if error:
+        messages.error(request, error)
+        return redirect(f"{base_url}?{query}")
 
-    if updates:
-        SubObjectDiscipline.objects.bulk_update(updates, ["weight", "progress"])
     messages.success(request, _("Weights and progress saved."))
     return redirect(f"{base_url}?{query}")
 
@@ -537,17 +613,44 @@ def project_wizard_documents(request, pk):
     if not can_edit_project(request.user, project):
         raise PermissionDenied
     doc_type_keys = [key for key, _label in WIZARD_DOC_TYPES]
-    documents = {
-        doc.doc_type: doc
-        for doc in Document.objects.filter(project=project, doc_type__in=doc_type_keys)
-    }
+    documents_by_type = {}
+    for doc in Document.objects.filter(project=project, doc_type__in=doc_type_keys).order_by("-created_at"):
+        documents_by_type.setdefault(doc.doc_type, []).append(doc)
     checklist = [
-        {"key": key, "label": label, "document": documents.get(key)}
+        {"key": key, "label": label, "documents": documents_by_type.get(key, [])}
         for key, label in WIZARD_DOC_TYPES
     ]
     return render(request, "projects/project_wizard_documents.html", {
         "project": project, "checklist": checklist,
     })
+
+
+@login_required
+def project_documents_download_zip(request, pk):
+    project = get_object_or_404(Project, pk=pk)
+    if project not in visible_projects_for(request.user):
+        raise PermissionDenied
+    doc_type_keys = [key for key, _label in WIZARD_DOC_TYPES]
+    documents = Document.objects.filter(project=project, doc_type__in=doc_type_keys).exclude(file="")
+    if not documents.exists():
+        messages.error(request, _("There are no source files to download yet."))
+        return redirect("projects:detail", pk=pk)
+
+    buffer = io.BytesIO()
+    used_names = set()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+        for document in documents:
+            arcname = document.name or f"{document.pk}"
+            if arcname in used_names:
+                stem, _dot, ext = arcname.rpartition(".")
+                arcname = f"{stem or arcname}-{document.pk.hex[:8]}{('.' + ext) if ext else ''}"
+            used_names.add(arcname)
+            with document.file.open("rb") as fh:
+                archive.writestr(arcname, fh.read())
+
+    response = HttpResponse(buffer.getvalue(), content_type="application/zip")
+    response["Content-Disposition"] = f'attachment; filename="{project.name}-source-files.zip"'
+    return response
 
 
 @login_required
@@ -560,23 +663,31 @@ def project_wizard_document_upload(request, pk):
     doc_type = request.POST.get("doc_type")
     if doc_type not in [key for key, _label in WIZARD_DOC_TYPES]:
         return JsonResponse({"error": _("Unknown document type.")}, status=400)
-    form = ProjectWizardDocumentForm(request.POST, request.FILES)
-    if not form.is_valid():
-        return JsonResponse({"error": " ".join(form.errors.get("file", []))}, status=400)
 
-    uploaded = form.cleaned_data["file"]
-    Document.objects.filter(project=project, doc_type=doc_type).delete()
-    document = Document.objects.create(
-        project=project, uploaded_by=request.user, doc_type=doc_type,
-        name=uploaded.name, file=uploaded, file_size=uploaded.size,
-        mime_type=getattr(uploaded, "content_type", "") or "",
-    )
-    DocumentVersion.objects.create(
-        document=document, version_number=document.version,
-        file=document.file, file_size=document.file_size, uploaded_by=request.user,
-    )
-    AuditLog.log(obj=document, action="uploaded", user=request.user)
-    return JsonResponse({"id": str(document.pk), "name": document.name})
+    uploaded_files = request.FILES.getlist("file")
+    if not uploaded_files:
+        return JsonResponse({"error": _("No file was uploaded.")}, status=400)
+
+    created = []
+    for uploaded in uploaded_files:
+        form = ProjectWizardDocumentForm(request.POST, {"file": uploaded})
+        if not form.is_valid():
+            return JsonResponse({"error": " ".join(form.errors.get("file", []))}, status=400)
+
+    for uploaded in uploaded_files:
+        document = Document.objects.create(
+            project=project, uploaded_by=request.user, doc_type=doc_type,
+            name=uploaded.name, file=uploaded, file_size=uploaded.size,
+            mime_type=getattr(uploaded, "content_type", "") or "",
+        )
+        DocumentVersion.objects.create(
+            document=document, version_number=document.version,
+            file=document.file, file_size=document.file_size, uploaded_by=request.user,
+        )
+        AuditLog.log(obj=document, action="uploaded", user=request.user)
+        created.append({"id": str(document.pk), "name": document.name})
+
+    return JsonResponse({"documents": created})
 
 
 @login_required

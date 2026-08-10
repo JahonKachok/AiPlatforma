@@ -46,6 +46,20 @@
     </form>
   </div>
 
+  <div class="card space-y-2 p-4">
+    <h2 class="font-semibold">{% trans "Bulk import from Excel" %}</h2>
+    <p class="text-sm text-gray-500 dark:text-gray-400">
+      {% trans "Upload a spreadsheet listing objects and, optionally, their pod objects." %}
+      <a href="{% url 'projects:wizard_subobjects_import_template' project.pk %}" class="text-blue-600 hover:underline dark:text-blue-400">{% trans "Download the template" %}</a>
+    </p>
+    <form method="post" action="{% url 'projects:wizard_subobjects_import' project.pk %}"
+          enctype="multipart/form-data" class="flex flex-wrap items-center gap-2">
+      {% csrf_token %}
+      <input type="file" name="file" accept=".xlsx" required class="field-input w-auto">
+      <button type="submit" class="btn btn-secondary btn-sm">{% trans "Import" %}</button>
+    </form>
+  </div>
+
   <form method="post" class="flex gap-3 pt-2">
     {% csrf_token %}
     <a href="{% url 'projects:update' project.pk %}" class="btn btn-secondary btn-md">{% trans "Back" %}</a>

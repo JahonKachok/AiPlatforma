@@ -15,5 +15,6 @@ urlpatterns = [
     path("<uuid:pk>/quick-approve/", views.document_quick_approve, name="quick_approve"),
     path("<uuid:pk>/stages/", views.approval_stage_assign, name="assign_stages"),
     path("approvals/", views.approvals_list, name="approvals"),
+    path("approvals/submit/", views.approval_submit, name="submit_for_approval"),
     path("stages/<uuid:stage_id>/review/", views.approval_stage_review, name="review_stage"),
 ]

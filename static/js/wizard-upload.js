@@ -21,74 +21,64 @@
     errorEl.textContent = "";
   }
 
-  function setUploadedState(card, documentId, fileName) {
-    card.querySelector(".upload-drop-state").classList.add("hidden");
-    const fileState = card.querySelector(".upload-file-state");
-    fileState.classList.remove("hidden");
-    fileState.dataset.documentId = documentId;
-    card.querySelector(".upload-file-name").textContent = fileName;
-    card.querySelector(".upload-progress-bar").style.width = "100%";
-    card.querySelector(".upload-progress-pct").textContent = "100%";
+  function addFileRow(card, documentId, fileName) {
+    const list = card.querySelector(".upload-file-list");
+    const row = document.createElement("div");
+    row.className = "upload-file-state flex items-center gap-3";
+    row.dataset.documentId = documentId;
+    row.innerHTML =
+      '<span class="text-2xl">📄</span>' +
+      '<div class="min-w-0 flex-1">' +
+      '<p class="upload-file-name truncate text-sm"></p>' +
+      '<div class="mt-1 h-1.5 w-full rounded-full bg-gray-100 dark:bg-gray-700">' +
+      '<div class="upload-progress-bar h-1.5 rounded-full bg-blue-500 transition-all duration-300" style="width: 100%"></div>' +
+      "</div></div>" +
+      '<span class="upload-progress-pct text-xs text-gray-500 dark:text-gray-400">100%</span>' +
+      '<button type="button" class="upload-delete-btn text-red-500 hover:text-red-700" aria-label="O’chirish">✕</button>';
+    row.querySelector(".upload-file-name").textContent = fileName;
+    row.querySelector(".upload-delete-btn").addEventListener("click", function () {
+      deleteFile(card, row);
+    });
+    list.classList.add("mt-2");
+    list.appendChild(row);
+    return row;
   }
 
-  function setEmptyState(card) {
-    card.querySelector(".upload-file-state").classList.add("hidden");
-    card.querySelector(".upload-drop-state").classList.remove("hidden");
-    card.querySelector(".upload-progress-bar").style.width = "0%";
-    card.querySelector(".upload-progress-pct").textContent = "";
-    card.querySelector(".upload-file-input").value = "";
-  }
-
-  function uploadFile(card, file) {
+  function uploadFiles(card, fileList) {
+    const files = Array.prototype.slice.call(fileList);
+    if (!files.length) return;
     clearError(card);
     const docType = card.dataset.docType;
-    const fileState = card.querySelector(".upload-file-state");
-    const dropState = card.querySelector(".upload-drop-state");
-    dropState.classList.add("hidden");
-    fileState.classList.remove("hidden");
-    card.querySelector(".upload-file-name").textContent = file.name;
-    card.querySelector(".upload-progress-bar").style.width = "0%";
-    card.querySelector(".upload-progress-pct").textContent = "0%";
 
     const formData = new FormData();
     formData.append("doc_type", docType);
-    formData.append("file", file);
+    files.forEach(function (file) { formData.append("file", file); });
 
     const xhr = new XMLHttpRequest();
     xhr.open("POST", uploadUrl, true);
     xhr.setRequestHeader("X-CSRFToken", csrfToken);
 
-    xhr.upload.addEventListener("progress", function (event) {
-      if (!event.lengthComputable) return;
-      const pct = Math.round((event.loaded / event.total) * 100);
-      card.querySelector(".upload-progress-bar").style.width = pct + "%";
-      card.querySelector(".upload-progress-pct").textContent = pct + "%";
-    });
-
     xhr.addEventListener("load", function () {
       let data = {};
       try { data = JSON.parse(xhr.responseText); } catch (e) { /* ignore */ }
-      if (xhr.status >= 200 && xhr.status < 300 && data.id) {
-        setUploadedState(card, data.id, data.name);
+      if (xhr.status >= 200 && xhr.status < 300 && data.documents) {
+        data.documents.forEach(function (doc) { addFileRow(card, doc.id, doc.name); });
       } else {
-        setEmptyState(card);
         showError(card, data.error || "Yuklashda xatolik yuz berdi.");
       }
     });
 
     xhr.addEventListener("error", function () {
-      setEmptyState(card);
       showError(card, "Tarmoq xatoligi — qayta urinib ko'ring.");
     });
 
     xhr.send(formData);
   }
 
-  function deleteFile(card) {
-    const fileState = card.querySelector(".upload-file-state");
-    const documentId = fileState.dataset.documentId;
+  function deleteFile(card, row) {
+    const documentId = row.dataset.documentId;
     if (!documentId) {
-      setEmptyState(card);
+      row.remove();
       return;
     }
     const url = deleteUrlTemplate.replace(PLACEHOLDER_UUID, documentId);
@@ -96,17 +86,17 @@
       method: "POST",
       headers: { "X-CSRFToken": csrfToken },
     }).then(function () {
-      setEmptyState(card);
+      row.remove();
     });
   }
 
   grid.querySelectorAll(".upload-card").forEach(function (card) {
     const input = card.querySelector(".upload-file-input");
     const dropLabel = card.querySelector(".upload-drop");
-    const deleteBtn = card.querySelector(".upload-delete-btn");
 
     input.addEventListener("change", function () {
-      if (input.files && input.files[0]) uploadFile(card, input.files[0]);
+      if (input.files && input.files.length) uploadFiles(card, input.files);
+      input.value = "";
     });
 
     dropLabel.addEventListener("dragover", function (event) {
@@ -119,12 +109,15 @@
     dropLabel.addEventListener("drop", function (event) {
       event.preventDefault();
       dropLabel.classList.remove("upload-drop-active");
-      const file = event.dataTransfer.files && event.dataTransfer.files[0];
-      if (file) uploadFile(card, file);
+      if (event.dataTransfer.files && event.dataTransfer.files.length) {
+        uploadFiles(card, event.dataTransfer.files);
+      }
     });
 
-    deleteBtn.addEventListener("click", function () {
-      deleteFile(card);
+    card.querySelectorAll(".upload-delete-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        deleteFile(card, btn.closest(".upload-file-state"));
+      });
     });
   });
 })();

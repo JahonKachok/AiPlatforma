@@ -1,4 +1,5 @@
 import calendar
+import json
 from datetime import date, timedelta
 
 from django.contrib import messages
@@ -23,6 +24,34 @@ def _visible_tasks(user):
     return Task.objects.filter(project__in=visible_projects_for(user)).select_related(
         "project", "assignee", "creator"
     )
+
+
+def _task_form_cascade_json(user):
+    """JSON data the task form's JS uses to cascade Project -> Object -> Pod
+    object -> Section, and to narrow the Assignee list down to employees who
+    actually have the selected section's discipline (e.g. only architects once
+    an AR section is picked)."""
+    projects = visible_projects_for(user)
+    sub_objects = [
+        {"id": str(so.pk), "project_id": str(so.project_id), "parent_id": str(so.parent_id) if so.parent_id else None,
+         "name": so.name}
+        for so in SubObject.objects.filter(project__in=projects)
+    ]
+    sections = [
+        {"id": str(s.pk), "project_id": str(s.project_id),
+         "sub_object_id": str(s.sub_object_id) if s.sub_object_id else None,
+         "discipline_id": str(s.discipline_id)}
+        for s in Section.objects.filter(project__in=projects).select_related("discipline")
+    ]
+    discipline_users = {}
+    for user_obj in User.objects.filter(is_active=True).prefetch_related("disciplines"):
+        for discipline in user_obj.disciplines.all():
+            discipline_users.setdefault(str(discipline.id), []).append(
+                {"id": str(user_obj.id), "name": user_obj.full_name or user_obj.email}
+            )
+    return json.dumps({
+        "subObjects": sub_objects, "sections": sections, "disciplineUsers": discipline_users,
+    })
 
 
 @login_required
@@ -110,6 +139,7 @@ def task_create(request):
     if request.method == "POST":
         form = TaskForm(request.POST)
         form.fields["project"].queryset = visible_projects_for(request.user)
+        form.fields["section"].queryset = Section.objects.filter(project__in=visible_projects_for(request.user))
         if form.is_valid():
             task = form.save(commit=False)
             task.creator = request.user
@@ -130,7 +160,11 @@ def task_create(request):
         initial = {"project": project_id} if project_id else {}
         form = TaskForm(initial=initial)
         form.fields["project"].queryset = visible_projects_for(request.user)
-    return render(request, "tasks/task_form.html", {"form": form, "is_create": True})
+        form.fields["section"].queryset = Section.objects.filter(project__in=visible_projects_for(request.user))
+    return render(request, "tasks/task_form.html", {
+        "form": form, "is_create": True,
+        "task_form_cascade_json": _task_form_cascade_json(request.user),
+    })
 
 
 @login_required
@@ -169,6 +203,7 @@ def task_update(request, pk):
         old_assignee_id = task.assignee_id
         form = TaskForm(request.POST, instance=task, project=task.project)
         form.fields["project"].queryset = visible_projects_for(request.user)
+        form.fields["section"].queryset = Section.objects.filter(project__in=visible_projects_for(request.user))
         if form.is_valid():
             task = form.save()
             AuditLog.log(obj=task, action="updated", user=request.user)
@@ -191,7 +226,11 @@ def task_update(request, pk):
     else:
         form = TaskForm(instance=task, project=task.project)
         form.fields["project"].queryset = visible_projects_for(request.user)
-    return render(request, "tasks/task_form.html", {"form": form, "task": task, "is_create": False})
+        form.fields["section"].queryset = Section.objects.filter(project__in=visible_projects_for(request.user))
+    return render(request, "tasks/task_form.html", {
+        "form": form, "task": task, "is_create": False,
+        "task_form_cascade_json": _task_form_cascade_json(request.user),
+    })
 
 
 @login_required

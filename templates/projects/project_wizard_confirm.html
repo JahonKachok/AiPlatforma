@@ -14,7 +14,6 @@
     <dl class="mt-2 grid grid-cols-2 gap-2 text-sm">
       <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Name" %}</dt><dd>{{ project.name }}</dd></div>
       <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Construction type" %}</dt><dd>{{ project.get_construction_type_display|default:"—" }}</dd></div>
-      <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Sector" %}</dt><dd>{{ project.sector|default:"—" }}</dd></div>
       <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Region" %}</dt><dd>{{ project.get_region_display|default:"—" }}</dd></div>
       <div><dt class="text-gray-500 dark:text-gray-400">{% trans "District" %}</dt><dd>{{ project.district|default:"—" }}</dd></div>
       <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Address" %}</dt><dd>{{ project.address|default:"—" }}</dd></div>

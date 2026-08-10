@@ -1,7 +1,13 @@
+import io
+import zipfile
+
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
+from openpyxl import Workbook
 
 from apps.accounts.models import Discipline, User
+from apps.documents.models import Document
 
 from .models import Project, ProjectMember, SubObject, SubObjectDiscipline
 
@@ -206,9 +212,232 @@ class DisciplineWeightsSaveViewTests(TestCase):
         self.assignment.refresh_from_db()
         self.assertEqual(self.sub_object.progress, 42)
 
+    def test_weight_only_submission_leaves_progress_untouched(self):
+        # The wizard step no longer collects progress at all — only a weight_<pk> field is
+        # posted. Progress must be left exactly as it was, not reset to 0.
+        self.client.force_login(self.admin)
+        response = self.client.post(self.url, {f"weight_{self.assignment.pk}": "55"})
+        self.assertEqual(response.status_code, 302)
+        self.assignment.refresh_from_db()
+        self.assertEqual(self.assignment.weight, 55)
+        self.assertEqual(self.assignment.progress, 10)  # unchanged from setUp
+
     def test_non_editor_gets_403(self):
         self.client.force_login(self.outsider)
         response = self.client.post(self.url, {
             f"weight_{self.assignment.pk}": "100", f"progress_{self.assignment.pk}": "42",
         })
+        self.assertEqual(response.status_code, 403)
+
+    def test_save_and_continue_also_persists_pending_weight_edits(self):
+        # Regression test: clicking "Save and continue" at the bottom of the wizard used to
+        # submit a form with no weight_/progress_ fields at all, silently discarding whatever
+        # the user had just typed into the weights table above.
+        self.client.force_login(self.admin)
+        wizard_url = reverse("projects:wizard_disciplines", args=[self.project.pk])
+        response = self.client.post(wizard_url, {
+            "target_id": str(self.sub_object.pk),
+            f"weight_{self.assignment.pk}": "100", f"progress_{self.assignment.pk}": "77",
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("projects:wizard_documents", args=[self.project.pk]))
+        self.assignment.refresh_from_db()
+        self.assertEqual(self.assignment.weight, 100)
+        self.assertEqual(self.assignment.progress, 77)
+
+    def test_save_and_continue_without_weight_fields_still_advances(self):
+        # No sub-object selected on the page (or no edits made): should just advance as before.
+        self.client.force_login(self.admin)
+        wizard_url = reverse("projects:wizard_disciplines", args=[self.project.pk])
+        response = self.client.post(wizard_url, {})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("projects:wizard_documents", args=[self.project.pk]))
+        self.assignment.refresh_from_db()
+        self.assertEqual(self.assignment.weight, 10)  # unchanged
+
+
+class WizardDocumentUploadTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            email="admin4@example.com", password="pw12345!", full_name="Admin", role=User.Role.ADMIN,
+        )
+        self.project = Project.objects.create(name="Docs project", created_by=self.admin)
+        self.url = reverse("projects:wizard_document_upload", args=[self.project.pk])
+
+    def test_uploading_several_files_at_once_keeps_all_of_them(self):
+        self.client.force_login(self.admin)
+        files = [
+            SimpleUploadedFile("photo1.pdf", b"a", content_type="application/pdf"),
+            SimpleUploadedFile("photo2.pdf", b"b", content_type="application/pdf"),
+        ]
+        response = self.client.post(self.url, {"doc_type": "photo_video", "file": files})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.json()["documents"]), 2)
+        self.assertEqual(
+            Document.objects.filter(project=self.project, doc_type="photo_video").count(), 2,
+        )
+
+    def test_uploading_again_does_not_delete_previous_files(self):
+        self.client.force_login(self.admin)
+        self.client.post(self.url, {
+            "doc_type": "photo_video",
+            "file": [SimpleUploadedFile("photo1.pdf", b"a", content_type="application/pdf")],
+        })
+        self.client.post(self.url, {
+            "doc_type": "photo_video",
+            "file": [SimpleUploadedFile("photo2.pdf", b"b", content_type="application/pdf")],
+        })
+        self.assertEqual(
+            Document.objects.filter(project=self.project, doc_type="photo_video").count(), 2,
+        )
+
+    def test_invalid_extension_rejects_whole_batch(self):
+        self.client.force_login(self.admin)
+        files = [
+            SimpleUploadedFile("ok.pdf", b"a", content_type="application/pdf"),
+            SimpleUploadedFile("bad.exe", b"b", content_type="application/octet-stream"),
+        ]
+        response = self.client.post(self.url, {"doc_type": "photo_video", "file": files})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(Document.objects.filter(project=self.project).count(), 0)
+
+
+class ProjectTeamMembershipTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            email="admin5@example.com", password="pw12345!", full_name="Admin", role=User.Role.ADMIN,
+        )
+        self.designer = User.objects.create_user(
+            email="designer5@example.com", password="pw12345!", full_name="Designer", role=User.Role.DESIGNER,
+        )
+        self.project = Project.objects.create(name="Team project", created_by=self.admin)
+        self.member = ProjectMember.objects.create(project=self.project, user=self.designer)
+
+    def test_editor_can_remove_a_team_member(self):
+        self.client.force_login(self.admin)
+        url = reverse("projects:remove_member", args=[self.project.pk, self.designer.pk])
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(
+            ProjectMember.objects.filter(project=self.project, user=self.designer).exists(),
+        )
+
+    def test_non_editor_cannot_remove_a_team_member(self):
+        outsider = User.objects.create_user(
+            email="outsider5@example.com", password="pw12345!", full_name="Outsider", role=User.Role.DESIGNER,
+        )
+        self.client.force_login(outsider)
+        url = reverse("projects:remove_member", args=[self.project.pk, self.designer.pk])
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(
+            ProjectMember.objects.filter(project=self.project, user=self.designer).exists(),
+        )
+
+
+def _xlsx_upload(rows, filename="import.xlsx"):
+    wb = Workbook()
+    ws = wb.active
+    ws.append(["Object", "Pod object"])
+    for row in rows:
+        ws.append(row)
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    return SimpleUploadedFile(
+        filename, buffer.read(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+
+
+class SubObjectsExcelImportTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            email="admin6@example.com", password="pw12345!", full_name="Admin", role=User.Role.ADMIN,
+        )
+        self.project = Project.objects.create(name="Import project", created_by=self.admin)
+        self.url = reverse("projects:wizard_subobjects_import", args=[self.project.pk])
+
+    def test_template_download_works(self):
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse("projects:wizard_subobjects_import_template", args=[self.project.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response["Content-Type"],
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+
+    def test_import_creates_objects_and_pod_objects(self):
+        self.client.force_login(self.admin)
+        upload = _xlsx_upload([
+            ["Bino 1", ""],
+            ["", "KPP"],
+            ["", "Garaj"],
+            ["Bino 2", ""],
+        ])
+        response = self.client.post(self.url, {"file": upload})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(SubObject.objects.filter(project=self.project, parent__isnull=True).count(), 2)
+        bino1 = SubObject.objects.get(project=self.project, name="Bino 1")
+        self.assertEqual(set(bino1.pod_objects.values_list("name", flat=True)), {"KPP", "Garaj"})
+
+    def test_reimporting_does_not_duplicate(self):
+        self.client.force_login(self.admin)
+        upload1 = _xlsx_upload([["Bino 1", ""], ["", "KPP"]])
+        self.client.post(self.url, {"file": upload1})
+        upload2 = _xlsx_upload([["Bino 1", ""], ["", "KPP"]])
+        self.client.post(self.url, {"file": upload2})
+        self.assertEqual(SubObject.objects.filter(project=self.project, parent__isnull=True).count(), 1)
+        self.assertEqual(SubObject.objects.filter(project=self.project, name="KPP").count(), 1)
+
+    def test_pod_row_without_preceding_object_is_rejected(self):
+        self.client.force_login(self.admin)
+        upload = _xlsx_upload([["", "KPP"]])
+        response = self.client.post(self.url, {"file": upload})
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(SubObject.objects.filter(project=self.project).exists())
+
+    def test_non_editor_cannot_import(self):
+        outsider = User.objects.create_user(
+            email="outsider6@example.com", password="pw12345!", full_name="Outsider", role=User.Role.DESIGNER,
+        )
+        self.client.force_login(outsider)
+        upload = _xlsx_upload([["Bino 1", ""]])
+        response = self.client.post(self.url, {"file": upload})
+        self.assertEqual(response.status_code, 403)
+
+
+class DocumentsDownloadZipTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            email="admin7@example.com", password="pw12345!", full_name="Admin", role=User.Role.ADMIN,
+        )
+        self.project = Project.objects.create(name="Zip project", created_by=self.admin)
+        self.url = reverse("projects:documents_download_zip", args=[self.project.pk])
+
+    def test_downloads_a_zip_containing_uploaded_documents(self):
+        self.client.force_login(self.admin)
+        upload_url = reverse("projects:wizard_document_upload", args=[self.project.pk])
+        self.client.post(upload_url, {
+            "doc_type": "tz",
+            "file": [SimpleUploadedFile("tz.pdf", b"hello", content_type="application/pdf")],
+        })
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/zip")
+        archive = zipfile.ZipFile(io.BytesIO(response.content))
+        self.assertEqual(archive.namelist(), ["tz.pdf"])
+        self.assertEqual(archive.read("tz.pdf"), b"hello")
+
+    def test_no_documents_redirects_with_message(self):
+        self.client.force_login(self.admin)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+
+    def test_user_without_visibility_gets_403(self):
+        outsider = User.objects.create_user(
+            email="outsider7@example.com", password="pw12345!", full_name="Outsider", role=User.Role.DESIGNER,
+        )
+        self.client.force_login(outsider)
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, 403)

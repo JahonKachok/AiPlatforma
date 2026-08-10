@@ -3,7 +3,7 @@
 {% block title %}{% trans "Review document" %}{% endblock %}
 {% block page_title %}{% blocktrans with name=document.name %}Review — {{ name }}{% endblocktrans %}{% endblock %}
 {% block content %}
-<form method="post" class="card max-w-xl space-y-4 p-6">
+<form method="post" enctype="multipart/form-data" class="card max-w-xl space-y-4 p-6">
   {% csrf_token %}
   <p class="text-sm text-gray-500 dark:text-gray-400">{% trans "Stage" %}: {{ stage.stage_name }}</p>
   <div>
@@ -17,6 +17,11 @@
   <div>
     <label class="field-label inline-flex items-center" for="{{ form.comment.id_for_label }}">{% with field=form.comment %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
     {{ form.comment }}
+    {% if form.comment.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.comment.errors|join:", " }}</p>{% endif %}
+  </div>
+  <div>
+    <label class="field-label inline-flex items-center" for="{{ form.file.id_for_label }}">{% with field=form.file %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+    {{ form.file }}
   </div>
   <div class="flex gap-3">
     <button type="submit" class="btn btn-primary btn-md">{% trans "Submit" %}</button>

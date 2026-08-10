@@ -81,6 +81,10 @@ class ApprovalStage(models.Model):
     )
     status = models.CharField(max_length=20, choices=ApprovalStatus.choices, default=ApprovalStatus.PENDING)
     comment = models.CharField(max_length=1000, blank=True, null=True)
+    response_file = models.FileField(
+        upload_to="approval_responses/%Y/%m/", blank=True, null=True,
+        validators=[MaxFileSizeValidator(50)],
+    )
     reviewed_at = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

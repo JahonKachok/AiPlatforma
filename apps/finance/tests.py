@@ -1,10 +1,12 @@
+from unittest.mock import patch
+
 from django.test import TestCase
 from django.urls import reverse
 
 from apps.accounts.models import User
 from apps.projects.models import Project, ProjectMember
 
-from .models import Account, EmployeeContract, FinancialRecord
+from .models import Account, EmployeeContract, FinanceSettings, FinancialRecord
 
 
 class FinanceRecordPermissionTests(TestCase):
@@ -29,6 +31,26 @@ class FinanceRecordPermissionTests(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertEqual(FinancialRecord.objects.count(), 1)
+
+    def test_add_income_button_creates_an_income_record(self):
+        # The project finance tab's "+ Добавить доход" button submits the shared
+        # record form with a button-supplied type=income instead of a visible dropdown.
+        self.client.force_login(self.admin)
+        response = self.client.post(reverse("finance:add_record", args=[self.project.pk]), {
+            "type": "income", "amount": 250, "currency": "UZS", "date": "2026-01-01", "status": "confirmed",
+        })
+        self.assertEqual(response.status_code, 302)
+        record = FinancialRecord.objects.get()
+        self.assertEqual(record.type, "income")
+
+    def test_add_expense_button_creates_an_expense_record(self):
+        self.client.force_login(self.admin)
+        response = self.client.post(reverse("finance:add_record", args=[self.project.pk]), {
+            "type": "expense", "amount": 150, "currency": "UZS", "date": "2026-01-01", "status": "confirmed",
+        })
+        self.assertEqual(response.status_code, 302)
+        record = FinancialRecord.objects.get()
+        self.assertEqual(record.type, "expense")
 
 
 class EmployeeContractPayTests(TestCase):
@@ -58,3 +80,29 @@ class EmployeeContractPayTests(TestCase):
         self.contract.refresh_from_db()
         self.assertEqual(self.contract.paid, 0)
         self.assertEqual(FinancialRecord.objects.filter(project=self.project).count(), 0)
+
+
+class ExchangeRateTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_user(email="admin3@example.com", password="pw12345!", full_name="Admin", role=User.Role.ADMIN)
+        self.designer = User.objects.create_user(email="designer3@example.com", password="pw12345!", full_name="Designer", role=User.Role.DESIGNER)
+
+    @patch("apps.finance.views.fetch_usd_rate", return_value=12345.67)
+    def test_admin_can_refresh_rate_from_cbu(self, mock_fetch):
+        self.client.force_login(self.admin)
+        response = self.client.post(reverse("finance:update_rate"))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(FinanceSettings.get_solo().usd_rate, 12345.67)
+
+    @patch("apps.finance.views.fetch_usd_rate", return_value=None)
+    def test_rate_unchanged_when_cbu_is_unreachable(self, mock_fetch):
+        FinanceSettings.objects.create(pk=1, usd_rate=11111)
+        self.client.force_login(self.admin)
+        response = self.client.post(reverse("finance:update_rate"))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(FinanceSettings.get_solo().usd_rate, 11111)
+
+    def test_non_finance_role_cannot_refresh_rate(self):
+        self.client.force_login(self.designer)
+        response = self.client.post(reverse("finance:update_rate"))
+        self.assertEqual(response.status_code, 403)

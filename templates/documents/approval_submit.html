@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Send for approval" %}{% endblock %}
+{% block page_title %}{% trans "Send for approval" %}{% endblock %}
+{% block content %}
+<form method="post" enctype="multipart/form-data" class="card max-w-2xl space-y-4 p-6">
+  {% csrf_token %}
+  <div>
+    <label class="field-label inline-flex items-center" for="{{ form.title.id_for_label }}">{% with field=form.title %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+    {{ form.title }}
+    {% if form.title.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.title.errors|join:", " }}</p>{% endif %}
+  </div>
+  <div>
+    <label class="field-label inline-flex items-center" for="{{ form.project.id_for_label }}">{% with field=form.project %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+    {{ form.project }}
+    {% if form.project.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.project.errors|join:", " }}</p>{% endif %}
+  </div>
+  <div>
+    <label class="field-label" for="approval-object-select">{% trans "Object" %}</label>
+    <select id="approval-object-select" class="field-input">
+      <option value="">{% trans "Select an object..." %}</option>
+    </select>
+  </div>
+  <div>
+    <label class="field-label" for="approval-pod-select">{% trans "Pod object" %}</label>
+    <select id="approval-pod-select" class="field-input">
+      <option value="">—</option>
+    </select>
+  </div>
+  {{ form.sub_object }}
+  {% if form.sub_object.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.sub_object.errors|join:", " }}</p>{% endif %}
+  <div>
+    <label class="field-label inline-flex items-center" for="{{ form.comment.id_for_label }}">{% with field=form.comment %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+    {{ form.comment }}
+    {% if form.comment.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.comment.errors|join:", " }}</p>{% endif %}
+  </div>
+  <div>
+    <label class="field-label inline-flex items-center" for="{{ form.file.id_for_label }}">{% with field=form.file %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+    {{ form.file }}
+    {% if form.file.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.file.errors|join:", " }}</p>{% endif %}
+  </div>
+  <div class="flex gap-3">
+    <button type="submit" class="btn btn-primary btn-md">{% trans "Send for approval" %}</button>
+    <a href="{% url 'documents:approvals' %}" class="btn btn-secondary btn-md">{% trans "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}
+{% block extra_scripts %}
+  <script>window.APPROVAL_SUBMIT_CASCADE = {{ cascade_json|safe }};</script>
+  <script src="{% static 'js/approval-submit-cascade.js' %}"></script>
+{% endblock %}

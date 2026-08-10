@@ -44,21 +44,26 @@ ACCOUNT_CURRENCY = {
 
 class FinancialRecord(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, related_name="financial_records")
+    project = models.ForeignKey(
+        "projects.Project", on_delete=models.CASCADE, related_name="financial_records",
+        verbose_name=_("Project"),
+    )
     sub_object = models.ForeignKey(
         "projects.SubObject", on_delete=models.SET_NULL, null=True, blank=True,
         related_name="financial_records", verbose_name=_("Object / pod-object"),
     )
-    type = models.CharField(max_length=20, choices=RecordType.choices)
+    type = models.CharField(max_length=20, choices=RecordType.choices, verbose_name=_("Type"))
     account = models.CharField(
         max_length=20, choices=Account.choices, blank=True, null=True, verbose_name=_("Account"),
     )
-    amount = models.FloatField()
-    currency = models.CharField(max_length=10, default="UZS")
-    description = models.CharField(max_length=500, blank=True, null=True)
-    category = models.CharField(max_length=100, blank=True, null=True)
-    date = models.DateField()
-    status = models.CharField(max_length=20, choices=RecordStatus.choices, default=RecordStatus.PENDING)
+    amount = models.FloatField(verbose_name=_("Amount"))
+    currency = models.CharField(max_length=10, default="UZS", verbose_name=_("Currency"))
+    description = models.CharField(max_length=500, blank=True, null=True, verbose_name=_("Description"))
+    category = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("Category"))
+    date = models.DateField(verbose_name=_("Date"))
+    status = models.CharField(
+        max_length=20, choices=RecordStatus.choices, default=RecordStatus.PENDING, verbose_name=_("Status"),
+    )
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -77,9 +82,13 @@ class FinancialRecord(models.Model):
 class EmployeeContract(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="employee_contracts"
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="employee_contracts",
+        verbose_name=_("Employee"),
     )
-    project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, related_name="employee_contracts")
+    project = models.ForeignKey(
+        "projects.Project", on_delete=models.CASCADE, related_name="employee_contracts",
+        verbose_name=_("Project"),
+    )
     sub_object = models.ForeignKey(
         "projects.SubObject", on_delete=models.SET_NULL, null=True, blank=True,
         related_name="employee_contracts", verbose_name=_("Object"),
@@ -88,12 +97,16 @@ class EmployeeContract(models.Model):
         "projects.SubObject", on_delete=models.SET_NULL, null=True, blank=True,
         related_name="employee_contracts_as_pod_object", verbose_name=_("Pod-object"),
     )
-    amount = models.FloatField()
-    currency = models.CharField(max_length=10, choices=Currency.choices, default=Currency.UZS)
-    advance = models.FloatField(default=0)
-    paid = models.FloatField(default=0)
-    status = models.CharField(max_length=20, choices=ContractStatus.choices, default=ContractStatus.ACTIVE)
-    notes = models.CharField(max_length=1000, blank=True, null=True)
+    amount = models.FloatField(verbose_name=_("Amount"))
+    currency = models.CharField(
+        max_length=10, choices=Currency.choices, default=Currency.UZS, verbose_name=_("Currency"),
+    )
+    advance = models.FloatField(default=0, verbose_name=_("Advance"))
+    paid = models.FloatField(default=0, verbose_name=_("Paid"))
+    status = models.CharField(
+        max_length=20, choices=ContractStatus.choices, default=ContractStatus.ACTIVE, verbose_name=_("Status"),
+    )
+    notes = models.CharField(max_length=1000, blank=True, null=True, verbose_name=_("Notes"))
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

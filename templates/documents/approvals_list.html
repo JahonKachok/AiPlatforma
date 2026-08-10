@@ -5,10 +5,13 @@
 {% block page_help %}{% with text="Sizga tekshirish uchun yuborilgan hujjatlarni ko'rib chiqish, tasdiqlash yoki rad etish uchun bo'lim." %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
 {% block content %}
 {% include "partials/stat_cards.html" %}
-<div class="mb-4 flex gap-2">
-  <a href="?tab=pending" class="btn btn-sm {% if tab == 'pending' %}btn-primary{% else %}btn-secondary{% endif %}">{% trans "Pending" %}</a>
-  <a href="?tab=approved" class="btn btn-sm {% if tab == 'approved' %}btn-primary{% else %}btn-secondary{% endif %}">{% trans "Approved" %}</a>
-  <a href="?tab=rejected" class="btn btn-sm {% if tab == 'rejected' %}btn-primary{% else %}btn-secondary{% endif %}">{% trans "Rejected" %}</a>
+<div class="mb-4 flex items-center justify-between gap-2">
+  <div class="flex gap-2">
+    <a href="?tab=pending" class="btn btn-sm {% if tab == 'pending' %}btn-primary{% else %}btn-secondary{% endif %}">{% trans "Pending" %}</a>
+    <a href="?tab=approved" class="btn btn-sm {% if tab == 'approved' %}btn-primary{% else %}btn-secondary{% endif %}">{% trans "Approved" %}</a>
+    <a href="?tab=rejected" class="btn btn-sm {% if tab == 'rejected' %}btn-primary{% else %}btn-secondary{% endif %}">{% trans "Rejected" %}</a>
+  </div>
+  <a href="{% url 'documents:submit_for_approval' %}" class="btn btn-primary btn-sm">{% trans "Send for approval" %}</a>
 </div>
 
 <div class="space-y-4">

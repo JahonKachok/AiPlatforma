@@ -29,6 +29,7 @@ from .models import (
     RecordStatus,
     RecordType,
 )
+from .services import fetch_usd_rate
 
 _CAN_MANAGE_FINANCE_ROLES = {User.Role.ADMIN, User.Role.MANAGER, User.Role.FINANCE}
 
@@ -65,7 +66,14 @@ def _dashboard_context(request):
             "account": account, "label": label, "total": total, "currency": ACCOUNT_CURRENCY[account],
         })
 
-    net_profit = sum(_to_uzs(r.signed_amount, r.currency, rate) for r in records)
+    total_income = sum(
+        _to_uzs(r.amount, r.currency, rate) for r in records.filter(type=RecordType.INCOME)
+    )
+    total_expense = sum(
+        _to_uzs(r.amount, r.currency, rate)
+        for r in records.filter(type__in=[RecordType.EXPENSE, RecordType.ADVANCE, RecordType.PAYMENT])
+    )
+    net_profit = total_income - total_expense
 
     contracts = EmployeeContract.objects.filter(project__in=projects)
 
@@ -97,7 +105,10 @@ def _dashboard_context(request):
     return {
         "account_balances": account_balances,
         "usd_rate": rate,
+        "usd_rate_updated_at": settings_obj.updated_at,
         "net_profit": net_profit,
+        "total_income": total_income,
+        "total_expense": total_expense,
         "project_rows": project_rows,
         "transaction_form": TransactionForm(user=user),
         "can_manage_finance": _can_manage_finance(user),
@@ -207,18 +218,15 @@ def update_exchange_rate(request):
     if not _can_manage_finance(request.user):
         raise PermissionDenied
     if request.method == "POST":
-        try:
-            rate = float(request.POST.get("usd_rate"))
-        except (TypeError, ValueError):
-            rate = None
+        rate = fetch_usd_rate()
         if rate and rate > 0:
             settings_obj = FinanceSettings.get_solo()
             settings_obj.usd_rate = rate
             settings_obj.updated_by = request.user
             settings_obj.save()
-            messages.success(request, _("Exchange rate updated."))
+            messages.success(request, _("Exchange rate updated from the Central Bank of Uzbekistan."))
         else:
-            messages.error(request, _("Enter a valid exchange rate."))
+            messages.error(request, _("Could not fetch the exchange rate — please try again later."))
     return redirect(_finance_home_url("dashboard"))
 
 

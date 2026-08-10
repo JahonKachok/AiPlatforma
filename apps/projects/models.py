@@ -46,9 +46,9 @@ class Project(models.Model):
         USD = "USD", _("Dollar")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255, verbose_name=_("Name"))
+    name = models.CharField(max_length=255, verbose_name=_("Project name"))
     description = models.CharField(max_length=2000, blank=True, null=True, verbose_name=_("Description"))
-    client_name = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Client name"))
+    client_name = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Customer"))
     client_contact = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Client contact"))
     client_type = models.CharField(
         max_length=20, choices=ClientType.choices, blank=True, null=True, verbose_name=_("Client type"),

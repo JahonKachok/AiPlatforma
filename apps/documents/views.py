@@ -1,4 +1,5 @@
 import io
+import json
 import zipfile
 
 from django.contrib import messages
@@ -12,14 +13,39 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.notifications.services import notify_user
+from apps.projects.models import Section, SubObject, SubObjectDiscipline
 from apps.projects.permissions import ensure_project_member, visible_projects_for
 
-from .forms import ApprovalReviewForm, ApprovalStageFormSet, DocumentUploadForm, DocumentVersionForm
+from .forms import (
+    ApprovalReviewForm, ApprovalStageFormSet, ApprovalSubmissionForm, DocumentUploadForm, DocumentVersionForm,
+)
 from .models import ApprovalStage, ApprovalStatus, AuditLog, Document, DocumentStatus, DocumentVersion
 
 
 def _visible_documents(user):
     return Document.objects.filter(project__in=visible_projects_for(user)).select_related("project", "uploaded_by")
+
+
+def _resolve_gip_reviewer(sub_object, project):
+    """Walk up from the sub-object (a pod object's own GIP takes priority over
+    its parent object's) to find who should review work submitted on it; falls
+    back to the project's GIP member if neither the object nor its parent has one."""
+    candidate = sub_object
+    while candidate is not None:
+        if candidate.gip_id:
+            return candidate.gip
+        candidate = candidate.parent
+    member = project.members.filter(role_in_project="gip").select_related("user").first()
+    return member.user if member else None
+
+
+def _submission_cascade_json(projects):
+    sub_objects = [
+        {"id": str(so.pk), "project_id": str(so.project_id), "parent_id": str(so.parent_id) if so.parent_id else None,
+         "name": so.name}
+        for so in SubObject.objects.filter(project__in=projects)
+    ]
+    return json.dumps({"subObjects": sub_objects})
 
 
 @login_required
@@ -197,6 +223,73 @@ def document_quick_approve(request, pk):
 # --- Approval workflow ---------------------------------------------------
 
 @login_required
+def approval_submit(request):
+    projects = visible_projects_for(request.user)
+    if request.method == "POST":
+        form = ApprovalSubmissionForm(request.POST, request.FILES, projects=projects)
+        if form.is_valid():
+            project = form.cleaned_data["project"]
+            sub_object = form.cleaned_data["sub_object"]
+            if sub_object.project_id != project.id:
+                form.add_error("sub_object", _("The object must belong to the selected project."))
+            else:
+                discipline_assignment = SubObjectDiscipline.objects.filter(
+                    sub_object=sub_object, discipline__in=request.user.disciplines.all(),
+                ).select_related("discipline").first()
+                if discipline_assignment is None:
+                    form.add_error(
+                        "sub_object",
+                        _("You don't have a discipline assigned on this object, so it can't be submitted."),
+                    )
+                else:
+                    reviewer = _resolve_gip_reviewer(sub_object, project)
+                    if reviewer is None:
+                        form.add_error(
+                            "sub_object", _("This object has no GIP assigned to review submissions."),
+                        )
+                    else:
+                        discipline = discipline_assignment.discipline
+                        section = Section.objects.filter(
+                            project=project, sub_object=sub_object, discipline=discipline,
+                        ).first()
+                        if section is None:
+                            section = Section.objects.create(
+                                project=project, sub_object=sub_object, discipline=discipline,
+                                name=f"{discipline.code} — {sub_object.name}",
+                            )
+                        uploaded = form.cleaned_data["file"]
+                        document = Document.objects.create(
+                            name=form.cleaned_data["title"], project=project, section=section,
+                            uploaded_by=request.user, file=uploaded, file_size=uploaded.size,
+                            mime_type=getattr(uploaded, "content_type", "") or "",
+                            status=DocumentStatus.REVIEW,
+                        )
+                        DocumentVersion.objects.create(
+                            document=document, version_number=document.version, file=document.file,
+                            file_size=document.file_size, uploaded_by=request.user,
+                            notes=form.cleaned_data["comment"],
+                        )
+                        stage = ApprovalStage.objects.create(
+                            document=document, stage_order=1,
+                            stage_name=f"{discipline.code} → GIP", reviewer=reviewer,
+                        )
+                        ensure_project_member(project, reviewer)
+                        notify_user(
+                            reviewer, "approval", _("New document to review"),
+                            _("%(doc)s needs your review.") % {"doc": document.name},
+                            link=f"/documents/{document.pk}/",
+                        )
+                        AuditLog.log(obj=document, action="uploaded", user=request.user)
+                        messages.success(request, _("Sent for approval."))
+                        return redirect("documents:approvals")
+    else:
+        form = ApprovalSubmissionForm(projects=projects)
+    return render(request, "documents/approval_submit.html", {
+        "form": form, "cascade_json": _submission_cascade_json(projects),
+    })
+
+
+@login_required
 def approval_stage_assign(request, pk):
     document = get_object_or_404(_visible_documents(request.user), pk=pk)
     if request.method == "POST":
@@ -272,11 +365,12 @@ def approval_stage_review(request, stage_id):
         return redirect("documents:detail", pk=document.pk)
 
     if request.method == "POST":
-        form = ApprovalReviewForm(request.POST)
+        form = ApprovalReviewForm(request.POST, request.FILES)
         if form.is_valid():
             new_status = form.cleaned_data["status"]
             stage.status = new_status
-            stage.comment = form.cleaned_data.get("comment")
+            stage.comment = form.cleaned_data["comment"]
+            stage.response_file = form.cleaned_data.get("file") or None
             stage.reviewed_at = timezone.now()
             stage.save()
 
@@ -288,6 +382,12 @@ def approval_stage_review(request, stage_id):
                 remaining = document.approval_stages.exclude(pk=stage.pk).exclude(status=ApprovalStatus.APPROVED)
                 if not remaining.exists():
                     document.status = DocumentStatus.APPROVED
+                    if document.section_id and document.section.sub_object_id:
+                        SubObjectDiscipline.objects.update_or_create(
+                            sub_object_id=document.section.sub_object_id,
+                            discipline_id=document.section.discipline_id,
+                            defaults={"progress": 100},
+                        )
             document.save(update_fields=["status", "updated_at"])
 
             AuditLog.log(obj=document, action=f"approval_{new_status}", user=request.user)

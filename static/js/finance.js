@@ -40,9 +40,30 @@
     var typeInput = document.getElementById("id_type");
     var title = document.getElementById("transaction-modal-title");
     var submit = document.getElementById("transaction-modal-submit");
+    var projectSelect = document.getElementById("id_project");
+    var subObjectSelect = document.getElementById("id_sub_object");
+
+    function filterSubObjects() {
+      if (!projectSelect || !subObjectSelect) return;
+      var projectId = projectSelect.value;
+      var currentValue = subObjectSelect.value;
+      var stillVisible = false;
+      Array.prototype.forEach.call(subObjectSelect.options, function (opt) {
+        if (!opt.value) return; // always keep the blank placeholder
+        var matches = opt.getAttribute("data-project") === projectId;
+        opt.hidden = !matches;
+        if (matches && opt.value === currentValue) stillVisible = true;
+      });
+      if (!stillVisible) subObjectSelect.value = "";
+    }
+
+    if (projectSelect) {
+      projectSelect.addEventListener("change", filterSubObjects);
+    }
 
     modal.addEventListener("ap-modal-opened", function (e) {
       var btn = e.detail && e.detail.trigger;
+      filterSubObjects();
       if (!btn) return;
       var type = btn.getAttribute("data-transaction-type");
       if (type && typeInput) typeInput.value = type;

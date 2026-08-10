@@ -1,20 +1,40 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {% block title %}{% if is_create %}{% trans "New task" %}{% else %}{% trans "Edit task" %}{% endif %}{% endblock %}
 {% block page_title %}{% if is_create %}{% trans "New task" %}{% else %}{% trans "Edit task" %}{% endif %}{% endblock %}
 {% block content %}
-<form method="post" class="card max-w-2xl space-y-4 p-6">
+<form method="post" class="card max-w-4xl space-y-4 p-6">
   {% csrf_token %}
-  {% for field in form %}
-    <div>
-      <label class="field-label inline-flex items-center" for="{{ field.id_for_label }}">{% include "partials/field_label_info.html" %}</label>
-      {{ field }}
-      {% if field.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ field.errors|join:", " }}</p>{% endif %}
-    </div>
-  {% endfor %}
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    {% for field in form %}
+      <div class="{% if field.name == 'title' or field.name == 'description' %}sm:col-span-2{% endif %}">
+        <label class="field-label inline-flex items-center" for="{{ field.id_for_label }}">{% include "partials/field_label_info.html" %}</label>
+        {{ field }}
+        {% if field.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ field.errors|join:", " }}</p>{% endif %}
+      </div>
+      {% if field.name == 'project' %}
+        <div>
+          <label class="field-label" for="task-object-select">{% trans "Object" %}</label>
+          <select id="task-object-select" class="field-input">
+            <option value="">{% trans "Select an object..." %}</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label" for="task-pod-select">{% trans "Pod object" %}</label>
+          <select id="task-pod-select" class="field-input">
+            <option value="">—</option>
+          </select>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
   <div class="flex gap-3">
     <button type="submit" class="btn btn-primary btn-md">{% trans "Save" %}</button>
     <a href="{% if task %}{% url 'tasks:detail' task.pk %}{% else %}{% url 'tasks:board' %}{% endif %}" class="btn btn-secondary btn-md">{% trans "Cancel" %}</a>
   </div>
 </form>
+{% endblock %}
+{% block extra_scripts %}
+  <script>window.TASK_FORM_CASCADE = {{ task_form_cascade_json|safe }};</script>
+  <script src="{% static 'js/task-form-cascade.js' %}"></script>
 {% endblock %}

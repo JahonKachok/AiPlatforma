@@ -35,6 +35,21 @@ static/js/finance.js. Expects `transaction_form` in context.
       </div>
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
+          <label class="field-label" for="{{ transaction_form.category.id_for_label }}">{% with field=transaction_form.category %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+          {{ transaction_form.category }}
+        </div>
+        <div id="id_pod_object_wrapper" class="hidden">
+          <label class="field-label" for="id_pod_object">{% with field=transaction_form.pod_object %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+          <select name="pod_object" id="id_pod_object" class="field-input">
+            <option value="">---------</option>
+            {% for obj in transaction_form.pod_object.field.queryset %}
+              <option value="{{ obj.pk }}" data-parent="{{ obj.parent_id }}">{{ obj }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
           <label class="field-label" for="{{ transaction_form.amount.id_for_label }}">{% with field=transaction_form.amount %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
           {{ transaction_form.amount }}
         </div>

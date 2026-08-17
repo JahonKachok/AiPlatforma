@@ -1,0 +1,48 @@
+{% load i18n %}
+{% comment %}
+"Add administrative expense" modal for the finance admin-expenses tab.
+Expects `admin_expense_form` in context.
+{% endcomment %}
+<div id="admin-expense-modal" class="ap-modal-backdrop" data-modal-backdrop>
+  <div class="card ap-modal-card">
+    <div class="flex items-center justify-between border-b border-gray-200 px-4 py-4 dark:border-gray-700">
+      <h3 class="font-semibold">{% trans "Add administrative expense" %}</h3>
+      <button type="button" class="btn btn-secondary btn-sm" data-modal-close aria-label="{% trans 'Close' %}">&times;</button>
+    </div>
+    <form method="post" action="{% url 'finance:add_administrative_expense' %}" class="space-y-4 px-4 py-4">
+      {% csrf_token %}
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label class="field-label" for="{{ admin_expense_form.category.id_for_label }}">{% with field=admin_expense_form.category %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+          {{ admin_expense_form.category }}
+        </div>
+        <div>
+          <label class="field-label" for="{{ admin_expense_form.period.id_for_label }}">{% with field=admin_expense_form.period %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+          {{ admin_expense_form.period }}
+        </div>
+      </div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label class="field-label" for="{{ admin_expense_form.amount.id_for_label }}">{% with field=admin_expense_form.amount %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+          {{ admin_expense_form.amount }}
+        </div>
+        <div>
+          <label class="field-label" for="{{ admin_expense_form.currency.id_for_label }}">{% with field=admin_expense_form.currency %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+          {{ admin_expense_form.currency }}
+        </div>
+      </div>
+      <div>
+        <label class="field-label" for="{{ admin_expense_form.date.id_for_label }}">{% with field=admin_expense_form.date %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+        {{ admin_expense_form.date }}
+      </div>
+      <div>
+        <label class="field-label" for="{{ admin_expense_form.note.id_for_label }}">{% with field=admin_expense_form.note %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+        {{ admin_expense_form.note }}
+      </div>
+      <div class="flex justify-end gap-2 border-t border-gray-200 dark:border-gray-700" style="padding-top:1rem">
+        <button type="button" class="btn btn-secondary btn-md" data-modal-close>{% trans "Cancel" %}</button>
+        <button type="submit" class="btn btn-primary btn-md">{% trans "Add" %}</button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -44,9 +44,9 @@ def build_finance_workbook(records):
 
 
 def build_cash_flow_workbook(records):
-    headers = ["Nomi", "Sana", "Kategoriya", "Valyuta", "Summa"]
+    headers = ["Nomi", "Sana", "Turi", "Kategoriya", "Valyuta", "Summa"]
     rows = [
-        [r.description or "", r.date, r.get_type_display(), r.currency, r.amount]
+        [r.description or "", r.date, r.get_type_display(), r.get_category_display() or "", r.currency, r.amount]
         for r in records
     ]
     return _make_workbook(headers, rows)

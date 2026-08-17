@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import EmployeeContract, FinanceSettings, FinancialRecord
+from .models import AdministrativeExpense, EmployeeContract, FinanceSettings, FinancialRecord
 
 
 @admin.register(FinancialRecord)
@@ -21,3 +21,9 @@ class FinanceSettingsAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return not FinanceSettings.objects.exists()
+
+
+@admin.register(AdministrativeExpense)
+class AdministrativeExpenseAdmin(admin.ModelAdmin):
+    list_display = ["category", "amount", "currency", "period", "date", "created_by"]
+    list_filter = ["category", "period", "currency"]

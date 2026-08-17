@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BuildFlow\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-11 00:49+0500\n"
+"POT-Creation-Date: 2026-08-17 10:57+0500\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -360,7 +360,8 @@ msgstr "Приложение"
 msgid "Invoice"
 msgstr "Счёт-фактура"
 
-#: .\apps\document_templates\models.py:13 .\apps\projects\models.py:38
+#: .\apps\document_templates\models.py:13 .\apps\finance\models.py:27
+#: .\apps\finance\models.py:166 .\apps\projects\models.py:38
 msgid "Other"
 msgstr "Другое"
 
@@ -368,6 +369,9 @@ msgstr "Другое"
 #: .\apps\projects\views.py:125 .\apps\tasks\views.py:88
 #: .\templates\accounts\user_list.html:14
 #: .\templates\documents\document_list.html:8
+#: .\templates\finance\finance_home.html:164
+#: .\templates\finance\finance_home.html:237
+#: .\templates\finance\finance_home.html:336
 #: .\templates\reports\dashboard.html:59 .\templates\reports\dashboard.html:77
 msgid "Total"
 msgstr "Всего"
@@ -502,7 +506,7 @@ msgstr "Опишите, что вы отправляете."
 msgid "The file to submit for approval."
 msgstr "Файл для отправки на согласование."
 
-#: .\apps\documents\models.py:13 .\apps\finance\models.py:21
+#: .\apps\documents\models.py:13 .\apps\finance\models.py:37
 msgid "Draft"
 msgstr "Черновик"
 
@@ -607,130 +611,163 @@ msgstr "%(doc)s был отмечен как %(status)s."
 msgid "Review submitted."
 msgstr "Решение отправлено."
 
-#: .\apps\finance\forms.py:20
+#: .\apps\finance\forms.py:14 .\apps\finance\models.py:116
+#: .\templates\finance\finance_home.html:39
+#: .\templates\finance\finance_home.html:58
+#: .\templates\finance\finance_home.html:114
+msgid "Pod-object"
+msgstr "Подобъект"
+
+#: .\apps\finance\forms.py:15
+msgid ""
+"The specific pod-object this salary expense is allocated to (shown when "
+"category is Salary)."
+msgstr ""
+"Конкретный подобъект, на который относится этот расход по зарплате "
+"(отображается, если категория — «Зарплата»)."
+
+#: .\apps\finance\forms.py:27
 msgid "The project this transaction belongs to."
 msgstr "Проект, к которому относится эта операция."
 
-#: .\apps\finance\forms.py:21
+#: .\apps\finance\forms.py:28
 msgid "The object/pod-object this transaction relates to (optional)."
 msgstr "Объект/подобъект, к которому относится эта операция (необязательно)."
 
-#: .\apps\finance\forms.py:22
+#: .\apps\finance\forms.py:29
 msgid "The account the money moves through — determines its currency."
 msgstr "Счёт, через который проходят деньги — определяет валюту."
 
-#: .\apps\finance\forms.py:23
+#: .\apps\finance\forms.py:30
 msgid "The amount, in the account's currency."
 msgstr "Сумма, в валюте счёта."
 
-#: .\apps\finance\forms.py:24 .\apps\finance\forms.py:58
+#: .\apps\finance\forms.py:31 .\apps\finance\forms.py:82
 msgid "The date of the transaction."
 msgstr "Дата операции."
 
-#: .\apps\finance\forms.py:25
+#: .\apps\finance\forms.py:32 .\apps\finance\forms.py:81
+msgid "The expense/income category (optional)."
+msgstr "Категория расхода/прихода (необязательно)."
+
+#: .\apps\finance\forms.py:33
 msgid "A short description of the transaction (optional)."
 msgstr "Краткое описание операции (необязательно)."
 
-#: .\apps\finance\forms.py:43
+#: .\apps\finance\forms.py:53
 msgid "This object does not belong to the selected project."
 msgstr ""
 "Этот объект не принадлежит выбранному проекту.К какому проекту относится "
 "запрос. Участники выбранного проекта смогут видеть этот запрос."
 
-#: .\apps\finance\forms.py:53
+#: .\apps\finance\forms.py:55
+msgid "This pod-object does not belong to the selected object."
+msgstr "Этот подобъект не принадлежит выбранному объекту."
+
+#: .\apps\finance\forms.py:77
 msgid "The record type — income (payment) or expense."
 msgstr "Тип записи — приход (оплата) или расход."
 
-#: .\apps\finance\forms.py:54
+#: .\apps\finance\forms.py:78 .\apps\finance\forms.py:121
 msgid "The amount."
 msgstr "Сумма."
 
-#: .\apps\finance\forms.py:55
+#: .\apps\finance\forms.py:79 .\apps\finance\forms.py:122
 msgid "The amount's currency."
 msgstr "Валюта суммы."
 
-#: .\apps\finance\forms.py:56
+#: .\apps\finance\forms.py:80
 msgid "A short description of the record (optional)."
 msgstr "Краткое описание записи (необязательно)."
 
-#: .\apps\finance\forms.py:57
-msgid "The expense/income category (optional)."
-msgstr "Категория расхода/прихода (необязательно)."
-
-#: .\apps\finance\forms.py:59
+#: .\apps\finance\forms.py:83
 msgid "The record's status (e.g. pending, confirmed)."
 msgstr "Статус записи (например: в ожидании, подтверждено)."
 
-#: .\apps\finance\forms.py:69
+#: .\apps\finance\forms.py:96
 msgid "The employee the contract is with."
 msgstr "Сотрудник, с которым заключён договор."
 
-#: .\apps\finance\forms.py:70
+#: .\apps\finance\forms.py:97
 msgid "The project the employee works on."
 msgstr "Проект, над которым работает сотрудник."
 
-#: .\apps\finance\forms.py:71
+#: .\apps\finance\forms.py:98
 msgid "The object the employee is assigned to (optional)."
 msgstr "Объект, к которому прикреплён сотрудник (необязательно)."
 
-#: .\apps\finance\forms.py:72
+#: .\apps\finance\forms.py:99
 msgid "The pod-object the employee is assigned to (optional)."
 msgstr "Подобъект, к которому прикреплён сотрудник (необязательно)."
 
-#: .\apps\finance\forms.py:73
+#: .\apps\finance\forms.py:100
 msgid "The total amount under the contract."
 msgstr "Общая сумма по договору."
 
-#: .\apps\finance\forms.py:74
+#: .\apps\finance\forms.py:101
 msgid "The contract amount's currency."
 msgstr "Валюта суммы контракта."
 
-#: .\apps\finance\forms.py:75
+#: .\apps\finance\forms.py:102 .\apps\finance\forms.py:125
 msgid "Additional notes (optional)."
 msgstr "Дополнительные заметки (необязательно)."
 
-#: .\apps\finance\forms.py:87
+#: .\apps\finance\forms.py:120
+msgid "The administrative expense category (tax, rent, utilities, etc.)."
+msgstr ""
+"Категория административного расхода (налог, аренда, коммунальные услуги и "
+"т.д.)."
+
+#: .\apps\finance\forms.py:123
+msgid "Whether this expense recurs monthly, quarterly, or yearly."
+msgstr "Периодичность расхода: ежемесячно, ежеквартально или ежегодно."
+
+#: .\apps\finance\forms.py:124
+msgid "The date this expense is recorded for."
+msgstr "Дата, на которую учитывается этот расход."
+
+#: .\apps\finance\forms.py:132
 msgid "Employee contract"
 msgstr "Договор с сотрудником"
 
-#: .\apps\finance\forms.py:88
+#: .\apps\finance\forms.py:133
 msgid "The employee contract this payment is made against."
 msgstr "Договор с сотрудником, по которому производится этот платёж."
 
-#: .\apps\finance\forms.py:91
+#: .\apps\finance\forms.py:136
 msgid "The amount being paid now."
 msgstr "Сумма, выплачиваемая сейчас."
 
-#: .\apps\finance\forms.py:94
+#: .\apps\finance\forms.py:140
 msgid "This is an advance"
 msgstr "Это аванс"
 
-#: .\apps\finance\forms.py:95
+#: .\apps\finance\forms.py:141
 msgid "Check if this payment is an advance rather than the final settlement."
 msgstr ""
 "Отметьте, если этот платёж является авансом, а не окончательным расчётом."
 
-#: .\apps\finance\forms.py:97
+#: .\apps\finance\forms.py:143
 msgid "The account the payment is made from."
 msgstr "Счёт, с которого производится платёж."
 
-#: .\apps\finance\models.py:8 .\templates\finance\finance_home.html:182
-#: .\templates\finance\finance_home.html:202
-#: .\templates\projects\project_detail.html:303
+#: .\apps\finance\models.py:8 .\templates\finance\finance_home.html:291
+#: .\templates\finance\finance_home.html:314
+#: .\templates\projects\project_detail.html:295
 msgid "Income"
 msgstr "Доход"
 
-#: .\apps\finance\models.py:9 .\templates\finance\finance_home.html:186
-#: .\templates\finance\finance_home.html:203
-#: .\templates\projects\project_detail.html:304
+#: .\apps\finance\models.py:9 .\templates\finance\finance_home.html:295
+#: .\templates\finance\finance_home.html:315
+#: .\templates\projects\project_detail.html:296
 msgid "Expense"
 msgstr "Расход"
 
-#: .\apps\finance\models.py:10 .\apps\finance\models.py:104
+#: .\apps\finance\models.py:10 .\apps\finance\models.py:122
 msgid "Advance"
 msgstr "Аванс"
 
-#: .\apps\finance\models.py:11
+#: .\apps\finance\models.py:11 .\apps\finance\models.py:26
 msgid "Salary"
 msgstr "Зарплата"
 
@@ -742,51 +779,83 @@ msgstr "Подтверждено"
 msgid "Cancelled"
 msgstr "Отменён"
 
-#: .\apps\finance\models.py:22 .\apps\organization\models.py:9
+#: .\apps\finance\models.py:21 .\apps\finance\models.py:163
+msgid "Rent"
+msgstr "Аренда"
+
+#: .\apps\finance\models.py:22 .\apps\finance\models.py:162
+msgid "Tax"
+msgstr "Налог"
+
+#: .\apps\finance\models.py:23 .\apps\finance\models.py:164
+msgid "Utilities"
+msgstr "Коммунальные услуги"
+
+#: .\apps\finance\models.py:24 .\apps\finance\models.py:165
+msgid "Office supplies"
+msgstr "Офисные принадлежности"
+
+#: .\apps\finance\models.py:25
+msgid "Materials"
+msgstr "Материалы"
+
+#: .\apps\finance\models.py:31 .\templates\finance\finance_home.html:182
+msgid "Monthly"
+msgstr "Ежемесячно"
+
+#: .\apps\finance\models.py:32 .\templates\finance\finance_home.html:183
+msgid "Quarterly"
+msgstr "Ежеквартально"
+
+#: .\apps\finance\models.py:33 .\templates\finance\finance_home.html:184
+msgid "Yearly"
+msgstr "Ежегодно"
+
+#: .\apps\finance\models.py:38 .\apps\organization\models.py:9
 #: .\apps\projects\models.py:22 .\apps\projects\views.py:126
 #: .\templates\accounts\user_list.html:15
 #: .\templates\ai_agents\dashboard.html:14
 msgid "Active"
 msgstr "Активен"
 
-#: .\apps\finance\models.py:23 .\apps\projects\models.py:24
+#: .\apps\finance\models.py:39 .\apps\projects\models.py:24
 #: .\apps\projects\models.py:121 .\apps\projects\views.py:128
 #: .\apps\tasks\models.py:41 .\apps\tasks\views.py:91
-#: .\templates\projects\project_detail.html:312
+#: .\templates\projects\project_detail.html:304
 msgid "Completed"
 msgstr "Завершено"
 
-#: .\apps\finance\models.py:24
+#: .\apps\finance\models.py:40
 msgid "Terminated"
 msgstr "Расторгнут"
 
-#: .\apps\finance\models.py:28 .\apps\projects\models.py:45
+#: .\apps\finance\models.py:44 .\apps\projects\models.py:45
 msgid "So'm"
 msgstr "Сум"
 
-#: .\apps\finance\models.py:29 .\apps\projects\models.py:46
+#: .\apps\finance\models.py:45 .\apps\projects\models.py:46
 msgid "Dollar"
 msgstr "Доллар"
 
-#: .\apps\finance\models.py:33
+#: .\apps\finance\models.py:49
 msgid "Dollar hisob"
 msgstr "Долларовый счёт"
 
-#: .\apps\finance\models.py:34
+#: .\apps\finance\models.py:50
 msgid "So'm hisob"
 msgstr "Счёт в сумах"
 
-#: .\apps\finance\models.py:35
+#: .\apps\finance\models.py:51
 msgid "Naqd pul (USD)"
 msgstr "Наличные (USD)"
 
-#: .\apps\finance\models.py:49 .\apps\finance\models.py:90
+#: .\apps\finance\models.py:65 .\apps\finance\models.py:108
 #: .\templates\documents\document_detail.html:71
 #: .\templates\documents\document_list.html:45
-#: .\templates\finance\finance_home.html:24
-#: .\templates\finance\finance_home.html:55
-#: .\templates\finance\finance_home.html:99
-#: .\templates\finance\finance_home.html:201
+#: .\templates\finance\finance_home.html:25
+#: .\templates\finance\finance_home.html:56
+#: .\templates\finance\finance_home.html:100
+#: .\templates\finance\finance_home.html:313
 #: .\templates\projects\_wizard_steps.html:14
 #: .\templates\projects\project_wizard_confirm.html:13
 #: .\templates\requests_app\request_detail.html:45
@@ -794,51 +863,61 @@ msgstr "Наличные (USD)"
 msgid "Project"
 msgstr "Проект"
 
-#: .\apps\finance\models.py:53
+#: .\apps\finance\models.py:69
 msgid "Object / pod-object"
 msgstr "Объект / подобъект"
 
-#: .\apps\finance\models.py:55 .\templates\documents\document_detail.html:72
+#: .\apps\finance\models.py:71 .\templates\documents\document_detail.html:72
+#: .\templates\finance\finance_home.html:143
 #: .\templates\projects\project_detail.html:188
 #: .\templates\requests_app\request_detail.html:44
 msgid "Type"
 msgstr "Тип"
 
-#: .\apps\finance\models.py:57
+#: .\apps\finance\models.py:73
 msgid "Account"
 msgstr "Счёт"
 
-#: .\apps\finance\models.py:59 .\apps\finance\models.py:100
-#: .\templates\finance\finance_home.html:133
+#: .\apps\finance\models.py:75 .\apps\finance\models.py:118
+#: .\apps\finance\models.py:176 .\templates\finance\finance_home.html:146
+#: .\templates\finance\finance_home.html:205
 #: .\templates\projects\project_detail.html:188
 msgid "Amount"
 msgstr "Сумма"
 
-#: .\apps\finance\models.py:60 .\apps\finance\models.py:102
-#: .\apps\projects\models.py:89 .\templates\finance\finance_home.html:132
+#: .\apps\finance\models.py:76 .\apps\finance\models.py:120
+#: .\apps\finance\models.py:177 .\apps\projects\models.py:89
+#: .\templates\finance\finance_home.html:145
+#: .\templates\finance\finance_home.html:206
 msgid "Currency"
 msgstr "Валюта"
 
-#: .\apps\finance\models.py:61 .\apps\projects\models.py:50
+#: .\apps\finance\models.py:77 .\apps\projects\models.py:50
 #: .\apps\projects\models.py:139 .\templates\projects\project_detail.html:188
 #: .\templates\tasks\task_detail.html:19
 msgid "Description"
 msgstr "Описание"
 
-#: .\apps\finance\models.py:62 .\templates\finance\finance_home.html:131
+#: .\apps\finance\models.py:79 .\apps\finance\models.py:175
+#: .\templates\finance\finance_home.html:125
+#: .\templates\finance\finance_home.html:144
+#: .\templates\finance\finance_home.html:188
+#: .\templates\finance\finance_home.html:204
 msgid "Category"
 msgstr "Категория"
 
-#: .\apps\finance\models.py:63 .\templates\accounts\login_journal.html:10
+#: .\apps\finance\models.py:81 .\apps\finance\models.py:179
+#: .\templates\accounts\login_journal.html:10
 #: .\templates\ai_agents\dashboard.html:62
 #: .\templates\documents\document_detail.html:55
-#: .\templates\finance\finance_home.html:130
+#: .\templates\finance\finance_home.html:142
+#: .\templates\finance\finance_home.html:208
 #: .\templates\projects\project_detail.html:188
 #: .\templates\projects\project_history.html:9
 msgid "Date"
 msgstr "Дата"
 
-#: .\apps\finance\models.py:65 .\apps\finance\models.py:107
+#: .\apps\finance\models.py:83 .\apps\finance\models.py:125
 #: .\apps\projects\models.py:83 .\apps\projects\models.py:149
 #: .\apps\projects\models.py:188 .\apps\projects\models.py:228
 #: .\templates\accounts\login_journal.html:11
@@ -849,89 +928,108 @@ msgstr "Дата"
 msgid "Status"
 msgstr "Статус"
 
-#: .\apps\finance\models.py:86 .\templates\finance\finance_home.html:17
-#: .\templates\finance\finance_home.html:54
+#: .\apps\finance\models.py:104 .\templates\finance\finance_home.html:18
+#: .\templates\finance\finance_home.html:55
 #: .\templates\projects\_subobject_disciplines.html:53
 msgid "Employee"
 msgstr "Сотрудник"
 
-#: .\apps\finance\models.py:94 .\apps\projects\excel_import.py:8
+#: .\apps\finance\models.py:112 .\apps\projects\excel_import.py:8
 #: .\templates\documents\approval_submit.html:19
-#: .\templates\finance\finance_home.html:31
-#: .\templates\finance\finance_home.html:56
-#: .\templates\finance\finance_home.html:106
+#: .\templates\finance\finance_home.html:32
+#: .\templates\finance\finance_home.html:57
+#: .\templates\finance\finance_home.html:107
 #: .\templates\projects\project_wizard_disciplines.html:13
 #: .\templates\projects\project_wizard_subobjects.html:12
 #: .\templates\tasks\task_form.html:17
 msgid "Object"
 msgstr "Объект"
 
-#: .\apps\finance\models.py:98 .\templates\finance\finance_home.html:38
-#: .\templates\finance\finance_home.html:57
-#: .\templates\finance\finance_home.html:113
-msgid "Pod-object"
-msgstr "Подобъект"
-
-#: .\apps\finance\models.py:105
+#: .\apps\finance\models.py:123
 msgid "Paid"
 msgstr "Оплачено"
 
-#: .\apps\finance\models.py:109
+#: .\apps\finance\models.py:127
 msgid "Notes"
 msgstr "Примечания"
 
-#: .\apps\finance\views.py:210
+#: .\apps\finance\models.py:178 .\templates\finance\finance_home.html:179
+#: .\templates\finance\finance_home.html:207
+msgid "Period"
+msgstr "Период"
+
+#: .\apps\finance\models.py:180 .\templates\finance\finance_home.html:209
+msgid "Note"
+msgstr "Примечание"
+
+#: .\apps\finance\views.py:277
 msgid "Transaction added."
 msgstr "Операция добавлена."
 
-#: .\apps\finance\views.py:212
+#: .\apps\finance\views.py:279
 msgid "Could not add the transaction — please check the form."
 msgstr "Не удалось добавить операцию — проверьте форму."
 
-#: .\apps\finance\views.py:227
+#: .\apps\finance\views.py:294
 msgid "Exchange rate updated from the Central Bank of Uzbekistan."
 msgstr "Курс обновлён с сайта Центрального банка Узбекистана."
 
-#: .\apps\finance\views.py:229
+#: .\apps\finance\views.py:296 .\apps\finance\views.py:313
 msgid "Could not fetch the exchange rate — please try again later."
 msgstr "Не удалось получить курс валюты — попробуйте позже."
 
-#: .\apps\finance\views.py:245
+#: .\apps\finance\views.py:311
+msgid "Exchange rate updated from Poytaxt Bank."
+msgstr "Курс обновлён с сайта банка «Пойтахт банк»."
+
+#: .\apps\finance\views.py:329
 msgid "Finance record added."
 msgstr "Финансовая запись добавлена."
 
-#: .\apps\finance\views.py:257
+#: .\apps\finance\views.py:341
 msgid "Record deleted."
 msgstr "Запись удалена."
 
-#: .\apps\finance\views.py:271
+#: .\apps\finance\views.py:355
 msgid "Employee contract added."
 msgstr "Договор с сотрудником добавлен."
 
-#: .\apps\finance\views.py:273
+#: .\apps\finance\views.py:357
 msgid "Could not add the employee contract — please check the form."
 msgstr "Не удалось добавить договор с сотрудником — проверьте форму."
 
-#: .\apps\finance\views.py:284
+#: .\apps\finance\views.py:368
 msgid "Employee contract deleted."
 msgstr "Договор с сотрудником удалён."
 
-#: .\apps\finance\views.py:298
+#: .\apps\finance\views.py:382
 msgid "The payment amount exceeds the remaining balance."
 msgstr "Сумма платежа превышает остаток задолженности."
 
-#: .\apps\finance\views.py:307
+#: .\apps\finance\views.py:391
 #, python-format
 msgid "Salary payment — %(employee)s"
 msgstr "Выплата зарплаты — %(employee)s"
 
-#: .\apps\finance\views.py:312
+#: .\apps\finance\views.py:396
 msgid "Payment recorded."
 msgstr "Платёж зафиксирован."
 
-#: .\apps\finance\views.py:314
+#: .\apps\finance\views.py:398
 msgid "Could not record the payment — please check the form."
 msgstr "Не удалось зафиксировать платёж — проверьте форму."
+
+#: .\apps\finance\views.py:412
+msgid "Administrative expense added."
+msgstr "Административный расход добавлен."
+
+#: .\apps\finance\views.py:414
+msgid "Could not add the expense — please check the form."
+msgstr "Не удалось добавить расход — проверьте форму."
+
+#: .\apps\finance\views.py:425
+msgid "Administrative expense deleted."
+msgstr "Административный расход удалён."
 
 #: .\apps\notifications\models.py:9 .\templates\tasks\task_board.html:54
 msgid "Task"
@@ -1105,161 +1203,161 @@ msgstr "Ответственное лицо (ГИП)"
 msgid "The employee responsible for the project (optional)."
 msgstr "Сотрудник, ответственный за проект (необязательно)."
 
-#: .\apps\projects\forms.py:37
+#: .\apps\projects\forms.py:39
 msgid "The project's name — shown under this name in lists and reports."
 msgstr ""
 "Название проекта — отображается под этим названием в списках и отчётах."
 
-#: .\apps\projects\forms.py:38
+#: .\apps\projects\forms.py:40
 msgid "A short description of the project (optional)."
 msgstr "Краткое описание проекта (необязательно)."
 
-#: .\apps\projects\forms.py:39
+#: .\apps\projects\forms.py:41
 msgid "The name of the customer organization or person."
 msgstr "Название организации-заказчика или имя заказчика."
 
-#: .\apps\projects\forms.py:40
+#: .\apps\projects\forms.py:42
 msgid "The client's contact info — phone or email."
 msgstr "Контактные данные заказчика — телефон или email."
 
-#: .\apps\projects\forms.py:41
+#: .\apps\projects\forms.py:43
 msgid "The type of construction work."
 msgstr "Тип строительных работ."
 
-#: .\apps\projects\forms.py:42
+#: .\apps\projects\forms.py:44
 msgid "The construction area, m² (optional)."
 msgstr "Площадь застройки, м² (необязательно)."
 
-#: .\apps\projects\forms.py:43
+#: .\apps\projects\forms.py:45
 msgid "The construction volume (optional)."
 msgstr "Объём строительства (необязательно)."
 
-#: .\apps\projects\forms.py:44
+#: .\apps\projects\forms.py:46
 msgid "The region (viloyat) the project is located in."
 msgstr "Регион (область), в котором расположен проект."
 
-#: .\apps\projects\forms.py:45
+#: .\apps\projects\forms.py:47
 msgid "The district (tuman) the project is located in."
 msgstr "Район, в котором расположен проект."
 
-#: .\apps\projects\forms.py:46
+#: .\apps\projects\forms.py:48
 msgid "The mahalla, street, and house/building number."
 msgstr "Махалля, улица и номер дома/здания."
 
-#: .\apps\projects\forms.py:47
+#: .\apps\projects\forms.py:49
 msgid "The project's current stage (e.g. design, construction)."
 msgstr "Текущий этап проекта (например: проектирование, строительство)."
 
-#: .\apps\projects\forms.py:48
+#: .\apps\projects\forms.py:50
 msgid "The project's status (active, on hold, completed, etc.)."
 msgstr "Статус проекта (активен, приостановлен, завершён и т.д.)."
 
-#: .\apps\projects\forms.py:49
+#: .\apps\projects\forms.py:51
 msgid "The date the project started."
 msgstr "Дата начала проекта."
 
-#: .\apps\projects\forms.py:50
+#: .\apps\projects\forms.py:52
 msgid "The deadline set for completing the project."
 msgstr "Срок, установленный для завершения проекта."
 
-#: .\apps\projects\forms.py:51
+#: .\apps\projects\forms.py:53
 msgid "The project's total budget (amount)."
 msgstr "Общий бюджет проекта (сумма)."
 
-#: .\apps\projects\forms.py:52
+#: .\apps\projects\forms.py:54
 msgid "The amount paid so far — shows what share of the budget has been paid."
 msgstr ""
 "Сумма, выплаченная на данный момент — показывает, какая часть бюджета "
 "оплачена."
 
-#: .\apps\projects\forms.py:53
+#: .\apps\projects\forms.py:55
 msgid "The currency the budget and paid amount are in."
 msgstr "Валюта, в которой указаны бюджет и оплаченная сумма."
 
-#: .\apps\projects\forms.py:87
+#: .\apps\projects\forms.py:89
 msgid "Whether the client is a legal entity or an individual."
 msgstr "Является ли клиент юридическим или физическим лицом."
 
-#: .\apps\projects\forms.py:88
+#: .\apps\projects\forms.py:90
 msgid "The name of the client organization or person."
 msgstr "Название организации-заказчика или имя заказчика."
 
-#: .\apps\projects\forms.py:89
+#: .\apps\projects\forms.py:91
 msgid "The client's tax ID (STIR) — digits only (optional)."
 msgstr "Налоговый номер клиента (STIR) — только цифры (необязательно)."
 
-#: .\apps\projects\forms.py:90
+#: .\apps\projects\forms.py:92
 msgid "The client's phone number."
 msgstr "Номер телефона клиента."
 
-#: .\apps\projects\forms.py:91
+#: .\apps\projects\forms.py:93
 msgid "The client's email address (optional)."
 msgstr "Email клиента (необязательно)."
 
-#: .\apps\projects\forms.py:92
+#: .\apps\projects\forms.py:94
 msgid "The person responsible on the client's side (optional)."
 msgstr "Ответственное лицо со стороны клиента (необязательно)."
 
-#: .\apps\projects\forms.py:93
+#: .\apps\projects\forms.py:95
 msgid "That person's position (optional)."
 msgstr "Должность этого лица (необязательно)."
 
-#: .\apps\projects\forms.py:94
+#: .\apps\projects\forms.py:96
 msgid "Any additional information about the client (optional)."
 msgstr "Дополнительная информация о клиенте (необязательно)."
 
-#: .\apps\projects\forms.py:101
+#: .\apps\projects\forms.py:103
 msgid ""
 "Allowed formats: pdf, doc, docx, xls, xlsx, zip, rar. Maximum size — 50MB."
 msgstr ""
 "Допустимые форматы: pdf, doc, docx, xls, xlsx, zip, rar. Максимальный размер "
 "— 50МБ."
 
-#: .\apps\projects\forms.py:111
+#: .\apps\projects\forms.py:113
 msgid "The employee being added to the project."
 msgstr "Сотрудник, добавляемый в проект."
 
-#: .\apps\projects\forms.py:112
+#: .\apps\projects\forms.py:114
 msgid "The employee's role in the project (e.g. GIP, engineer)."
 msgstr "Роль сотрудника в проекте (например: ГИП, инженер)."
 
-#: .\apps\projects\forms.py:113
+#: .\apps\projects\forms.py:115
 msgid "If checked, the employee can edit the project's data."
 msgstr "Если отмечено, сотрудник может редактировать данные проекта."
 
-#: .\apps\projects\forms.py:114
+#: .\apps\projects\forms.py:116
 msgid "The date the employee's access to the project expires (optional)."
 msgstr "Дата, когда истекает доступ сотрудника к проекту (необязательно)."
 
-#: .\apps\projects\forms.py:128 .\apps\projects\forms.py:165
+#: .\apps\projects\forms.py:130 .\apps\projects\forms.py:167
 msgid "The sub-object's name."
 msgstr "Название суб-объекта."
 
-#: .\apps\projects\forms.py:129
+#: .\apps\projects\forms.py:131
 msgid "A short description (optional)."
 msgstr "Краткое описание (необязательно)."
 
-#: .\apps\projects\forms.py:130
+#: .\apps\projects\forms.py:132
 msgid "The sub-object's priority."
 msgstr "Приоритет объекта."
 
-#: .\apps\projects\forms.py:131
+#: .\apps\projects\forms.py:133
 msgid "When work on this sub-object starts (optional)."
 msgstr "Дата начала работ по этому объекту (необязательно)."
 
-#: .\apps\projects\forms.py:132
+#: .\apps\projects\forms.py:134
 msgid "The deadline for this sub-object."
 msgstr "Срок по этому объекту."
 
-#: .\apps\projects\forms.py:133
+#: .\apps\projects\forms.py:135
 msgid "The chief architect (GIP) responsible for the object (optional)."
 msgstr "Главный инженер (ГИП), ответственный за объект (необязательно)."
 
-#: .\apps\projects\forms.py:134
+#: .\apps\projects\forms.py:136
 msgid "The object's current status."
 msgstr "Текущий статус объекта."
 
-#: .\apps\projects\forms.py:144
+#: .\apps\projects\forms.py:146
 msgid ""
 "The specialist responsible for this discipline (filtered to matching "
 "specialists)."
@@ -1267,27 +1365,27 @@ msgstr ""
 "Специалист, ответственный за это направление (отфильтровано по подходящим "
 "специалистам)."
 
-#: .\apps\projects\forms.py:145
+#: .\apps\projects\forms.py:147
 msgid "The deadline for this section (optional)."
 msgstr "Срок по этому разделу (необязательно)."
 
-#: .\apps\projects\forms.py:146
+#: .\apps\projects\forms.py:148
 msgid "This section's current status."
 msgstr "Текущий статус этого раздела."
 
-#: .\apps\projects\forms.py:163
+#: .\apps\projects\forms.py:165
 msgid "Which object this sub-object belongs to."
 msgstr "К какому объекту относится этот подобъект."
 
-#: .\apps\projects\forms.py:164
+#: .\apps\projects\forms.py:166
 msgid "The work discipline (specialization) this sub-object covers."
 msgstr "Направление работ (специализация), которое охватывает этот подобъект."
 
-#: .\apps\projects\forms.py:166
+#: .\apps\projects\forms.py:168
 msgid "The chief architect (GIP) responsible for the sub-object (optional)."
 msgstr "Главный инженер (ГИП), ответственный за суб-объект (необязательно)."
 
-#: .\apps\projects\forms.py:167
+#: .\apps\projects\forms.py:169
 msgid "The sub-object's current status."
 msgstr "Текущий статус суб-объекта."
 
@@ -1460,7 +1558,7 @@ msgstr "Не начато"
 
 #: .\apps\projects\models.py:119 .\apps\requests_app\models.py:17
 #: .\apps\tasks\models.py:37 .\apps\tasks\views.py:89
-#: .\templates\projects\project_detail.html:313
+#: .\templates\projects\project_detail.html:305
 msgid "In progress"
 msgstr "В процессе"
 
@@ -1495,7 +1593,7 @@ msgstr "Подобъект от"
 #: .\apps\projects\models.py:138 .\apps\projects\models.py:222
 #: .\templates\accounts\user_list.html:77
 #: .\templates\documents\document_list.html:45
-#: .\templates\finance\finance_home.html:129
+#: .\templates\finance\finance_home.html:141
 #: .\templates\projects\project_wizard_confirm.html:15
 #: .\templates\projects\project_wizard_confirm.html:26
 msgid "Name"
@@ -2140,9 +2238,10 @@ msgstr "После создания будет сгенерирован и од�
 #: .\templates\documents\approval_submit.html:44
 #: .\templates\documents\document_confirm_delete.html:11
 #: .\templates\documents\document_upload.html:17
-#: .\templates\finance\_employee_contract_modal.html:47
+#: .\templates\finance\_admin_expense_modal.html:43
+#: .\templates\finance\_employee_contract_modal.html:59
 #: .\templates\finance\_employee_contract_pay_modal.html:35
-#: .\templates\finance\_transaction_modal.html:51
+#: .\templates\finance\_transaction_modal.html:66
 #: .\templates\finance\record_confirm_delete.html:11
 #: .\templates\organization\department_form.html:16
 #: .\templates\projects\project_confirm_delete.html:11
@@ -2181,11 +2280,11 @@ msgid "Filter"
 msgstr "Фильтр"
 
 #: .\templates\accounts\user_list.html:31
-#: .\templates\finance\_transaction_modal.html:52
+#: .\templates\finance\_admin_expense_modal.html:44
+#: .\templates\finance\_transaction_modal.html:67
 #: .\templates\organization\department_list.html:84
 #: .\templates\projects\project_detail.html:123
 #: .\templates\projects\project_detail.html:160
-#: .\templates\projects\project_detail.html:339
 #: .\templates\projects\project_wizard_disciplines.html:99
 msgid "Add"
 msgstr "Добавить"
@@ -2230,7 +2329,8 @@ msgstr "Удалить это направление?"
 #: .\templates\document_templates\template_list.html:25
 #: .\templates\documents\document_confirm_delete.html:10
 #: .\templates\documents\document_detail.html:16
-#: .\templates\finance\finance_home.html:81
+#: .\templates\finance\finance_home.html:82
+#: .\templates\finance\finance_home.html:226
 #: .\templates\finance\record_confirm_delete.html:10
 #: .\templates\notifications\notification_list.html:27
 #: .\templates\organization\department_list.html:39
@@ -2238,7 +2338,7 @@ msgstr "Удалить это направление?"
 #: .\templates\projects\project_confirm_delete.html:10
 #: .\templates\projects\project_detail.html:21
 #: .\templates\projects\project_detail.html:200
-#: .\templates\projects\project_detail.html:253
+#: .\templates\projects\project_detail.html:245
 #: .\templates\projects\project_wizard_documents.html:36
 #: .\templates\requests_app\request_confirm_delete.html:10
 #: .\templates\requests_app\request_detail.html:13
@@ -2355,7 +2455,7 @@ msgid "No backups yet."
 msgstr "Резервных копий пока нет."
 
 #: .\templates\core\dashboard.html:3 .\templates\core\dashboard.html:4
-#: .\templates\finance\finance_home.html:8 .\templates\partials\sidebar.html:14
+#: .\templates\partials\sidebar.html:14
 msgid "Dashboard"
 msgstr "Панель управления"
 
@@ -2385,12 +2485,11 @@ msgstr "Просроченные задачи"
 msgid "View all"
 msgstr "Смотреть все"
 
-#: .\templates\core\dashboard.html:64 .\templates\finance\finance_home.html:220
+#: .\templates\core\dashboard.html:64 .\templates\finance\finance_home.html:332
 msgid "No projects yet."
 msgstr "Проектов пока нет."
 
 #: .\templates\core\dashboard.html:70
-#: .\templates\projects\project_detail.html:318
 msgid "Team"
 msgstr "Команда"
 
@@ -2456,7 +2555,7 @@ msgstr "Ничего не найдено."
 #: .\templates\core\search_results.html:24 .\templates\partials\sidebar.html:24
 #: .\templates\projects\project_detail.html:30
 #: .\templates\projects\project_detail.html:169
-#: .\templates\projects\project_detail.html:311
+#: .\templates\projects\project_detail.html:303
 #: .\templates\tasks\task_board.html:3 .\templates\tasks\task_board.html:4
 msgid "Tasks"
 msgstr "Задачи"
@@ -2540,7 +2639,6 @@ msgstr "Маршрут согласования — %(name)s"
 
 #: .\templates\documents\approval_stage_assign.html:20
 #: .\templates\projects\_subobject_disciplines.html:21
-#: .\templates\projects\project_detail.html:329
 #: .\templates\projects\project_wizard_disciplines.html:70
 msgid "Remove"
 msgstr "Удалить"
@@ -2680,8 +2778,8 @@ msgid "Uploaded by"
 msgstr "Загрузил"
 
 #: .\templates\documents\document_list.html:18
-#: .\templates\finance\finance_home.html:26
-#: .\templates\finance\finance_home.html:101
+#: .\templates\finance\finance_home.html:27
+#: .\templates\finance\finance_home.html:102
 #: .\templates\tasks\task_board.html:15
 msgid "All projects"
 msgstr "Все проекты"
@@ -2728,34 +2826,43 @@ msgstr "Далее"
 msgid "Upload document"
 msgstr "Загрузить документ"
 
-#: .\templates\finance\_employee_contract_modal.html:9
-msgid "Assign salary"
-msgstr "Назначить зарплату"
+#: .\templates\finance\_admin_expense_modal.html:9
+msgid "Add administrative expense"
+msgstr "Добавить административный расход"
 
+#: .\templates\finance\_admin_expense_modal.html:10
 #: .\templates\finance\_employee_contract_modal.html:10
 #: .\templates\finance\_employee_contract_pay_modal.html:12
 #: .\templates\finance\_transaction_modal.html:12
 msgid "Close"
 msgstr "Закрыть"
 
-#: .\templates\finance\_employee_contract_modal.html:48
+#: .\templates\finance\_employee_contract_modal.html:9
+msgid "Assign salary"
+msgstr "Назначить зарплату"
+
+#: .\templates\finance\_employee_contract_modal.html:60
 #: .\templates\projects\_subobject_disciplines.html:16
 msgid "Assign"
 msgstr "Назначить"
 
 #: .\templates\finance\_employee_contract_pay_modal.html:11
-#: .\templates\finance\finance_home.html:46
+#: .\templates\finance\finance_home.html:47
 msgid "Give salary"
 msgstr "Выдать зарплату"
 
 #: .\templates\finance\_employee_contract_pay_modal.html:36
-#: .\templates\finance\finance_home.html:77
+#: .\templates\finance\finance_home.html:78
 msgid "Pay"
 msgstr "Оплатить"
 
 #: .\templates\finance\_transaction_modal.html:11
 msgid "Add transaction"
 msgstr "Добавить операцию"
+
+#: .\templates\finance\finance_home.html:8
+msgid "General"
+msgstr "Общее"
 
 #: .\templates\finance\finance_home.html:9
 msgid "Payroll"
@@ -2765,92 +2872,121 @@ msgstr "Зарплаты"
 msgid "Cash flow"
 msgstr "Движение д/с"
 
-#: .\templates\finance\finance_home.html:19
+#: .\templates\finance\finance_home.html:11
+msgid "Administrative expenses"
+msgstr "Административные расходы"
+
+#: .\templates\finance\finance_home.html:20
 msgid "All employees"
 msgstr "Все сотрудники"
 
-#: .\templates\finance\finance_home.html:33
-#: .\templates\finance\finance_home.html:108
+#: .\templates\finance\finance_home.html:34
+#: .\templates\finance\finance_home.html:109
 #: .\templates\tasks\task_board.html:22
 msgid "All objects"
 msgstr "Все объекты"
 
-#: .\templates\finance\finance_home.html:40
-#: .\templates\finance\finance_home.html:115
+#: .\templates\finance\finance_home.html:41
+#: .\templates\finance\finance_home.html:116
 msgid "All pod-objects"
 msgstr "Все подобъекты"
 
-#: .\templates\finance\finance_home.html:45
+#: .\templates\finance\finance_home.html:46
 msgid "+ Assign salary"
 msgstr "+ Назначить зарплату"
 
-#: .\templates\finance\finance_home.html:58
+#: .\templates\finance\finance_home.html:59
+#: .\templates\finance\finance_home.html:281
 msgid "Contract amount"
 msgstr "Сумма контракта"
 
-#: .\templates\finance\finance_home.html:59
+#: .\templates\finance\finance_home.html:60
 msgid "Advance / paid"
 msgstr "Аванс / выплачено"
 
-#: .\templates\finance\finance_home.html:60
-msgid "Balance"
-msgstr "Баланс"
+#: .\templates\finance\finance_home.html:61
+msgid "Remaining"
+msgstr "Остаток"
 
-#: .\templates\finance\finance_home.html:86
+#: .\templates\finance\finance_home.html:87
 msgid "No employee contracts yet."
 msgstr "Контрактов сотрудников пока нет."
 
 #: .\templates\finance\finance_home.html:121
+msgid "Month"
+msgstr ""
+
+#: .\templates\finance\finance_home.html:127
+#: .\templates\finance\finance_home.html:190
+msgid "All categories"
+msgstr "Все категории"
+
+#: .\templates\finance\finance_home.html:133
 msgid "Download Excel"
 msgstr "Скачать Excel"
 
-#: .\templates\finance\finance_home.html:146
+#: .\templates\finance\finance_home.html:160
 msgid "No transactions yet."
 msgstr "Операций пока нет."
 
-#: .\templates\finance\finance_home.html:163
-msgid "USD exchange rate"
-msgstr "Курс доллара"
+#: .\templates\finance\finance_home.html:181
+msgid "All periods"
+msgstr "Все периоды"
 
-#: .\templates\finance\finance_home.html:168
-msgid "Refresh from CBU"
-msgstr "Обновить с сайта ЦБ"
-
-#: .\templates\finance\finance_home.html:172
-msgid "Updated"
-msgstr "Обновлено"
-
-#: .\templates\finance\finance_home.html:178
-msgid "Net profit"
-msgstr "Чистая прибыль"
-
-#: .\templates\finance\finance_home.html:193
-msgid "Add income"
-msgstr "Добавить доход"
-
-#: .\templates\finance\finance_home.html:193
-#: .\templates\projects\project_detail.html:213
-msgid "+ Add income"
-msgstr "+ Добавить доход"
-
-#: .\templates\finance\finance_home.html:194
-msgid "Add expense"
-msgstr "Добавить расход"
-
-#: .\templates\finance\finance_home.html:194
-#: .\templates\projects\project_detail.html:214
+#: .\templates\finance\finance_home.html:196
+#: .\templates\finance\finance_home.html:303
 msgid "+ Add expense"
 msgstr "+ Добавить расход"
 
-#: .\templates\finance\finance_home.html:204
+#: .\templates\finance\finance_home.html:232
+msgid "No administrative expenses yet."
+msgstr "Административных расходов пока нет."
+
+#: .\templates\finance\finance_home.html:261
+msgid "USD exchange rate"
+msgstr "Курс доллара"
+
+#: .\templates\finance\finance_home.html:267
+msgid "Refresh from CBU"
+msgstr "Обновить с сайта ЦБ"
+
+#: .\templates\finance\finance_home.html:271
+msgid "Refresh from Poytaxt Bank"
+msgstr "Обновить с сайта Пойтахт банка"
+
+#: .\templates\finance\finance_home.html:276
+msgid "Updated"
+msgstr "Обновлено"
+
+#: .\templates\finance\finance_home.html:287
+msgid "Net profit"
+msgstr "Чистая прибыль"
+
+#: .\templates\finance\finance_home.html:302
+msgid "Add income"
+msgstr "Добавить доход"
+
+#: .\templates\finance\finance_home.html:302
+msgid "+ Add income"
+msgstr "+ Добавить доход"
+
+#: .\templates\finance\finance_home.html:303
+msgid "Add expense"
+msgstr "Добавить расход"
+
+#: .\templates\finance\finance_home.html:305
+msgid "+ Contract amount"
+msgstr "+ Сумма договора"
+
+#: .\templates\finance\finance_home.html:316
 msgid "Expected income"
 msgstr "Ожидаемый приход"
 
-#: .\templates\finance\finance_home.html:205
+#: .\templates\finance\finance_home.html:317
 msgid "Expected expense"
 msgstr "Ожидаемый расход"
 
-#: .\templates\finance\finance_home.html:206
+#: .\templates\finance\finance_home.html:318
 msgid "Profit"
 msgstr "Прибыль"
 
@@ -2968,7 +3104,7 @@ msgstr "Запросы"
 
 #: .\templates\projects\_subobject_disciplines.html:14
 #: .\templates\projects\_subobject_disciplines.html:26
-#: .\templates\projects\project_detail.html:359
+#: .\templates\projects\project_detail.html:324
 msgid "Not assigned"
 msgstr "Не назначено"
 
@@ -3024,7 +3160,7 @@ msgid "Objects & sub-objects"
 msgstr "Объекты и подобъекты"
 
 #: .\templates\projects\project_detail.html:32
-#: .\templates\projects\project_detail.html:223
+#: .\templates\projects\project_detail.html:215
 msgid "Исходные файлы"
 msgstr "Исходные файлы"
 
@@ -3047,7 +3183,7 @@ msgstr "Объекты"
 
 #: .\templates\projects\project_detail.html:72
 #: .\templates\projects\project_detail.html:84
-#: .\templates\projects\project_detail.html:292
+#: .\templates\projects\project_detail.html:284
 #: .\templates\projects\project_wizard_disciplines.html:46
 msgid "weights not assigned"
 msgstr "веса не назначены"
@@ -3106,42 +3242,38 @@ msgstr "Финансовые записи"
 msgid "No records yet."
 msgstr "Записей пока нет."
 
-#: .\templates\projects\project_detail.html:224
+#: .\templates\projects\project_detail.html:216
 #: .\templates\projects\project_wizard_documents.html:48
 msgid "Download all as ZIP"
 msgstr "Скачать всё в ZIP"
 
-#: .\templates\projects\project_detail.html:237
+#: .\templates\projects\project_detail.html:229
 #: .\templates\projects\project_wizard_documents.html:20
 msgid "Drag files here or click to choose (you can select several)"
 msgstr ""
 "Перетащите файлы сюда или нажмите, чтобы выбрать (можно выбрать несколько)"
 
-#: .\templates\projects\project_detail.html:273
+#: .\templates\projects\project_detail.html:265
 msgid "Not uploaded"
 msgstr "Не загружено"
 
-#: .\templates\projects\project_detail.html:285
+#: .\templates\projects\project_detail.html:277
 msgid "Overall progress"
 msgstr "Общий прогресс"
 
-#: .\templates\projects\project_detail.html:297
+#: .\templates\projects\project_detail.html:289
 msgid "Finance summary"
 msgstr "Финансовая сводка"
 
-#: .\templates\projects\project_detail.html:301
+#: .\templates\projects\project_detail.html:293
 #: .\templates\projects\project_list.html:37
 #: .\templates\reports\dashboard.html:39
 msgid "mln"
 msgstr "млн"
 
-#: .\templates\projects\project_detail.html:309
+#: .\templates\projects\project_detail.html:301
 msgid "Statistics"
 msgstr "Статистика"
-
-#: .\templates\projects\project_detail.html:333
-msgid "No members yet."
-msgstr "Участников пока нет."
 
 #: .\templates\projects\project_form.html:3
 #: .\templates\projects\project_form.html:4
@@ -3450,6 +3582,12 @@ msgstr "Редактировать задачу"
 #: .\templates\telegram_bot\link_redirect.html:4
 msgid "Connect Telegram"
 msgstr "Подключение Telegram"
+
+#~ msgid "No members yet."
+#~ msgstr "Участников пока нет."
+
+#~ msgid "Balance"
+#~ msgstr "Баланс"
 
 #~ msgid "Add record"
 #~ msgstr "Добавить запись"

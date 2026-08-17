@@ -22,11 +22,23 @@ in context.
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <label class="field-label" for="{{ employee_form.sub_object.id_for_label }}">{% with field=employee_form.sub_object %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
-          {{ employee_form.sub_object }}
+          <select name="sub_object" id="{{ employee_form.sub_object.id_for_label }}" class="field-input">
+            <option value="">---------</option>
+            {% for obj in employee_form.sub_object.field.queryset %}
+              <option value="{{ obj.pk }}" data-project="{{ obj.project_id }}"
+                {% if employee_form.sub_object.value|stringformat:"s" == obj.pk|stringformat:"s" %}selected{% endif %}>{{ obj }}</option>
+            {% endfor %}
+          </select>
         </div>
         <div>
           <label class="field-label" for="{{ employee_form.pod_object.id_for_label }}">{% with field=employee_form.pod_object %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
-          {{ employee_form.pod_object }}
+          <select name="pod_object" id="{{ employee_form.pod_object.id_for_label }}" class="field-input">
+            <option value="">---------</option>
+            {% for obj in employee_form.pod_object.field.queryset %}
+              <option value="{{ obj.pk }}" data-parent="{{ obj.parent_id }}"
+                {% if employee_form.pod_object.value|stringformat:"s" == obj.pk|stringformat:"s" %}selected{% endif %}>{{ obj }}</option>
+            {% endfor %}
+          </select>
         </div>
       </div>
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">

@@ -14,6 +14,7 @@ from apps.projects.permissions import can_edit_project, visible_projects_for
 from apps.reports.exports import build_cash_flow_workbook
 
 from .forms import (
+    AdministrativeExpenseForm,
     EmployeeContractForm,
     EmployeeContractPayForm,
     FinancialRecordForm,
@@ -22,14 +23,17 @@ from .forms import (
 from .models import (
     ACCOUNT_CURRENCY,
     Account,
+    AdminExpenseCategory,
+    AdministrativeExpense,
     Currency,
     EmployeeContract,
     FinanceSettings,
     FinancialRecord,
+    RecordCategory,
     RecordStatus,
     RecordType,
 )
-from .services import fetch_usd_rate
+from .services import fetch_usd_rate, fetch_usd_rate_poytaxtbank
 
 _CAN_MANAGE_FINANCE_ROLES = {User.Role.ADMIN, User.Role.MANAGER, User.Role.FINANCE}
 
@@ -73,9 +77,14 @@ def _dashboard_context(request):
         _to_uzs(r.amount, r.currency, rate)
         for r in records.filter(type__in=[RecordType.EXPENSE, RecordType.ADVANCE, RecordType.PAYMENT])
     )
+    total_admin_expense = sum(
+        _to_uzs(e.amount, e.currency, rate) for e in AdministrativeExpense.objects.all()
+    )
+    total_expense += total_admin_expense
     net_profit = total_income - total_expense
 
     contracts = EmployeeContract.objects.filter(project__in=projects)
+    total_contract_amount = sum(_to_uzs(c.amount, c.currency, rate) for c in contracts)
 
     project_rows = []
     for project in projects:
@@ -102,6 +111,14 @@ def _dashboard_context(request):
             "profit": profit,
         })
 
+    project_totals = {
+        "income_actual": sum(row["income_actual"] for row in project_rows),
+        "expense_actual": sum(row["expense_actual"] for row in project_rows),
+        "income_expected": sum(row["income_expected"] for row in project_rows),
+        "expense_expected": sum(row["expense_expected"] for row in project_rows),
+        "profit": sum(row["profit"] for row in project_rows),
+    }
+
     return {
         "account_balances": account_balances,
         "usd_rate": rate,
@@ -109,8 +126,11 @@ def _dashboard_context(request):
         "net_profit": net_profit,
         "total_income": total_income,
         "total_expense": total_expense,
+        "total_contract_amount": total_contract_amount,
         "project_rows": project_rows,
+        "project_totals": project_totals,
         "transaction_form": TransactionForm(user=user),
+        "employee_form": EmployeeContractForm(),
         "can_manage_finance": _can_manage_finance(user),
     }
 
@@ -157,26 +177,71 @@ def _filtered_cash_flow_records(request, projects):
     project_id = request.GET.get("project")
     sub_object_id = request.GET.get("sub_object")
     pod_object_id = request.GET.get("pod_object")
+    month = request.GET.get("month")
+    category = request.GET.get("category")
     if project_id:
         records = records.filter(project_id=project_id)
     if pod_object_id:
         records = records.filter(sub_object_id=pod_object_id)
     elif sub_object_id:
         records = records.filter(Q(sub_object_id=sub_object_id) | Q(sub_object__parent_id=sub_object_id))
+    if month:
+        try:
+            year, mon = (int(part) for part in month.split("-", 1))
+            records = records.filter(date__year=year, date__month=mon)
+        except ValueError:
+            pass
+    if category:
+        records = records.filter(category=category)
     return records
 
 
 def _cash_flow_context(request):
     projects = visible_projects_for(request.user)
     records = _filtered_cash_flow_records(request, projects)
+    totals = {}
+    for r in records:
+        totals[r.currency] = totals.get(r.currency, 0) + r.signed_amount
     return {
         "cash_flow_records": records[:300],
+        "cash_flow_totals": totals,
         "projects": projects,
         "objects": SubObject.objects.filter(project__in=projects, parent__isnull=True),
         "pod_objects": SubObject.objects.filter(project__in=projects, parent__isnull=False),
+        "categories": RecordCategory.choices,
         "filter_project": request.GET.get("project") or "",
         "filter_sub_object": request.GET.get("sub_object") or "",
         "filter_pod_object": request.GET.get("pod_object") or "",
+        "filter_month": request.GET.get("month") or "",
+        "filter_category": request.GET.get("category") or "",
+    }
+
+
+def _admin_expenses_context(request):
+    expenses = AdministrativeExpense.objects.select_related("created_by")
+    period = request.GET.get("period")
+    category = request.GET.get("category")
+    if period:
+        expenses = expenses.filter(period=period)
+    if category:
+        expenses = expenses.filter(category=category)
+
+    settings_obj = FinanceSettings.get_solo()
+    rate = settings_obj.usd_rate
+    totals = {}
+    for e in expenses:
+        totals[e.currency] = totals.get(e.currency, 0) + e.amount
+    total_uzs = sum(_to_uzs(e.amount, e.currency, rate) for e in expenses)
+
+    return {
+        "admin_expenses": expenses,
+        "admin_expense_totals": totals,
+        "admin_expense_total_uzs": total_uzs,
+        "admin_expense_form": AdministrativeExpenseForm(),
+        "admin_expense_categories": AdminExpenseCategory.choices,
+        "filter_period": period or "",
+        "filter_admin_category": category or "",
+        "can_manage_finance": _can_manage_finance(request.user),
     }
 
 
@@ -188,6 +253,8 @@ def finance_home(request):
         context.update(_payroll_context(request))
     elif tab == "cash_flow":
         context.update(_cash_flow_context(request))
+    elif tab == "admin_expenses":
+        context.update(_admin_expenses_context(request))
     else:
         tab = context["tab"] = "dashboard"
         context.update(_dashboard_context(request))
@@ -225,6 +292,23 @@ def update_exchange_rate(request):
             settings_obj.updated_by = request.user
             settings_obj.save()
             messages.success(request, _("Exchange rate updated from the Central Bank of Uzbekistan."))
+        else:
+            messages.error(request, _("Could not fetch the exchange rate — please try again later."))
+    return redirect(_finance_home_url("dashboard"))
+
+
+@login_required
+def update_exchange_rate_poytaxtbank(request):
+    if not _can_manage_finance(request.user):
+        raise PermissionDenied
+    if request.method == "POST":
+        rate = fetch_usd_rate_poytaxtbank()
+        if rate and rate > 0:
+            settings_obj = FinanceSettings.get_solo()
+            settings_obj.usd_rate = rate
+            settings_obj.updated_by = request.user
+            settings_obj.save()
+            messages.success(request, _("Exchange rate updated from Poytaxt Bank."))
         else:
             messages.error(request, _("Could not fetch the exchange rate — please try again later."))
     return redirect(_finance_home_url("dashboard"))
@@ -313,6 +397,33 @@ def employee_contract_pay(request):
         else:
             messages.error(request, _("Could not record the payment — please check the form."))
     return redirect(_finance_home_url("payroll"))
+
+
+@login_required
+def administrative_expense_create(request):
+    if not _can_manage_finance(request.user):
+        raise PermissionDenied
+    if request.method == "POST":
+        form = AdministrativeExpenseForm(request.POST)
+        if form.is_valid():
+            expense = form.save(commit=False)
+            expense.created_by = request.user
+            expense.save()
+            messages.success(request, _("Administrative expense added."))
+        else:
+            messages.error(request, _("Could not add the expense — please check the form."))
+    return redirect(_finance_home_url("admin_expenses"))
+
+
+@login_required
+def administrative_expense_delete(request, pk):
+    if not _can_manage_finance(request.user):
+        raise PermissionDenied
+    expense = get_object_or_404(AdministrativeExpense, pk=pk)
+    if request.method == "POST":
+        expense.delete()
+        messages.success(request, _("Administrative expense deleted."))
+    return redirect(_finance_home_url("admin_expenses"))
 
 
 @login_required

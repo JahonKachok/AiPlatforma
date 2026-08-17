@@ -56,6 +56,7 @@
 {% endblock %}
 {% block extra_scripts %}
   {% if is_create %}<script src="{% static 'js/project-form-draft.js' %}"></script>{% endif %}
+  <script src="{% static 'js/money-input.js' %}" defer></script>
   <script src="{% static 'vendor/leaflet/leaflet.js' %}"></script>
   <script>window.REGION_CENTERS = {{ region_centers_json|safe }};</script>
   <script src="{% static 'js/project-map.js' %}"></script>

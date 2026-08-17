@@ -230,6 +230,8 @@ aside nav a[class*="bg-blue-50"]::before {
 .ap-stat-label { font-size: 0.6875rem; color: #64748b; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; }
 .dark .ap-stat-label { color: #9ca3af; }
 .ap-stat-value { font-size: 1.375rem; font-weight: 700; line-height: 1.2; }
+.finance-stats-compact .card { padding: 0.75rem; }
+.finance-stats-compact .ap-stat-value { font-size: 1.05rem; }
 
 /* ============ Charts ============ */
 .ap-donut-wrap { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }

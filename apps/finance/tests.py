@@ -106,3 +106,23 @@ class ExchangeRateTests(TestCase):
         self.client.force_login(self.designer)
         response = self.client.post(reverse("finance:update_rate"))
         self.assertEqual(response.status_code, 403)
+
+    @patch("apps.finance.views.fetch_usd_rate_poytaxtbank", return_value=12345.67)
+    def test_admin_can_refresh_rate_from_poytaxtbank(self, mock_fetch):
+        self.client.force_login(self.admin)
+        response = self.client.post(reverse("finance:update_rate_poytaxtbank"))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(FinanceSettings.get_solo().usd_rate, 12345.67)
+
+    @patch("apps.finance.views.fetch_usd_rate_poytaxtbank", return_value=None)
+    def test_rate_unchanged_when_poytaxtbank_is_unreachable(self, mock_fetch):
+        FinanceSettings.objects.create(pk=1, usd_rate=11111)
+        self.client.force_login(self.admin)
+        response = self.client.post(reverse("finance:update_rate_poytaxtbank"))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(FinanceSettings.get_solo().usd_rate, 11111)
+
+    def test_non_finance_role_cannot_refresh_rate_from_poytaxtbank(self):
+        self.client.force_login(self.designer)
+        response = self.client.post(reverse("finance:update_rate_poytaxtbank"))
+        self.assertEqual(response.status_code, 403)

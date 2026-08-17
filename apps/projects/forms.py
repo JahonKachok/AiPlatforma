@@ -32,6 +32,8 @@ class ProjectForm(StyledFormMixin, forms.ModelForm):
             "description": forms.Textarea(attrs={"rows": 3}),
             "latitude": forms.HiddenInput(),
             "longitude": forms.HiddenInput(),
+            "budget": forms.TextInput(attrs={"inputmode": "decimal", "data-money-input": "true"}),
+            "paid_amount": forms.TextInput(attrs={"inputmode": "decimal", "data-money-input": "true"}),
         }
         help_texts = {
             "name": _("The project's name — shown under this name in lists and reports."),

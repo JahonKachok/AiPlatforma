@@ -5,9 +5,10 @@
 {% block page_help %}{% with text="Kompaniya kassasi, xodimlarga ish haqi to'lovlari va loyihalar bo'yicha pul harakatini nazorat qilish uchun bo'lim." %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
 {% block content %}
 <div class="mb-4 flex gap-2">
-  <a href="?tab=dashboard" class="btn btn-sm {% if tab == 'dashboard' %}btn-primary{% else %}btn-secondary{% endif %}">{% trans "Dashboard" %}</a>
+  <a href="?tab=dashboard" class="btn btn-sm {% if tab == 'dashboard' %}btn-primary{% else %}btn-secondary{% endif %}">{% trans "General" %}</a>
   <a href="?tab=payroll" class="btn btn-sm {% if tab == 'payroll' %}btn-primary{% else %}btn-secondary{% endif %}">{% trans "Payroll" %}</a>
   <a href="?tab=cash_flow" class="btn btn-sm {% if tab == 'cash_flow' %}btn-primary{% else %}btn-secondary{% endif %}">{% trans "Cash flow" %}</a>
+  <a href="?tab=admin_expenses" class="btn btn-sm {% if tab == 'admin_expenses' %}btn-primary{% else %}btn-secondary{% endif %}">{% trans "Administrative expenses" %}</a>
 </div>
 
 {% if tab == "payroll" %}
@@ -57,7 +58,7 @@
           <th class="px-3 py-2">{% trans "Pod-object" %}</th>
           <th class="px-3 py-2 text-right">{% trans "Contract amount" %}</th>
           <th class="px-3 py-2 text-right">{% trans "Advance / paid" %}</th>
-          <th class="px-3 py-2 text-right">{% trans "Balance" %}</th>
+          <th class="px-3 py-2 text-right">{% trans "Remaining" %}</th>
           <th class="px-3 py-2"></th>
         </tr>
       </thead>
@@ -116,8 +117,19 @@
         {% for o in pod_objects %}<option value="{{ o.pk }}" {% if filter_pod_object == o.pk|stringformat:"s" %}selected{% endif %}>{{ o.name }}</option>{% endfor %}
       </select>
     </div>
+    <div>
+      <label class="field-label">{% trans "Month" %}</label>
+      <input type="month" name="month" value="{{ filter_month }}" onchange="this.form.submit()" class="field-input w-auto">
+    </div>
+    <div>
+      <label class="field-label">{% trans "Category" %}</label>
+      <select name="category" onchange="this.form.submit()" class="field-input w-auto">
+        <option value="">{% trans "All categories" %}</option>
+        {% for value, label in categories %}<option value="{{ value }}" {% if filter_category == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
     <a class="btn btn-secondary btn-sm ml-auto"
-       href="{% url 'finance:cash_flow_export' %}?project={{ filter_project }}&sub_object={{ filter_sub_object }}&pod_object={{ filter_pod_object }}">
+       href="{% url 'finance:cash_flow_export' %}?project={{ filter_project }}&sub_object={{ filter_sub_object }}&pod_object={{ filter_pod_object }}&month={{ filter_month }}&category={{ filter_category }}">
       {% trans "Download Excel" %}
     </a>
   </form>
@@ -128,6 +140,7 @@
         <tr>
           <th class="px-3 py-2">{% trans "Name" %}</th>
           <th class="px-3 py-2">{% trans "Date" %}</th>
+          <th class="px-3 py-2">{% trans "Type" %}</th>
           <th class="px-3 py-2">{% trans "Category" %}</th>
           <th class="px-3 py-2">{% trans "Currency" %}</th>
           <th class="px-3 py-2 text-right">{% trans "Amount" %}</th>
@@ -137,46 +150,142 @@
         {% for record in cash_flow_records %}
           <tr class="border-b border-gray-100 dark:border-gray-700">
             <td class="px-3 py-2">{{ record.description|default:"—" }}</td>
-            <td class="px-3 py-2">{{ record.date }}</td>
+            <td class="px-3 py-2">{{ record.created_at|date:"d.m.Y H:i" }}</td>
             <td class="px-3 py-2"><span class="{{ record.type|record_type_badge }}">{{ record.get_type_display }}</span></td>
+            <td class="px-3 py-2">{{ record.get_category_display|default:"—" }}</td>
             <td class="px-3 py-2">{{ record.currency }}</td>
             <td class="px-3 py-2 text-right">{{ record.amount|money }}</td>
           </tr>
         {% empty %}
-          <tr><td colspan="5" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">{% trans "No transactions yet." %}</td></tr>
+          <tr><td colspan="6" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">{% trans "No transactions yet." %}</td></tr>
         {% endfor %}
+        {% if cash_flow_records %}
+          <tr class="border-t-2 border-gray-200 font-semibold dark:border-gray-600">
+            <td class="px-3 py-2" colspan="5">{% trans "Total" %}</td>
+            <td class="px-3 py-2 text-right">
+              {% for currency, total in cash_flow_totals.items %}{{ total|money }} {{ currency }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            </td>
+          </tr>
+        {% endif %}
       </tbody>
     </table>
   </div>
 
+{% elif tab == "admin_expenses" %}
+  <form method="get" class="card mb-4 flex flex-wrap items-end justify-between gap-2 p-4">
+    <input type="hidden" name="tab" value="admin_expenses">
+    <div class="flex flex-wrap items-end gap-2">
+      <div>
+        <label class="field-label">{% trans "Period" %}</label>
+        <select name="period" onchange="this.form.submit()" class="field-input w-auto">
+          <option value="">{% trans "All periods" %}</option>
+          <option value="month" {% if filter_period == "month" %}selected{% endif %}>{% trans "Monthly" %}</option>
+          <option value="quarter" {% if filter_period == "quarter" %}selected{% endif %}>{% trans "Quarterly" %}</option>
+          <option value="year" {% if filter_period == "year" %}selected{% endif %}>{% trans "Yearly" %}</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">{% trans "Category" %}</label>
+        <select name="category" onchange="this.form.submit()" class="field-input w-auto">
+          <option value="">{% trans "All categories" %}</option>
+          {% for value, label in admin_expense_categories %}<option value="{{ value }}" {% if filter_admin_category == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+    {% if can_manage_finance %}
+      <button type="button" class="btn btn-primary btn-sm" data-modal-open="admin-expense-modal">{% trans "+ Add expense" %}</button>
+    {% endif %}
+  </form>
+
+  <div class="card overflow-x-auto">
+    <table class="w-full text-left text-sm">
+      <thead class="border-b border-gray-200 text-gray-500 dark:border-gray-700 dark:text-gray-400">
+        <tr>
+          <th class="px-3 py-2">{% trans "Category" %}</th>
+          <th class="px-3 py-2 text-right">{% trans "Amount" %}</th>
+          <th class="px-3 py-2">{% trans "Currency" %}</th>
+          <th class="px-3 py-2">{% trans "Period" %}</th>
+          <th class="px-3 py-2">{% trans "Date" %}</th>
+          <th class="px-3 py-2">{% trans "Note" %}</th>
+          <th class="px-3 py-2"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for expense in admin_expenses %}
+          <tr class="border-b border-gray-100 dark:border-gray-700">
+            <td class="px-3 py-2">{{ expense.get_category_display }}</td>
+            <td class="px-3 py-2 text-right">{{ expense.amount|money }}</td>
+            <td class="px-3 py-2">{{ expense.currency }}</td>
+            <td class="px-3 py-2">{{ expense.get_period_display }}</td>
+            <td class="px-3 py-2">{{ expense.date }}</td>
+            <td class="px-3 py-2">{{ expense.note|default:"—" }}</td>
+            <td class="px-3 py-2 text-right">
+              {% if can_manage_finance %}
+                <form method="post" action="{% url 'finance:delete_administrative_expense' expense.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="text-xs text-red-500 hover:underline">{% trans "Delete" %}</button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">{% trans "No administrative expenses yet." %}</td></tr>
+        {% endfor %}
+        {% if admin_expenses %}
+          <tr class="border-t-2 border-gray-200 font-semibold dark:border-gray-600">
+            <td class="px-3 py-2" colspan="2">
+              {% trans "Total" %}:
+              {% for currency, total in admin_expense_totals.items %}{{ total|money }} {{ currency }}{% if not forloop.last %}, {% endif %}{% endfor %}
+              ({{ admin_expense_total_uzs|money }} UZS)
+            </td>
+            <td class="px-3 py-2" colspan="5"></td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  {% include "finance/_admin_expense_modal.html" %}
+
 {% else %}
-  <div class="mb-4 flex flex-col gap-4 lg:flex-row">
+  <div class="mb-4 flex flex-col gap-4 lg:flex-row finance-stats-compact">
     <div class="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {% for row in account_balances %}
-        <div class="card p-4">
+        <div class="card min-w-0 p-4">
           <p class="ap-stat-label">{{ row.label }}</p>
-          <p class="ap-stat-value mt-1">{{ row.total|money }} <small class="text-sm font-normal text-gray-400">{{ row.currency }}</small></p>
+          <p class="ap-stat-value mt-1 break-words">{{ row.total|money }} <small class="text-sm font-normal text-gray-400">{{ row.currency }}</small></p>
         </div>
       {% endfor %}
 
-      <div class="card p-4">
+      <div class="card min-w-0 p-4">
         <p class="ap-stat-label">{% trans "USD exchange rate" %}</p>
-        <p class="ap-stat-value mt-1">{{ usd_rate|money }} <small class="text-sm font-normal text-gray-400">UZS</small></p>
+        <p class="ap-stat-value mt-1 break-words">{{ usd_rate|money }} <small class="text-sm font-normal text-gray-400">UZS</small></p>
         {% if can_manage_finance %}
-          <form method="post" action="{% url 'finance:update_rate' %}" class="mt-2">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-secondary btn-sm">{% trans "Refresh from CBU" %}</button>
-          </form>
+          <div class="mt-2 flex flex-wrap gap-2">
+            <form method="post" action="{% url 'finance:update_rate' %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-secondary btn-sm">{% trans "Refresh from CBU" %}</button>
+            </form>
+            <form method="post" action="{% url 'finance:update_rate_poytaxtbank' %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-secondary btn-sm">{% trans "Refresh from Poytaxt Bank" %}</button>
+            </form>
+          </div>
         {% endif %}
         {% if usd_rate_updated_at %}
           <p class="mt-1 text-[10px] text-gray-400">{% trans "Updated" %}: {{ usd_rate_updated_at }}</p>
         {% endif %}
       </div>
+
+      <div class="card min-w-0 p-4">
+        <p class="ap-stat-label">{% trans "Contract amount" %}</p>
+        <p class="ap-stat-value mt-1 break-words">{{ total_contract_amount|money }} <small class="text-sm font-normal text-gray-400">UZS</small></p>
+      </div>
     </div>
 
-    <div class="card border-2 p-5 lg:w-80" style="border-color:var(--ap-primary)">
+    <div class="card min-w-0 border-2 p-5 lg:w-80 lg:shrink-0" style="border-color:var(--ap-primary)">
       <p class="ap-stat-label">{% trans "Net profit" %}</p>
-      <p class="mt-1 text-3xl font-bold {% if net_profit >= 0 %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">{{ net_profit|money }}</p>
+      <p class="mt-1 break-all text-xl font-bold sm:text-2xl {% if net_profit >= 0 %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">{{ net_profit|money }}</p>
       <p class="text-xs text-gray-400">UZS</p>
       <div class="mt-4 flex items-center justify-between border-t border-gray-200 pt-3 text-sm dark:border-gray-700">
         <span class="text-gray-500 dark:text-gray-400">{% trans "Income" %}</span>
@@ -192,6 +301,9 @@
   <div class="mb-4 flex gap-2">
     <button type="button" class="btn btn-primary btn-sm" data-modal-open="transaction-modal" data-transaction-type="income" data-transaction-title="{% trans 'Add income' %}">{% trans "+ Add income" %}</button>
     <button type="button" class="btn btn-secondary btn-sm" data-modal-open="transaction-modal" data-transaction-type="expense" data-transaction-title="{% trans 'Add expense' %}">{% trans "+ Add expense" %}</button>
+    {% if can_manage_finance %}
+      <button type="button" class="btn btn-secondary btn-sm" data-modal-open="employee-contract-modal">{% trans "+ Contract amount" %}</button>
+    {% endif %}
   </div>
 
   <div class="card overflow-x-auto">
@@ -219,14 +331,26 @@
         {% empty %}
           <tr><td colspan="6" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">{% trans "No projects yet." %}</td></tr>
         {% endfor %}
+        {% if project_rows %}
+          <tr class="border-t-2 border-gray-200 font-semibold dark:border-gray-600">
+            <td class="px-4 py-2">{% trans "Total" %}</td>
+            <td class="px-4 py-2 text-right text-green-600 dark:text-green-400">{{ project_totals.income_actual|money }}</td>
+            <td class="px-4 py-2 text-right text-red-600 dark:text-red-400">{{ project_totals.expense_actual|money }}</td>
+            <td class="px-4 py-2 text-right">{{ project_totals.income_expected|money }}</td>
+            <td class="px-4 py-2 text-right">{{ project_totals.expense_expected|money }}</td>
+            <td class="px-4 py-2 text-right {% if project_totals.profit >= 0 %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">{{ project_totals.profit|money }}</td>
+          </tr>
+        {% endif %}
       </tbody>
     </table>
   </div>
 
   {% include "finance/_transaction_modal.html" %}
+  {% include "finance/_employee_contract_modal.html" %}
 {% endif %}
 {% endblock %}
 
 {% block extra_scripts %}
   <script src="{% static 'js/finance.js' %}" defer></script>
+  <script src="{% static 'js/money-input.js' %}" defer></script>
 {% endblock %}

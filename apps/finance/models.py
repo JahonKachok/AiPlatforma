@@ -17,6 +17,22 @@ class RecordStatus(models.TextChoices):
     CANCELLED = "cancelled", _("Cancelled")
 
 
+class RecordCategory(models.TextChoices):
+    RENT = "rent", _("Rent")
+    TAX = "tax", _("Tax")
+    UTILITIES = "utilities", _("Utilities")
+    SUPPLIES = "supplies", _("Office supplies")
+    MATERIALS = "materials", _("Materials")
+    SALARY = "salary", _("Salary")
+    OTHER = "other", _("Other")
+
+
+class AdminExpensePeriod(models.TextChoices):
+    MONTH = "month", _("Monthly")
+    QUARTER = "quarter", _("Quarterly")
+    YEAR = "year", _("Yearly")
+
+
 class ContractStatus(models.TextChoices):
     DRAFT = "draft", _("Draft")
     ACTIVE = "active", _("Active")
@@ -59,7 +75,9 @@ class FinancialRecord(models.Model):
     amount = models.FloatField(verbose_name=_("Amount"))
     currency = models.CharField(max_length=10, default="UZS", verbose_name=_("Currency"))
     description = models.CharField(max_length=500, blank=True, null=True, verbose_name=_("Description"))
-    category = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("Category"))
+    category = models.CharField(
+        max_length=100, choices=RecordCategory.choices, blank=True, null=True, verbose_name=_("Category"),
+    )
     date = models.DateField(verbose_name=_("Date"))
     status = models.CharField(
         max_length=20, choices=RecordStatus.choices, default=RecordStatus.PENDING, verbose_name=_("Status"),
@@ -139,6 +157,33 @@ class FinanceSettings(models.Model):
         obj, _created = cls.objects.get_or_create(pk=1)
         return obj
 
-    def save(self, *args, **kwargs):
-        self.pk = 1
-        super().save(*args, **kwargs)
+
+class AdminExpenseCategory(models.TextChoices):
+    TAX = "tax", _("Tax")
+    RENT = "rent", _("Rent")
+    UTILITIES = "utilities", _("Utilities")
+    SUPPLIES = "supplies", _("Office supplies")
+    OTHER = "other", _("Other")
+
+
+class AdministrativeExpense(models.Model):
+    """A recurring/fixed company-wide cost (tax, rent, utilities, office
+    supplies) tracked separately from project cash flow, on a monthly,
+    quarterly, or yearly basis."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    category = models.CharField(max_length=20, choices=AdminExpenseCategory.choices, verbose_name=_("Category"))
+    amount = models.FloatField(verbose_name=_("Amount"))
+    currency = models.CharField(max_length=10, choices=Currency.choices, default=Currency.UZS, verbose_name=_("Currency"))
+    period = models.CharField(max_length=10, choices=AdminExpensePeriod.choices, verbose_name=_("Period"))
+    date = models.DateField(verbose_name=_("Date"))
+    note = models.CharField(max_length=500, blank=True, null=True, verbose_name=_("Note"))
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-date"]
+
+    def __str__(self):
+        return f"{self.get_category_display()} {self.amount} ({self.get_period_display()})"

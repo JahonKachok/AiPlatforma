@@ -18,7 +18,9 @@ from apps.projects.permissions import ensure_project_member, visible_projects_fo
 
 from .forms import TaskAttachmentForm, TaskCommentForm, TaskForm
 from .models import Task, TaskAttachment, TaskComment
-from .permissions import allowed_status_targets, can_change_task_status, is_privileged, resolve_reviewer
+from .permissions import (
+    allowed_status_targets, can_change_task_status, is_privileged, resolve_reviewer, reviewer_candidates,
+)
 from .services import submit_task_for_approval
 
 
@@ -199,10 +201,14 @@ def task_detail(request, pk):
     is_reviewer = task.status == Task.Status.REVIEW and (
         is_privileged(request.user) or (reviewer is not None and reviewer.id == request.user.id)
     )
+    # "Review" gets its own dialog (you pick who checks it), so it is not one
+    # of the plain one-click status buttons.
     next_statuses = [
         (value, label) for value, label in Task.Status.choices
-        if value != Task.Status.REVISION and can_change_task_status(request.user, task, value)
+        if value not in (Task.Status.REVISION, Task.Status.REVIEW)
+        and can_change_task_status(request.user, task, value)
     ]
+    can_send_for_review = can_change_task_status(request.user, task, Task.Status.REVIEW)
 
     return render(request, "tasks/task_detail.html", {
         "task": task,
@@ -211,6 +217,8 @@ def task_detail(request, pk):
         "next_statuses": next_statuses,
         "reviewer": reviewer,
         "is_reviewer": is_reviewer,
+        "can_send_for_review": can_send_for_review,
+        "reviewer_candidates": reviewer_candidates().exclude(pk=request.user.pk),
         "revision_form": TaskCommentForm(),
     })
 
@@ -291,14 +299,37 @@ def task_update_status(request, pk):
         messages.error(request, error)
         return redirect("tasks:detail", pk=pk)
 
+    update_fields = ["status", "updated_at"]
+    chosen_reviewer = None
+    if status == Task.Status.REVIEW:
+        reviewer_id = request.POST.get("reviewer")
+        if reviewer_id:
+            chosen_reviewer = reviewer_candidates().filter(pk=reviewer_id).first()
+            if chosen_reviewer is None:
+                error = _("Pick who should check this task.")
+                if is_ajax:
+                    return JsonResponse({"ok": False, "error": str(error)}, status=400)
+                messages.error(request, error)
+                return redirect("tasks:detail", pk=pk)
+            task.reviewer = chosen_reviewer
+            update_fields.append("reviewer")
+
     task.status = status
-    task.save(update_fields=["status", "updated_at"])
+    task.save(update_fields=update_fields)
+    if chosen_reviewer is not None:
+        ensure_project_member(task.project, chosen_reviewer)
+        if chosen_reviewer.id != request.user.id:
+            notify_user(
+                chosen_reviewer, "task", _("Task sent to you for review"),
+                _('"%(title)s" is waiting for your review.') % {"title": task.title},
+                link=f"/tasks/{task.pk}/",
+            )
+        messages.success(
+            request,
+            _("Sent for review to %(user)s.") % {"user": chosen_reviewer.get_short_name()},
+        )
     if comment:
         TaskComment.objects.create(task=task, user=request.user, content=comment)
-    if status == Task.Status.APPROVED:
-        document = submit_task_for_approval(task, request.user)
-        if document:
-            messages.success(request, _("Task approved and sent to Approvals for sign-off."))
     AuditLog.log(obj=task, action="status_changed", user=request.user, details={"status": status})
     if task.assignee and task.assignee_id != request.user.id:
         notify_user(
@@ -308,6 +339,31 @@ def task_update_status(request, pk):
         )
     if is_ajax:
         return JsonResponse({"ok": True, "status": task.status})
+    return redirect("tasks:detail", pk=pk)
+
+
+@require_POST
+@login_required
+def task_send_for_approval(request, pk):
+    """The reviewer passes a checked task on to the project's GIP. The task
+    stays in review until the GIP signs it off in the Approvals section — only
+    then does it become approved."""
+    task = get_object_or_404(_visible_tasks(request.user), pk=pk)
+    reviewer = resolve_reviewer(task)
+    is_reviewer = is_privileged(request.user) or (reviewer is not None and reviewer.id == request.user.id)
+    if not is_reviewer or task.status != Task.Status.REVIEW:
+        raise PermissionDenied
+
+    document = submit_task_for_approval(task, request.user)
+    if document is None:
+        messages.error(request, _("This project has no GIP assigned to sign work off."))
+    else:
+        approver = document.approval_stages.last().reviewer
+        messages.success(
+            request,
+            _("Sent to %(user)s for approval. The task will be approved once they sign it off.")
+            % {"user": approver.get_short_name()},
+        )
     return redirect("tasks:detail", pk=pk)
 
 

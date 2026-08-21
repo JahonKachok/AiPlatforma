@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BuildFlow\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-21 21:40+0500\n"
+"POT-Creation-Date: 2026-08-21 22:43+0500\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -98,7 +98,7 @@ msgid "Approval required"
 msgstr "Требуется согласование"
 
 #: .\apps\accounts\forms.py:77 .\apps\requests_app\views.py:70
-#: .\apps\tasks\views.py:190
+#: .\apps\tasks\views.py:192
 msgid "New comment"
 msgstr "Новый комментарий"
 
@@ -191,7 +191,8 @@ msgstr "Помощник ГИП"
 msgid "Designer"
 msgstr "Дизайнер"
 
-#: .\apps\accounts\models.py:64
+#: .\apps\accounts\models.py:64 .\apps\tasks\models.py:64
+#: .\templates\tasks\task_detail.html:112
 msgid "Reviewer"
 msgstr "Проверяющий"
 
@@ -366,7 +367,7 @@ msgid "Other"
 msgstr "Другое"
 
 #: .\apps\document_templates\views.py:24 .\apps\notifications\views.py:19
-#: .\apps\projects\views.py:134 .\apps\tasks\views.py:90
+#: .\apps\projects\views.py:134 .\apps\tasks\views.py:92
 #: .\templates\accounts\user_list.html:14
 #: .\templates\documents\document_list.html:8
 #: .\templates\finance\finance_home.html:259
@@ -494,7 +495,7 @@ msgid "Select an object (and pod object, if applicable)."
 msgstr "Выберите объект (и подобъект, если применимо)."
 
 #: .\apps\documents\forms.py:84 .\templates\requests_app\request_detail.html:21
-#: .\templates\tasks\task_detail.html:71
+#: .\templates\tasks\task_detail.html:76
 msgid "Comments"
 msgstr "Комментарии"
 
@@ -570,12 +571,12 @@ msgid "This object has no GIP assigned to review submissions."
 msgstr "Для этого объекта не назначен ГИП для проверки заявок."
 
 #: .\apps\documents\views.py:266 .\apps\documents\views.py:298
-#: .\apps\tasks\services.py:48
+#: .\apps\tasks\services.py:57
 msgid "New document to review"
 msgstr "Новый документ на проверку"
 
 #: .\apps\documents\views.py:267 .\apps\documents\views.py:299
-#: .\apps\tasks\services.py:49
+#: .\apps\tasks\services.py:58
 #, python-format
 msgid "%(doc)s needs your review."
 msgstr "%(doc)s требует вашей проверки."
@@ -600,29 +601,38 @@ msgstr "Мои проверки"
 msgid "This stage has already been reviewed."
 msgstr "Этот этап уже проверен."
 
-#: .\apps\documents\views.py:389
+#: .\apps\documents\views.py:390
 msgid "Sent back for revision from the Approvals section."
 msgstr "Отправлено на доработку из раздела «Согласования»."
 
-#: .\apps\documents\views.py:393
+#: .\apps\documents\views.py:394
 msgid "Task sent back for revision"
 msgstr "Задача отправлена на доработку"
 
-#: .\apps\documents\views.py:394
+#: .\apps\documents\views.py:395
 #, python-format
 msgid "\"%(title)s\" needs revision — see the approval comment."
 msgstr "«%(title)s» требует доработки — смотрите комментарий согласующего."
 
-#: .\apps\documents\views.py:400
+#: .\apps\documents\views.py:404
+msgid "Task approved"
+msgstr "Задача утверждена"
+
+#: .\apps\documents\views.py:405
+#, python-format
+msgid "\"%(title)s\" was approved by the GIP."
+msgstr "«%(title)s» утверждена ГИПом."
+
+#: .\apps\documents\views.py:411
 msgid "Document review update"
 msgstr "Обновление проверки документа"
 
-#: .\apps\documents\views.py:401
+#: .\apps\documents\views.py:412
 #, python-format
 msgid "%(doc)s was marked as %(status)s."
 msgstr "%(doc)s был отмечен как %(status)s."
 
-#: .\apps\documents\views.py:404
+#: .\apps\documents\views.py:415
 msgid "Review submitted."
 msgstr "Решение отправлено."
 
@@ -845,7 +855,7 @@ msgstr "Активен"
 
 #: .\apps\finance\models.py:39 .\apps\projects\models.py:24
 #: .\apps\projects\models.py:121 .\apps\projects\views.py:137
-#: .\apps\tasks\models.py:41 .\apps\tasks\views.py:93
+#: .\apps\tasks\models.py:41 .\apps\tasks\views.py:95
 #: .\templates\projects\project_detail.html:304
 msgid "Completed"
 msgstr "Завершено"
@@ -884,7 +894,7 @@ msgstr "Наличные (USD)"
 #: .\templates\projects\_wizard_steps.html:14
 #: .\templates\projects\project_wizard_confirm.html:13
 #: .\templates\requests_app\request_detail.html:45
-#: .\templates\tasks\task_board.html:54 .\templates\tasks\task_detail.html:104
+#: .\templates\tasks\task_board.html:54 .\templates\tasks\task_detail.html:109
 msgid "Project"
 msgstr "Проект"
 
@@ -1095,7 +1105,7 @@ msgstr "Задача"
 #: .\apps\projects\models.py:152 .\apps\projects\models.py:186
 #: .\templates\documents\document_detail.html:80
 #: .\templates\projects\project_detail.html:42
-#: .\templates\tasks\task_board.html:56 .\templates\tasks\task_detail.html:107
+#: .\templates\tasks\task_board.html:56 .\templates\tasks\task_detail.html:113
 msgid "Deadline"
 msgstr "Срок"
 
@@ -1609,14 +1619,14 @@ msgid "Not started"
 msgstr "Не начато"
 
 #: .\apps\projects\models.py:119 .\apps\requests_app\models.py:17
-#: .\apps\tasks\models.py:37 .\apps\tasks\views.py:91
+#: .\apps\tasks\models.py:37 .\apps\tasks\views.py:93
 #: .\templates\projects\project_detail.html:305
 msgid "In progress"
 msgstr "В процессе"
 
 #: .\apps\projects\models.py:120 .\apps\tasks\models.py:38
 #: .\templates\documents\approvals_list.html:36
-#: .\templates\tasks\task_detail.html:36
+#: .\templates\tasks\task_detail.html:39
 msgid "Review"
 msgstr "Проверка"
 
@@ -1658,7 +1668,7 @@ msgstr "Приоритет"
 
 #: .\apps\projects\models.py:184
 #: .\templates\requests_app\request_detail.html:47
-#: .\templates\tasks\task_board.html:55 .\templates\tasks\task_detail.html:106
+#: .\templates\tasks\task_board.html:55 .\templates\tasks\task_detail.html:111
 msgid "Assignee"
 msgstr "Исполнитель"
 
@@ -1709,12 +1719,12 @@ msgstr "Истекает"
 msgid "Develop the project"
 msgstr "Разработать проект"
 
-#: .\apps\projects\services.py:53 .\apps\tasks\views.py:160
+#: .\apps\projects\services.py:53 .\apps\tasks\views.py:162
 msgid "New task assigned"
 msgstr "Назначена новая задача"
 
 #: .\apps\projects\services.py:54 .\apps\requests_app\views.py:47
-#: .\apps\tasks\views.py:161 .\apps\tasks\views.py:235
+#: .\apps\tasks\views.py:163 .\apps\tasks\views.py:243
 #, python-format
 msgid "You were assigned to \"%(title)s\"."
 msgstr "Вы назначены на «%(title)s»."
@@ -2021,7 +2031,7 @@ msgstr "Назначена новая заявка"
 msgid "Request created."
 msgstr "Заявка создана."
 
-#: .\apps\requests_app\views.py:71 .\apps\tasks\views.py:191
+#: .\apps\requests_app\views.py:71 .\apps\tasks\views.py:193
 #, python-format
 msgid "%(user)s commented on \"%(title)s\"."
 msgstr "%(user)s оставил комментарий к «%(title)s»."
@@ -2087,50 +2097,79 @@ msgstr "Загрузите файл, относящийся к задаче (м�
 msgid "New"
 msgstr "Новая"
 
-#: .\apps\tasks\views.py:95
+#: .\apps\tasks\models.py:65
+msgid "Who checks this task once it is sent for review."
+msgstr "Кто проверит задачу после отправки на проверку."
+
+#: .\apps\tasks\views.py:97
 msgid "Overdue"
 msgstr "Просрочено"
 
-#: .\apps\tasks\views.py:164
+#: .\apps\tasks\views.py:166
 msgid "Task created."
 msgstr "Задача создана."
 
-#: .\apps\tasks\views.py:234
+#: .\apps\tasks\views.py:242
 msgid "Task assigned to you"
 msgstr "Вам назначена задача"
 
-#: .\apps\tasks\views.py:240 .\apps\tasks\views.py:305
+#: .\apps\tasks\views.py:248 .\apps\tasks\views.py:336
 msgid "Task status changed"
 msgstr "Статус задачи изменён"
 
-#: .\apps\tasks\views.py:241 .\apps\tasks\views.py:306
+#: .\apps\tasks\views.py:249 .\apps\tasks\views.py:337
 #, python-format
 msgid "\"%(title)s\" is now %(status)s."
 msgstr "«%(title)s» теперь %(status)s."
 
-#: .\apps\tasks\views.py:244
+#: .\apps\tasks\views.py:252
 msgid "Task updated."
 msgstr "Задача обновлена."
 
-#: .\apps\tasks\views.py:261
+#: .\apps\tasks\views.py:269
 msgid "Task deleted."
 msgstr "Задача удалена."
 
-#: .\apps\tasks\views.py:275 .\apps\tasks\views.py:276
+#: .\apps\tasks\views.py:283 .\apps\tasks\views.py:284
 msgid "Unknown status."
 msgstr "Неизвестный статус."
 
-#: .\apps\tasks\views.py:280
+#: .\apps\tasks\views.py:288
 msgid "You don't have permission to move this task to that status."
 msgstr "У вас нет прав переводить задачу в этот статус."
 
-#: .\apps\tasks\views.py:288
+#: .\apps\tasks\views.py:296
 msgid "A comment is required when sending a task back for revision."
 msgstr "При отправке задачи на доработку нужно оставить комментарий."
 
-#: .\apps\tasks\views.py:301
-msgid "Task approved and sent to Approvals for sign-off."
-msgstr "Задача утверждена и отправлена в «Согласования»."
+#: .\apps\tasks\views.py:309
+msgid "Pick who should check this task."
+msgstr "Выберите, кто должен проверить эту задачу."
+
+#: .\apps\tasks\views.py:323
+msgid "Task sent to you for review"
+msgstr "Вам отправлена задача на проверку"
+
+#: .\apps\tasks\views.py:324
+#, python-format
+msgid "\"%(title)s\" is waiting for your review."
+msgstr "«%(title)s» ожидает вашей проверки."
+
+#: .\apps\tasks\views.py:329
+#, python-format
+msgid "Sent for review to %(user)s."
+msgstr "Отправлено на проверку: %(user)s."
+
+#: .\apps\tasks\views.py:359
+msgid "This project has no GIP assigned to sign work off."
+msgstr "В этом проекте не назначен ГИП для согласования."
+
+#: .\apps\tasks\views.py:364
+#, python-format
+msgid ""
+"Sent to %(user)s for approval. The task will be approved once they sign it "
+"off."
+msgstr "Отправлено на согласование: %(user)s. Задача станет утверждённой после его согласования."
 
 #: .\apps\telegram_bot\views.py:45
 msgid "Telegram account unlinked."
@@ -2353,7 +2392,8 @@ msgstr "После создания будет сгенерирован и од�
 #: .\templates\requests_app\request_confirm_delete.html:11
 #: .\templates\requests_app\request_form.html:17
 #: .\templates\tasks\task_confirm_delete.html:11
-#: .\templates\tasks\task_detail.html:133 .\templates\tasks\task_form.html:33
+#: .\templates\tasks\task_detail.html:150
+#: .\templates\tasks\task_detail.html:173 .\templates\tasks\task_form.html:33
 msgid "Cancel"
 msgstr "Отмена"
 
@@ -2457,8 +2497,8 @@ msgstr "Удалить это направление?"
 #: .\templates\requests_app\request_confirm_delete.html:10
 #: .\templates\requests_app\request_detail.html:13
 #: .\templates\tasks\task_confirm_delete.html:10
-#: .\templates\tasks\task_detail.html:13 .\templates\tasks\task_detail.html:57
-#: .\templates\tasks\task_detail.html:84
+#: .\templates\tasks\task_detail.html:13 .\templates\tasks\task_detail.html:62
+#: .\templates\tasks\task_detail.html:89
 msgid "Delete"
 msgstr "Удалить"
 
@@ -2822,7 +2862,7 @@ msgstr "Отправить"
 #: .\templates\documents\approval_submit.html:43
 #: .\templates\documents\approvals_list.html:14
 #: .\templates\documents\document_detail.html:18
-#: .\templates\tasks\task_detail.html:41
+#: .\templates\tasks\task_detail.html:43
 msgid "Send for approval"
 msgstr "Отправить на согласование"
 
@@ -2841,7 +2881,7 @@ msgstr "Подобъект"
 
 #: .\templates\documents\approvals_list.html:3
 #: .\templates\documents\approvals_list.html:4
-#: .\templates\partials\sidebar.html:34 .\templates\tasks\task_detail.html:110
+#: .\templates\partials\sidebar.html:34 .\templates\tasks\task_detail.html:116
 msgid "Approvals"
 msgstr "Согласования"
 
@@ -2914,7 +2954,7 @@ msgstr "Нет записей."
 #: .\templates\documents\document_detail.html:74
 #: .\templates\projects\project_history.html:9
 #: .\templates\requests_app\request_detail.html:42
-#: .\templates\tasks\task_detail.html:102
+#: .\templates\tasks\task_detail.html:107
 msgid "Details"
 msgstr "Подробности"
 
@@ -2950,7 +2990,7 @@ msgstr "Все статусы"
 
 #: .\templates\documents\document_list.html:31
 #: .\templates\documents\document_upload.html:16
-#: .\templates\tasks\task_detail.html:66
+#: .\templates\tasks\task_detail.html:71
 msgid "Upload"
 msgstr "Загрузить"
 
@@ -2994,7 +3034,8 @@ msgstr "Добавить административный расход"
 #: .\templates\finance\_employee_contract_modal.html:10
 #: .\templates\finance\_employee_contract_pay_modal.html:12
 #: .\templates\finance\_transaction_modal.html:12
-#: .\templates\tasks\task_detail.html:123
+#: .\templates\tasks\task_detail.html:129
+#: .\templates\tasks\task_detail.html:163
 msgid "Close"
 msgstr "Закрыть"
 
@@ -3718,12 +3759,13 @@ msgid "Are you sure you want to delete \"%(title)s\"?"
 msgstr "Вы уверены, что хотите удалить \"%(title)s\"?"
 
 #: .\templates\requests_app\request_detail.html:32
-#: .\templates\tasks\task_detail.html:90
+#: .\templates\tasks\task_detail.html:95
 msgid "No comments yet."
 msgstr "Комментариев пока нет."
 
 #: .\templates\requests_app\request_detail.html:37
-#: .\templates\tasks\task_detail.html:95
+#: .\templates\tasks\task_detail.html:100
+#: .\templates\tasks\task_detail.html:151
 msgid "Send"
 msgstr "Отправить"
 
@@ -3820,23 +3862,44 @@ msgstr "Без описания."
 msgid "Quick status change"
 msgstr "Быстрое изменение статуса"
 
-#: .\templates\tasks\task_detail.html:43 .\templates\tasks\task_detail.html:122
+#: .\templates\tasks\task_detail.html:32 .\templates\tasks\task_detail.html:128
+msgid "Send for review"
+msgstr "Отправить на проверку"
+
+#: .\templates\tasks\task_detail.html:45 .\templates\tasks\task_detail.html:162
 msgid "Send back for revision"
 msgstr "Отправить на доработку"
 
-#: .\templates\tasks\task_detail.html:49
+#: .\templates\tasks\task_detail.html:48
+msgid ""
+"Goes to the project's GIP. The task becomes approved once they sign it off."
+msgstr "Уходит ГИПу проекта. Задача станет утверждённой после его согласования."
+
+#: .\templates\tasks\task_detail.html:54
 msgid "Attachments"
 msgstr "Вложения"
 
-#: .\templates\tasks\task_detail.html:61
+#: .\templates\tasks\task_detail.html:66
 msgid "No attachments."
 msgstr "Нет вложений."
 
-#: .\templates\tasks\task_detail.html:105
+#: .\templates\tasks\task_detail.html:110
 msgid "Section"
 msgstr "Раздел"
 
-#: .\templates\tasks\task_detail.html:134
+#: .\templates\tasks\task_detail.html:135
+msgid "Who should check it"
+msgstr "Кому отправить на проверку"
+
+#: .\templates\tasks\task_detail.html:137
+msgid "Select an employee..."
+msgstr "Выберите сотрудника..."
+
+#: .\templates\tasks\task_detail.html:146
+msgid "Comment (optional)"
+msgstr "Комментарий (необязательно)"
+
+#: .\templates\tasks\task_detail.html:174
 msgid "Send back"
 msgstr "Вернуть"
 
@@ -3847,6 +3910,9 @@ msgstr "Редактировать задачу"
 #: .\templates\telegram_bot\link_redirect.html:4
 msgid "Connect Telegram"
 msgstr "Подключение Telegram"
+
+#~ msgid "Task approved and sent to Approvals for sign-off."
+#~ msgstr "Задача утверждена и отправлена в «Согласования»."
 
 #~ msgid "The total amount under the contract."
 #~ msgstr "Общая сумма по договору."

@@ -28,6 +28,9 @@
         {% for value, label in next_statuses %}
           <button type="submit" name="status" value="{{ value }}" class="btn btn-sm btn-secondary">{{ label }}</button>
         {% endfor %}
+        {% if can_send_for_review %}
+          <button type="button" class="btn btn-sm btn-primary" data-modal-open="review-submit-modal">{% trans "Send for review" %}</button>
+        {% endif %}
       </form>
     </div>
 
@@ -35,13 +38,15 @@
       <div class="card border-2 p-6" style="border-color:var(--ap-primary)">
         <h2 class="mb-3 font-semibold">{% trans "Review" %}</h2>
         <div class="flex flex-wrap gap-2">
-          <form method="post" action="{% url 'tasks:update_status' task.pk %}">
+          <form method="post" action="{% url 'tasks:send_for_approval' task.pk %}">
             {% csrf_token %}
-            <input type="hidden" name="status" value="approved">
             <button type="submit" class="btn btn-primary btn-sm">{% trans "Send for approval" %}</button>
           </form>
           <button type="button" class="btn btn-danger btn-sm" data-modal-open="revision-modal">{% trans "Send back for revision" %}</button>
         </div>
+        <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">
+          {% trans "Goes to the project's GIP. The task becomes approved once they sign it off." %}
+        </p>
       </div>
     {% endif %}
 
@@ -104,6 +109,7 @@
         <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Project" %}</dt><dd>{{ task.project.name }}</dd></div>
         <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Section" %}</dt><dd>{{ task.section|default:"—" }}</dd></div>
         <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Assignee" %}</dt><dd>{{ task.assignee|default:"—" }}</dd></div>
+        <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Reviewer" %}</dt><dd>{{ reviewer|default:"—" }}</dd></div>
         <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Deadline" %}</dt>
           <dd class="{% if task.is_overdue %}text-red-500{% endif %}">{{ task.deadline|default:"—" }}</dd></div>
         {% if task.approval_document_id %}
@@ -114,6 +120,40 @@
     </div>
   </div>
 </div>
+
+{% if can_send_for_review %}
+<div id="review-submit-modal" class="ap-modal-backdrop" data-modal-backdrop>
+  <div class="card ap-modal-card">
+    <div class="flex items-center justify-between border-b border-gray-200 px-4 py-4 dark:border-gray-700">
+      <h3 class="font-semibold">{% trans "Send for review" %}</h3>
+      <button type="button" class="btn btn-secondary btn-sm" data-modal-close aria-label="{% trans 'Close' %}">&times;</button>
+    </div>
+    <form method="post" action="{% url 'tasks:update_status' task.pk %}" class="space-y-4 px-4 py-4">
+      {% csrf_token %}
+      <input type="hidden" name="status" value="review">
+      <div>
+        <label class="field-label" for="review-reviewer-select">{% trans "Who should check it" %}</label>
+        <select name="reviewer" id="review-reviewer-select" class="field-input w-full" required>
+          <option value="">{% trans "Select an employee..." %}</option>
+          {% for candidate in reviewer_candidates %}
+            <option value="{{ candidate.pk }}" {% if reviewer and reviewer.pk == candidate.pk %}selected{% endif %}>
+              {{ candidate.full_name }} — {{ candidate.get_role_display }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="field-label" for="review-comment">{% trans "Comment (optional)" %}</label>
+        <textarea name="content" id="review-comment" rows="2" class="field-input w-full"></textarea>
+      </div>
+      <div class="flex justify-end gap-2 border-t border-gray-200 dark:border-gray-700" style="padding-top:1rem">
+        <button type="button" class="btn btn-secondary btn-md" data-modal-close>{% trans "Cancel" %}</button>
+        <button type="submit" class="btn btn-primary btn-md">{% trans "Send" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
 
 {% if is_reviewer %}
 <div id="revision-modal" class="ap-modal-backdrop" data-modal-backdrop>

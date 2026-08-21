@@ -1,23 +1,30 @@
 from django.utils.translation import gettext_lazy as _
 
 from apps.documents.models import ApprovalStage, AuditLog, Document, DocumentStatus
-from apps.documents.services import resolve_gip_reviewer
+from apps.documents.services import resolve_gip_reviewer, resolve_project_gip
 from apps.notifications.services import notify_user
 from apps.projects.permissions import ensure_project_member
 
-from .permissions import resolve_reviewer
+
+def resolve_approver(task):
+    """Who signs the task off: the GIP attached to the project, falling back to
+    the GIP of the task's own object when the project has none."""
+    approver = resolve_project_gip(task.project)
+    if approver is not None:
+        return approver
+    sub_object = task.section.sub_object if task.section_id else None
+    return resolve_gip_reviewer(sub_object, task.project)
 
 
 def submit_task_for_approval(task, actor):
-    """Called when a task's reviewer (GIP) approves it (review -> approved).
-    Creates/refreshes the linked Document + a pending ApprovalStage so the
-    task's output surfaces in the Approvals 'awaiting approval' list.
-    Returns the Document, or None if the task has no discipline/GIP to route to."""
-    if not (task.section_id and task.section.sub_object_id):
-        return None
-    sub_object = task.section.sub_object
-    reviewer = resolve_reviewer(task) or resolve_gip_reviewer(sub_object, task.project)
-    if reviewer is None:
+    """Send a checked task to the project's GIP for sign-off: creates (or
+    refreshes) the linked Document plus a pending ApprovalStage, so it shows up
+    in the Approvals 'awaiting approval' list. The task only becomes approved
+    once the GIP actually approves it there.
+
+    Returns the Document, or None when the project has no GIP to send it to."""
+    approver = resolve_approver(task)
+    if approver is None:
         return None
 
     document, created = Document.objects.get_or_create(
@@ -29,7 +36,8 @@ def submit_task_for_approval(task, actor):
     )
     if not created:
         document.status = DocumentStatus.REVIEW
-        document.save(update_fields=["status", "updated_at"])
+        document.section = task.section
+        document.save(update_fields=["status", "section", "updated_at"])
 
     attachment = task.attachments.first()  # TaskAttachment.Meta.ordering = ["-created_at"]
     if attachment:
@@ -38,14 +46,15 @@ def submit_task_for_approval(task, actor):
         document.mime_type = attachment.mime_type or ""
         document.save(update_fields=["file", "file_size", "mime_type", "updated_at"])
 
+    discipline = task.section.discipline.code if task.section_id else task.project.name
     stage_order = document.approval_stages.count() + 1
     ApprovalStage.objects.create(
         document=document, stage_order=stage_order,
-        stage_name=f"{task.section.discipline.code} → GIP", reviewer=reviewer,
+        stage_name=f"{discipline} → GIP", reviewer=approver,
     )
-    ensure_project_member(task.project, reviewer)
+    ensure_project_member(task.project, approver)
     notify_user(
-        reviewer, "approval", _("New document to review"),
+        approver, "approval", _("New document to review"),
         _("%(doc)s needs your review.") % {"doc": document.name},
         link=f"/documents/{document.pk}/",
     )

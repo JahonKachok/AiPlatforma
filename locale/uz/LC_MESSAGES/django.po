@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BuildFlow\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-21 21:40+0500\n"
+"POT-Creation-Date: 2026-08-21 22:43+0500\n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -98,7 +98,7 @@ msgid "Approval required"
 msgstr "Tasdiqlash talab qilinadi"
 
 #: .\apps\accounts\forms.py:77 .\apps\requests_app\views.py:70
-#: .\apps\tasks\views.py:190
+#: .\apps\tasks\views.py:192
 msgid "New comment"
 msgstr "Yangi izoh"
 
@@ -190,7 +190,8 @@ msgstr "GIP yordamchisi"
 msgid "Designer"
 msgstr "Dizayner"
 
-#: .\apps\accounts\models.py:64
+#: .\apps\accounts\models.py:64 .\apps\tasks\models.py:64
+#: .\templates\tasks\task_detail.html:112
 msgid "Reviewer"
 msgstr "Tekshiruvchi"
 
@@ -362,7 +363,7 @@ msgid "Other"
 msgstr "Boshqa"
 
 #: .\apps\document_templates\views.py:24 .\apps\notifications\views.py:19
-#: .\apps\projects\views.py:134 .\apps\tasks\views.py:90
+#: .\apps\projects\views.py:134 .\apps\tasks\views.py:92
 #: .\templates\accounts\user_list.html:14
 #: .\templates\documents\document_list.html:8
 #: .\templates\finance\finance_home.html:259
@@ -493,7 +494,7 @@ msgid "Select an object (and pod object, if applicable)."
 msgstr "Obyektni (va agar kerak bo'lsa, pastki obyektni) tanlang."
 
 #: .\apps\documents\forms.py:84 .\templates\requests_app\request_detail.html:21
-#: .\templates\tasks\task_detail.html:71
+#: .\templates\tasks\task_detail.html:76
 msgid "Comments"
 msgstr "Izohlar"
 
@@ -569,12 +570,12 @@ msgid "This object has no GIP assigned to review submissions."
 msgstr "Bu obyekt uchun tekshirish uchun GIP tayinlanmagan."
 
 #: .\apps\documents\views.py:266 .\apps\documents\views.py:298
-#: .\apps\tasks\services.py:48
+#: .\apps\tasks\services.py:57
 msgid "New document to review"
 msgstr "Tekshirish uchun yangi hujjat"
 
 #: .\apps\documents\views.py:267 .\apps\documents\views.py:299
-#: .\apps\tasks\services.py:49
+#: .\apps\tasks\services.py:58
 #, python-format
 msgid "%(doc)s needs your review."
 msgstr "%(doc)s sizning tekshiruvingizni talab qiladi."
@@ -599,29 +600,38 @@ msgstr "Mening tekshiruvlarim"
 msgid "This stage has already been reviewed."
 msgstr "Bu bosqich allaqachon tekshirilgan."
 
-#: .\apps\documents\views.py:389
+#: .\apps\documents\views.py:390
 msgid "Sent back for revision from the Approvals section."
 msgstr "«Kelishuvlar» bo'limidan qayta ishlashga qaytarildi."
 
-#: .\apps\documents\views.py:393
+#: .\apps\documents\views.py:394
 msgid "Task sent back for revision"
 msgstr "Vazifa qayta ishlashga qaytarildi"
 
-#: .\apps\documents\views.py:394
+#: .\apps\documents\views.py:395
 #, python-format
 msgid "\"%(title)s\" needs revision — see the approval comment."
 msgstr "«%(title)s» qayta ishlanishi kerak — kelishuv izohini ko'ring."
 
-#: .\apps\documents\views.py:400
+#: .\apps\documents\views.py:404
+msgid "Task approved"
+msgstr "Vazifa tasdiqlandi"
+
+#: .\apps\documents\views.py:405
+#, python-format
+msgid "\"%(title)s\" was approved by the GIP."
+msgstr "«%(title)s» GIP tomonidan tasdiqlandi."
+
+#: .\apps\documents\views.py:411
 msgid "Document review update"
 msgstr "Hujjat tekshiruvi yangilandi"
 
-#: .\apps\documents\views.py:401
+#: .\apps\documents\views.py:412
 #, python-format
 msgid "%(doc)s was marked as %(status)s."
 msgstr "%(doc)s %(status)s deb belgilandi."
 
-#: .\apps\documents\views.py:404
+#: .\apps\documents\views.py:415
 msgid "Review submitted."
 msgstr "Ko'rib chiqish natijasi yuborildi."
 
@@ -841,7 +851,7 @@ msgstr "Faol"
 
 #: .\apps\finance\models.py:39 .\apps\projects\models.py:24
 #: .\apps\projects\models.py:121 .\apps\projects\views.py:137
-#: .\apps\tasks\models.py:41 .\apps\tasks\views.py:93
+#: .\apps\tasks\models.py:41 .\apps\tasks\views.py:95
 #: .\templates\projects\project_detail.html:304
 msgid "Completed"
 msgstr "Yakunlangan"
@@ -880,7 +890,7 @@ msgstr "Naqd pul (USD)"
 #: .\templates\projects\_wizard_steps.html:14
 #: .\templates\projects\project_wizard_confirm.html:13
 #: .\templates\requests_app\request_detail.html:45
-#: .\templates\tasks\task_board.html:54 .\templates\tasks\task_detail.html:104
+#: .\templates\tasks\task_board.html:54 .\templates\tasks\task_detail.html:109
 msgid "Project"
 msgstr "Loyiha"
 
@@ -1091,7 +1101,7 @@ msgstr "Vazifa"
 #: .\apps\projects\models.py:152 .\apps\projects\models.py:186
 #: .\templates\documents\document_detail.html:80
 #: .\templates\projects\project_detail.html:42
-#: .\templates\tasks\task_board.html:56 .\templates\tasks\task_detail.html:107
+#: .\templates\tasks\task_board.html:56 .\templates\tasks\task_detail.html:113
 msgid "Deadline"
 msgstr "Muddat"
 
@@ -1602,14 +1612,14 @@ msgid "Not started"
 msgstr "Boshlanmagan"
 
 #: .\apps\projects\models.py:119 .\apps\requests_app\models.py:17
-#: .\apps\tasks\models.py:37 .\apps\tasks\views.py:91
+#: .\apps\tasks\models.py:37 .\apps\tasks\views.py:93
 #: .\templates\projects\project_detail.html:305
 msgid "In progress"
 msgstr "Jarayonda"
 
 #: .\apps\projects\models.py:120 .\apps\tasks\models.py:38
 #: .\templates\documents\approvals_list.html:36
-#: .\templates\tasks\task_detail.html:36
+#: .\templates\tasks\task_detail.html:39
 msgid "Review"
 msgstr "Ko'rib chiqish"
 
@@ -1651,7 +1661,7 @@ msgstr "Muhimlik"
 
 #: .\apps\projects\models.py:184
 #: .\templates\requests_app\request_detail.html:47
-#: .\templates\tasks\task_board.html:55 .\templates\tasks\task_detail.html:106
+#: .\templates\tasks\task_board.html:55 .\templates\tasks\task_detail.html:111
 msgid "Assignee"
 msgstr "Ijrochi"
 
@@ -1702,12 +1712,12 @@ msgstr "Tugash sanasi"
 msgid "Develop the project"
 msgstr "Loyihani ishlab chiqish"
 
-#: .\apps\projects\services.py:53 .\apps\tasks\views.py:160
+#: .\apps\projects\services.py:53 .\apps\tasks\views.py:162
 msgid "New task assigned"
 msgstr "Yangi vazifa tayinlandi"
 
 #: .\apps\projects\services.py:54 .\apps\requests_app\views.py:47
-#: .\apps\tasks\views.py:161 .\apps\tasks\views.py:235
+#: .\apps\tasks\views.py:163 .\apps\tasks\views.py:243
 #, python-format
 msgid "You were assigned to \"%(title)s\"."
 msgstr "Siz \"%(title)s\"ga tayinlandingiz."
@@ -2016,7 +2026,7 @@ msgstr "Yangi so'rov tayinlandi"
 msgid "Request created."
 msgstr "So'rov yaratildi."
 
-#: .\apps\requests_app\views.py:71 .\apps\tasks\views.py:191
+#: .\apps\requests_app\views.py:71 .\apps\tasks\views.py:193
 #, python-format
 msgid "%(user)s commented on \"%(title)s\"."
 msgstr "%(user)s \"%(title)s\"ga izoh qoldirdi."
@@ -2082,50 +2092,79 @@ msgstr "Vazifaga tegishli faylni yuklash (maksimal hajm — 50MB)."
 msgid "New"
 msgstr "Yangi"
 
-#: .\apps\tasks\views.py:95
+#: .\apps\tasks\models.py:65
+msgid "Who checks this task once it is sent for review."
+msgstr "Vazifa tekshiruvga yuborilgach, uni kim tekshiradi."
+
+#: .\apps\tasks\views.py:97
 msgid "Overdue"
 msgstr "Muddati o'tgan"
 
-#: .\apps\tasks\views.py:164
+#: .\apps\tasks\views.py:166
 msgid "Task created."
 msgstr "Vazifa yaratildi."
 
-#: .\apps\tasks\views.py:234
+#: .\apps\tasks\views.py:242
 msgid "Task assigned to you"
 msgstr "Sizga vazifa tayinlandi"
 
-#: .\apps\tasks\views.py:240 .\apps\tasks\views.py:305
+#: .\apps\tasks\views.py:248 .\apps\tasks\views.py:336
 msgid "Task status changed"
 msgstr "Vazifa holati o'zgartirildi"
 
-#: .\apps\tasks\views.py:241 .\apps\tasks\views.py:306
+#: .\apps\tasks\views.py:249 .\apps\tasks\views.py:337
 #, python-format
 msgid "\"%(title)s\" is now %(status)s."
 msgstr "\"%(title)s\" endi %(status)s."
 
-#: .\apps\tasks\views.py:244
+#: .\apps\tasks\views.py:252
 msgid "Task updated."
 msgstr "Vazifa yangilandi."
 
-#: .\apps\tasks\views.py:261
+#: .\apps\tasks\views.py:269
 msgid "Task deleted."
 msgstr "Vazifa o'chirildi."
 
-#: .\apps\tasks\views.py:275 .\apps\tasks\views.py:276
+#: .\apps\tasks\views.py:283 .\apps\tasks\views.py:284
 msgid "Unknown status."
 msgstr "Noma'lum holat."
 
-#: .\apps\tasks\views.py:280
+#: .\apps\tasks\views.py:288
 msgid "You don't have permission to move this task to that status."
 msgstr "Vazifani bu holatga o'tkazishga ruxsatingiz yo'q."
 
-#: .\apps\tasks\views.py:288
+#: .\apps\tasks\views.py:296
 msgid "A comment is required when sending a task back for revision."
 msgstr "Vazifani qayta ishlashga qaytarishda izoh yozish shart."
 
-#: .\apps\tasks\views.py:301
-msgid "Task approved and sent to Approvals for sign-off."
-msgstr "Vazifa tasdiqlandi va «Kelishuvlar» bo'limiga yuborildi."
+#: .\apps\tasks\views.py:309
+msgid "Pick who should check this task."
+msgstr "Bu vazifani kim tekshirishini tanlang."
+
+#: .\apps\tasks\views.py:323
+msgid "Task sent to you for review"
+msgstr "Sizga tekshirish uchun vazifa yuborildi"
+
+#: .\apps\tasks\views.py:324
+#, python-format
+msgid "\"%(title)s\" is waiting for your review."
+msgstr "«%(title)s» sizning tekshiruvingizni kutmoqda."
+
+#: .\apps\tasks\views.py:329
+#, python-format
+msgid "Sent for review to %(user)s."
+msgstr "Tekshiruvga yuborildi: %(user)s."
+
+#: .\apps\tasks\views.py:359
+msgid "This project has no GIP assigned to sign work off."
+msgstr "Bu loyihada kelishuv uchun GIP tayinlanmagan."
+
+#: .\apps\tasks\views.py:364
+#, python-format
+msgid ""
+"Sent to %(user)s for approval. The task will be approved once they sign it "
+"off."
+msgstr "Kelishuvga yuborildi: %(user)s. U kelishgach, vazifa tasdiqlangan holatga o'tadi."
 
 #: .\apps\telegram_bot\views.py:45
 msgid "Telegram account unlinked."
@@ -2350,7 +2389,8 @@ msgstr ""
 #: .\templates\requests_app\request_confirm_delete.html:11
 #: .\templates\requests_app\request_form.html:17
 #: .\templates\tasks\task_confirm_delete.html:11
-#: .\templates\tasks\task_detail.html:133 .\templates\tasks\task_form.html:33
+#: .\templates\tasks\task_detail.html:150
+#: .\templates\tasks\task_detail.html:173 .\templates\tasks\task_form.html:33
 msgid "Cancel"
 msgstr "Bekor qilish"
 
@@ -2454,8 +2494,8 @@ msgstr "Ushbu soha o'chirilsinmi?"
 #: .\templates\requests_app\request_confirm_delete.html:10
 #: .\templates\requests_app\request_detail.html:13
 #: .\templates\tasks\task_confirm_delete.html:10
-#: .\templates\tasks\task_detail.html:13 .\templates\tasks\task_detail.html:57
-#: .\templates\tasks\task_detail.html:84
+#: .\templates\tasks\task_detail.html:13 .\templates\tasks\task_detail.html:62
+#: .\templates\tasks\task_detail.html:89
 msgid "Delete"
 msgstr "O'chirish"
 
@@ -2819,7 +2859,7 @@ msgstr "Yuborish"
 #: .\templates\documents\approval_submit.html:43
 #: .\templates\documents\approvals_list.html:14
 #: .\templates\documents\document_detail.html:18
-#: .\templates\tasks\task_detail.html:41
+#: .\templates\tasks\task_detail.html:43
 msgid "Send for approval"
 msgstr "Tasdiqlashga yuborish"
 
@@ -2838,7 +2878,7 @@ msgstr "Quyi obyekt"
 
 #: .\templates\documents\approvals_list.html:3
 #: .\templates\documents\approvals_list.html:4
-#: .\templates\partials\sidebar.html:34 .\templates\tasks\task_detail.html:110
+#: .\templates\partials\sidebar.html:34 .\templates\tasks\task_detail.html:116
 msgid "Approvals"
 msgstr "Tasdiqlashlar"
 
@@ -2911,7 +2951,7 @@ msgstr "Yozuvlar yo'q."
 #: .\templates\documents\document_detail.html:74
 #: .\templates\projects\project_history.html:9
 #: .\templates\requests_app\request_detail.html:42
-#: .\templates\tasks\task_detail.html:102
+#: .\templates\tasks\task_detail.html:107
 msgid "Details"
 msgstr "Tafsilotlar"
 
@@ -2947,7 +2987,7 @@ msgstr "Barcha holatlar"
 
 #: .\templates\documents\document_list.html:31
 #: .\templates\documents\document_upload.html:16
-#: .\templates\tasks\task_detail.html:66
+#: .\templates\tasks\task_detail.html:71
 msgid "Upload"
 msgstr "Yuklash"
 
@@ -2991,7 +3031,8 @@ msgstr "Ma'muriy xarajat qo'shish"
 #: .\templates\finance\_employee_contract_modal.html:10
 #: .\templates\finance\_employee_contract_pay_modal.html:12
 #: .\templates\finance\_transaction_modal.html:12
-#: .\templates\tasks\task_detail.html:123
+#: .\templates\tasks\task_detail.html:129
+#: .\templates\tasks\task_detail.html:163
 msgid "Close"
 msgstr "Yopish"
 
@@ -3720,12 +3761,13 @@ msgid "Are you sure you want to delete \"%(title)s\"?"
 msgstr "\"%(title)s\" ni o'chirishga ishonchingiz komilmi?"
 
 #: .\templates\requests_app\request_detail.html:32
-#: .\templates\tasks\task_detail.html:90
+#: .\templates\tasks\task_detail.html:95
 msgid "No comments yet."
 msgstr "Hali izohlar yo'q."
 
 #: .\templates\requests_app\request_detail.html:37
-#: .\templates\tasks\task_detail.html:95
+#: .\templates\tasks\task_detail.html:100
+#: .\templates\tasks\task_detail.html:151
 msgid "Send"
 msgstr "Yuborish"
 
@@ -3822,23 +3864,44 @@ msgstr "Tavsif yo'q."
 msgid "Quick status change"
 msgstr "Holatni tezkor o'zgartirish"
 
-#: .\templates\tasks\task_detail.html:43 .\templates\tasks\task_detail.html:122
+#: .\templates\tasks\task_detail.html:32 .\templates\tasks\task_detail.html:128
+msgid "Send for review"
+msgstr "Tekshiruvga yuborish"
+
+#: .\templates\tasks\task_detail.html:45 .\templates\tasks\task_detail.html:162
 msgid "Send back for revision"
 msgstr "Qayta ishlashga qaytarish"
 
-#: .\templates\tasks\task_detail.html:49
+#: .\templates\tasks\task_detail.html:48
+msgid ""
+"Goes to the project's GIP. The task becomes approved once they sign it off."
+msgstr "Loyiha GIPiga boradi. U kelishgach, vazifa tasdiqlangan holatga o'tadi."
+
+#: .\templates\tasks\task_detail.html:54
 msgid "Attachments"
 msgstr "Ilovalar"
 
-#: .\templates\tasks\task_detail.html:61
+#: .\templates\tasks\task_detail.html:66
 msgid "No attachments."
 msgstr "Ilovalar yo'q."
 
-#: .\templates\tasks\task_detail.html:105
+#: .\templates\tasks\task_detail.html:110
 msgid "Section"
 msgstr "Bo'lim"
 
-#: .\templates\tasks\task_detail.html:134
+#: .\templates\tasks\task_detail.html:135
+msgid "Who should check it"
+msgstr "Kimga tekshirishga yuborilsin"
+
+#: .\templates\tasks\task_detail.html:137
+msgid "Select an employee..."
+msgstr "Xodimni tanlang..."
+
+#: .\templates\tasks\task_detail.html:146
+msgid "Comment (optional)"
+msgstr "Izoh (ixtiyoriy)"
+
+#: .\templates\tasks\task_detail.html:174
 msgid "Send back"
 msgstr "Qaytarish"
 
@@ -3849,6 +3912,9 @@ msgstr "Vazifani tahrirlash"
 #: .\templates\telegram_bot\link_redirect.html:4
 msgid "Connect Telegram"
 msgstr "Telegram'ni ulash"
+
+#~ msgid "Task approved and sent to Approvals for sign-off."
+#~ msgstr "Vazifa tasdiqlandi va «Kelishuvlar» bo'limiga yuborildi."
 
 #~ msgid "The total amount under the contract."
 #~ msgstr "Shartnoma bo'yicha umumiy summa."

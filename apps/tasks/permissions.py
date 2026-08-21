@@ -2,6 +2,12 @@ from apps.accounts.models import User
 
 _PRIVILEGED_ROLES = {User.Role.ADMIN, User.Role.MANAGER}
 
+# Who may be picked in the "send for review" dialog.
+REVIEWER_ROLES = (
+    User.Role.GIP, User.Role.GIP_ASSISTANT, User.Role.REVIEWER,
+    User.Role.MANAGER, User.Role.ADMIN,
+)
+
 _EXECUTOR_TRANSITIONS = {
     "new": {"in_progress"},
     "in_progress": {"review"},
@@ -14,8 +20,11 @@ def is_privileged(user):
 
 
 def resolve_reviewer(task):
-    """The GIP responsible for the task's section (falling back to the
-    section's sub-object) checks work once it reaches 'review'."""
+    """Whoever checks this task once it reaches 'review': the person picked
+    when it was sent, otherwise the GIP responsible for the task's section
+    (falling back to that section's sub-object)."""
+    if task.reviewer_id:
+        return task.reviewer
     if task.section_id:
         if task.section.gip_id:
             return task.section.gip
@@ -23,6 +32,11 @@ def resolve_reviewer(task):
         if sub_object and sub_object.gip_id:
             return sub_object.gip
     return None
+
+
+def reviewer_candidates():
+    """Active employees who can be sent a task to check."""
+    return User.objects.filter(is_active=True, role__in=REVIEWER_ROLES).order_by("full_name")
 
 
 def can_change_task_status(user, task, new_status):

@@ -378,22 +378,33 @@ def approval_stage_review(request, stage_id):
                         )
             document.save(update_fields=["status", "updated_at"])
 
-            if document.source_task_id and new_status in (ApprovalStatus.REJECTED, ApprovalStatus.REVISION):
+            if document.source_task_id:
                 from apps.tasks.models import Task, TaskComment
 
                 task = document.source_task
-                task.status = Task.Status.REVISION
-                task.save(update_fields=["status", "updated_at"])
-                TaskComment.objects.create(
-                    task=task, user=request.user,
-                    content=stage.comment or _("Sent back for revision from the Approvals section."),
-                )
-                if task.assignee and task.assignee_id != request.user.id:
-                    notify_user(
-                        task.assignee, "task", _("Task sent back for revision"),
-                        _('"%(title)s" needs revision — see the approval comment.') % {"title": task.title},
-                        link=f"/tasks/{task.pk}/",
+                if new_status in (ApprovalStatus.REJECTED, ApprovalStatus.REVISION):
+                    task.status = Task.Status.REVISION
+                    task.save(update_fields=["status", "updated_at"])
+                    TaskComment.objects.create(
+                        task=task, user=request.user,
+                        content=stage.comment or _("Sent back for revision from the Approvals section."),
                     )
+                    if task.assignee and task.assignee_id != request.user.id:
+                        notify_user(
+                            task.assignee, "task", _("Task sent back for revision"),
+                            _('"%(title)s" needs revision — see the approval comment.') % {"title": task.title},
+                            link=f"/tasks/{task.pk}/",
+                        )
+                elif document.status == DocumentStatus.APPROVED:
+                    # The GIP signed it off, so the task itself is approved.
+                    task.status = Task.Status.APPROVED
+                    task.save(update_fields=["status", "updated_at"])
+                    if task.assignee and task.assignee_id != request.user.id:
+                        notify_user(
+                            task.assignee, "task", _("Task approved"),
+                            _('"%(title)s" was approved by the GIP.') % {"title": task.title},
+                            link=f"/tasks/{task.pk}/",
+                        )
 
             AuditLog.log(obj=document, action=f"approval_{new_status}", user=request.user)
             notify_user(

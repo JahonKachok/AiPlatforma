@@ -59,6 +59,11 @@ class Task(models.Model):
     creator = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="created_tasks"
     )
+    reviewer = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="review_tasks", verbose_name=_("Reviewer"),
+        help_text=_("Who checks this task once it is sent for review."),
+    )
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.NEW)
     priority = models.CharField(max_length=20, choices=Priority.choices, default=Priority.MEDIUM)
     deadline = models.DateField(blank=True, null=True)

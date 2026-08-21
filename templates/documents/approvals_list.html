@@ -21,7 +21,12 @@
         <a href="{% url 'documents:detail' document.pk %}" class="font-semibold text-blue-600 hover:underline dark:text-blue-400">{{ document.name }}</a>
         <span class="{{ document.status|document_status_badge }}">{{ document.get_status_display }}</span>
       </div>
-      <p class="mb-2 text-xs text-gray-500 dark:text-gray-400">{{ document.project.name }} · v{{ document.version }}</p>
+      <p class="mb-2 text-xs text-gray-500 dark:text-gray-400">
+        {{ document.project.name }} · v{{ document.version }}
+        {% if document.source_task_id %}
+          · <a href="{% url 'tasks:detail' document.source_task_id %}" class="text-blue-500 hover:underline">{% trans "From task" %}: {{ document.source_task.title }}</a>
+        {% endif %}
+      </p>
       <div class="flex flex-wrap gap-2 text-xs">
         {% for stage in document.approval_stages.all %}
           <span class="{{ stage.status|approval_status_badge }}">

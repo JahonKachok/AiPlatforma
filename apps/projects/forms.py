@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.accounts.models import User
 from apps.core.forms import StyledFormMixin
 
-from .models import Project, ProjectMember, Section, SubObject, SubObjectDiscipline
+from .models import Project, ProjectMember, Section, SectionStatus, SubObject, SubObjectDiscipline
 
 WIZARD_DOCUMENT_EXTENSIONS = ["pdf", "doc", "docx", "xls", "xlsx", "zip", "rar"]
 
@@ -155,6 +155,10 @@ class SubObjectDisciplineForm(StyledFormMixin, forms.ModelForm):
             queryset = queryset.filter(disciplines=discipline)
         self.fields["assignee"].queryset = queryset.distinct()
         self.fields["assignee"].required = False
+        self.fields["status"].required = False
+
+    def clean_status(self):
+        return self.cleaned_data.get("status") or self.instance.status or SectionStatus.NOT_STARTED
 
 
 class SectionForm(StyledFormMixin, forms.ModelForm):

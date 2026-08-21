@@ -17,7 +17,7 @@ from apps.documents.models import AuditLog, Document, DocumentVersion
 from apps.finance.forms import FinancialRecordForm
 from apps.notifications.models import NotificationType
 from apps.notifications.services import notify_user
-from apps.tasks.models import Task
+from apps.tasks.models import Task, sanitize_path_segment
 
 from .excel_import import InvalidExcelStructureError, build_subobjects_import_template, import_subobjects_from_excel
 from .forms import (
@@ -28,16 +28,24 @@ from .models import Project, ProjectMember, SubObject, SubObjectDiscipline
 from .permissions import can_create_project, can_edit_project, visible_projects_for
 from .uz_regions import REGION_CENTERS
 
-WIZARD_DOC_TYPES = [
-    ("tz", _("10_ТЗ")),
-    ("geology", _("20_Геология")),
-    ("ecology", _("30_Экология")),
-    ("cadastre", _("40_Кадастр")),
-    ("apz", _("50_АПЗ")),
-    ("tu", _("60_ТУ")),
-    ("kd_equipment", _("70_КД оборудования")),
-    ("photo_video", _("80_Фото и видео")),
-]
+_PROJECT_DOC_LABEL = _("90_Проектная документация")
+
+
+def get_wizard_doc_types():
+    types = [
+        ("planshet", _("05_Планшет")),
+        ("tz", _("10_ТЭ")),
+        ("geology", _("20_Геология")),
+        ("ecology", _("30_Экология")),
+        ("cadastre", _("40_Кадастр")),
+        ("apz", _("50_АПЗ")),
+        ("tu", _("60_ТУ")),
+        ("kd_equipment", _("70_КД оборудования")),
+        ("photo_video", _("80_Фото и видео")),
+    ]
+    for discipline in Discipline.objects.order_by("code"):
+        types.append((f"proj_doc_{discipline.code}", f"{_PROJECT_DOC_LABEL} / {discipline.code} — {discipline.name}"))
+    return types
 
 
 def _wizard_discipline_query(sub_object):
@@ -239,13 +247,13 @@ def project_detail(request, pk):
     income = sum(r.amount for r in project.financial_records.filter(type="income"))
     expense = sum(r.amount for r in project.financial_records.filter(type="expense"))
 
-    doc_type_keys = [key for key, _label in WIZARD_DOC_TYPES]
+    doc_type_keys = [key for key, _label in get_wizard_doc_types()]
     documents_by_type = {}
     for doc in Document.objects.filter(project=project, doc_type__in=doc_type_keys).order_by("-created_at"):
         documents_by_type.setdefault(doc.doc_type, []).append(doc)
     source_files_checklist = [
         {"key": key, "label": label, "documents": documents_by_type.get(key, [])}
-        for key, label in WIZARD_DOC_TYPES
+        for key, label in get_wizard_doc_types()
     ]
 
     return render(request, "projects/project_detail.html", {
@@ -612,13 +620,13 @@ def project_wizard_documents(request, pk):
     project = get_object_or_404(Project, pk=pk)
     if not can_edit_project(request.user, project):
         raise PermissionDenied
-    doc_type_keys = [key for key, _label in WIZARD_DOC_TYPES]
+    doc_type_keys = [key for key, _label in get_wizard_doc_types()]
     documents_by_type = {}
     for doc in Document.objects.filter(project=project, doc_type__in=doc_type_keys).order_by("-created_at"):
         documents_by_type.setdefault(doc.doc_type, []).append(doc)
     checklist = [
         {"key": key, "label": label, "documents": documents_by_type.get(key, [])}
-        for key, label in WIZARD_DOC_TYPES
+        for key, label in get_wizard_doc_types()
     ]
     return render(request, "projects/project_wizard_documents.html", {
         "project": project, "checklist": checklist,
@@ -630,7 +638,9 @@ def project_documents_download_zip(request, pk):
     project = get_object_or_404(Project, pk=pk)
     if project not in visible_projects_for(request.user):
         raise PermissionDenied
-    doc_type_keys = [key for key, _label in WIZARD_DOC_TYPES]
+    wizard_doc_types = get_wizard_doc_types()
+    doc_type_keys = [key for key, _label in wizard_doc_types]
+    label_map = {key: str(label) for key, label in wizard_doc_types}
     documents = Document.objects.filter(project=project, doc_type__in=doc_type_keys).exclude(file="")
     if not documents.exists():
         messages.error(request, _("There are no source files to download yet."))
@@ -640,10 +650,14 @@ def project_documents_download_zip(request, pk):
     used_names = set()
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
         for document in documents:
-            arcname = document.name or f"{document.pk}"
+            label = label_map.get(document.doc_type, document.doc_type or "Boshqa")
+            folder = "/".join(sanitize_path_segment(part.strip()) for part in label.split(" / "))
+            filename = document.name or f"{document.pk}"
+            arcname = f"{folder}/{filename}"
             if arcname in used_names:
-                stem, _dot, ext = arcname.rpartition(".")
-                arcname = f"{stem or arcname}-{document.pk.hex[:8]}{('.' + ext) if ext else ''}"
+                stem, _dot, ext = filename.rpartition(".")
+                filename = f"{stem or filename}-{document.pk.hex[:8]}{('.' + ext) if ext else ''}"
+                arcname = f"{folder}/{filename}"
             used_names.add(arcname)
             with document.file.open("rb") as fh:
                 archive.writestr(arcname, fh.read())
@@ -661,7 +675,7 @@ def project_wizard_document_upload(request, pk):
     if request.method != "POST":
         raise PermissionDenied
     doc_type = request.POST.get("doc_type")
-    if doc_type not in [key for key, _label in WIZARD_DOC_TYPES]:
+    if doc_type not in [key for key, _label in get_wizard_doc_types()]:
         return JsonResponse({"error": _("Unknown document type.")}, status=400)
 
     uploaded_files = request.FILES.getlist("file")
@@ -711,7 +725,7 @@ def project_wizard_confirm(request, pk):
     )
     if not can_edit_project(request.user, project):
         raise PermissionDenied
-    doc_type_keys = [key for key, _label in WIZARD_DOC_TYPES]
+    doc_type_keys = [key for key, _label in get_wizard_doc_types()]
     documents = Document.objects.filter(project=project, doc_type__in=doc_type_keys)
     if request.method == "POST":
         AuditLog.log(obj=project, action="wizard_completed", user=request.user)

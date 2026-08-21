@@ -20,23 +20,11 @@ from .forms import (
     ApprovalReviewForm, ApprovalStageFormSet, ApprovalSubmissionForm, DocumentUploadForm, DocumentVersionForm,
 )
 from .models import ApprovalStage, ApprovalStatus, AuditLog, Document, DocumentStatus, DocumentVersion
+from .services import resolve_gip_reviewer as _resolve_gip_reviewer
 
 
 def _visible_documents(user):
     return Document.objects.filter(project__in=visible_projects_for(user)).select_related("project", "uploaded_by")
-
-
-def _resolve_gip_reviewer(sub_object, project):
-    """Walk up from the sub-object (a pod object's own GIP takes priority over
-    its parent object's) to find who should review work submitted on it; falls
-    back to the project's GIP member if neither the object nor its parent has one."""
-    candidate = sub_object
-    while candidate is not None:
-        if candidate.gip_id:
-            return candidate.gip
-        candidate = candidate.parent
-    member = project.members.filter(role_in_project="gip").select_related("user").first()
-    return member.user if member else None
 
 
 def _submission_cascade_json(projects):
@@ -389,6 +377,23 @@ def approval_stage_review(request, stage_id):
                             defaults={"progress": 100},
                         )
             document.save(update_fields=["status", "updated_at"])
+
+            if document.source_task_id and new_status in (ApprovalStatus.REJECTED, ApprovalStatus.REVISION):
+                from apps.tasks.models import Task, TaskComment
+
+                task = document.source_task
+                task.status = Task.Status.REVISION
+                task.save(update_fields=["status", "updated_at"])
+                TaskComment.objects.create(
+                    task=task, user=request.user,
+                    content=stage.comment or _("Sent back for revision from the Kelishuvlar section."),
+                )
+                if task.assignee and task.assignee_id != request.user.id:
+                    notify_user(
+                        task.assignee, "task", _("Task sent back for revision"),
+                        _('"%(title)s" needs revision — see the approval comment.') % {"title": task.title},
+                        link=f"/tasks/{task.pk}/",
+                    )
 
             AuditLog.log(obj=document, action=f"approval_{new_status}", user=request.user)
             notify_user(

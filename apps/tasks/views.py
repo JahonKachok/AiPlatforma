@@ -18,11 +18,13 @@ from apps.projects.permissions import ensure_project_member, visible_projects_fo
 
 from .forms import TaskAttachmentForm, TaskCommentForm, TaskForm
 from .models import Task, TaskAttachment, TaskComment
+from .permissions import allowed_status_targets, can_change_task_status, is_privileged, resolve_reviewer
+from .services import submit_task_for_approval
 
 
 def _visible_tasks(user):
     return Task.objects.filter(project__in=visible_projects_for(user)).select_related(
-        "project", "assignee", "creator"
+        "project", "assignee", "creator", "section", "section__sub_object"
     )
 
 
@@ -129,7 +131,13 @@ def task_board(request):
             "today": date.today(),
         })
     else:
-        context["columns"] = [(value, label, tasks.filter(status=value)) for value, label in Task.Status.choices]
+        columns = [(value, label, list(tasks.filter(status=value))) for value, label in Task.Status.choices]
+        context["columns"] = columns
+        context["task_allowed_targets"] = {
+            task.pk: sorted(allowed_status_targets(request.user, task))
+            for _value, _label, column_tasks in columns
+            for task in column_tasks
+        }
 
     return render(request, "tasks/task_board.html", context)
 
@@ -137,7 +145,7 @@ def task_board(request):
 @login_required
 def task_create(request):
     if request.method == "POST":
-        form = TaskForm(request.POST)
+        form = TaskForm(request.POST, user=request.user)
         form.fields["project"].queryset = visible_projects_for(request.user)
         form.fields["section"].queryset = Section.objects.filter(project__in=visible_projects_for(request.user))
         if form.is_valid():
@@ -158,7 +166,7 @@ def task_create(request):
     else:
         project_id = request.GET.get("project")
         initial = {"project": project_id} if project_id else {}
-        form = TaskForm(initial=initial)
+        form = TaskForm(initial=initial, user=request.user)
         form.fields["project"].queryset = visible_projects_for(request.user)
         form.fields["section"].queryset = Section.objects.filter(project__in=visible_projects_for(request.user))
     return render(request, "tasks/task_form.html", {
@@ -187,11 +195,23 @@ def task_detail(request, pk):
     else:
         comment_form = TaskCommentForm()
 
+    reviewer = resolve_reviewer(task)
+    is_reviewer = task.status == Task.Status.REVIEW and (
+        is_privileged(request.user) or (reviewer is not None and reviewer.id == request.user.id)
+    )
+    next_statuses = [
+        (value, label) for value, label in Task.Status.choices
+        if value != Task.Status.REVISION and can_change_task_status(request.user, task, value)
+    ]
+
     return render(request, "tasks/task_detail.html", {
         "task": task,
         "comment_form": comment_form,
         "attachment_form": TaskAttachmentForm(),
-        "statuses": Task.Status.choices,
+        "next_statuses": next_statuses,
+        "reviewer": reviewer,
+        "is_reviewer": is_reviewer,
+        "revision_form": TaskCommentForm(),
     })
 
 
@@ -201,7 +221,7 @@ def task_update(request, pk):
     if request.method == "POST":
         old_status = task.status
         old_assignee_id = task.assignee_id
-        form = TaskForm(request.POST, instance=task, project=task.project)
+        form = TaskForm(request.POST, instance=task, project=task.project, user=request.user)
         form.fields["project"].queryset = visible_projects_for(request.user)
         form.fields["section"].queryset = Section.objects.filter(project__in=visible_projects_for(request.user))
         if form.is_valid():
@@ -224,7 +244,7 @@ def task_update(request, pk):
             messages.success(request, _("Task updated."))
             return redirect("tasks:detail", pk=pk)
     else:
-        form = TaskForm(instance=task, project=task.project)
+        form = TaskForm(instance=task, project=task.project, user=request.user)
         form.fields["project"].queryset = visible_projects_for(request.user)
         form.fields["section"].queryset = Section.objects.filter(project__in=visible_projects_for(request.user))
     return render(request, "tasks/task_form.html", {
@@ -248,17 +268,45 @@ def task_delete(request, pk):
 def task_update_status(request, pk):
     task = get_object_or_404(_visible_tasks(request.user), pk=pk)
     status = request.POST.get("status")
-    if status in Task.Status.values:
-        task.status = status
-        task.save(update_fields=["status", "updated_at"])
-        AuditLog.log(obj=task, action="status_changed", user=request.user, details={"status": status})
-        if task.assignee and task.assignee_id != request.user.id:
-            notify_user(
-                task.assignee, "task", _("Task status changed"),
-                _('"%(title)s" is now %(status)s.') % {"title": task.title, "status": task.get_status_display()},
-                link=f"/tasks/{task.pk}/",
-            )
-    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
+    if status not in Task.Status.values:
+        if is_ajax:
+            return JsonResponse({"ok": False, "error": _("Unknown status.")}, status=400)
+        messages.error(request, _("Unknown status."))
+        return redirect("tasks:detail", pk=pk)
+
+    if not can_change_task_status(request.user, task, status):
+        error = _("You don't have permission to move this task to that status.")
+        if is_ajax:
+            return JsonResponse({"ok": False, "error": str(error)}, status=403)
+        messages.error(request, error)
+        return redirect("tasks:detail", pk=pk)
+
+    comment = (request.POST.get("content") or "").strip()
+    if status == Task.Status.REVISION and not comment:
+        error = _("A comment is required when sending a task back for revision.")
+        if is_ajax:
+            return JsonResponse({"ok": False, "error": str(error)}, status=400)
+        messages.error(request, error)
+        return redirect("tasks:detail", pk=pk)
+
+    task.status = status
+    task.save(update_fields=["status", "updated_at"])
+    if comment:
+        TaskComment.objects.create(task=task, user=request.user, content=comment)
+    if status == Task.Status.APPROVED:
+        document = submit_task_for_approval(task, request.user)
+        if document:
+            messages.success(request, _("Task approved and sent to Kelishuvlar for sign-off."))
+    AuditLog.log(obj=task, action="status_changed", user=request.user, details={"status": status})
+    if task.assignee and task.assignee_id != request.user.id:
+        notify_user(
+            task.assignee, "task", _("Task status changed"),
+            _('"%(title)s" is now %(status)s.') % {"title": task.title, "status": task.get_status_display()},
+            link=f"/tasks/{task.pk}/",
+        )
+    if is_ajax:
         return JsonResponse({"ok": True, "status": task.status})
     return redirect("tasks:detail", pk=pk)
 

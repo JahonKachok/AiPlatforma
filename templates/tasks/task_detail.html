@@ -24,12 +24,26 @@
       <h2 class="mb-3 font-semibold">{% trans "Quick status change" %}</h2>
       <form method="post" action="{% url 'tasks:update_status' task.pk %}" class="flex flex-wrap gap-2">
         {% csrf_token %}
-        {% for value, label in statuses %}
-          <button type="submit" name="status" value="{{ value }}"
-            class="btn btn-sm {% if task.status == value %}btn-primary{% else %}btn-secondary{% endif %}">{{ label }}</button>
+        <button type="submit" name="status" value="{{ task.status }}" class="btn btn-sm btn-primary" disabled>{{ task.get_status_display }}</button>
+        {% for value, label in next_statuses %}
+          <button type="submit" name="status" value="{{ value }}" class="btn btn-sm btn-secondary">{{ label }}</button>
         {% endfor %}
       </form>
     </div>
+
+    {% if is_reviewer %}
+      <div class="card border-2 p-6" style="border-color:var(--ap-primary)">
+        <h2 class="mb-3 font-semibold">{% trans "Review" %}</h2>
+        <div class="flex flex-wrap gap-2">
+          <form method="post" action="{% url 'tasks:update_status' task.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="status" value="approved">
+            <button type="submit" class="btn btn-primary btn-sm">{% trans "Send for approval" %}</button>
+          </form>
+          <button type="button" class="btn btn-danger btn-sm" data-modal-open="revision-modal">{% trans "Send back for revision" %}</button>
+        </div>
+      </div>
+    {% endif %}
 
     <div class="card p-6">
       <h2 class="mb-3 font-semibold">{% trans "Attachments" %}</h2>
@@ -92,8 +106,35 @@
         <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Assignee" %}</dt><dd>{{ task.assignee|default:"—" }}</dd></div>
         <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Deadline" %}</dt>
           <dd class="{% if task.is_overdue %}text-red-500{% endif %}">{{ task.deadline|default:"—" }}</dd></div>
+        {% if task.approval_document_id %}
+          <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Kelishuvlar" %}</dt>
+            <dd><a href="{% url 'documents:detail' task.approval_document_id %}" class="text-blue-500 hover:underline">{{ task.approval_document.get_status_display }}</a></dd></div>
+        {% endif %}
       </dl>
     </div>
   </div>
 </div>
+
+{% if is_reviewer %}
+<div id="revision-modal" class="ap-modal-backdrop" data-modal-backdrop>
+  <div class="card ap-modal-card">
+    <div class="flex items-center justify-between border-b border-gray-200 px-4 py-4 dark:border-gray-700">
+      <h3 class="font-semibold">{% trans "Send back for revision" %}</h3>
+      <button type="button" class="btn btn-secondary btn-sm" data-modal-close aria-label="{% trans 'Close' %}">&times;</button>
+    </div>
+    <form method="post" action="{% url 'tasks:update_status' task.pk %}" class="space-y-4 px-4 py-4">
+      {% csrf_token %}
+      <input type="hidden" name="status" value="revision">
+      <div>
+        <label class="field-label" for="{{ revision_form.content.id_for_label }}">{% with field=revision_form.content %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+        {{ revision_form.content }}
+      </div>
+      <div class="flex justify-end gap-2 border-t border-gray-200 dark:border-gray-700" style="padding-top:1rem">
+        <button type="button" class="btn btn-secondary btn-md" data-modal-close>{% trans "Cancel" %}</button>
+        <button type="submit" class="btn btn-danger btn-md">{% trans "Send back" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
 {% endblock %}

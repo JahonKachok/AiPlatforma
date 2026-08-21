@@ -44,6 +44,9 @@ class Document(models.Model):
     file_size = models.PositiveIntegerField(default=0)
     mime_type = models.CharField(max_length=100, blank=True, null=True)
     deadline = models.DateField(blank=True, null=True)
+    source_task = models.OneToOneField(
+        "tasks.Task", on_delete=models.SET_NULL, null=True, blank=True, related_name="approval_document",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

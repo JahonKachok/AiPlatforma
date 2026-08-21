@@ -13,10 +13,13 @@ from apps.projects.models import Project, SubObject
 from apps.projects.permissions import can_edit_project, visible_projects_for
 from apps.reports.exports import build_cash_flow_workbook
 
+import datetime
+
 from .forms import (
     AdministrativeExpenseForm,
     EmployeeContractForm,
     EmployeeContractPayForm,
+    FinanceCategoryForm,
     FinancialRecordForm,
     TransactionForm,
 )
@@ -27,6 +30,7 @@ from .models import (
     AdministrativeExpense,
     Currency,
     EmployeeContract,
+    FinanceCategory,
     FinanceSettings,
     FinancialRecord,
     RecordCategory,
@@ -53,6 +57,33 @@ def _finance_home_url(tab=None):
 
 def _to_uzs(amount, currency, rate):
     return amount * rate if currency == Currency.USD else amount
+
+
+def _get_month_nav(month_str=None):
+    today = timezone.localdate()
+    if month_str:
+        try:
+            year, mon = (int(part) for part in month_str.split("-", 1))
+            cur = datetime.date(year, mon, 1)
+        except (ValueError, TypeError):
+            cur = datetime.date(today.year, today.month, 1)
+    else:
+        cur = datetime.date(today.year, today.month, 1)
+
+    prev_date = (cur - datetime.timedelta(days=1)).replace(day=1)
+    if cur.month == 12:
+        next_date = datetime.date(cur.year + 1, 1, 1)
+    else:
+        next_date = datetime.date(cur.year, cur.month + 1, 1)
+
+    return {
+        "current": cur.strftime("%Y-%m"),
+        "display": cur.strftime("%Y-%m"),
+        "prev": prev_date.strftime("%Y-%m"),
+        "next": next_date.strftime("%Y-%m"),
+        "is_current": (cur.year == today.year and cur.month == today.month),
+    }
+
 
 
 def _dashboard_context(request):
@@ -127,10 +158,12 @@ def _dashboard_context(request):
         "total_income": total_income,
         "total_expense": total_expense,
         "total_contract_amount": total_contract_amount,
+        "total_budget": total_contract_amount,
         "project_rows": project_rows,
         "project_totals": project_totals,
         "transaction_form": TransactionForm(user=user),
         "employee_form": EmployeeContractForm(),
+        "category_form": FinanceCategoryForm(),
         "can_manage_finance": _can_manage_finance(user),
     }
 
@@ -161,6 +194,8 @@ def _payroll_context(request):
         "employee_contracts": contracts,
         "employee_form": EmployeeContractForm(),
         "pay_form": EmployeeContractPayForm(),
+        "category_form": FinanceCategoryForm(),
+        "transaction_form": TransactionForm(user=user),
         "employees": employees,
         "projects": projects,
         "objects": SubObject.objects.filter(project__in=projects, parent__isnull=True),
@@ -173,7 +208,9 @@ def _payroll_context(request):
 
 
 def _filtered_cash_flow_records(request, projects):
-    records = FinancialRecord.objects.filter(project__in=projects).select_related("project", "sub_object")
+    records = FinancialRecord.objects.filter(project__in=projects).select_related(
+        "project", "sub_object"
+    ).order_by("-date", "-created_at")
     project_id = request.GET.get("project")
     sub_object_id = request.GET.get("sub_object")
     pod_object_id = request.GET.get("pod_object")
@@ -199,26 +236,36 @@ def _filtered_cash_flow_records(request, projects):
 def _cash_flow_context(request):
     projects = visible_projects_for(request.user)
     records = _filtered_cash_flow_records(request, projects)
-    totals = {}
+    totals = {c: 0 for c, _label in Currency.choices}
     for r in records:
         totals[r.currency] = totals.get(r.currency, 0) + r.signed_amount
+
+    cat_choices = [(c.value, c.label) for c in RecordCategory]
+    for fc in FinanceCategory.objects.all():
+        cat_choices.append((fc.name, fc.name))
+
+    month_str = request.GET.get("month") or ""
+
     return {
         "cash_flow_records": records[:300],
         "cash_flow_totals": totals,
         "projects": projects,
         "objects": SubObject.objects.filter(project__in=projects, parent__isnull=True),
         "pod_objects": SubObject.objects.filter(project__in=projects, parent__isnull=False),
-        "categories": RecordCategory.choices,
+        "categories": cat_choices,
         "filter_project": request.GET.get("project") or "",
         "filter_sub_object": request.GET.get("sub_object") or "",
         "filter_pod_object": request.GET.get("pod_object") or "",
-        "filter_month": request.GET.get("month") or "",
+        "filter_month": month_str,
         "filter_category": request.GET.get("category") or "",
+        "month_nav": _get_month_nav(month_str),
+        "category_form": FinanceCategoryForm(),
+        "transaction_form": TransactionForm(user=request.user),
     }
 
 
 def _admin_expenses_context(request):
-    expenses = AdministrativeExpense.objects.select_related("created_by")
+    expenses = AdministrativeExpense.objects.select_related("created_by").order_by("-date", "-created_at")
     period = request.GET.get("period")
     category = request.GET.get("category")
     if period:
@@ -228,21 +275,27 @@ def _admin_expenses_context(request):
 
     settings_obj = FinanceSettings.get_solo()
     rate = settings_obj.usd_rate
-    totals = {}
+    totals = {c: 0 for c, _label in Currency.choices}
     for e in expenses:
         totals[e.currency] = totals.get(e.currency, 0) + e.amount
     total_uzs = sum(_to_uzs(e.amount, e.currency, rate) for e in expenses)
+
+    admin_cats = [(c.value, c.label) for c in AdminExpenseCategory]
+    for fc in FinanceCategory.objects.filter(type="admin"):
+        admin_cats.append((fc.name, fc.name))
 
     return {
         "admin_expenses": expenses,
         "admin_expense_totals": totals,
         "admin_expense_total_uzs": total_uzs,
         "admin_expense_form": AdministrativeExpenseForm(),
-        "admin_expense_categories": AdminExpenseCategory.choices,
+        "admin_expense_categories": admin_cats,
+        "category_form": FinanceCategoryForm(),
         "filter_period": period or "",
         "filter_admin_category": category or "",
         "can_manage_finance": _can_manage_finance(request.user),
     }
+
 
 
 @login_required
@@ -435,3 +488,21 @@ def cash_flow_export(request):
     response["Content-Disposition"] = 'attachment; filename="cash_flow.xlsx"'
     wb.save(response)
     return response
+
+
+@login_required
+def finance_category_create(request):
+    if not _can_manage_finance(request.user):
+        raise PermissionDenied
+    if request.method == "POST":
+        form = FinanceCategoryForm(request.POST)
+        if form.is_valid():
+            cat = form.save(commit=False)
+            cat.created_by = request.user
+            cat.save()
+            messages.success(request, _("Category added successfully."))
+        else:
+            messages.error(request, _("Could not add category — please check the form."))
+    tab = request.POST.get("return_tab", "dashboard")
+    return redirect(_finance_home_url(tab))
+

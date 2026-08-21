@@ -426,8 +426,9 @@ class DocumentsDownloadZipTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/zip")
         archive = zipfile.ZipFile(io.BytesIO(response.content))
-        self.assertEqual(archive.namelist(), ["tz.pdf"])
-        self.assertEqual(archive.read("tz.pdf"), b"hello")
+        expected_path = "10_ТЭ/tz.pdf"
+        self.assertEqual(archive.namelist(), [expected_path])
+        self.assertEqual(archive.read(expected_path), b"hello")
 
     def test_no_documents_redirects_with_message(self):
         self.client.force_login(self.admin)

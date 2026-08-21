@@ -108,6 +108,7 @@
           {% for task in column_tasks %}
             <div data-task-card="{{ task.pk }}" data-status-url="{% url 'tasks:update_status' task.pk %}"
                  data-detail-url="{% url 'tasks:detail' task.pk %}" data-priority="{{ task.priority }}"
+                 data-allowed-statuses="{{ task_allowed_targets|get_item:task.pk|join:',' }}"
                  draggable="true" class="kb-card">
               <p class="kb-card-title">{{ task.title }}</p>
               <span class="kb-card-project">

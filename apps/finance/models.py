@@ -115,7 +115,7 @@ class EmployeeContract(models.Model):
         "projects.SubObject", on_delete=models.SET_NULL, null=True, blank=True,
         related_name="employee_contracts_as_pod_object", verbose_name=_("Pod-object"),
     )
-    amount = models.FloatField(verbose_name=_("Amount"))
+    amount = models.FloatField(verbose_name=_("Budget"))
     currency = models.CharField(
         max_length=10, choices=Currency.choices, default=Currency.UZS, verbose_name=_("Currency"),
     )
@@ -166,13 +166,38 @@ class AdminExpenseCategory(models.TextChoices):
     OTHER = "other", _("Other")
 
 
+class FinanceCategory(models.Model):
+    """Custom categories created dynamically by managers for project or admin finance tracking."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100, verbose_name=_("Category name"))
+    type = models.CharField(
+        max_length=20,
+        choices=[("income", _("Income")), ("expense", _("Expense")), ("admin", _("Administrative"))],
+        default="expense",
+        verbose_name=_("Type"),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+    )
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name = _("Finance Category")
+        verbose_name_plural = _("Finance Categories")
+
+    def __str__(self):
+        return self.name
+
+
 class AdministrativeExpense(models.Model):
     """A recurring/fixed company-wide cost (tax, rent, utilities, office
     supplies) tracked separately from project cash flow, on a monthly,
     quarterly, or yearly basis."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    category = models.CharField(max_length=20, choices=AdminExpenseCategory.choices, verbose_name=_("Category"))
+    category = models.CharField(max_length=100, verbose_name=_("Category"))
     amount = models.FloatField(verbose_name=_("Amount"))
     currency = models.CharField(max_length=10, choices=Currency.choices, default=Currency.UZS, verbose_name=_("Currency"))
     period = models.CharField(max_length=10, choices=AdminExpensePeriod.choices, verbose_name=_("Period"))
@@ -186,4 +211,5 @@ class AdministrativeExpense(models.Model):
         ordering = ["-date"]
 
     def __str__(self):
-        return f"{self.get_category_display()} {self.amount} ({self.get_period_display()})"
+        return f"{self.category} {self.amount} ({self.get_period_display()})"
+

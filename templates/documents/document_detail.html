@@ -4,6 +4,11 @@
 {% block page_title %}{{ document.name }}{% endblock %}
 {% block page_subtitle %}<span class="{{ document.status|document_status_badge }}">{{ document.get_status_display }}</span> · v{{ document.version }}{% endblock %}
 {% block content %}
+{% if document.source_task_id %}
+  <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+    {% trans "From task" %}: <a href="{% url 'tasks:detail' document.source_task_id %}" class="text-blue-500 hover:underline">{{ document.source_task.title }}</a>
+  </p>
+{% endif %}
 <div class="mb-4 flex flex-wrap gap-2">
   <a href="{% url 'documents:list' %}" class="btn btn-ghost btn-sm">← {% trans "Back" %}</a>
   {% if document.file %}

@@ -75,8 +75,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const card = draggedCard;
     const status = column.dataset.kanbanColumn;
-    const url = card.dataset.statusUrl;
     const originColumn = card.closest("[data-kanban-column]");
+
+    if (originColumn === column) { placeholder.remove(); return; }
+
+    const allowed = (card.dataset.allowedStatuses || "").split(",").filter(Boolean);
+    if (!allowed.includes(status)) { placeholder.remove(); return; }
+
+    let comment = "";
+    if (status === "revision") {
+      comment = window.prompt("Izoh (majburiy):", "") || "";
+      if (!comment.trim()) { placeholder.remove(); return; }
+    }
+
+    const url = card.dataset.statusUrl;
     const originNext = card.nextElementSibling;
 
     // Optimistic move; revert if the server rejects it.
@@ -84,9 +96,9 @@ document.addEventListener("DOMContentLoaded", function () {
     placeholder.remove();
     updateCounts();
 
-    if (originColumn === column) return;
-
     const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+    let body = "status=" + encodeURIComponent(status);
+    if (comment) body += "&content=" + encodeURIComponent(comment);
     fetch(url, {
       method: "POST",
       headers: {
@@ -94,7 +106,7 @@ document.addEventListener("DOMContentLoaded", function () {
         "X-CSRFToken": csrfToken,
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: "status=" + encodeURIComponent(status),
+      body: body,
     })
       .then((res) => { if (!res.ok) throw new Error(); })
       .catch(() => {

@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.core.forms import StyledFormMixin
 
 from .models import Task, TaskAttachment, TaskComment
+from .permissions import allowed_status_targets, is_privileged
 
 
 class TaskForm(StyledFormMixin, forms.ModelForm):
@@ -25,11 +26,28 @@ class TaskForm(StyledFormMixin, forms.ModelForm):
             "deadline": _("The deadline set for completing the task."),
         }
 
-    def __init__(self, *args, project=None, **kwargs):
+    def __init__(self, *args, project=None, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         if project is not None:
             self.fields["section"].queryset = project.sections.all()
             self.fields["project"].initial = project
+        if user is not None and not is_privileged(user):
+            if self.instance.pk:
+                allowed = {self.instance.status} | allowed_status_targets(user, self.instance)
+            else:
+                allowed = {Task.Status.NEW}
+            self.fields["status"].choices = [
+                (value, label) for value, label in Task.Status.choices if value in allowed
+            ]
+
+    def clean(self):
+        cleaned = super().clean()
+        project, section, assignee = cleaned.get("project"), cleaned.get("section"), cleaned.get("assignee")
+        if section and project and section.project_id != project.id:
+            self.add_error("section", _("This section doesn't belong to the selected project."))
+        if section and assignee and not assignee.disciplines.filter(pk=section.discipline_id).exists():
+            self.add_error("assignee", _("The assignee doesn't have this section's discipline."))
+        return cleaned
 
 
 class TaskCommentForm(StyledFormMixin, forms.ModelForm):

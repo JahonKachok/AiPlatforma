@@ -5,7 +5,17 @@ from django.utils.translation import gettext_lazy as _
 from apps.core.forms import StyledFormMixin
 from apps.projects.models import SubObject
 
-from .models import Account, AdministrativeExpense, EmployeeContract, FinancialRecord, RecordCategory, RecordType
+from .models import Account, AdministrativeExpense, EmployeeContract, FinanceCategory, FinancialRecord, RecordCategory, RecordType
+
+
+class FinanceCategoryForm(StyledFormMixin, forms.ModelForm):
+    class Meta:
+        model = FinanceCategory
+        fields = ["name", "type"]
+        help_texts = {
+            "name": _("Category name (e.g. Transport, Consulting, Equipment)."),
+            "type": _("Category type — income, expense, or administrative expense."),
+        }
 
 
 class TransactionForm(StyledFormMixin, forms.ModelForm):
@@ -40,6 +50,13 @@ class TransactionForm(StyledFormMixin, forms.ModelForm):
         ]
         self.fields["account"].required = True
         self.fields["category"].required = False
+
+        cats = [("", "---------")] + [(c.value, c.label) for c in RecordCategory]
+        custom_cats = list(FinanceCategory.objects.exclude(type="admin").values_list("name", "name"))
+        if custom_cats:
+            cats.extend(custom_cats)
+        self.fields["category"].choices = cats
+
         if user is not None:
             from apps.projects.permissions import visible_projects_for
             self.fields["project"].queryset = visible_projects_for(user)
@@ -97,8 +114,8 @@ class EmployeeContractForm(StyledFormMixin, forms.ModelForm):
             "project": _("The project the employee works on."),
             "sub_object": _("The object the employee is assigned to (optional)."),
             "pod_object": _("The pod-object the employee is assigned to (optional)."),
-            "amount": _("The total amount under the contract."),
-            "currency": _("The contract amount's currency."),
+            "amount": _("The total budget allocated."),
+            "currency": _("The budget currency."),
             "notes": _("Additional notes (optional)."),
         }
 
@@ -125,6 +142,15 @@ class AdministrativeExpenseForm(StyledFormMixin, forms.ModelForm):
             "note": _("Additional notes (optional)."),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from .models import AdminExpenseCategory
+        cats = [(c.value, c.label) for c in AdminExpenseCategory]
+        custom_cats = list(FinanceCategory.objects.filter(type="admin").values_list("name", "name"))
+        if custom_cats:
+            cats.extend(custom_cats)
+        self.fields["category"].choices = cats
+
 
 class EmployeeContractPayForm(StyledFormMixin, forms.Form):
     employee_contract = forms.ModelChoiceField(
@@ -149,3 +175,4 @@ class EmployeeContractPayForm(StyledFormMixin, forms.Form):
             .exclude(status__in=["completed", "terminated"])
             .filter(paid__lt=F("amount"))
         )
+

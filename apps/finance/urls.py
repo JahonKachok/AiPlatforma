@@ -21,4 +21,5 @@ urlpatterns = [
         views.administrative_expense_delete,
         name="delete_administrative_expense",
     ),
+    path("categories/add/", views.finance_category_create, name="add_category"),
 ]

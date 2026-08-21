@@ -1,0 +1,35 @@
+{% load i18n %}
+<div id="category-modal" class="ap-modal-backdrop" data-modal-backdrop>
+  <div class="card ap-modal-card max-w-md w-full">
+    <div class="flex items-center justify-between border-b border-gray-200 px-4 py-4 dark:border-gray-700">
+      <h3 class="font-semibold text-lg flex items-center gap-2">
+        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        </svg>
+        {% trans "Add category" %}
+      </h3>
+      <button type="button" class="btn btn-secondary btn-sm" data-modal-close aria-label="{% trans 'Close' %}">&times;</button>
+    </div>
+    <form method="post" action="{% url 'finance:add_category' %}" class="space-y-4 px-4 py-4">
+      {% csrf_token %}
+      <input type="hidden" name="return_tab" value="{{ tab|default:'dashboard' }}">
+      <div>
+        <label class="field-label" for="{{ category_form.name.id_for_label }}">{% trans "Category name" %}</label>
+        {{ category_form.name }}
+      </div>
+      <div>
+        <label class="field-label" for="{{ category_form.type.id_for_label }}">{% trans "Category type" %}</label>
+        {{ category_form.type }}
+      </div>
+      <div class="flex justify-end gap-2 border-t border-gray-200 dark:border-gray-700 pt-4">
+        <button type="button" class="btn btn-secondary btn-md" data-modal-close>{% trans "Cancel" %}</button>
+        <button type="submit" class="btn btn-primary btn-md flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          {% trans "Save category" %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BuildFlow\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-21 19:30+0500\n"
+"POT-Creation-Date: 2026-08-21 21:40+0500\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -366,7 +366,7 @@ msgid "Other"
 msgstr "Другое"
 
 #: .\apps\document_templates\views.py:24 .\apps\notifications\views.py:19
-#: .\apps\projects\views.py:133 .\apps\tasks\views.py:90
+#: .\apps\projects\views.py:134 .\apps\tasks\views.py:90
 #: .\templates\accounts\user_list.html:14
 #: .\templates\documents\document_list.html:8
 #: .\templates\finance\finance_home.html:259
@@ -837,14 +837,14 @@ msgid "Yearly"
 msgstr "Ежегодно"
 
 #: .\apps\finance\models.py:38 .\apps\organization\models.py:9
-#: .\apps\projects\models.py:22 .\apps\projects\views.py:134
+#: .\apps\projects\models.py:22 .\apps\projects\views.py:135
 #: .\templates\accounts\user_list.html:15
 #: .\templates\ai_agents\dashboard.html:14
 msgid "Active"
 msgstr "Активен"
 
 #: .\apps\finance\models.py:39 .\apps\projects\models.py:24
-#: .\apps\projects\models.py:121 .\apps\projects\views.py:136
+#: .\apps\projects\models.py:121 .\apps\projects\views.py:137
 #: .\apps\tasks\models.py:41 .\apps\tasks\views.py:93
 #: .\templates\projects\project_detail.html:304
 msgid "Completed"
@@ -1230,11 +1230,11 @@ msgstr "Подразделение добавлено."
 msgid "Unit deleted."
 msgstr "Подразделение удалено."
 
-#: .\apps\organization\views.py:122 .\apps\projects\views.py:340
+#: .\apps\organization\views.py:122 .\apps\projects\views.py:341
 msgid "Member added."
 msgstr "Участник добавлен."
 
-#: .\apps\organization\views.py:133 .\apps\projects\views.py:352
+#: .\apps\organization\views.py:133 .\apps\projects\views.py:353
 msgid "Member removed."
 msgstr "Участник удалён."
 
@@ -1705,6 +1705,20 @@ msgstr "Может редактировать"
 msgid "Expires at"
 msgstr "Истекает"
 
+#: .\apps\projects\services.py:42
+msgid "Develop the project"
+msgstr "Разработать проект"
+
+#: .\apps\projects\services.py:53 .\apps\tasks\views.py:160
+msgid "New task assigned"
+msgstr "Назначена новая задача"
+
+#: .\apps\projects\services.py:54 .\apps\requests_app\views.py:47
+#: .\apps\tasks\views.py:161 .\apps\tasks\views.py:235
+#, python-format
+msgid "You were assigned to \"%(title)s\"."
+msgstr "Вы назначены на «%(title)s»."
+
 #: .\apps\projects\uz_regions.py:10
 msgid "Tashkent city"
 msgstr "город Ташкент"
@@ -1761,157 +1775,162 @@ msgstr "Хорезмская область"
 msgid "Republic of Karakalpakstan"
 msgstr "Республика Каракалпакстан"
 
-#: .\apps\projects\views.py:31
+#: .\apps\projects\views.py:32
 msgid "90_Проектная документация"
 msgstr "90_Проектная документация"
 
-#: .\apps\projects\views.py:36
+#: .\apps\projects\views.py:37
 msgid "05_Планшет"
 msgstr "05_Планшет"
 
-#: .\apps\projects\views.py:37
+#: .\apps\projects\views.py:38
 msgid "10_ТЭ"
 msgstr "10_ТЭ"
 
-#: .\apps\projects\views.py:38
+#: .\apps\projects\views.py:39
 msgid "20_Геология"
 msgstr "20_Геология"
 
-#: .\apps\projects\views.py:39
+#: .\apps\projects\views.py:40
 msgid "30_Экология"
 msgstr "30_Экология"
 
-#: .\apps\projects\views.py:40
+#: .\apps\projects\views.py:41
 msgid "40_Кадастр"
 msgstr "40_Кадастр"
 
-#: .\apps\projects\views.py:41
+#: .\apps\projects\views.py:42
 msgid "50_АПЗ"
 msgstr "50_АПЗ"
 
-#: .\apps\projects\views.py:42
+#: .\apps\projects\views.py:43
 msgid "60_ТУ"
 msgstr "60_ТУ"
 
-#: .\apps\projects\views.py:43
+#: .\apps\projects\views.py:44
 msgid "70_КД оборудования"
 msgstr "70_КД оборудования"
 
-#: .\apps\projects\views.py:44
+#: .\apps\projects\views.py:45
 msgid "80_Фото и видео"
 msgstr "80_Фото и видео"
 
-#: .\apps\projects\views.py:79
+#: .\apps\projects\views.py:80
 msgid "Weight must be a whole number."
 msgstr "Вес должен быть целым числом."
 
-#: .\apps\projects\views.py:81
+#: .\apps\projects\views.py:82
 msgid "Weight must be between 0 and 100."
 msgstr "Вес должен быть от 0 до 100."
 
-#: .\apps\projects\views.py:89
+#: .\apps\projects\views.py:90
 msgid "Progress must be a whole number."
 msgstr "Прогресс должен быть целым числом."
 
-#: .\apps\projects\views.py:91
+#: .\apps\projects\views.py:92
 msgid "Progress must be between 0 and 100."
 msgstr "Прогресс должен быть от 0 до 100."
 
-#: .\apps\projects\views.py:138
+#: .\apps\projects\views.py:139
 msgid "Deadline passed"
 msgstr "Дедлайн истёк"
 
-#: .\apps\projects\views.py:172
+#: .\apps\projects\views.py:173
 msgid "Project created."
 msgstr "Проект создан."
 
-#: .\apps\projects\views.py:293
+#: .\apps\projects\views.py:294
 msgid "Project updated."
 msgstr "Проект обновлён."
 
-#: .\apps\projects\views.py:311
+#: .\apps\projects\views.py:312
 msgid "Project deleted."
 msgstr "Проект удалён."
 
-#: .\apps\projects\views.py:342
+#: .\apps\projects\views.py:343
 msgid "This user is already a member."
 msgstr "Этот пользователь уже является участником."
 
-#: .\apps\projects\views.py:367
+#: .\apps\projects\views.py:368
 msgid "Sub-object added."
 msgstr "Объект добавлен."
 
-#: .\apps\projects\views.py:382
+#: .\apps\projects\views.py:383
 msgid "Section added."
 msgstr "Раздел добавлен."
 
-#: .\apps\projects\views.py:393
+#: .\apps\projects\views.py:394
 msgid "Project structure saved."
 msgstr "Структура проекта сохранена."
 
-#: .\apps\projects\views.py:433
+#: .\apps\projects\views.py:434
 msgid "Assigned to a project section"
 msgstr "Назначен на раздел проекта"
 
-#: .\apps\projects\views.py:434
+#: .\apps\projects\views.py:435
 #, python-format
 msgid "You were assigned to %(discipline)s on %(sub_object)s."
 msgstr "Вы назначены на %(discipline)s в объекте %(sub_object)s."
 
-#: .\apps\projects\views.py:439
+#: .\apps\projects\views.py:440
 msgid "Disciplines saved."
 msgstr "Направления сохранены."
 
-#: .\apps\projects\views.py:478 .\apps\projects\views.py:493
+#: .\apps\projects\views.py:479 .\apps\projects\views.py:494
 msgid "Name is required."
 msgstr "Название обязательно."
 
-#: .\apps\projects\views.py:519
+#: .\apps\projects\views.py:520
 msgid "Choose a file to upload."
 msgstr "Выберите файл для загрузки."
 
-#: .\apps\projects\views.py:528
+#: .\apps\projects\views.py:529
 #, python-format
 msgid "Imported: %(objects)d objects, %(pods)d pod objects."
 msgstr "Импортировано: объектов — %(objects)d, подобъектов — %(pods)d."
 
-#: .\apps\projects\views.py:550
+#: .\apps\projects\views.py:555
+#, python-format
+msgid "Section saved. Task \"%(title)s\" was created for %(user)s."
+msgstr "Раздел сохранён. Для %(user)s создана задача «%(title)s»."
+
+#: .\apps\projects\views.py:559
 msgid "Section saved."
 msgstr "Раздел сохранён."
 
-#: .\apps\projects\views.py:566
+#: .\apps\projects\views.py:575
 msgid "Select at least one discipline."
 msgstr "Выберите хотя бы одно направление."
 
-#: .\apps\projects\views.py:570
+#: .\apps\projects\views.py:579
 msgid "Disciplines added."
 msgstr "Направления добавлены."
 
-#: .\apps\projects\views.py:583
+#: .\apps\projects\views.py:592
 msgid "Discipline removed."
 msgstr "Направление удалено."
 
-#: .\apps\projects\views.py:601
+#: .\apps\projects\views.py:610
 msgid "Weights and progress saved."
 msgstr "Веса и прогресс сохранены."
 
-#: .\apps\projects\views.py:614
+#: .\apps\projects\views.py:623
 msgid "Client information updated."
 msgstr "Информация о клиенте обновлена."
 
-#: .\apps\projects\views.py:646
+#: .\apps\projects\views.py:655
 msgid "There are no source files to download yet."
 msgstr "Пока нет исходных файлов для скачивания."
 
-#: .\apps\projects\views.py:679
+#: .\apps\projects\views.py:688
 msgid "Unknown document type."
 msgstr "Неизвестный тип документа."
 
-#: .\apps\projects\views.py:683
+#: .\apps\projects\views.py:692
 msgid "No file was uploaded."
 msgstr "Файл не был загружен."
 
-#: .\apps\projects\views.py:732
+#: .\apps\projects\views.py:741
 msgid "Project saved."
 msgstr "Проект сохранён."
 
@@ -1998,12 +2017,6 @@ msgstr "Закрыто"
 msgid "New request assigned"
 msgstr "Назначена новая заявка"
 
-#: .\apps\requests_app\views.py:47 .\apps\tasks\views.py:161
-#: .\apps\tasks\views.py:235
-#, python-format
-msgid "You were assigned to \"%(title)s\"."
-msgstr "Вы назначены на «%(title)s»."
-
 #: .\apps\requests_app\views.py:50
 msgid "Request created."
 msgstr "Заявка создана."
@@ -2077,10 +2090,6 @@ msgstr "Новая"
 #: .\apps\tasks\views.py:95
 msgid "Overdue"
 msgstr "Просрочено"
-
-#: .\apps\tasks\views.py:160
-msgid "New task assigned"
-msgstr "Назначена новая задача"
 
 #: .\apps\tasks\views.py:164
 msgid "Task created."
@@ -2225,7 +2234,9 @@ msgstr "Настройки"
 msgid ""
 "Manage your profile, security settings (password, 2FA), and notification "
 "channels."
-msgstr "Управление профилем, настройками безопасности (пароль, 2FA) и каналами уведомлений."
+msgstr ""
+"Управление профилем, настройками безопасности (пароль, 2FA) и каналами "
+"уведомлений."
 
 #: .\templates\accounts\profile.html:6
 msgid "Manage your profile, security and notifications"
@@ -2355,7 +2366,9 @@ msgstr "Пользователи"
 msgid ""
 "Manage system users: add employees, change their roles, and activate or "
 "deactivate accounts."
-msgstr "Управление пользователями системы: добавление сотрудников, изменение ролей, включение и отключение учётных записей."
+msgstr ""
+"Управление пользователями системы: добавление сотрудников, изменение ролей, "
+"включение и отключение учётных записей."
 
 #: .\templates\accounts\user_list.html:17
 msgid "Designers"
@@ -2462,7 +2475,9 @@ msgstr "Экосистема ИИ"
 msgid ""
 "Configure AI agents, run them automatically on a schedule, and follow the "
 "audit log of their work."
-msgstr "Настройка ИИ-агентов, автоматический запуск по расписанию и просмотр журнала их действий."
+msgstr ""
+"Настройка ИИ-агентов, автоматический запуск по расписанию и просмотр журнала "
+"их действий."
 
 #: .\templates\ai_agents\dashboard.html:6
 msgid "Agents, schedules and audit log"
@@ -2570,7 +2585,9 @@ msgstr "Панель управления"
 msgid ""
 "An overview of every project, task, and notification — the current state of "
 "the system at a glance."
-msgstr "Общий обзор всех проектов, задач и уведомлений — текущее состояние системы одним взглядом."
+msgstr ""
+"Общий обзор всех проектов, задач и уведомлений — текущее состояние системы "
+"одним взглядом."
 
 #: .\templates\core\dashboard.html:6
 #, python-format
@@ -2741,7 +2758,9 @@ msgstr "Шаблоны"
 msgid ""
 "Create reusable document templates (contracts, acts, and so on) and generate "
 "finished documents from them."
-msgstr "Создание многоразовых шаблонов документов (договоры, акты и т. д.) и генерация готовых документов из них."
+msgstr ""
+"Создание многоразовых шаблонов документов (договоры, акты и т. д.) и "
+"генерация готовых документов из них."
 
 #: .\templates\document_templates\template_list.html:29
 msgid "No templates yet."
@@ -2829,7 +2848,9 @@ msgstr "Согласования"
 #: .\templates\documents\approvals_list.html:5
 msgid ""
 "Review the documents sent to you for approval, then approve or reject them."
-msgstr "Просмотр документов, отправленных вам на согласование, с возможностью утвердить или отклонить."
+msgstr ""
+"Просмотр документов, отправленных вам на согласование, с возможностью "
+"утвердить или отклонить."
 
 #: .\templates\documents\approvals_list.html:27
 #: .\templates\documents\document_detail.html:9
@@ -2911,7 +2932,9 @@ msgstr "Загрузил"
 msgid ""
 "Store every project document (drawings, estimates, contracts), keep their "
 "versions, and move them through approval."
-msgstr "Хранение всех документов проекта (чертежи, сметы, договоры), ведение версий и прохождение согласования."
+msgstr ""
+"Хранение всех документов проекта (чертежи, сметы, договоры), ведение версий "
+"и прохождение согласования."
 
 #: .\templates\documents\document_list.html:18
 #: .\templates\finance\finance_home.html:81
@@ -3014,7 +3037,9 @@ msgstr "Добавить операцию"
 msgid ""
 "Track the company cash desk, salary payments to employees, and money "
 "movement across projects."
-msgstr "Контроль кассы компании, выплат зарплаты сотрудникам и движения денег по проектам."
+msgstr ""
+"Контроль кассы компании, выплат зарплаты сотрудникам и движения денег по "
+"проектам."
 
 #: .\templates\finance\finance_home.html:13
 msgid "General"
@@ -3202,7 +3227,9 @@ msgstr "Отметить всё как прочитанное"
 msgid ""
 "Every notification you receive — task assignments, approaching deadlines, "
 "comments — collects here."
-msgstr "Все ваши уведомления — назначения задач, приближающиеся сроки, комментарии — собираются здесь."
+msgstr ""
+"Все ваши уведомления — назначения задач, приближающиеся сроки, комментарии — "
+"собираются здесь."
 
 #: .\templates\notifications\notification_list.html:25
 msgid "Mark read"
@@ -3225,7 +3252,9 @@ msgstr "Организация"
 
 #: .\templates\organization\department_list.html:5
 msgid "Manage the company's internal structure: departments, units, and staff."
-msgstr "Управление внутренней структурой компании: отделы, подразделения и сотрудники."
+msgstr ""
+"Управление внутренней структурой компании: отделы, подразделения и "
+"сотрудники."
 
 #: .\templates\organization\department_list.html:17
 msgid "New department"
@@ -3505,7 +3534,9 @@ msgstr "История пока пуста."
 msgid ""
 "Manage all construction projects: follow their stages, budgets, and "
 "deadlines, and create new ones."
-msgstr "Управление всеми строительными проектами: контроль этапов, бюджета и сроков, создание новых проектов."
+msgstr ""
+"Управление всеми строительными проектами: контроль этапов, бюджета и сроков, "
+"создание новых проектов."
 
 #: .\templates\projects\project_list.html:10
 msgid "Search projects..."
@@ -3627,7 +3658,9 @@ msgstr "Импорт"
 msgid ""
 "View reports on projects, tasks, finance, and staff, and export them to "
 "Excel or CSV."
-msgstr "Просмотр отчётов по проектам, задачам, финансам и сотрудникам с экспортом в Excel или CSV."
+msgstr ""
+"Просмотр отчётов по проектам, задачам, финансам и сотрудникам с экспортом в "
+"Excel или CSV."
 
 #: .\templates\reports\dashboard.html:8
 msgid "Export projects"
@@ -3713,7 +3746,9 @@ msgstr "Редактировать запрос"
 msgid ""
 "Handle project requests: change requests, clarifications, improvement "
 "suggestions, and reported problems."
-msgstr "Ведение обращений по проекту: запросы на изменение, уточнения, предложения по улучшению и сообщения о проблемах."
+msgstr ""
+"Ведение обращений по проекту: запросы на изменение, уточнения, предложения "
+"по улучшению и сообщения о проблемах."
 
 #: .\templates\requests_app\request_list.html:9
 msgid "All"
@@ -3731,7 +3766,9 @@ msgstr "Запросы не найдены."
 msgid ""
 "Manage tasks on a kanban board split into status columns, assign them to "
 "staff, and track deadlines."
-msgstr "Управление задачами на канбан-доске с колонками по статусам, назначение исполнителей и контроль сроков."
+msgstr ""
+"Управление задачами на канбан-доске с колонками по статусам, назначение "
+"исполнителей и контроль сроков."
 
 #: .\templates\tasks\task_board.html:28
 msgid "All sub-objects"

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BuildFlow\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-21 19:30+0500\n"
+"POT-Creation-Date: 2026-08-21 21:40+0500\n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -362,7 +362,7 @@ msgid "Other"
 msgstr "Boshqa"
 
 #: .\apps\document_templates\views.py:24 .\apps\notifications\views.py:19
-#: .\apps\projects\views.py:133 .\apps\tasks\views.py:90
+#: .\apps\projects\views.py:134 .\apps\tasks\views.py:90
 #: .\templates\accounts\user_list.html:14
 #: .\templates\documents\document_list.html:8
 #: .\templates\finance\finance_home.html:259
@@ -833,14 +833,14 @@ msgid "Yearly"
 msgstr "Yillik"
 
 #: .\apps\finance\models.py:38 .\apps\organization\models.py:9
-#: .\apps\projects\models.py:22 .\apps\projects\views.py:134
+#: .\apps\projects\models.py:22 .\apps\projects\views.py:135
 #: .\templates\accounts\user_list.html:15
 #: .\templates\ai_agents\dashboard.html:14
 msgid "Active"
 msgstr "Faol"
 
 #: .\apps\finance\models.py:39 .\apps\projects\models.py:24
-#: .\apps\projects\models.py:121 .\apps\projects\views.py:136
+#: .\apps\projects\models.py:121 .\apps\projects\views.py:137
 #: .\apps\tasks\models.py:41 .\apps\tasks\views.py:93
 #: .\templates\projects\project_detail.html:304
 msgid "Completed"
@@ -1226,11 +1226,11 @@ msgstr "Bo'linma qo'shildi."
 msgid "Unit deleted."
 msgstr "Bo'linma o'chirildi."
 
-#: .\apps\organization\views.py:122 .\apps\projects\views.py:340
+#: .\apps\organization\views.py:122 .\apps\projects\views.py:341
 msgid "Member added."
 msgstr "A'zo qo'shildi."
 
-#: .\apps\organization\views.py:133 .\apps\projects\views.py:352
+#: .\apps\organization\views.py:133 .\apps\projects\views.py:353
 msgid "Member removed."
 msgstr "A'zo olib tashlandi."
 
@@ -1698,6 +1698,20 @@ msgstr "Tahrirlash mumkin"
 msgid "Expires at"
 msgstr "Tugash sanasi"
 
+#: .\apps\projects\services.py:42
+msgid "Develop the project"
+msgstr "Loyihani ishlab chiqish"
+
+#: .\apps\projects\services.py:53 .\apps\tasks\views.py:160
+msgid "New task assigned"
+msgstr "Yangi vazifa tayinlandi"
+
+#: .\apps\projects\services.py:54 .\apps\requests_app\views.py:47
+#: .\apps\tasks\views.py:161 .\apps\tasks\views.py:235
+#, python-format
+msgid "You were assigned to \"%(title)s\"."
+msgstr "Siz \"%(title)s\"ga tayinlandingiz."
+
 #: .\apps\projects\uz_regions.py:10
 msgid "Tashkent city"
 msgstr "Toshkent shahri"
@@ -1754,158 +1768,163 @@ msgstr "Xorazm viloyati"
 msgid "Republic of Karakalpakstan"
 msgstr "Qoraqalpog'iston Respublikasi"
 
-#: .\apps\projects\views.py:31
+#: .\apps\projects\views.py:32
 msgid "90_Проектная документация"
 msgstr "90_Проектная документация"
 
-#: .\apps\projects\views.py:36
+#: .\apps\projects\views.py:37
 msgid "05_Планшет"
 msgstr "05_Планшет"
 
-#: .\apps\projects\views.py:37
+#: .\apps\projects\views.py:38
 msgid "10_ТЭ"
 msgstr "10_ТЭ"
 
-#: .\apps\projects\views.py:38
+#: .\apps\projects\views.py:39
 msgid "20_Геология"
 msgstr "20_Geologiya"
 
-#: .\apps\projects\views.py:39
+#: .\apps\projects\views.py:40
 msgid "30_Экология"
 msgstr "30_Ekologiya"
 
-#: .\apps\projects\views.py:40
+#: .\apps\projects\views.py:41
 msgid "40_Кадастр"
 msgstr "40_Kadastr"
 
-#: .\apps\projects\views.py:41
+#: .\apps\projects\views.py:42
 msgid "50_АПЗ"
 msgstr "50_Arxitektura-rejalashtirish topshirig'i"
 
-#: .\apps\projects\views.py:42
+#: .\apps\projects\views.py:43
 msgid "60_ТУ"
 msgstr "60_Texnik shartlar"
 
-#: .\apps\projects\views.py:43
+#: .\apps\projects\views.py:44
 msgid "70_КД оборудования"
 msgstr "70_Uskunalar konstruktorlik hujjatlari"
 
-#: .\apps\projects\views.py:44
+#: .\apps\projects\views.py:45
 msgid "80_Фото и видео"
 msgstr "80_Foto va video"
 
-#: .\apps\projects\views.py:79
+#: .\apps\projects\views.py:80
 msgid "Weight must be a whole number."
 msgstr "Og'irlik butun son bo'lishi kerak."
 
-#: .\apps\projects\views.py:81
+#: .\apps\projects\views.py:82
 msgid "Weight must be between 0 and 100."
 msgstr "Og'irlik 0 dan 100 gacha bo'lishi kerak."
 
-#: .\apps\projects\views.py:89
+#: .\apps\projects\views.py:90
 msgid "Progress must be a whole number."
 msgstr "Progress butun son bo'lishi kerak."
 
-#: .\apps\projects\views.py:91
+#: .\apps\projects\views.py:92
 msgid "Progress must be between 0 and 100."
 msgstr "Progress 0 dan 100 gacha bo'lishi kerak."
 
-#: .\apps\projects\views.py:138
+#: .\apps\projects\views.py:139
 msgid "Deadline passed"
 msgstr "Muddati o'tgan"
 
-#: .\apps\projects\views.py:172
+#: .\apps\projects\views.py:173
 msgid "Project created."
 msgstr "Loyiha yaratildi."
 
-#: .\apps\projects\views.py:293
+#: .\apps\projects\views.py:294
 msgid "Project updated."
 msgstr "Loyiha yangilandi."
 
-#: .\apps\projects\views.py:311
+#: .\apps\projects\views.py:312
 msgid "Project deleted."
 msgstr "Loyiha o'chirildi."
 
-#: .\apps\projects\views.py:342
+#: .\apps\projects\views.py:343
 msgid "This user is already a member."
 msgstr "Bu foydalanuvchi allaqachon a'zo."
 
-#: .\apps\projects\views.py:367
+#: .\apps\projects\views.py:368
 msgid "Sub-object added."
 msgstr "Obyekt qo'shildi."
 
-#: .\apps\projects\views.py:382
+#: .\apps\projects\views.py:383
 msgid "Section added."
 msgstr "Bo'lim qo'shildi."
 
-#: .\apps\projects\views.py:393
+#: .\apps\projects\views.py:394
 msgid "Project structure saved."
 msgstr "Loyiha tuzilmasi saqlandi."
 
-#: .\apps\projects\views.py:433
+#: .\apps\projects\views.py:434
 msgid "Assigned to a project section"
 msgstr "Loyiha bo'limiga tayinlandingiz"
 
-#: .\apps\projects\views.py:434
+#: .\apps\projects\views.py:435
 #, python-format
 msgid "You were assigned to %(discipline)s on %(sub_object)s."
 msgstr ""
 "Siz %(sub_object)s obyektidagi %(discipline)s bo'limiga tayinlandingiz."
 
-#: .\apps\projects\views.py:439
+#: .\apps\projects\views.py:440
 msgid "Disciplines saved."
 msgstr "Yo'nalishlar saqlandi."
 
-#: .\apps\projects\views.py:478 .\apps\projects\views.py:493
+#: .\apps\projects\views.py:479 .\apps\projects\views.py:494
 msgid "Name is required."
 msgstr "Nom kiritilishi shart."
 
-#: .\apps\projects\views.py:519
+#: .\apps\projects\views.py:520
 msgid "Choose a file to upload."
 msgstr "Yuklash uchun fayl tanlang."
 
-#: .\apps\projects\views.py:528
+#: .\apps\projects\views.py:529
 #, python-format
 msgid "Imported: %(objects)d objects, %(pods)d pod objects."
 msgstr "Import qilindi: %(objects)d ta obyekt, %(pods)d ta pastki obyekt."
 
-#: .\apps\projects\views.py:550
+#: .\apps\projects\views.py:555
+#, python-format
+msgid "Section saved. Task \"%(title)s\" was created for %(user)s."
+msgstr "Bo'lim saqlandi. %(user)s uchun «%(title)s» vazifasi yaratildi."
+
+#: .\apps\projects\views.py:559
 msgid "Section saved."
 msgstr "Bo'lim saqlandi."
 
-#: .\apps\projects\views.py:566
+#: .\apps\projects\views.py:575
 msgid "Select at least one discipline."
 msgstr "Kamida bitta yo'nalishni tanlang."
 
-#: .\apps\projects\views.py:570
+#: .\apps\projects\views.py:579
 msgid "Disciplines added."
 msgstr "Yo'nalishlar qo'shildi."
 
-#: .\apps\projects\views.py:583
+#: .\apps\projects\views.py:592
 msgid "Discipline removed."
 msgstr "Yo'nalish olib tashlandi."
 
-#: .\apps\projects\views.py:601
+#: .\apps\projects\views.py:610
 msgid "Weights and progress saved."
 msgstr "Vaznlar va progress saqlandi."
 
-#: .\apps\projects\views.py:614
+#: .\apps\projects\views.py:623
 msgid "Client information updated."
 msgstr "Mijoz ma'lumotlari yangilandi."
 
-#: .\apps\projects\views.py:646
+#: .\apps\projects\views.py:655
 msgid "There are no source files to download yet."
 msgstr "Hozircha yuklab olish uchun manba fayllar yo'q."
 
-#: .\apps\projects\views.py:679
+#: .\apps\projects\views.py:688
 msgid "Unknown document type."
 msgstr "Noma'lum hujjat turi."
 
-#: .\apps\projects\views.py:683
+#: .\apps\projects\views.py:692
 msgid "No file was uploaded."
 msgstr "Fayl yuklanmadi."
 
-#: .\apps\projects\views.py:732
+#: .\apps\projects\views.py:741
 msgid "Project saved."
 msgstr "Loyiha saqlandi."
 
@@ -1993,12 +2012,6 @@ msgstr "Yopilgan"
 msgid "New request assigned"
 msgstr "Yangi so'rov tayinlandi"
 
-#: .\apps\requests_app\views.py:47 .\apps\tasks\views.py:161
-#: .\apps\tasks\views.py:235
-#, python-format
-msgid "You were assigned to \"%(title)s\"."
-msgstr "Siz \"%(title)s\"ga tayinlandingiz."
-
 #: .\apps\requests_app\views.py:50
 msgid "Request created."
 msgstr "So'rov yaratildi."
@@ -2072,10 +2085,6 @@ msgstr "Yangi"
 #: .\apps\tasks\views.py:95
 msgid "Overdue"
 msgstr "Muddati o'tgan"
-
-#: .\apps\tasks\views.py:160
-msgid "New task assigned"
-msgstr "Yangi vazifa tayinlandi"
 
 #: .\apps\tasks\views.py:164
 msgid "Task created."
@@ -2220,7 +2229,9 @@ msgstr "Sozlamalar"
 msgid ""
 "Manage your profile, security settings (password, 2FA), and notification "
 "channels."
-msgstr "Profilingizni, xavfsizlik sozlamalarini (parol, 2FA) va bildirishnoma kanallarini boshqarish."
+msgstr ""
+"Profilingizni, xavfsizlik sozlamalarini (parol, 2FA) va bildirishnoma "
+"kanallarini boshqarish."
 
 #: .\templates\accounts\profile.html:6
 msgid "Manage your profile, security and notifications"
@@ -2352,7 +2363,9 @@ msgstr "Foydalanuvchilar"
 msgid ""
 "Manage system users: add employees, change their roles, and activate or "
 "deactivate accounts."
-msgstr "Tizim foydalanuvchilarini boshqarish: xodim qo'shish, rollarini o'zgartirish va hisoblarini yoqish yoki o'chirish."
+msgstr ""
+"Tizim foydalanuvchilarini boshqarish: xodim qo'shish, rollarini o'zgartirish "
+"va hisoblarini yoqish yoki o'chirish."
 
 #: .\templates\accounts\user_list.html:17
 msgid "Designers"
@@ -2459,7 +2472,9 @@ msgstr "Sun'iy intellekt ekotizimi"
 msgid ""
 "Configure AI agents, run them automatically on a schedule, and follow the "
 "audit log of their work."
-msgstr "AI agentlarni sozlash, jadval bo'yicha avtomatik ishga tushirish va bajargan ishlari jurnalini kuzatish."
+msgstr ""
+"AI agentlarni sozlash, jadval bo'yicha avtomatik ishga tushirish va bajargan "
+"ishlari jurnalini kuzatish."
 
 #: .\templates\ai_agents\dashboard.html:6
 msgid "Agents, schedules and audit log"
@@ -2567,7 +2582,9 @@ msgstr "Boshqaruv paneli"
 msgid ""
 "An overview of every project, task, and notification — the current state of "
 "the system at a glance."
-msgstr "Barcha loyihalar, vazifalar va bildirishnomalar bo'yicha umumiy ko'rinish — tizim holatini bir qarashda ko'rish."
+msgstr ""
+"Barcha loyihalar, vazifalar va bildirishnomalar bo'yicha umumiy ko'rinish — "
+"tizim holatini bir qarashda ko'rish."
 
 #: .\templates\core\dashboard.html:6
 #, python-format
@@ -2738,7 +2755,9 @@ msgstr "Shablonlar"
 msgid ""
 "Create reusable document templates (contracts, acts, and so on) and generate "
 "finished documents from them."
-msgstr "Qayta ishlatiladigan hujjat shablonlarini (shartnoma, dalolatnoma va h.k.) yaratish va ulardan tayyor hujjat generatsiya qilish."
+msgstr ""
+"Qayta ishlatiladigan hujjat shablonlarini (shartnoma, dalolatnoma va h.k.) "
+"yaratish va ulardan tayyor hujjat generatsiya qilish."
 
 #: .\templates\document_templates\template_list.html:29
 msgid "No templates yet."
@@ -2826,7 +2845,9 @@ msgstr "Tasdiqlashlar"
 #: .\templates\documents\approvals_list.html:5
 msgid ""
 "Review the documents sent to you for approval, then approve or reject them."
-msgstr "Sizga kelishuvga yuborilgan hujjatlarni ko'rib chiqish, tasdiqlash yoki rad etish."
+msgstr ""
+"Sizga kelishuvga yuborilgan hujjatlarni ko'rib chiqish, tasdiqlash yoki rad "
+"etish."
 
 #: .\templates\documents\approvals_list.html:27
 #: .\templates\documents\document_detail.html:9
@@ -2908,7 +2929,9 @@ msgstr "Yuklovchi"
 msgid ""
 "Store every project document (drawings, estimates, contracts), keep their "
 "versions, and move them through approval."
-msgstr "Loyihaning barcha hujjatlarini (chizmalar, smetalar, shartnomalar) saqlash, versiyalarini yuritish va kelishuvdan o'tkazish."
+msgstr ""
+"Loyihaning barcha hujjatlarini (chizmalar, smetalar, shartnomalar) saqlash, "
+"versiyalarini yuritish va kelishuvdan o'tkazish."
 
 #: .\templates\documents\document_list.html:18
 #: .\templates\finance\finance_home.html:81
@@ -3011,7 +3034,9 @@ msgstr "Tranzaksiya qo'shish"
 msgid ""
 "Track the company cash desk, salary payments to employees, and money "
 "movement across projects."
-msgstr "Kompaniya kassasi, xodimlarga ish haqi to'lovlari va loyihalar bo'yicha pul harakatini nazorat qilish."
+msgstr ""
+"Kompaniya kassasi, xodimlarga ish haqi to'lovlari va loyihalar bo'yicha pul "
+"harakatini nazorat qilish."
 
 #: .\templates\finance\finance_home.html:13
 msgid "General"
@@ -3199,7 +3224,9 @@ msgstr "Barchasini o'qilgan deb belgilash"
 msgid ""
 "Every notification you receive — task assignments, approaching deadlines, "
 "comments — collects here."
-msgstr "Barcha bildirishnomalaringiz — vazifa biriktirilishi, muddat yaqinlashishi, izohlar — shu yerda to'planadi."
+msgstr ""
+"Barcha bildirishnomalaringiz — vazifa biriktirilishi, muddat yaqinlashishi, "
+"izohlar — shu yerda to'planadi."
 
 #: .\templates\notifications\notification_list.html:25
 msgid "Mark read"
@@ -3222,7 +3249,9 @@ msgstr "Tashkilot"
 
 #: .\templates\organization\department_list.html:5
 msgid "Manage the company's internal structure: departments, units, and staff."
-msgstr "Kompaniyaning ichki tuzilmasini boshqarish: bo'limlar, bo'linmalar va xodimlar."
+msgstr ""
+"Kompaniyaning ichki tuzilmasini boshqarish: bo'limlar, bo'linmalar va "
+"xodimlar."
 
 #: .\templates\organization\department_list.html:17
 msgid "New department"
@@ -3504,7 +3533,9 @@ msgstr "Hali tarix yo'q."
 msgid ""
 "Manage all construction projects: follow their stages, budgets, and "
 "deadlines, and create new ones."
-msgstr "Barcha qurilish loyihalarini boshqarish: bosqichlari, byudjeti va muddatlarini kuzatish, yangi loyiha yaratish."
+msgstr ""
+"Barcha qurilish loyihalarini boshqarish: bosqichlari, byudjeti va "
+"muddatlarini kuzatish, yangi loyiha yaratish."
 
 #: .\templates\projects\project_list.html:10
 msgid "Search projects..."
@@ -3629,7 +3660,9 @@ msgstr "Import"
 msgid ""
 "View reports on projects, tasks, finance, and staff, and export them to "
 "Excel or CSV."
-msgstr "Loyihalar, vazifalar, moliya va xodimlar bo'yicha hisobotlarni ko'rish va Excel yoki CSV formatida eksport qilish."
+msgstr ""
+"Loyihalar, vazifalar, moliya va xodimlar bo'yicha hisobotlarni ko'rish va "
+"Excel yoki CSV formatida eksport qilish."
 
 #: .\templates\reports\dashboard.html:8
 msgid "Export projects"
@@ -3715,7 +3748,9 @@ msgstr "So'rovni tahrirlash"
 msgid ""
 "Handle project requests: change requests, clarifications, improvement "
 "suggestions, and reported problems."
-msgstr "Loyiha bo'yicha murojaatlarni yuritish: o'zgartirish so'rovlari, aniqlik kiritish, yaxshilash takliflari va muammolar."
+msgstr ""
+"Loyiha bo'yicha murojaatlarni yuritish: o'zgartirish so'rovlari, aniqlik "
+"kiritish, yaxshilash takliflari va muammolar."
 
 #: .\templates\requests_app\request_list.html:9
 msgid "All"
@@ -3733,7 +3768,9 @@ msgstr "So'rovlar topilmadi."
 msgid ""
 "Manage tasks on a kanban board split into status columns, assign them to "
 "staff, and track deadlines."
-msgstr "Vazifalarni holat ustunlariga ajratilgan kanban taxtasida boshqarish, xodimlarga biriktirish va muddatlarni kuzatish."
+msgstr ""
+"Vazifalarni holat ustunlariga ajratilgan kanban taxtasida boshqarish, "
+"xodimlarga biriktirish va muddatlarni kuzatish."
 
 #: .\templates\tasks\task_board.html:28
 msgid "All sub-objects"

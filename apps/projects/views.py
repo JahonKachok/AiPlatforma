@@ -26,6 +26,7 @@ from .forms import (
 )
 from .models import Project, ProjectMember, SubObject, SubObjectDiscipline
 from .permissions import can_create_project, can_edit_project, visible_projects_for
+from .services import ensure_discipline_task
 from .uz_regions import REGION_CENTERS
 
 _PROJECT_DOC_LABEL = _("90_Проектная документация")
@@ -547,7 +548,15 @@ def wizard_discipline_assign(request, pk, sub_id, discipline_id):
         assignment.sub_object = sub_object
         assignment.discipline = discipline
         assignment.save()
-        messages.success(request, _("Section saved."))
+        task = ensure_discipline_task(assignment, request.user)
+        if task is not None:
+            messages.success(
+                request,
+                _('Section saved. Task "%(title)s" was created for %(user)s.')
+                % {"title": task.title, "user": assignment.assignee.get_short_name()},
+            )
+        else:
+            messages.success(request, _("Section saved."))
     else:
         messages.error(request, form.errors.as_text())
     return redirect(_next_or(request, project, f"{base_url}?{query}"))

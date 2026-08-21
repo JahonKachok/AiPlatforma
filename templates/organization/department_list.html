@@ -2,7 +2,7 @@
 {% load i18n core_extras %}
 {% block title %}{% trans "Organization" %}{% endblock %}
 {% block page_title %}{% trans "Organization" %}{% endblock %}
-{% block page_help %}{% with text="Kompaniyaning ichki tuzilmasini (bo'limlar, bo'linmalar, xodimlar) boshqarish uchun bo'lim." %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
+{% block page_help %}{% trans "Manage the company's internal structure: departments, units, and staff." as help_text %}{% with text=help_text %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
 {% block content %}
 {% include "partials/stat_cards.html" %}
 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">

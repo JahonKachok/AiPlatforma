@@ -2,7 +2,7 @@
 {% load i18n static core_extras finance_extras %}
 {% block title %}{% trans "Finance" %}{% endblock %}
 {% block page_title %}{% trans "Finance" %}{% endblock %}
-{% block page_help %}{% with text="Kompaniya kassasi, xodimlarga ish haqi to'lovlari va loyihalar bo'yicha pul harakatini nazorat qilish uchun bo'lim." %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
+{% block page_help %}{% trans "Track the company cash desk, salary payments to employees, and money movement across projects." as help_text %}{% with text=help_text %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
 
 {% block content %}
 <!-- Top Header Bar: Navigation Tabs + Primary Action Toolbar -->
@@ -256,10 +256,14 @@
         {% endfor %}
         {% if cash_flow_records %}
           <tr class="border-t-2 border-gray-200 font-semibold bg-gray-50/70 dark:border-gray-600 dark:bg-gray-800/70">
-            <td class="px-4 py-3" colspan="5">{% trans "Total" %}</td>
+            <td class="px-4 py-3" colspan="4">{% trans "Total" %}</td>
+            <td class="px-4 py-3 text-gray-500">
+              <div>UZS</div>
+              <div>USD</div>
+            </td>
             <td class="px-4 py-3 text-right">
-              <div class="text-sm font-bold">{% trans "Total UZS" %}: {{ cash_flow_totals.UZS|money }}</div>
-              <div class="text-xs text-gray-500">{% trans "Total USD" %}: {{ cash_flow_totals.USD|money }}</div>
+              <div>{{ cash_flow_totals.UZS|money }}</div>
+              <div>{{ cash_flow_totals.USD|money }}</div>
             </td>
           </tr>
         {% endif %}
@@ -354,12 +358,18 @@
         {% endfor %}
         {% if admin_expenses %}
           <tr class="border-t-2 border-gray-200 font-semibold bg-gray-50/70 dark:border-gray-600 dark:bg-gray-800/70">
-            <td class="px-4 py-3" colspan="2">
-              <div>{% trans "Total UZS" %}: {{ admin_expense_totals.UZS|money }}</div>
-              <div class="text-xs font-normal text-gray-500">{% trans "Total USD" %}: {{ admin_expense_totals.USD|money }}</div>
-              <div class="font-normal text-xs text-gray-400">({% trans "Combined" %}: {{ admin_expense_total_uzs|money }} UZS)</div>
+            <td class="px-4 py-3">{% trans "Total" %}</td>
+            <td class="px-4 py-3 text-right">
+              <div>{{ admin_expense_totals.UZS|money }}</div>
+              <div>{{ admin_expense_totals.USD|money }}</div>
             </td>
-            <td class="px-4 py-3" colspan="5"></td>
+            <td class="px-4 py-3 text-gray-500">
+              <div>UZS</div>
+              <div>USD</div>
+            </td>
+            <td class="px-4 py-3 text-xs font-normal text-gray-400" colspan="4">
+              {% trans "Combined" %}: {{ admin_expense_total_uzs|money }} UZS
+            </td>
           </tr>
         {% endif %}
       </tbody>
@@ -368,20 +378,46 @@
 
 {% else %}
   <!-- General / Dashboard Tab -->
-  <div class="mb-6 flex flex-col gap-4 lg:flex-row finance-stats-compact">
+  <div class="mb-6 flex flex-col gap-4 lg:flex-row">
+    <!-- Balance KPIs: the three accounts + the project budget, one even row -->
     <div class="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {% for row in account_balances %}
-        <div class="card min-w-0 p-5 bg-card border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
-          <p class="ap-stat-label text-xs uppercase font-bold text-gray-400 tracking-wider">{{ row.label }}</p>
-          <p class="ap-stat-value mt-2 text-2xl font-black text-gray-900 dark:text-white break-words">{{ row.total|money }} <small class="text-sm font-normal text-gray-400">{{ row.currency }}</small></p>
+        <div class="card min-w-0 p-5 bg-card border border-gray-200 dark:border-gray-700 shadow-sm">
+          <p class="ap-stat-label">{{ row.label }}</p>
+          <p class="ap-stat-value mt-2 break-words">{{ row.total|money }} <small class="text-sm font-normal text-gray-400">{{ row.currency }}</small></p>
         </div>
       {% endfor %}
 
-      <div class="card min-w-0 p-5 bg-card border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
-        <p class="ap-stat-label text-xs uppercase font-bold text-gray-400 tracking-wider">{% trans "USD exchange rate" %}</p>
-        <p class="ap-stat-value mt-2 text-2xl font-black text-gray-900 dark:text-white break-words">{{ usd_rate|money }} <small class="text-sm font-normal text-gray-400">UZS</small></p>
+      <div class="card min-w-0 p-5 bg-card border border-gray-200 dark:border-gray-700 shadow-sm">
+        <p class="ap-stat-label">{% trans "Budget" %}</p>
+        <p class="ap-stat-value mt-2 break-words">{{ total_budget|money }} <small class="text-sm font-normal text-gray-400">UZS</small></p>
+      </div>
+    </div>
+
+    <!-- Right rail: the headline figure, then the rate it is converted at -->
+    <div class="flex flex-col gap-4 lg:w-80 shrink-0">
+      <div class="card min-w-0 border-2 p-5 shadow-sm" style="border-color:var(--ap-primary, #3b82f6)">
+        <p class="ap-stat-label">{% trans "Net profit" %}</p>
+        <p class="mt-2 break-words text-3xl font-extrabold {% if net_profit >= 0 %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">{{ net_profit|money }}</p>
+        <p class="text-xs text-gray-400">UZS</p>
+        <div class="mt-4 flex items-center justify-between gap-2 border-t border-gray-200 pt-3 text-sm dark:border-gray-700">
+          <span class="text-gray-500 dark:text-gray-400">{% trans "Income" %}</span>
+          <span class="font-semibold text-green-600 dark:text-green-400">+{{ total_income|money }}</span>
+        </div>
+        <div class="mt-1 flex items-center justify-between gap-2 text-sm">
+          <span class="text-gray-500 dark:text-gray-400">{% trans "Expense" %}</span>
+          <span class="font-semibold text-red-600 dark:text-red-400">-{{ total_expense|money }}</span>
+        </div>
+      </div>
+
+      <div class="card min-w-0 p-5 bg-card border border-gray-200 dark:border-gray-700 shadow-sm">
+        <p class="ap-stat-label">{% trans "USD exchange rate" %}</p>
+        <p class="ap-stat-value mt-2 break-words">{{ usd_rate|money }} <small class="text-sm font-normal text-gray-400">UZS</small></p>
+        {% if usd_rate_updated_at %}
+          <p class="mt-1 text-xs text-gray-400">{% trans "Updated" %}: {{ usd_rate_updated_at|date:"d.m.Y H:i" }}</p>
+        {% endif %}
         {% if can_manage_finance %}
-          <div class="mt-3 flex flex-wrap gap-2">
+          <div class="mt-3 flex flex-wrap gap-2 border-t border-gray-200 pt-3 dark:border-gray-700">
             <form method="post" action="{% url 'finance:update_rate' %}">
               {% csrf_token %}
               <button type="submit" class="btn btn-secondary btn-xs">{% trans "Refresh from CBU" %}</button>
@@ -392,30 +428,6 @@
             </form>
           </div>
         {% endif %}
-        {% if usd_rate_updated_at %}
-          <p class="mt-2 text-[10px] text-gray-400">{% trans "Updated" %}: {{ usd_rate_updated_at }}</p>
-        {% endif %}
-      </div>
-
-      <!-- Budget Stat Card (Renamed from 'Contract amount' to 'Budget') -->
-      <div class="card min-w-0 p-5 bg-card border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
-        <p class="ap-stat-label text-xs uppercase font-bold text-gray-400 tracking-wider">{% trans "Budget" %}</p>
-        <p class="ap-stat-value mt-2 text-2xl font-black text-gray-900 dark:text-white break-words">{{ total_budget|money }} <small class="text-sm font-normal text-gray-400">UZS</small></p>
-      </div>
-    </div>
-
-    <!-- Net Profit Card -->
-    <div class="card min-w-0 border-2 p-5 lg:w-80 lg:shrink-0 rounded-2xl shadow-sm" style="border-color:var(--ap-primary, #3b82f6)">
-      <p class="ap-stat-label text-xs uppercase font-bold text-gray-400 tracking-wider">{% trans "Net profit" %}</p>
-      <p class="mt-2 break-all text-2xl font-extrabold sm:text-3xl {% if net_profit >= 0 %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">{{ net_profit|money }}</p>
-      <p class="text-xs text-gray-400">UZS</p>
-      <div class="mt-4 flex items-center justify-between border-t border-gray-200 pt-3 text-sm dark:border-gray-700">
-        <span class="text-gray-500 dark:text-gray-400">{% trans "Income" %}</span>
-        <span class="font-semibold text-green-600 dark:text-green-400">+{{ total_income|money }}</span>
-      </div>
-      <div class="mt-1 flex items-center justify-between text-sm">
-        <span class="text-gray-500 dark:text-gray-400">{% trans "Expense" %}</span>
-        <span class="font-semibold text-red-600 dark:text-red-400">-{{ total_expense|money }}</span>
       </div>
     </div>
   </div>
@@ -425,6 +437,7 @@
       <thead class="border-b border-gray-200 text-gray-500 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400">
         <tr>
           <th class="px-4 py-3">{% trans "Project" %}</th>
+          <th class="px-4 py-3 text-right">{% trans "Contract sum" %}</th>
           <th class="px-4 py-3 text-right">{% trans "Income" %}</th>
           <th class="px-4 py-3 text-right">{% trans "Expense" %}</th>
           <th class="px-4 py-3 text-right">{% trans "Expected income" %}</th>
@@ -436,6 +449,7 @@
         {% if project_rows %}
           <tr class="border-b-2 border-gray-200 font-semibold bg-gray-50/70 dark:border-gray-600 dark:bg-gray-800/70">
             <td class="px-4 py-3">{% trans "Total" %}</td>
+            <td class="px-4 py-3 text-right font-bold">{{ project_totals.budget|money }}</td>
             <td class="px-4 py-3 text-right text-green-600 dark:text-green-400 font-bold">{{ project_totals.income_actual|money }}</td>
             <td class="px-4 py-3 text-right text-red-600 dark:text-red-400 font-bold">{{ project_totals.expense_actual|money }}</td>
             <td class="px-4 py-3 text-right">{{ project_totals.income_expected|money }}</td>
@@ -446,6 +460,7 @@
         {% for row in project_rows %}
           <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
             <td class="px-4 py-3 font-medium">{{ row.project.name }}</td>
+            <td class="px-4 py-3 text-right">{{ row.budget|money }}</td>
             <td class="px-4 py-3 text-right text-green-600 dark:text-green-400">{{ row.income_actual|money }}</td>
             <td class="px-4 py-3 text-right text-red-600 dark:text-red-400">{{ row.expense_actual|money }}</td>
             <td class="px-4 py-3 text-right text-gray-500">{{ row.income_expected|money }}</td>
@@ -453,7 +468,7 @@
             <td class="px-4 py-3 text-right font-semibold {% if row.profit >= 0 %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">{{ row.profit|money }}</td>
           </tr>
         {% empty %}
-          <tr><td colspan="6" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">{% trans "No projects yet." %}</td></tr>
+          <tr><td colspan="7" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">{% trans "No projects yet." %}</td></tr>
         {% endfor %}
       </tbody>
     </table>

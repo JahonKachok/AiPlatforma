@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BuildFlow\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-17 10:57+0500\n"
+"POT-Creation-Date: 2026-08-21 19:30+0500\n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -98,7 +98,7 @@ msgid "Approval required"
 msgstr "Tasdiqlash talab qilinadi"
 
 #: .\apps\accounts\forms.py:77 .\apps\requests_app\views.py:70
-#: .\apps\tasks\views.py:182
+#: .\apps\tasks\views.py:190
 msgid "New comment"
 msgstr "Yangi izoh"
 
@@ -362,12 +362,12 @@ msgid "Other"
 msgstr "Boshqa"
 
 #: .\apps\document_templates\views.py:24 .\apps\notifications\views.py:19
-#: .\apps\projects\views.py:125 .\apps\tasks\views.py:88
+#: .\apps\projects\views.py:133 .\apps\tasks\views.py:90
 #: .\templates\accounts\user_list.html:14
 #: .\templates\documents\document_list.html:8
-#: .\templates\finance\finance_home.html:164
-#: .\templates\finance\finance_home.html:237
-#: .\templates\finance\finance_home.html:336
+#: .\templates\finance\finance_home.html:259
+#: .\templates\finance\finance_home.html:361
+#: .\templates\finance\finance_home.html:451
 #: .\templates\reports\dashboard.html:59 .\templates\reports\dashboard.html:77
 msgid "Total"
 msgstr "Jami"
@@ -412,7 +412,7 @@ msgstr "Hujjat turi (chizma, smeta, shartnoma va h.k.)."
 msgid "Which project the document belongs to."
 msgstr "Hujjat qaysi loyihaga tegishli ekanligi."
 
-#: .\apps\documents\forms.py:21 .\apps\tasks\forms.py:21
+#: .\apps\documents\forms.py:21 .\apps\tasks\forms.py:22
 msgid "Which section within the project it belongs to (optional)."
 msgstr ""
 "Loyiha ichidagi qaysi bo'limga (section) tegishli ekanligi (ixtiyoriy)."
@@ -493,7 +493,7 @@ msgid "Select an object (and pod object, if applicable)."
 msgstr "Obyektni (va agar kerak bo'lsa, pastki obyektni) tanlang."
 
 #: .\apps\documents\forms.py:84 .\templates\requests_app\request_detail.html:21
-#: .\templates\tasks\task_detail.html:57
+#: .\templates\tasks\task_detail.html:71
 msgid "Comments"
 msgstr "Izohlar"
 
@@ -514,13 +514,13 @@ msgid "In review"
 msgstr "Ko'rib chiqilmoqda"
 
 #: .\apps\documents\models.py:15 .\apps\documents\models.py:22
-#: .\apps\documents\views.py:338 .\apps\tasks\models.py:40
+#: .\apps\documents\views.py:326 .\apps\tasks\models.py:40
 #: .\templates\documents\approvals_list.html:11
 msgid "Approved"
 msgstr "Tasdiqlangan"
 
 #: .\apps\documents\models.py:16 .\apps\documents\models.py:23
-#: .\apps\documents\views.py:340 .\templates\documents\approvals_list.html:12
+#: .\apps\documents\views.py:328 .\templates\documents\approvals_list.html:12
 msgid "Rejected"
 msgstr "Rad etilgan"
 
@@ -537,87 +537,110 @@ msgstr "Kutilmoqda"
 msgid "Needs revision"
 msgstr "Qayta ishlash"
 
-#: .\apps\documents\views.py:76
+#: .\apps\documents\views.py:64
 msgid "Selected documents deleted."
 msgstr "Tanlangan hujjatlar o'chirildi."
 
-#: .\apps\documents\views.py:117
+#: .\apps\documents\views.py:105
 msgid "Document uploaded."
 msgstr "Hujjat yuklandi."
 
-#: .\apps\documents\views.py:182
+#: .\apps\documents\views.py:170
 msgid "Document deleted."
 msgstr "Hujjat o'chirildi."
 
-#: .\apps\documents\views.py:209
+#: .\apps\documents\views.py:197
 msgid "New version uploaded."
 msgstr "Yangi versiya yuklandi."
 
-#: .\apps\documents\views.py:234
+#: .\apps\documents\views.py:222
 msgid "The object must belong to the selected project."
 msgstr "Obyekt tanlangan loyihaga tegishli bo'lishi kerak."
 
-#: .\apps\documents\views.py:242
+#: .\apps\documents\views.py:230
 msgid ""
 "You don't have a discipline assigned on this object, so it can't be "
 "submitted."
 msgstr ""
 "Sizga bu obyektda yo'nalish biriktirilmagan, shuning uchun yuborib bo'lmaydi."
 
-#: .\apps\documents\views.py:248
+#: .\apps\documents\views.py:236
 msgid "This object has no GIP assigned to review submissions."
 msgstr "Bu obyekt uchun tekshirish uchun GIP tayinlanmagan."
 
-#: .\apps\documents\views.py:278 .\apps\documents\views.py:310
+#: .\apps\documents\views.py:266 .\apps\documents\views.py:298
+#: .\apps\tasks\services.py:48
 msgid "New document to review"
 msgstr "Tekshirish uchun yangi hujjat"
 
-#: .\apps\documents\views.py:279 .\apps\documents\views.py:311
+#: .\apps\documents\views.py:267 .\apps\documents\views.py:299
+#: .\apps\tasks\services.py:49
 #, python-format
 msgid "%(doc)s needs your review."
 msgstr "%(doc)s sizning tekshiruvingizni talab qiladi."
 
-#: .\apps\documents\views.py:283
+#: .\apps\documents\views.py:271
 msgid "Sent for approval."
 msgstr "Kelishuvga yuborildi."
 
-#: .\apps\documents\views.py:317
+#: .\apps\documents\views.py:305
 msgid "Approval route created."
 msgstr "Kelishuv marshruti yaratildi."
 
-#: .\apps\documents\views.py:336
+#: .\apps\documents\views.py:324
 msgid "Awaiting approval"
 msgstr "Kelishuv kutilmoqda"
 
-#: .\apps\documents\views.py:342
+#: .\apps\documents\views.py:330
 msgid "My pending reviews"
 msgstr "Mening tekshiruvlarim"
 
-#: .\apps\documents\views.py:364
+#: .\apps\documents\views.py:352
 msgid "This stage has already been reviewed."
 msgstr "Bu bosqich allaqachon tekshirilgan."
 
-#: .\apps\documents\views.py:395
+#: .\apps\documents\views.py:389
+msgid "Sent back for revision from the Approvals section."
+msgstr "«Kelishuvlar» bo'limidan qayta ishlashga qaytarildi."
+
+#: .\apps\documents\views.py:393
+msgid "Task sent back for revision"
+msgstr "Vazifa qayta ishlashga qaytarildi"
+
+#: .\apps\documents\views.py:394
+#, python-format
+msgid "\"%(title)s\" needs revision — see the approval comment."
+msgstr "«%(title)s» qayta ishlanishi kerak — kelishuv izohini ko'ring."
+
+#: .\apps\documents\views.py:400
 msgid "Document review update"
 msgstr "Hujjat tekshiruvi yangilandi"
 
-#: .\apps\documents\views.py:396
+#: .\apps\documents\views.py:401
 #, python-format
 msgid "%(doc)s was marked as %(status)s."
 msgstr "%(doc)s %(status)s deb belgilandi."
 
-#: .\apps\documents\views.py:399
+#: .\apps\documents\views.py:404
 msgid "Review submitted."
 msgstr "Ko'rib chiqish natijasi yuborildi."
 
-#: .\apps\finance\forms.py:14 .\apps\finance\models.py:116
-#: .\templates\finance\finance_home.html:39
-#: .\templates\finance\finance_home.html:58
-#: .\templates\finance\finance_home.html:114
+#: .\apps\finance\forms.py:16
+msgid "Category name (e.g. Transport, Consulting, Equipment)."
+msgstr "Kategoriya nomi (masalan: Transport, Konsalting, Jihozlar)."
+
+#: .\apps\finance\forms.py:17
+msgid "Category type — income, expense, or administrative expense."
+msgstr "Kategoriya turi — daromad, xarajat yoki ma'muriy xarajat."
+
+#: .\apps\finance\forms.py:24 .\apps\finance\models.py:116
+#: .\templates\finance\finance_home.html:93
+#: .\templates\finance\finance_home.html:113
+#: .\templates\finance\finance_home.html:212
 msgid "Pod-object"
 msgstr "Pastki obyekt"
 
-#: .\apps\finance\forms.py:15
+#: .\apps\finance\forms.py:25
 msgid ""
 "The specific pod-object this salary expense is allocated to (shown when "
 "category is Salary)."
@@ -625,136 +648,138 @@ msgstr ""
 "Ushbu ish haqi xarajati tegishli bo'lgan aniq pastki obyekt (kategoriya "
 "\"Ish haqi\" bo'lganda ko'rsatiladi)."
 
-#: .\apps\finance\forms.py:27
+#: .\apps\finance\forms.py:37
 msgid "The project this transaction belongs to."
 msgstr "Ushbu tranzaksiya tegishli bo'lgan loyiha."
 
-#: .\apps\finance\forms.py:28
+#: .\apps\finance\forms.py:38
 msgid "The object/pod-object this transaction relates to (optional)."
 msgstr "Ushbu tranzaksiya tegishli bo'lgan ob'ekt/podob'ekt (ixtiyoriy)."
 
-#: .\apps\finance\forms.py:29
+#: .\apps\finance\forms.py:39
 msgid "The account the money moves through — determines its currency."
 msgstr "Pul o'tadigan hisob — valyutasini belgilaydi."
 
-#: .\apps\finance\forms.py:30
+#: .\apps\finance\forms.py:40
 msgid "The amount, in the account's currency."
 msgstr "Summasi, hisob valyutasida."
 
-#: .\apps\finance\forms.py:31 .\apps\finance\forms.py:82
+#: .\apps\finance\forms.py:41 .\apps\finance\forms.py:99
 msgid "The date of the transaction."
 msgstr "Operatsiya sanasi."
 
-#: .\apps\finance\forms.py:32 .\apps\finance\forms.py:81
+#: .\apps\finance\forms.py:42 .\apps\finance\forms.py:98
 msgid "The expense/income category (optional)."
 msgstr "Xarajat/kirim toifasi (ixtiyoriy)."
 
-#: .\apps\finance\forms.py:33
+#: .\apps\finance\forms.py:43
 msgid "A short description of the transaction (optional)."
 msgstr "Tranzaksiyaning qisqacha tavsifi (ixtiyoriy)."
 
-#: .\apps\finance\forms.py:53
+#: .\apps\finance\forms.py:70
 msgid "This object does not belong to the selected project."
 msgstr ""
 "Bu ob'ekt tanlangan loyihaga tegishli emas.So'rov qaysi loyihaga tegishli. "
 "Tanlangan loyiha a'zolari bu so'rovni ko'ra oladi."
 
-#: .\apps\finance\forms.py:55
+#: .\apps\finance\forms.py:72
 msgid "This pod-object does not belong to the selected object."
 msgstr "Bu pastki obyekt tanlangan obyektga tegishli emas."
 
-#: .\apps\finance\forms.py:77
+#: .\apps\finance\forms.py:94
 msgid "The record type — income (payment) or expense."
 msgstr "Yozuv turi — kirim (to'lov) yoki chiqim (xarajat)."
 
-#: .\apps\finance\forms.py:78 .\apps\finance\forms.py:121
+#: .\apps\finance\forms.py:95 .\apps\finance\forms.py:138
 msgid "The amount."
 msgstr "Summa miqdori."
 
-#: .\apps\finance\forms.py:79 .\apps\finance\forms.py:122
+#: .\apps\finance\forms.py:96 .\apps\finance\forms.py:139
 msgid "The amount's currency."
 msgstr "Summaning valyutasi."
 
-#: .\apps\finance\forms.py:80
+#: .\apps\finance\forms.py:97
 msgid "A short description of the record (optional)."
 msgstr "Yozuv haqida qisqa izoh (ixtiyoriy)."
 
-#: .\apps\finance\forms.py:83
+#: .\apps\finance\forms.py:100
 msgid "The record's status (e.g. pending, confirmed)."
 msgstr "Yozuvning holati (masalan: kutilmoqda, tasdiqlangan)."
 
-#: .\apps\finance\forms.py:96
+#: .\apps\finance\forms.py:113
 msgid "The employee the contract is with."
 msgstr "Shartnoma tuzilgan xodim."
 
-#: .\apps\finance\forms.py:97
+#: .\apps\finance\forms.py:114
 msgid "The project the employee works on."
 msgstr "Xodim ishlaydigan loyiha."
 
-#: .\apps\finance\forms.py:98
+#: .\apps\finance\forms.py:115
 msgid "The object the employee is assigned to (optional)."
 msgstr "Xodim biriktirilgan ob'ekt (ixtiyoriy)."
 
-#: .\apps\finance\forms.py:99
+#: .\apps\finance\forms.py:116
 msgid "The pod-object the employee is assigned to (optional)."
 msgstr "Xodim biriktirilgan podob'ekt (ixtiyoriy)."
 
-#: .\apps\finance\forms.py:100
-msgid "The total amount under the contract."
-msgstr "Shartnoma bo'yicha umumiy summa."
+#: .\apps\finance\forms.py:117
+msgid "The total budget allocated."
+msgstr "Ajratilgan umumiy byudjet."
 
-#: .\apps\finance\forms.py:101
-msgid "The contract amount's currency."
-msgstr "Shartnoma summasining valyutasi."
+#: .\apps\finance\forms.py:118
+msgid "The budget currency."
+msgstr "Byudjet valyutasi."
 
-#: .\apps\finance\forms.py:102 .\apps\finance\forms.py:125
+#: .\apps\finance\forms.py:119 .\apps\finance\forms.py:142
 msgid "Additional notes (optional)."
 msgstr "Qo'shimcha izohlar (ixtiyoriy)."
 
-#: .\apps\finance\forms.py:120
+#: .\apps\finance\forms.py:137
 msgid "The administrative expense category (tax, rent, utilities, etc.)."
 msgstr "Ma'muriy xarajat toifasi (soliq, ijara, kommunal xizmatlar va h.k.)."
 
-#: .\apps\finance\forms.py:123
+#: .\apps\finance\forms.py:140
 msgid "Whether this expense recurs monthly, quarterly, or yearly."
 msgstr "Xarajat oylik, choraklik yoki yillik takrorlanishini bildiradi."
 
-#: .\apps\finance\forms.py:124
+#: .\apps\finance\forms.py:141
 msgid "The date this expense is recorded for."
 msgstr "Ushbu xarajat qayd etilgan sana."
 
-#: .\apps\finance\forms.py:132
+#: .\apps\finance\forms.py:158
 msgid "Employee contract"
 msgstr "Xodim bilan shartnoma"
 
-#: .\apps\finance\forms.py:133
+#: .\apps\finance\forms.py:159
 msgid "The employee contract this payment is made against."
 msgstr "Ushbu to'lov amalga oshirilayotgan xodim shartnomasi."
 
-#: .\apps\finance\forms.py:136
+#: .\apps\finance\forms.py:162
 msgid "The amount being paid now."
 msgstr "Hozir to'lanayotgan summa."
 
-#: .\apps\finance\forms.py:140
+#: .\apps\finance\forms.py:166
 msgid "This is an advance"
 msgstr "Bu avans"
 
-#: .\apps\finance\forms.py:141
+#: .\apps\finance\forms.py:167
 msgid "Check if this payment is an advance rather than the final settlement."
 msgstr "Agar bu to'lov yakuniy hisob-kitob emas, avans bo'lsa, belgilang."
 
-#: .\apps\finance\forms.py:143
+#: .\apps\finance\forms.py:169
 msgid "The account the payment is made from."
 msgstr "To'lov amalga oshiriladigan hisob."
 
-#: .\apps\finance\models.py:8 .\templates\finance\finance_home.html:291
-#: .\templates\finance\finance_home.html:314
+#: .\apps\finance\models.py:8 .\apps\finance\models.py:176
+#: .\templates\finance\finance_home.html:404
+#: .\templates\finance\finance_home.html:441
 #: .\templates\projects\project_detail.html:295
 msgid "Income"
 msgstr "Daromad"
 
-#: .\apps\finance\models.py:9 .\templates\finance\finance_home.html:295
-#: .\templates\finance\finance_home.html:315
+#: .\apps\finance\models.py:9 .\apps\finance\models.py:176
+#: .\templates\finance\finance_home.html:408
+#: .\templates\finance\finance_home.html:442
 #: .\templates\projects\project_detail.html:296
 msgid "Expense"
 msgstr "Xarajat"
@@ -795,28 +820,28 @@ msgstr "Ofis buyumlari"
 msgid "Materials"
 msgstr "Materiallar"
 
-#: .\apps\finance\models.py:31 .\templates\finance\finance_home.html:182
+#: .\apps\finance\models.py:31 .\templates\finance\finance_home.html:306
 msgid "Monthly"
 msgstr "Oylik"
 
-#: .\apps\finance\models.py:32 .\templates\finance\finance_home.html:183
+#: .\apps\finance\models.py:32 .\templates\finance\finance_home.html:307
 msgid "Quarterly"
 msgstr "Choraklik"
 
-#: .\apps\finance\models.py:33 .\templates\finance\finance_home.html:184
+#: .\apps\finance\models.py:33 .\templates\finance\finance_home.html:308
 msgid "Yearly"
 msgstr "Yillik"
 
 #: .\apps\finance\models.py:38 .\apps\organization\models.py:9
-#: .\apps\projects\models.py:22 .\apps\projects\views.py:126
+#: .\apps\projects\models.py:22 .\apps\projects\views.py:134
 #: .\templates\accounts\user_list.html:15
 #: .\templates\ai_agents\dashboard.html:14
 msgid "Active"
 msgstr "Faol"
 
 #: .\apps\finance\models.py:39 .\apps\projects\models.py:24
-#: .\apps\projects\models.py:121 .\apps\projects\views.py:128
-#: .\apps\tasks\models.py:41 .\apps\tasks\views.py:91
+#: .\apps\projects\models.py:121 .\apps\projects\views.py:136
+#: .\apps\tasks\models.py:41 .\apps\tasks\views.py:93
 #: .\templates\projects\project_detail.html:304
 msgid "Completed"
 msgstr "Yakunlangan"
@@ -846,16 +871,16 @@ msgid "Naqd pul (USD)"
 msgstr "Naqd pul (USD)"
 
 #: .\apps\finance\models.py:65 .\apps\finance\models.py:108
-#: .\templates\documents\document_detail.html:71
+#: .\templates\documents\document_detail.html:76
 #: .\templates\documents\document_list.html:45
-#: .\templates\finance\finance_home.html:25
-#: .\templates\finance\finance_home.html:56
-#: .\templates\finance\finance_home.html:100
-#: .\templates\finance\finance_home.html:313
+#: .\templates\finance\finance_home.html:79
+#: .\templates\finance\finance_home.html:111
+#: .\templates\finance\finance_home.html:198
+#: .\templates\finance\finance_home.html:439
 #: .\templates\projects\_wizard_steps.html:14
 #: .\templates\projects\project_wizard_confirm.html:13
 #: .\templates\requests_app\request_detail.html:45
-#: .\templates\tasks\task_board.html:54 .\templates\tasks\task_detail.html:90
+#: .\templates\tasks\task_board.html:54 .\templates\tasks\task_detail.html:104
 msgid "Project"
 msgstr "Loyiha"
 
@@ -863,8 +888,9 @@ msgstr "Loyiha"
 msgid "Object / pod-object"
 msgstr "Ob'ekt / podob'ekt"
 
-#: .\apps\finance\models.py:71 .\templates\documents\document_detail.html:72
-#: .\templates\finance\finance_home.html:143
+#: .\apps\finance\models.py:71 .\apps\finance\models.py:178
+#: .\templates\documents\document_detail.html:77
+#: .\templates\finance\finance_home.html:238
 #: .\templates\projects\project_detail.html:188
 #: .\templates\requests_app\request_detail.html:44
 msgid "Type"
@@ -874,17 +900,17 @@ msgstr "Turi"
 msgid "Account"
 msgstr "Hisob"
 
-#: .\apps\finance\models.py:75 .\apps\finance\models.py:118
-#: .\apps\finance\models.py:176 .\templates\finance\finance_home.html:146
-#: .\templates\finance\finance_home.html:205
+#: .\apps\finance\models.py:75 .\apps\finance\models.py:201
+#: .\templates\finance\finance_home.html:241
+#: .\templates\finance\finance_home.html:330
 #: .\templates\projects\project_detail.html:188
 msgid "Amount"
 msgstr "Summa"
 
 #: .\apps\finance\models.py:76 .\apps\finance\models.py:120
-#: .\apps\finance\models.py:177 .\apps\projects\models.py:89
-#: .\templates\finance\finance_home.html:145
-#: .\templates\finance\finance_home.html:206
+#: .\apps\finance\models.py:202 .\apps\projects\models.py:89
+#: .\templates\finance\finance_home.html:240
+#: .\templates\finance\finance_home.html:331
 msgid "Currency"
 msgstr "Valyuta"
 
@@ -894,20 +920,20 @@ msgstr "Valyuta"
 msgid "Description"
 msgstr "Tavsif"
 
-#: .\apps\finance\models.py:79 .\apps\finance\models.py:175
-#: .\templates\finance\finance_home.html:125
-#: .\templates\finance\finance_home.html:144
-#: .\templates\finance\finance_home.html:188
-#: .\templates\finance\finance_home.html:204
+#: .\apps\finance\models.py:79 .\apps\finance\models.py:200
+#: .\templates\finance\finance_home.html:219
+#: .\templates\finance\finance_home.html:239
+#: .\templates\finance\finance_home.html:312
+#: .\templates\finance\finance_home.html:329
 msgid "Category"
 msgstr "Toifa"
 
-#: .\apps\finance\models.py:81 .\apps\finance\models.py:179
+#: .\apps\finance\models.py:81 .\apps\finance\models.py:204
 #: .\templates\accounts\login_journal.html:10
 #: .\templates\ai_agents\dashboard.html:62
-#: .\templates\documents\document_detail.html:55
-#: .\templates\finance\finance_home.html:142
-#: .\templates\finance\finance_home.html:208
+#: .\templates\documents\document_detail.html:60
+#: .\templates\finance\finance_home.html:237
+#: .\templates\finance\finance_home.html:333
 #: .\templates\projects\project_detail.html:188
 #: .\templates\projects\project_history.html:9
 msgid "Date"
@@ -924,22 +950,28 @@ msgstr "Sana"
 msgid "Status"
 msgstr "Holat"
 
-#: .\apps\finance\models.py:104 .\templates\finance\finance_home.html:18
-#: .\templates\finance\finance_home.html:55
+#: .\apps\finance\models.py:104 .\templates\finance\finance_home.html:72
+#: .\templates\finance\finance_home.html:110
 #: .\templates\projects\_subobject_disciplines.html:53
 msgid "Employee"
 msgstr "Xodim"
 
 #: .\apps\finance\models.py:112 .\apps\projects\excel_import.py:8
 #: .\templates\documents\approval_submit.html:19
-#: .\templates\finance\finance_home.html:32
-#: .\templates\finance\finance_home.html:57
-#: .\templates\finance\finance_home.html:107
+#: .\templates\finance\finance_home.html:86
+#: .\templates\finance\finance_home.html:112
+#: .\templates\finance\finance_home.html:205
 #: .\templates\projects\project_wizard_disciplines.html:13
 #: .\templates\projects\project_wizard_subobjects.html:12
 #: .\templates\tasks\task_form.html:17
 msgid "Object"
 msgstr "Obyekt"
+
+#: .\apps\finance\models.py:118 .\apps\projects\models.py:86
+#: .\templates\finance\finance_home.html:114
+#: .\templates\finance\finance_home.html:392
+msgid "Budget"
+msgstr "Byudjet"
 
 #: .\apps\finance\models.py:123
 msgid "Paid"
@@ -949,83 +981,107 @@ msgstr "To'langan"
 msgid "Notes"
 msgstr "Izohlar"
 
-#: .\apps\finance\models.py:178 .\templates\finance\finance_home.html:179
-#: .\templates\finance\finance_home.html:207
+#: .\apps\finance\models.py:173 .\templates\finance\_category_modal.html:17
+msgid "Category name"
+msgstr "Kategoriya nomi"
+
+#: .\apps\finance\models.py:176
+msgid "Administrative"
+msgstr "Ma'muriy"
+
+#: .\apps\finance\models.py:187
+msgid "Finance Category"
+msgstr "Moliya kategoriyasi"
+
+#: .\apps\finance\models.py:188
+msgid "Finance Categories"
+msgstr "Moliya kategoriyalari"
+
+#: .\apps\finance\models.py:203 .\templates\finance\finance_home.html:303
+#: .\templates\finance\finance_home.html:332
 msgid "Period"
 msgstr "Davr"
 
-#: .\apps\finance\models.py:180 .\templates\finance\finance_home.html:209
+#: .\apps\finance\models.py:205 .\templates\finance\finance_home.html:334
 msgid "Note"
 msgstr "Izoh"
 
-#: .\apps\finance\views.py:277
+#: .\apps\finance\views.py:332
 msgid "Transaction added."
 msgstr "Tranzaksiya qo'shildi."
 
-#: .\apps\finance\views.py:279
+#: .\apps\finance\views.py:334
 msgid "Could not add the transaction — please check the form."
 msgstr "Tranzaksiyani qo'shib bo'lmadi — formani tekshiring."
 
-#: .\apps\finance\views.py:294
+#: .\apps\finance\views.py:349
 msgid "Exchange rate updated from the Central Bank of Uzbekistan."
 msgstr "Kurs O'zbekiston Markaziy banki saytidan yangilandi."
 
-#: .\apps\finance\views.py:296 .\apps\finance\views.py:313
+#: .\apps\finance\views.py:351 .\apps\finance\views.py:368
 msgid "Could not fetch the exchange rate — please try again later."
 msgstr "Valyuta kursini olib bo'lmadi — keyinroq urinib ko'ring."
 
-#: .\apps\finance\views.py:311
+#: .\apps\finance\views.py:366
 msgid "Exchange rate updated from Poytaxt Bank."
 msgstr "Kurs \"Poytaxt bank\" saytidan yangilandi."
 
-#: .\apps\finance\views.py:329
+#: .\apps\finance\views.py:384
 msgid "Finance record added."
 msgstr "Moliyaviy yozuv qo'shildi."
 
-#: .\apps\finance\views.py:341
+#: .\apps\finance\views.py:396
 msgid "Record deleted."
 msgstr "Yozuv o'chirildi."
 
-#: .\apps\finance\views.py:355
+#: .\apps\finance\views.py:410
 msgid "Employee contract added."
 msgstr "Xodim shartnomasi qo'shildi."
 
-#: .\apps\finance\views.py:357
+#: .\apps\finance\views.py:412
 msgid "Could not add the employee contract — please check the form."
 msgstr "Xodim shartnomasini qo'shib bo'lmadi — formani tekshiring."
 
-#: .\apps\finance\views.py:368
+#: .\apps\finance\views.py:423
 msgid "Employee contract deleted."
 msgstr "Xodim shartnomasi o'chirildi."
 
-#: .\apps\finance\views.py:382
+#: .\apps\finance\views.py:437
 msgid "The payment amount exceeds the remaining balance."
 msgstr "To'lov summasi qolgan qoldiqdan oshib ketdi."
 
-#: .\apps\finance\views.py:391
+#: .\apps\finance\views.py:446
 #, python-format
 msgid "Salary payment — %(employee)s"
 msgstr "Ish haqi to'lovi — %(employee)s"
 
-#: .\apps\finance\views.py:396
+#: .\apps\finance\views.py:451
 msgid "Payment recorded."
 msgstr "To'lov qayd etildi."
 
-#: .\apps\finance\views.py:398
+#: .\apps\finance\views.py:453
 msgid "Could not record the payment — please check the form."
 msgstr "To'lovni qayd etib bo'lmadi — formani tekshiring."
 
-#: .\apps\finance\views.py:412
+#: .\apps\finance\views.py:467
 msgid "Administrative expense added."
 msgstr "Ma'muriy xarajat qo'shildi."
 
-#: .\apps\finance\views.py:414
+#: .\apps\finance\views.py:469
 msgid "Could not add the expense — please check the form."
 msgstr "Xarajatni qo'shib bo'lmadi — formani tekshiring."
 
-#: .\apps\finance\views.py:425
+#: .\apps\finance\views.py:480
 msgid "Administrative expense deleted."
 msgstr "Ma'muriy xarajat o'chirildi."
+
+#: .\apps\finance\views.py:505
+msgid "Category added successfully."
+msgstr "Kategoriya qo'shildi."
+
+#: .\apps\finance\views.py:507
+msgid "Could not add category — please check the form."
+msgstr "Kategoriyani qo'shib bo'lmadi — formani tekshiring."
 
 #: .\apps\notifications\models.py:9 .\templates\tasks\task_board.html:54
 msgid "Task"
@@ -1033,9 +1089,9 @@ msgstr "Vazifa"
 
 #: .\apps\notifications\models.py:10 .\apps\projects\models.py:85
 #: .\apps\projects\models.py:152 .\apps\projects\models.py:186
-#: .\templates\documents\document_detail.html:75
+#: .\templates\documents\document_detail.html:80
 #: .\templates\projects\project_detail.html:42
-#: .\templates\tasks\task_board.html:56 .\templates\tasks\task_detail.html:93
+#: .\templates\tasks\task_board.html:56 .\templates\tasks\task_detail.html:107
 msgid "Deadline"
 msgstr "Muddat"
 
@@ -1170,11 +1226,11 @@ msgstr "Bo'linma qo'shildi."
 msgid "Unit deleted."
 msgstr "Bo'linma o'chirildi."
 
-#: .\apps\organization\views.py:122 .\apps\projects\views.py:332
+#: .\apps\organization\views.py:122 .\apps\projects\views.py:340
 msgid "Member added."
 msgstr "A'zo qo'shildi."
 
-#: .\apps\organization\views.py:133 .\apps\projects\views.py:344
+#: .\apps\organization\views.py:133 .\apps\projects\views.py:352
 msgid "Member removed."
 msgstr "A'zo olib tashlandi."
 
@@ -1323,7 +1379,7 @@ msgstr "Belgilansa, xodim loyiha ma'lumotlarini tahrirlashi mumkin."
 msgid "The date the employee's access to the project expires (optional)."
 msgstr "Xodimning loyihaga kirish huquqi tugaydigan sana (ixtiyoriy)."
 
-#: .\apps\projects\forms.py:130 .\apps\projects\forms.py:167
+#: .\apps\projects\forms.py:130 .\apps\projects\forms.py:171
 msgid "The sub-object's name."
 msgstr "Sub-obyekt nomi."
 
@@ -1366,19 +1422,19 @@ msgstr "Ushbu bo'lim uchun muddat (ixtiyoriy)."
 msgid "This section's current status."
 msgstr "Ushbu bo'limning joriy holati."
 
-#: .\apps\projects\forms.py:165
+#: .\apps\projects\forms.py:169
 msgid "Which object this sub-object belongs to."
 msgstr "Ushbu pastki obyekt qaysi obyektga tegishli ekanligi."
 
-#: .\apps\projects\forms.py:166
+#: .\apps\projects\forms.py:170
 msgid "The work discipline (specialization) this sub-object covers."
 msgstr "Ushbu pastki obyekt qamrab oladigan ish sohasi (mutaxassislik)."
 
-#: .\apps\projects\forms.py:168
+#: .\apps\projects\forms.py:172
 msgid "The chief architect (GIP) responsible for the sub-object (optional)."
 msgstr "Sub-obyektga mas'ul bosh inshoot arxitektori (GIP) (ixtiyoriy)."
 
-#: .\apps\projects\forms.py:169
+#: .\apps\projects\forms.py:173
 msgid "The sub-object's current status."
 msgstr "Sub-obyektning joriy holati."
 
@@ -1537,10 +1593,6 @@ msgstr "Bosqich"
 msgid "Start date"
 msgstr "Boshlanish sanasi"
 
-#: .\apps\projects\models.py:86
-msgid "Budget"
-msgstr "Byudjet"
-
 #: .\apps\projects\models.py:87
 msgid "Paid amount"
 msgstr "To'langan summa"
@@ -1550,13 +1602,14 @@ msgid "Not started"
 msgstr "Boshlanmagan"
 
 #: .\apps\projects\models.py:119 .\apps\requests_app\models.py:17
-#: .\apps\tasks\models.py:37 .\apps\tasks\views.py:89
+#: .\apps\tasks\models.py:37 .\apps\tasks\views.py:91
 #: .\templates\projects\project_detail.html:305
 msgid "In progress"
 msgstr "Jarayonda"
 
 #: .\apps\projects\models.py:120 .\apps\tasks\models.py:38
-#: .\templates\documents\approvals_list.html:31
+#: .\templates\documents\approvals_list.html:36
+#: .\templates\tasks\task_detail.html:36
 msgid "Review"
 msgstr "Ko'rib chiqish"
 
@@ -1586,7 +1639,7 @@ msgstr "Quyi obyekti"
 #: .\apps\projects\models.py:138 .\apps\projects\models.py:222
 #: .\templates\accounts\user_list.html:77
 #: .\templates\documents\document_list.html:45
-#: .\templates\finance\finance_home.html:141
+#: .\templates\finance\finance_home.html:236
 #: .\templates\projects\project_wizard_confirm.html:15
 #: .\templates\projects\project_wizard_confirm.html:26
 msgid "Name"
@@ -1598,7 +1651,7 @@ msgstr "Muhimlik"
 
 #: .\apps\projects\models.py:184
 #: .\templates\requests_app\request_detail.html:47
-#: .\templates\tasks\task_board.html:55 .\templates\tasks\task_detail.html:92
+#: .\templates\tasks\task_board.html:55 .\templates\tasks\task_detail.html:106
 msgid "Assignee"
 msgstr "Ijrochi"
 
@@ -1628,7 +1681,7 @@ msgstr "Quyi obyekt"
 msgid "Discipline"
 msgstr "Soha"
 
-#: .\apps\projects\models.py:244 .\templates\documents\document_detail.html:55
+#: .\apps\projects\models.py:244 .\templates\documents\document_detail.html:60
 #: .\templates\projects\project_history.html:9
 msgid "User"
 msgstr "Foydalanuvchi"
@@ -1701,150 +1754,158 @@ msgstr "Xorazm viloyati"
 msgid "Republic of Karakalpakstan"
 msgstr "Qoraqalpog'iston Respublikasi"
 
-#: .\apps\projects\views.py:32
-msgid "10_ТЗ"
-msgstr "10_Texnik topshiriq"
+#: .\apps\projects\views.py:31
+msgid "90_Проектная документация"
+msgstr "90_Проектная документация"
 
-#: .\apps\projects\views.py:33
+#: .\apps\projects\views.py:36
+msgid "05_Планшет"
+msgstr "05_Планшет"
+
+#: .\apps\projects\views.py:37
+msgid "10_ТЭ"
+msgstr "10_ТЭ"
+
+#: .\apps\projects\views.py:38
 msgid "20_Геология"
 msgstr "20_Geologiya"
 
-#: .\apps\projects\views.py:34
+#: .\apps\projects\views.py:39
 msgid "30_Экология"
 msgstr "30_Ekologiya"
 
-#: .\apps\projects\views.py:35
+#: .\apps\projects\views.py:40
 msgid "40_Кадастр"
 msgstr "40_Kadastr"
 
-#: .\apps\projects\views.py:36
+#: .\apps\projects\views.py:41
 msgid "50_АПЗ"
 msgstr "50_Arxitektura-rejalashtirish topshirig'i"
 
-#: .\apps\projects\views.py:37
+#: .\apps\projects\views.py:42
 msgid "60_ТУ"
 msgstr "60_Texnik shartlar"
 
-#: .\apps\projects\views.py:38
+#: .\apps\projects\views.py:43
 msgid "70_КД оборудования"
 msgstr "70_Uskunalar konstruktorlik hujjatlari"
 
-#: .\apps\projects\views.py:39
+#: .\apps\projects\views.py:44
 msgid "80_Фото и видео"
 msgstr "80_Foto va video"
 
-#: .\apps\projects\views.py:71
+#: .\apps\projects\views.py:79
 msgid "Weight must be a whole number."
 msgstr "Og'irlik butun son bo'lishi kerak."
 
-#: .\apps\projects\views.py:73
+#: .\apps\projects\views.py:81
 msgid "Weight must be between 0 and 100."
 msgstr "Og'irlik 0 dan 100 gacha bo'lishi kerak."
 
-#: .\apps\projects\views.py:81
+#: .\apps\projects\views.py:89
 msgid "Progress must be a whole number."
 msgstr "Progress butun son bo'lishi kerak."
 
-#: .\apps\projects\views.py:83
+#: .\apps\projects\views.py:91
 msgid "Progress must be between 0 and 100."
 msgstr "Progress 0 dan 100 gacha bo'lishi kerak."
 
-#: .\apps\projects\views.py:130
+#: .\apps\projects\views.py:138
 msgid "Deadline passed"
 msgstr "Muddati o'tgan"
 
-#: .\apps\projects\views.py:164
+#: .\apps\projects\views.py:172
 msgid "Project created."
 msgstr "Loyiha yaratildi."
 
-#: .\apps\projects\views.py:285
+#: .\apps\projects\views.py:293
 msgid "Project updated."
 msgstr "Loyiha yangilandi."
 
-#: .\apps\projects\views.py:303
+#: .\apps\projects\views.py:311
 msgid "Project deleted."
 msgstr "Loyiha o'chirildi."
 
-#: .\apps\projects\views.py:334
+#: .\apps\projects\views.py:342
 msgid "This user is already a member."
 msgstr "Bu foydalanuvchi allaqachon a'zo."
 
-#: .\apps\projects\views.py:359
+#: .\apps\projects\views.py:367
 msgid "Sub-object added."
 msgstr "Obyekt qo'shildi."
 
-#: .\apps\projects\views.py:374
+#: .\apps\projects\views.py:382
 msgid "Section added."
 msgstr "Bo'lim qo'shildi."
 
-#: .\apps\projects\views.py:385
+#: .\apps\projects\views.py:393
 msgid "Project structure saved."
 msgstr "Loyiha tuzilmasi saqlandi."
 
-#: .\apps\projects\views.py:425
+#: .\apps\projects\views.py:433
 msgid "Assigned to a project section"
 msgstr "Loyiha bo'limiga tayinlandingiz"
 
-#: .\apps\projects\views.py:426
+#: .\apps\projects\views.py:434
 #, python-format
 msgid "You were assigned to %(discipline)s on %(sub_object)s."
 msgstr ""
 "Siz %(sub_object)s obyektidagi %(discipline)s bo'limiga tayinlandingiz."
 
-#: .\apps\projects\views.py:431
+#: .\apps\projects\views.py:439
 msgid "Disciplines saved."
 msgstr "Yo'nalishlar saqlandi."
 
-#: .\apps\projects\views.py:470 .\apps\projects\views.py:485
+#: .\apps\projects\views.py:478 .\apps\projects\views.py:493
 msgid "Name is required."
 msgstr "Nom kiritilishi shart."
 
-#: .\apps\projects\views.py:511
+#: .\apps\projects\views.py:519
 msgid "Choose a file to upload."
 msgstr "Yuklash uchun fayl tanlang."
 
-#: .\apps\projects\views.py:520
+#: .\apps\projects\views.py:528
 #, python-format
 msgid "Imported: %(objects)d objects, %(pods)d pod objects."
 msgstr "Import qilindi: %(objects)d ta obyekt, %(pods)d ta pastki obyekt."
 
-#: .\apps\projects\views.py:542
+#: .\apps\projects\views.py:550
 msgid "Section saved."
 msgstr "Bo'lim saqlandi."
 
-#: .\apps\projects\views.py:558
+#: .\apps\projects\views.py:566
 msgid "Select at least one discipline."
 msgstr "Kamida bitta yo'nalishni tanlang."
 
-#: .\apps\projects\views.py:562
+#: .\apps\projects\views.py:570
 msgid "Disciplines added."
 msgstr "Yo'nalishlar qo'shildi."
 
-#: .\apps\projects\views.py:575
+#: .\apps\projects\views.py:583
 msgid "Discipline removed."
 msgstr "Yo'nalish olib tashlandi."
 
-#: .\apps\projects\views.py:593
+#: .\apps\projects\views.py:601
 msgid "Weights and progress saved."
 msgstr "Vaznlar va progress saqlandi."
 
-#: .\apps\projects\views.py:606
+#: .\apps\projects\views.py:614
 msgid "Client information updated."
 msgstr "Mijoz ma'lumotlari yangilandi."
 
-#: .\apps\projects\views.py:636
+#: .\apps\projects\views.py:646
 msgid "There are no source files to download yet."
 msgstr "Hozircha yuklab olish uchun manba fayllar yo'q."
 
-#: .\apps\projects\views.py:665
+#: .\apps\projects\views.py:679
 msgid "Unknown document type."
 msgstr "Noma'lum hujjat turi."
 
-#: .\apps\projects\views.py:669
+#: .\apps\projects\views.py:683
 msgid "No file was uploaded."
 msgstr "Fayl yuklanmadi."
 
-#: .\apps\projects\views.py:718
+#: .\apps\projects\views.py:732
 msgid "Project saved."
 msgstr "Loyiha saqlandi."
 
@@ -1932,8 +1993,8 @@ msgstr "Yopilgan"
 msgid "New request assigned"
 msgstr "Yangi so'rov tayinlandi"
 
-#: .\apps\requests_app\views.py:47 .\apps\tasks\views.py:153
-#: .\apps\tasks\views.py:215
+#: .\apps\requests_app\views.py:47 .\apps\tasks\views.py:161
+#: .\apps\tasks\views.py:235
 #, python-format
 msgid "You were assigned to \"%(title)s\"."
 msgstr "Siz \"%(title)s\"ga tayinlandingiz."
@@ -1942,7 +2003,7 @@ msgstr "Siz \"%(title)s\"ga tayinlandingiz."
 msgid "Request created."
 msgstr "So'rov yaratildi."
 
-#: .\apps\requests_app\views.py:71 .\apps\tasks\views.py:183
+#: .\apps\requests_app\views.py:71 .\apps\tasks\views.py:191
 #, python-format
 msgid "%(user)s commented on \"%(title)s\"."
 msgstr "%(user)s \"%(title)s\"ga izoh qoldirdi."
@@ -1955,44 +2016,52 @@ msgstr "So'rov yangilandi."
 msgid "Request deleted."
 msgstr "So'rov o'chirildi."
 
-#: .\apps\tasks\forms.py:18
+#: .\apps\tasks\forms.py:19
 msgid "A short, clear title for the task."
 msgstr "Vazifaning qisqa va aniq nomi."
 
-#: .\apps\tasks\forms.py:19
+#: .\apps\tasks\forms.py:20
 msgid "Details about the task: what needs to be done, what result is expected."
 msgstr ""
 "Vazifa haqida batafsil ma'lumot: nima qilish kerak, qanday natija kutilyapti."
 
-#: .\apps\tasks\forms.py:20
+#: .\apps\tasks\forms.py:21
 msgid "Which project the task belongs to."
 msgstr "Vazifa qaysi loyihaga tegishli ekanligi."
 
-#: .\apps\tasks\forms.py:22
+#: .\apps\tasks\forms.py:23
 msgid ""
 "The employee responsible for completing the task. If set, they get a "
 "notification."
 msgstr ""
 "Vazifani bajarishga mas'ul xodim. Tanlansa, unga bildirishnoma yuboriladi."
 
-#: .\apps\tasks\forms.py:23
+#: .\apps\tasks\forms.py:24
 msgid "The task's current status (to do, in progress, done, etc.)."
 msgstr ""
 "Vazifaning joriy holati (bajarilishi kerak, jarayonda, bajarildi va h.k.)."
 
-#: .\apps\tasks\forms.py:24
+#: .\apps\tasks\forms.py:25
 msgid "The task's priority level."
 msgstr "Vazifaning muhimlik darajasi."
 
-#: .\apps\tasks\forms.py:25
+#: .\apps\tasks\forms.py:26
 msgid "The deadline set for completing the task."
 msgstr "Vazifani bajarish uchun belgilangan muddat."
 
-#: .\apps\tasks\forms.py:40
+#: .\apps\tasks\forms.py:47
+msgid "This section doesn't belong to the selected project."
+msgstr "Bu bo'lim tanlangan loyihaga tegishli emas."
+
+#: .\apps\tasks\forms.py:49
+msgid "The assignee doesn't have this section's discipline."
+msgstr "Ijrochida bu bo'lim yo'nalishi biriktirilmagan."
+
+#: .\apps\tasks\forms.py:58
 msgid "Write your comment or question about the task here."
 msgstr "Vazifa bo'yicha izoh yoki savolingizni shu yerga yozing."
 
-#: .\apps\tasks\forms.py:47
+#: .\apps\tasks\forms.py:65
 msgid "Upload a file related to the task (maximum size — 50MB)."
 msgstr "Vazifaga tegishli faylni yuklash (maksimal hajm — 50MB)."
 
@@ -2000,38 +2069,54 @@ msgstr "Vazifaga tegishli faylni yuklash (maksimal hajm — 50MB)."
 msgid "New"
 msgstr "Yangi"
 
-#: .\apps\tasks\views.py:93
+#: .\apps\tasks\views.py:95
 msgid "Overdue"
 msgstr "Muddati o'tgan"
 
-#: .\apps\tasks\views.py:152
+#: .\apps\tasks\views.py:160
 msgid "New task assigned"
 msgstr "Yangi vazifa tayinlandi"
 
-#: .\apps\tasks\views.py:156
+#: .\apps\tasks\views.py:164
 msgid "Task created."
 msgstr "Vazifa yaratildi."
 
-#: .\apps\tasks\views.py:214
+#: .\apps\tasks\views.py:234
 msgid "Task assigned to you"
 msgstr "Sizga vazifa tayinlandi"
 
-#: .\apps\tasks\views.py:220 .\apps\tasks\views.py:257
+#: .\apps\tasks\views.py:240 .\apps\tasks\views.py:305
 msgid "Task status changed"
 msgstr "Vazifa holati o'zgartirildi"
 
-#: .\apps\tasks\views.py:221 .\apps\tasks\views.py:258
+#: .\apps\tasks\views.py:241 .\apps\tasks\views.py:306
 #, python-format
 msgid "\"%(title)s\" is now %(status)s."
 msgstr "\"%(title)s\" endi %(status)s."
 
-#: .\apps\tasks\views.py:224
+#: .\apps\tasks\views.py:244
 msgid "Task updated."
 msgstr "Vazifa yangilandi."
 
-#: .\apps\tasks\views.py:241
+#: .\apps\tasks\views.py:261
 msgid "Task deleted."
 msgstr "Vazifa o'chirildi."
+
+#: .\apps\tasks\views.py:275 .\apps\tasks\views.py:276
+msgid "Unknown status."
+msgstr "Noma'lum holat."
+
+#: .\apps\tasks\views.py:280
+msgid "You don't have permission to move this task to that status."
+msgstr "Vazifani bu holatga o'tkazishga ruxsatingiz yo'q."
+
+#: .\apps\tasks\views.py:288
+msgid "A comment is required when sending a task back for revision."
+msgstr "Vazifani qayta ishlashga qaytarishda izoh yozish shart."
+
+#: .\apps\tasks\views.py:301
+msgid "Task approved and sent to Approvals for sign-off."
+msgstr "Vazifa tasdiqlandi va «Kelishuvlar» bo'limiga yuborildi."
 
 #: .\apps\telegram_bot\views.py:45
 msgid "Telegram account unlinked."
@@ -2130,6 +2215,12 @@ msgstr "Hali yozuvlar yo'q."
 #: .\templates\accounts\profile.html:3 .\templates\accounts\profile.html:4
 msgid "Settings"
 msgstr "Sozlamalar"
+
+#: .\templates\accounts\profile.html:5
+msgid ""
+"Manage your profile, security settings (password, 2FA), and notification "
+"channels."
+msgstr "Profilingizni, xavfsizlik sozlamalarini (parol, 2FA) va bildirishnoma kanallarini boshqarish."
 
 #: .\templates\accounts\profile.html:6
 msgid "Manage your profile, security and notifications"
@@ -2236,6 +2327,7 @@ msgstr ""
 #: .\templates\documents\document_confirm_delete.html:11
 #: .\templates\documents\document_upload.html:17
 #: .\templates\finance\_admin_expense_modal.html:43
+#: .\templates\finance\_category_modal.html:25
 #: .\templates\finance\_employee_contract_modal.html:59
 #: .\templates\finance\_employee_contract_pay_modal.html:35
 #: .\templates\finance\_transaction_modal.html:66
@@ -2247,7 +2339,7 @@ msgstr ""
 #: .\templates\requests_app\request_confirm_delete.html:11
 #: .\templates\requests_app\request_form.html:17
 #: .\templates\tasks\task_confirm_delete.html:11
-#: .\templates\tasks\task_form.html:33
+#: .\templates\tasks\task_detail.html:133 .\templates\tasks\task_form.html:33
 msgid "Cancel"
 msgstr "Bekor qilish"
 
@@ -2255,6 +2347,12 @@ msgstr "Bekor qilish"
 #: .\templates\accounts\user_list.html:8 .\templates\partials\sidebar.html:71
 msgid "Users"
 msgstr "Foydalanuvchilar"
+
+#: .\templates\accounts\user_list.html:5
+msgid ""
+"Manage system users: add employees, change their roles, and activate or "
+"deactivate accounts."
+msgstr "Tizim foydalanuvchilarini boshqarish: xodim qo'shish, rollarini o'zgartirish va hisoblarini yoqish yoki o'chirish."
 
 #: .\templates\accounts\user_list.html:17
 msgid "Designers"
@@ -2272,6 +2370,9 @@ msgstr "Barcha rollar"
 
 #: .\templates\accounts\user_list.html:29
 #: .\templates\documents\document_list.html:29
+#: .\templates\finance\finance_home.html:51
+#: .\templates\finance\finance_home.html:179
+#: .\templates\finance\finance_home.html:280
 #: .\templates\projects\project_list.html:17
 msgid "Filter"
 msgstr "Filtr"
@@ -2325,9 +2426,9 @@ msgstr "Ushbu soha o'chirilsinmi?"
 #: .\templates\document_templates\template_confirm_delete.html:10
 #: .\templates\document_templates\template_list.html:25
 #: .\templates\documents\document_confirm_delete.html:10
-#: .\templates\documents\document_detail.html:16
-#: .\templates\finance\finance_home.html:82
-#: .\templates\finance\finance_home.html:226
+#: .\templates\documents\document_detail.html:21
+#: .\templates\finance\finance_home.html:137
+#: .\templates\finance\finance_home.html:351
 #: .\templates\finance\record_confirm_delete.html:10
 #: .\templates\notifications\notification_list.html:27
 #: .\templates\organization\department_list.html:39
@@ -2340,8 +2441,8 @@ msgstr "Ushbu soha o'chirilsinmi?"
 #: .\templates\requests_app\request_confirm_delete.html:10
 #: .\templates\requests_app\request_detail.html:13
 #: .\templates\tasks\task_confirm_delete.html:10
-#: .\templates\tasks\task_detail.html:13 .\templates\tasks\task_detail.html:43
-#: .\templates\tasks\task_detail.html:70
+#: .\templates\tasks\task_detail.html:13 .\templates\tasks\task_detail.html:57
+#: .\templates\tasks\task_detail.html:84
 msgid "Delete"
 msgstr "O'chirish"
 
@@ -2353,6 +2454,12 @@ msgstr "Hali sohalar yo'q."
 #: .\templates\ai_agents\dashboard.html:4
 msgid "AI ecosystem"
 msgstr "Sun'iy intellekt ekotizimi"
+
+#: .\templates\ai_agents\dashboard.html:5
+msgid ""
+"Configure AI agents, run them automatically on a schedule, and follow the "
+"audit log of their work."
+msgstr "AI agentlarni sozlash, jadval bo'yicha avtomatik ishga tushirish va bajargan ishlari jurnalini kuzatish."
 
 #: .\templates\ai_agents\dashboard.html:6
 msgid "Agents, schedules and audit log"
@@ -2437,8 +2544,8 @@ msgstr "Zaxira nusxa yaratish"
 
 #: .\templates\core\backup_list.html:18
 #: .\templates\document_templates\template_generate.html:22
-#: .\templates\documents\document_detail.html:10
-#: .\templates\documents\document_detail.html:39
+#: .\templates\documents\document_detail.html:15
+#: .\templates\documents\document_detail.html:44
 #: .\templates\documents\document_list.html:63
 msgid "Download"
 msgstr "Yuklab olish"
@@ -2455,6 +2562,12 @@ msgstr "Hali zaxira nusxalar yo'q."
 #: .\templates\partials\sidebar.html:14
 msgid "Dashboard"
 msgstr "Boshqaruv paneli"
+
+#: .\templates\core\dashboard.html:5
+msgid ""
+"An overview of every project, task, and notification — the current state of "
+"the system at a glance."
+msgstr "Barcha loyihalar, vazifalar va bildirishnomalar bo'yicha umumiy ko'rinish — tizim holatini bir qarashda ko'rish."
 
 #: .\templates\core\dashboard.html:6
 #, python-format
@@ -2482,7 +2595,7 @@ msgstr "Muddati o'tgan vazifalar"
 msgid "View all"
 msgstr "Barchasini ko'rish"
 
-#: .\templates\core\dashboard.html:64 .\templates\finance\finance_home.html:332
+#: .\templates\core\dashboard.html:64 .\templates\finance\finance_home.html:471
 msgid "No projects yet."
 msgstr "Hali loyihalar yo'q."
 
@@ -2621,6 +2734,12 @@ msgstr "Ko'rib chiqish"
 msgid "Templates"
 msgstr "Shablonlar"
 
+#: .\templates\document_templates\template_list.html:5
+msgid ""
+"Create reusable document templates (contracts, acts, and so on) and generate "
+"finished documents from them."
+msgstr "Qayta ishlatiladigan hujjat shablonlarini (shartnoma, dalolatnoma va h.k.) yaratish va ulardan tayyor hujjat generatsiya qilish."
+
 #: .\templates\document_templates\template_list.html:29
 msgid "No templates yet."
 msgstr "Hali shablonlar yo'q."
@@ -2680,7 +2799,8 @@ msgstr "Yuborish"
 #: .\templates\documents\approval_submit.html:4
 #: .\templates\documents\approval_submit.html:43
 #: .\templates\documents\approvals_list.html:14
-#: .\templates\documents\document_detail.html:13
+#: .\templates\documents\document_detail.html:18
+#: .\templates\tasks\task_detail.html:41
 msgid "Send for approval"
 msgstr "Tasdiqlashga yuborish"
 
@@ -2699,11 +2819,21 @@ msgstr "Quyi obyekt"
 
 #: .\templates\documents\approvals_list.html:3
 #: .\templates\documents\approvals_list.html:4
-#: .\templates\partials\sidebar.html:34
+#: .\templates\partials\sidebar.html:34 .\templates\tasks\task_detail.html:110
 msgid "Approvals"
 msgstr "Tasdiqlashlar"
 
-#: .\templates\documents\approvals_list.html:37
+#: .\templates\documents\approvals_list.html:5
+msgid ""
+"Review the documents sent to you for approval, then approve or reject them."
+msgstr "Sizga kelishuvga yuborilgan hujjatlarni ko'rib chiqish, tasdiqlash yoki rad etish."
+
+#: .\templates\documents\approvals_list.html:27
+#: .\templates\documents\document_detail.html:9
+msgid "From task"
+msgstr "Vazifadan"
+
+#: .\templates\documents\approvals_list.html:42
 msgid "Nothing here."
 msgstr "Bu yerda hech narsa yo'q."
 
@@ -2712,7 +2842,7 @@ msgstr "Bu yerda hech narsa yo'q."
 msgid "Delete document"
 msgstr "Hujjatni o'chirish"
 
-#: .\templates\documents\document_detail.html:8
+#: .\templates\documents\document_detail.html:13
 #: .\templates\projects\project_detail.html:17
 #: .\templates\projects\project_wizard_confirm.html:48
 #: .\templates\projects\project_wizard_disciplines.html:109
@@ -2723,60 +2853,66 @@ msgstr "Hujjatni o'chirish"
 msgid "Back"
 msgstr "Orqaga"
 
-#: .\templates\documents\document_detail.html:15
-#: .\templates\documents\document_detail.html:53
+#: .\templates\documents\document_detail.html:20
+#: .\templates\documents\document_detail.html:58
 msgid "Audit log"
 msgstr "Audit jurnali"
 
-#: .\templates\documents\document_detail.html:22
+#: .\templates\documents\document_detail.html:27
 msgid "Approval route"
 msgstr "Tasdiqlash yo'nalishi"
 
-#: .\templates\documents\document_detail.html:29
+#: .\templates\documents\document_detail.html:34
 msgid "No approval route yet."
 msgstr "Hali tasdiqlash yo'nalishi yo'q."
 
-#: .\templates\documents\document_detail.html:34
+#: .\templates\documents\document_detail.html:39
 msgid "Versions"
 msgstr "Versiyalar"
 
-#: .\templates\documents\document_detail.html:41
+#: .\templates\documents\document_detail.html:46
 msgid "No versions yet."
 msgstr "Hali versiyalar yo'q."
 
-#: .\templates\documents\document_detail.html:47
+#: .\templates\documents\document_detail.html:52
 msgid "Add version"
 msgstr "Versiya qo'shish"
 
-#: .\templates\documents\document_detail.html:55
+#: .\templates\documents\document_detail.html:60
 #: .\templates\projects\project_history.html:9
 msgid "Action"
 msgstr "Amal"
 
-#: .\templates\documents\document_detail.html:61
+#: .\templates\documents\document_detail.html:66
 msgid "No entries."
 msgstr "Yozuvlar yo'q."
 
-#: .\templates\documents\document_detail.html:69
+#: .\templates\documents\document_detail.html:74
 #: .\templates\projects\project_history.html:9
 #: .\templates\requests_app\request_detail.html:42
-#: .\templates\tasks\task_detail.html:88
+#: .\templates\tasks\task_detail.html:102
 msgid "Details"
 msgstr "Tafsilotlar"
 
-#: .\templates\documents\document_detail.html:73
+#: .\templates\documents\document_detail.html:78
 #: .\templates\documents\document_list.html:46
 msgid "Size"
 msgstr "Hajmi"
 
-#: .\templates\documents\document_detail.html:74
+#: .\templates\documents\document_detail.html:79
 #: .\templates\documents\document_list.html:47
 msgid "Uploaded by"
 msgstr "Yuklovchi"
 
+#: .\templates\documents\document_list.html:5
+msgid ""
+"Store every project document (drawings, estimates, contracts), keep their "
+"versions, and move them through approval."
+msgstr "Loyihaning barcha hujjatlarini (chizmalar, smetalar, shartnomalar) saqlash, versiyalarini yuritish va kelishuvdan o'tkazish."
+
 #: .\templates\documents\document_list.html:18
-#: .\templates\finance\finance_home.html:27
-#: .\templates\finance\finance_home.html:102
+#: .\templates\finance\finance_home.html:81
+#: .\templates\finance\finance_home.html:200
 #: .\templates\tasks\task_board.html:15
 msgid "All projects"
 msgstr "Barcha loyihalar"
@@ -2788,7 +2924,7 @@ msgstr "Barcha holatlar"
 
 #: .\templates\documents\document_list.html:31
 #: .\templates\documents\document_upload.html:16
-#: .\templates\tasks\task_detail.html:52
+#: .\templates\tasks\task_detail.html:66
 msgid "Upload"
 msgstr "Yuklash"
 
@@ -2828,11 +2964,25 @@ msgid "Add administrative expense"
 msgstr "Ma'muriy xarajat qo'shish"
 
 #: .\templates\finance\_admin_expense_modal.html:10
+#: .\templates\finance\_category_modal.html:11
 #: .\templates\finance\_employee_contract_modal.html:10
 #: .\templates\finance\_employee_contract_pay_modal.html:12
 #: .\templates\finance\_transaction_modal.html:12
+#: .\templates\tasks\task_detail.html:123
 msgid "Close"
 msgstr "Yopish"
+
+#: .\templates\finance\_category_modal.html:9
+msgid "Add category"
+msgstr "Kategoriya qo'shish"
+
+#: .\templates\finance\_category_modal.html:21
+msgid "Category type"
+msgstr "Kategoriya turi"
+
+#: .\templates\finance\_category_modal.html:30
+msgid "Save category"
+msgstr "Kategoriyani saqlash"
 
 #: .\templates\finance\_employee_contract_modal.html:9
 msgid "Assign salary"
@@ -2844,12 +2994,12 @@ msgid "Assign"
 msgstr "Biriktirish"
 
 #: .\templates\finance\_employee_contract_pay_modal.html:11
-#: .\templates\finance\finance_home.html:47
+#: .\templates\finance\finance_home.html:63
 msgid "Give salary"
 msgstr "Ish haqi berish"
 
 #: .\templates\finance\_employee_contract_pay_modal.html:36
-#: .\templates\finance\finance_home.html:78
+#: .\templates\finance\finance_home.html:133
 msgid "Pay"
 msgstr "To'lov"
 
@@ -2857,133 +3007,169 @@ msgstr "To'lov"
 msgid "Add transaction"
 msgstr "Tranzaksiya qo'shish"
 
-#: .\templates\finance\finance_home.html:8
+#: .\templates\finance\finance_home.html:5
+msgid ""
+"Track the company cash desk, salary payments to employees, and money "
+"movement across projects."
+msgstr "Kompaniya kassasi, xodimlarga ish haqi to'lovlari va loyihalar bo'yicha pul harakatini nazorat qilish."
+
+#: .\templates\finance\finance_home.html:13
 msgid "General"
 msgstr "Umumiy"
 
-#: .\templates\finance\finance_home.html:9
+#: .\templates\finance\finance_home.html:16
 msgid "Payroll"
 msgstr "Ish haqi"
 
-#: .\templates\finance\finance_home.html:10
+#: .\templates\finance\finance_home.html:19
 msgid "Cash flow"
 msgstr "Pullar harakati"
 
-#: .\templates\finance\finance_home.html:11
+#: .\templates\finance\finance_home.html:22
 msgid "Administrative expenses"
 msgstr "Ma'muriy xarajatlar"
 
-#: .\templates\finance\finance_home.html:20
+#: .\templates\finance\finance_home.html:28
+msgid "Add income"
+msgstr "Daromad qo'shish"
+
+#: .\templates\finance\finance_home.html:30
+msgid "+ Add income"
+msgstr "+ Daromad qo'shish"
+
+#: .\templates\finance\finance_home.html:32
+msgid "Add expense"
+msgstr "Xarajat qo'shish"
+
+#: .\templates\finance\finance_home.html:34
+#: .\templates\finance\finance_home.html:293
+msgid "+ Add expense"
+msgstr "+ Xarajat qo'shish"
+
+#: .\templates\finance\finance_home.html:39
+#: .\templates\finance\finance_home.html:292
+msgid "+ Add category"
+msgstr "+ Kategoriya qo'shish"
+
+#: .\templates\finance\finance_home.html:57
+#: .\templates\finance\finance_home.html:101
+#: .\templates\finance\finance_home.html:227
+#: .\templates\finance\finance_home.html:286
+#: .\templates\finance\finance_home.html:320
+msgid "Reset"
+msgstr "Tozalash"
+
+#: .\templates\finance\finance_home.html:62
+msgid "+ Assign salary"
+msgstr "+ Ish haqi biriktirish"
+
+#: .\templates\finance\finance_home.html:74
 msgid "All employees"
 msgstr "Barcha xodimlar"
 
-#: .\templates\finance\finance_home.html:34
-#: .\templates\finance\finance_home.html:109
+#: .\templates\finance\finance_home.html:88
+#: .\templates\finance\finance_home.html:207
 #: .\templates\tasks\task_board.html:22
 msgid "All objects"
 msgstr "Barcha obyektlar"
 
-#: .\templates\finance\finance_home.html:41
-#: .\templates\finance\finance_home.html:116
+#: .\templates\finance\finance_home.html:95
+#: .\templates\finance\finance_home.html:214
 msgid "All pod-objects"
 msgstr "Barcha podob'ektlar"
 
-#: .\templates\finance\finance_home.html:46
-msgid "+ Assign salary"
-msgstr "+ Ish haqi biriktirish"
+#: .\templates\finance\finance_home.html:102
+#: .\templates\finance\finance_home.html:228
+#: .\templates\finance\finance_home.html:321
+msgid "Apply filters"
+msgstr "Filtrlarni qo'llash"
 
-#: .\templates\finance\finance_home.html:59
-#: .\templates\finance\finance_home.html:281
-msgid "Contract amount"
-msgstr "Shartnoma summasi"
-
-#: .\templates\finance\finance_home.html:60
+#: .\templates\finance\finance_home.html:115
 msgid "Advance / paid"
 msgstr "Avans / berilgan"
 
-#: .\templates\finance\finance_home.html:61
+#: .\templates\finance\finance_home.html:116
 msgid "Remaining"
 msgstr "Qoldiq"
 
-#: .\templates\finance\finance_home.html:87
+#: .\templates\finance\finance_home.html:142
 msgid "No employee contracts yet."
 msgstr "Hali xodim shartnomalari yo'q."
 
-#: .\templates\finance\finance_home.html:121
+#: .\templates\finance\finance_home.html:153
 msgid "Month"
-msgstr ""
+msgstr "Oy"
 
-#: .\templates\finance\finance_home.html:127
-#: .\templates\finance\finance_home.html:190
-msgid "All categories"
-msgstr "Barcha toifalar"
+#: .\templates\finance\finance_home.html:155
+msgid "Previous month"
+msgstr "Oldingi oy"
 
-#: .\templates\finance\finance_home.html:133
+#: .\templates\finance\finance_home.html:166
+msgid "Next month"
+msgstr "Keyingi oy"
+
+#: .\templates\finance\finance_home.html:171
+msgid "All time"
+msgstr "Butun davr"
+
+#: .\templates\finance\finance_home.html:187
 msgid "Download Excel"
 msgstr "Excel yuklab olish"
 
-#: .\templates\finance\finance_home.html:160
+#: .\templates\finance\finance_home.html:221
+#: .\templates\finance\finance_home.html:314
+msgid "All categories"
+msgstr "Barcha toifalar"
+
+#: .\templates\finance\finance_home.html:255
 msgid "No transactions yet."
 msgstr "Hozircha tranzaksiyalar yo'q."
 
-#: .\templates\finance\finance_home.html:181
+#: .\templates\finance\finance_home.html:305
 msgid "All periods"
 msgstr "Barcha davrlar"
 
-#: .\templates\finance\finance_home.html:196
-#: .\templates\finance\finance_home.html:303
-msgid "+ Add expense"
-msgstr "+ Xarajat qo'shish"
-
-#: .\templates\finance\finance_home.html:232
+#: .\templates\finance\finance_home.html:357
 msgid "No administrative expenses yet."
 msgstr "Hali ma'muriy xarajatlar yo'q."
 
-#: .\templates\finance\finance_home.html:261
-msgid "USD exchange rate"
-msgstr "Dollar kursi"
+#: .\templates\finance\finance_home.html:371
+msgid "Combined"
+msgstr "Umumiy"
 
-#: .\templates\finance\finance_home.html:267
-msgid "Refresh from CBU"
-msgstr "Markaziy bankdan yangilash"
-
-#: .\templates\finance\finance_home.html:271
-msgid "Refresh from Poytaxt Bank"
-msgstr "Poytaxt bank saytidan yangilash"
-
-#: .\templates\finance\finance_home.html:276
-msgid "Updated"
-msgstr "Yangilandi"
-
-#: .\templates\finance\finance_home.html:287
+#: .\templates\finance\finance_home.html:400
 msgid "Net profit"
 msgstr "Sof foyda"
 
-#: .\templates\finance\finance_home.html:302
-msgid "Add income"
-msgstr "Daromad qo'shish"
+#: .\templates\finance\finance_home.html:414
+msgid "USD exchange rate"
+msgstr "Dollar kursi"
 
-#: .\templates\finance\finance_home.html:302
-msgid "+ Add income"
-msgstr "+ Daromad qo'shish"
+#: .\templates\finance\finance_home.html:417
+msgid "Updated"
+msgstr "Yangilandi"
 
-#: .\templates\finance\finance_home.html:303
-msgid "Add expense"
-msgstr "Xarajat qo'shish"
+#: .\templates\finance\finance_home.html:423
+msgid "Refresh from CBU"
+msgstr "Markaziy bankdan yangilash"
 
-#: .\templates\finance\finance_home.html:305
-msgid "+ Contract amount"
-msgstr "+ Shartnoma summasi"
+#: .\templates\finance\finance_home.html:427
+msgid "Refresh from Poytaxt Bank"
+msgstr "Poytaxt bank saytidan yangilash"
 
-#: .\templates\finance\finance_home.html:316
+#: .\templates\finance\finance_home.html:440
+msgid "Contract sum"
+msgstr "Shartnoma summasi"
+
+#: .\templates\finance\finance_home.html:443
 msgid "Expected income"
 msgstr "Kutilayotgan tushum"
 
-#: .\templates\finance\finance_home.html:317
+#: .\templates\finance\finance_home.html:444
 msgid "Expected expense"
 msgstr "Kutilayotgan xarajat"
 
-#: .\templates\finance\finance_home.html:318
+#: .\templates\finance\finance_home.html:445
 msgid "Profit"
 msgstr "Foyda"
 
@@ -3009,6 +3195,12 @@ msgstr "Bildirishnomalar yo'q."
 msgid "Mark all as read"
 msgstr "Barchasini o'qilgan deb belgilash"
 
+#: .\templates\notifications\notification_list.html:5
+msgid ""
+"Every notification you receive — task assignments, approaching deadlines, "
+"comments — collects here."
+msgstr "Barcha bildirishnomalaringiz — vazifa biriktirilishi, muddat yaqinlashishi, izohlar — shu yerda to'planadi."
+
 #: .\templates\notifications\notification_list.html:25
 msgid "Mark read"
 msgstr "O'qilgan deb belgilash"
@@ -3027,6 +3219,10 @@ msgstr "Bo'limni tahrirlash"
 #: .\templates\partials\sidebar.html:66
 msgid "Organization"
 msgstr "Tashkilot"
+
+#: .\templates\organization\department_list.html:5
+msgid "Manage the company's internal structure: departments, units, and staff."
+msgstr "Kompaniyaning ichki tuzilmasini boshqarish: bo'limlar, bo'linmalar va xodimlar."
 
 #: .\templates\organization\department_list.html:17
 msgid "New department"
@@ -3304,6 +3500,12 @@ msgstr "Tarix — %(name)s"
 msgid "No history yet."
 msgstr "Hali tarix yo'q."
 
+#: .\templates\projects\project_list.html:5
+msgid ""
+"Manage all construction projects: follow their stages, budgets, and "
+"deadlines, and create new ones."
+msgstr "Barcha qurilish loyihalarini boshqarish: bosqichlari, byudjeti va muddatlarini kuzatish, yangi loyiha yaratish."
+
 #: .\templates\projects\project_list.html:10
 msgid "Search projects..."
 msgstr "Loyihalarni qidirish..."
@@ -3423,6 +3625,12 @@ msgstr "Shablonni yuklab olish"
 msgid "Import"
 msgstr "Import"
 
+#: .\templates\reports\dashboard.html:5
+msgid ""
+"View reports on projects, tasks, finance, and staff, and export them to "
+"Excel or CSV."
+msgstr "Loyihalar, vazifalar, moliya va xodimlar bo'yicha hisobotlarni ko'rish va Excel yoki CSV formatida eksport qilish."
+
 #: .\templates\reports\dashboard.html:8
 msgid "Export projects"
 msgstr "Loyihalarni eksport qilish"
@@ -3479,12 +3687,12 @@ msgid "Are you sure you want to delete \"%(title)s\"?"
 msgstr "\"%(title)s\" ni o'chirishga ishonchingiz komilmi?"
 
 #: .\templates\requests_app\request_detail.html:32
-#: .\templates\tasks\task_detail.html:76
+#: .\templates\tasks\task_detail.html:90
 msgid "No comments yet."
 msgstr "Hali izohlar yo'q."
 
 #: .\templates\requests_app\request_detail.html:37
-#: .\templates\tasks\task_detail.html:81
+#: .\templates\tasks\task_detail.html:95
 msgid "Send"
 msgstr "Yuborish"
 
@@ -3503,6 +3711,12 @@ msgstr "Yangi so'rov"
 msgid "Edit request"
 msgstr "So'rovni tahrirlash"
 
+#: .\templates\requests_app\request_list.html:5
+msgid ""
+"Handle project requests: change requests, clarifications, improvement "
+"suggestions, and reported problems."
+msgstr "Loyiha bo'yicha murojaatlarni yuritish: o'zgartirish so'rovlari, aniqlik kiritish, yaxshilash takliflari va muammolar."
+
 #: .\templates\requests_app\request_list.html:9
 msgid "All"
 msgstr "Barchasi"
@@ -3514,6 +3728,12 @@ msgstr "izohlar"
 #: .\templates\requests_app\request_list.html:31
 msgid "No requests found."
 msgstr "So'rovlar topilmadi."
+
+#: .\templates\tasks\task_board.html:5
+msgid ""
+"Manage tasks on a kanban board split into status columns, assign them to "
+"staff, and track deadlines."
+msgstr "Vazifalarni holat ustunlariga ajratilgan kanban taxtasida boshqarish, xodimlarga biriktirish va muddatlarni kuzatish."
 
 #: .\templates\tasks\task_board.html:28
 msgid "All sub-objects"
@@ -3544,11 +3764,11 @@ msgstr "Yangi vazifa"
 msgid "No tasks found."
 msgstr "Vazifalar topilmadi."
 
-#: .\templates\tasks\task_board.html:122
+#: .\templates\tasks\task_board.html:123
 msgid "Unassigned"
 msgstr "Tayinlanmagan"
 
-#: .\templates\tasks\task_board.html:135
+#: .\templates\tasks\task_board.html:136
 msgid "No tasks"
 msgstr "Vazifalar yo'q"
 
@@ -3565,17 +3785,25 @@ msgstr "Tavsif yo'q."
 msgid "Quick status change"
 msgstr "Holatni tezkor o'zgartirish"
 
-#: .\templates\tasks\task_detail.html:35
+#: .\templates\tasks\task_detail.html:43 .\templates\tasks\task_detail.html:122
+msgid "Send back for revision"
+msgstr "Qayta ishlashga qaytarish"
+
+#: .\templates\tasks\task_detail.html:49
 msgid "Attachments"
 msgstr "Ilovalar"
 
-#: .\templates\tasks\task_detail.html:47
+#: .\templates\tasks\task_detail.html:61
 msgid "No attachments."
 msgstr "Ilovalar yo'q."
 
-#: .\templates\tasks\task_detail.html:91
+#: .\templates\tasks\task_detail.html:105
 msgid "Section"
 msgstr "Bo'lim"
+
+#: .\templates\tasks\task_detail.html:134
+msgid "Send back"
+msgstr "Qaytarish"
 
 #: .\templates\tasks\task_form.html:3 .\templates\tasks\task_form.html:4
 msgid "Edit task"
@@ -3584,6 +3812,18 @@ msgstr "Vazifani tahrirlash"
 #: .\templates\telegram_bot\link_redirect.html:4
 msgid "Connect Telegram"
 msgstr "Telegram'ni ulash"
+
+#~ msgid "The total amount under the contract."
+#~ msgstr "Shartnoma bo'yicha umumiy summa."
+
+#~ msgid "The contract amount's currency."
+#~ msgstr "Shartnoma summasining valyutasi."
+
+#~ msgid "Contract amount"
+#~ msgstr "Shartnoma summasi"
+
+#~ msgid "+ Contract amount"
+#~ msgstr "+ Shartnoma summasi"
 
 #~ msgid "No members yet."
 #~ msgstr "Hali a'zolar yo'q."

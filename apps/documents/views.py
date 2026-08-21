@@ -386,7 +386,7 @@ def approval_stage_review(request, stage_id):
                 task.save(update_fields=["status", "updated_at"])
                 TaskComment.objects.create(
                     task=task, user=request.user,
-                    content=stage.comment or _("Sent back for revision from the Kelishuvlar section."),
+                    content=stage.comment or _("Sent back for revision from the Approvals section."),
                 )
                 if task.assignee and task.assignee_id != request.user.id:
                     notify_user(

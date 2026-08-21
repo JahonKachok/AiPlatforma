@@ -135,6 +135,7 @@ def _dashboard_context(request):
         profit = (income_actual + income_expected) - (expense_actual + expense_expected)
         project_rows.append({
             "project": project,
+            "budget": budget_uzs,
             "income_actual": income_actual,
             "expense_actual": expense_actual,
             "income_expected": income_expected,
@@ -143,6 +144,7 @@ def _dashboard_context(request):
         })
 
     project_totals = {
+        "budget": sum(row["budget"] for row in project_rows),
         "income_actual": sum(row["income_actual"] for row in project_rows),
         "expense_actual": sum(row["expense_actual"] for row in project_rows),
         "income_expected": sum(row["income_expected"] for row in project_rows),

@@ -11,7 +11,7 @@ from .permissions import resolve_reviewer
 def submit_task_for_approval(task, actor):
     """Called when a task's reviewer (GIP) approves it (review -> approved).
     Creates/refreshes the linked Document + a pending ApprovalStage so the
-    task's output surfaces in the Kelishuvlar 'Ожидает согласования' list.
+    task's output surfaces in the Approvals 'awaiting approval' list.
     Returns the Document, or None if the task has no discipline/GIP to route to."""
     if not (task.section_id and task.section.sub_object_id):
         return None

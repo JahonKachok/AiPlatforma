@@ -298,7 +298,7 @@ def task_update_status(request, pk):
     if status == Task.Status.APPROVED:
         document = submit_task_for_approval(task, request.user)
         if document:
-            messages.success(request, _("Task approved and sent to Kelishuvlar for sign-off."))
+            messages.success(request, _("Task approved and sent to Approvals for sign-off."))
     AuditLog.log(obj=task, action="status_changed", user=request.user, details={"status": status})
     if task.assignee and task.assignee_id != request.user.id:
         notify_user(

@@ -2,7 +2,7 @@
 {% load i18n core_extras %}
 {% block title %}{% trans "Users" %}{% endblock %}
 {% block page_title %}{% trans "Users" %}{% endblock %}
-{% block page_help %}{% with text="Tizim foydalanuvchilarini (xodimlarni) boshqarish: yangi xodim qo'shish, rollarini o'zgartirish va hisoblarini faollashtirish/o'chirish uchun." %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
+{% block page_help %}{% trans "Manage system users: add employees, change their roles, and activate or deactivate accounts." as help_text %}{% with text=help_text %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
 {% block content %}
 <div class="ap-tabs mb-4" data-tabs>
   <button type="button" data-tab="users" class="ap-tab is-active">{% trans "Users" %}</button>

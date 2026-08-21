@@ -107,7 +107,7 @@
         <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Deadline" %}</dt>
           <dd class="{% if task.is_overdue %}text-red-500{% endif %}">{{ task.deadline|default:"—" }}</dd></div>
         {% if task.approval_document_id %}
-          <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Kelishuvlar" %}</dt>
+          <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Approvals" %}</dt>
             <dd><a href="{% url 'documents:detail' task.approval_document_id %}" class="text-blue-500 hover:underline">{{ task.approval_document.get_status_display }}</a></dd></div>
         {% endif %}
       </dl>

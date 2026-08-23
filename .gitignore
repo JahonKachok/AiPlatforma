@@ -41,3 +41,9 @@ backend/.env
 *.sw?
 .vite
 tools/
+
+# Django cache katalogi (FileBasedCache)
+.django-cache/
+
+# Lokal baza nusxalari
+db.sqlite3.bak-*

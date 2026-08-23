@@ -1,5 +1,5 @@
 # BuildFlow — start-dev.ps1 ochgan barcha jarayonlarni to'xtatish.
-$patterns = "runserver", "run_telegram_bot", "celery"
+$patterns = "runserver", "serve_prod", "waitress", "run_telegram_bot", "celery"
 
 Get-CimInstance Win32_Process -Filter "Name like 'python%.exe' or Name like 'celery%.exe'" |
     Where-Object { $cl = $_.CommandLine; $patterns | Where-Object { $cl -match $_ } } |

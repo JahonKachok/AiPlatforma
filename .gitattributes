@@ -1,0 +1,26 @@
+# Git core.autocrlf=true bo'lgan Windows mashinasida checkout qilinganda
+# shell skriptlar CRLF bilan yozilib qolardi. Ular Linux konteynerida
+# ishlaydi: `#!/bin/sh\r` -> "no such file or directory" xatosi.
+# Shuning uchun bu turlar har doim LF bilan saqlanadi.
+*.sh            text eol=lf
+docker-entrypoint.sh text eol=lf
+Dockerfile      text eol=lf
+*.yml           text eol=lf
+*.yaml          text eol=lf
+nginx.conf      text eol=lf
+
+# PowerShell skriptlari faqat Windows'da ishlaydi.
+*.ps1           text eol=crlf
+
+# Ikkilik fayllar hech qachon o'zgartirilmasin.
+*.png           binary
+*.jpg           binary
+*.jpeg          binary
+*.gif           binary
+*.webp          binary
+*.svg           text
+*.ico           binary
+*.docx          binary
+*.xlsx          binary
+*.sqlite3       binary
+*.mo            binary

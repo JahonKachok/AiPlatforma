@@ -3,42 +3,79 @@
 {% block title %}{% trans "Finance" %}{% endblock %}
 {% block page_title %}{% trans "Finance" %}{% endblock %}
 {% block page_help %}{% trans "Track the company cash desk, salary payments to employees, and money movement across projects." as help_text %}{% with text=help_text %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
+{% block page_subtitle %}{% trans "Company financial overview" %}{% endblock %}
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'css/finance-dashboard.css' %}?v=1">
+{% endblock %}
 
 {% block content %}
-<!-- Top Header Bar: Navigation Tabs + Primary Action Toolbar -->
-<div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-gray-200 dark:border-gray-700 pb-4">
-  <!-- Tabs Navigation -->
-  <div class="flex flex-wrap gap-2">
-    <a href="?tab=dashboard" class="btn btn-sm {% if tab == 'dashboard' %}btn-primary{% else %}btn-secondary{% endif %}">
-      {% trans "General" %}
-    </a>
-    <a href="?tab=payroll" class="btn btn-sm {% if tab == 'payroll' %}btn-primary{% else %}btn-secondary{% endif %}">
-      {% trans "Payroll" %}
-    </a>
-    <a href="?tab=cash_flow" class="btn btn-sm {% if tab == 'cash_flow' %}btn-primary{% else %}btn-secondary{% endif %}">
-      {% trans "Cash flow" %}
-    </a>
-    <a href="?tab=admin_expenses" class="btn btn-sm {% if tab == 'admin_expenses' %}btn-primary{% else %}btn-secondary{% endif %}">
-      {% trans "Administrative expenses" %}
-    </a>
-  </div>
+<div class="fin-scope">
 
-  <!-- Primary Actions Toolbar (Clean Top Action Bar) -->
-  <div class="flex flex-wrap items-center gap-2">
-    <button type="button" class="btn btn-primary btn-sm flex items-center gap-1" data-modal-open="transaction-modal" data-transaction-type="income" data-transaction-title="{% trans 'Add income' %}">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-      {% trans "+ Add income" %}
-    </button>
-    <button type="button" class="btn btn-secondary btn-sm flex items-center gap-1" data-modal-open="transaction-modal" data-transaction-type="expense" data-transaction-title="{% trans 'Add expense' %}">
-      <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
-      {% trans "+ Add expense" %}
-    </button>
-    {% if can_manage_finance %}
-      <button type="button" class="btn btn-secondary btn-sm flex items-center gap-1" data-modal-open="category-modal">
-        <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10M7 17h10"/></svg>
-        {% trans "+ Add category" %}
-      </button>
+<!-- Control bar: section tabs on the left, period + primary actions on the right -->
+<div class="fin-bar">
+  <nav class="fin-tabs" aria-label="{% trans 'Finance' %}">
+    <a href="?tab=dashboard" class="fin-tab {% if tab == 'dashboard' %}is-active{% endif %}" {% if tab == 'dashboard' %}aria-current="page"{% endif %}>{% trans "General" %}</a>
+    <a href="?tab=payroll" class="fin-tab {% if tab == 'payroll' %}is-active{% endif %}" {% if tab == 'payroll' %}aria-current="page"{% endif %}>{% trans "Payroll" %}</a>
+    <a href="?tab=cash_flow" class="fin-tab {% if tab == 'cash_flow' %}is-active{% endif %}" {% if tab == 'cash_flow' %}aria-current="page"{% endif %}>{% trans "Cash flow" %}</a>
+    <a href="?tab=admin_expenses" class="fin-tab {% if tab == 'admin_expenses' %}is-active{% endif %}" {% if tab == 'admin_expenses' %}aria-current="page"{% endif %}>{% trans "Administrative expenses" %}</a>
+  </nav>
+
+  <div class="fin-actions">
+    {% if tab == "dashboard" %}
+      <form method="get" class="fin-period" role="search">
+        <input type="hidden" name="tab" value="dashboard">
+        <svg class="fin-ico" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"/></svg>
+        <label class="fin-sr" for="fin-from">{% trans "From" %}</label>
+        <input type="date" id="fin-from" name="from" value="{{ filter_from }}" onchange="this.form.submit()">
+        <span aria-hidden="true">—</span>
+        <label class="fin-sr" for="fin-to">{% trans "To" %}</label>
+        <input type="date" id="fin-to" name="to" value="{{ filter_to }}" onchange="this.form.submit()">
+        {% if has_period_filter %}
+          <a href="?tab=dashboard" class="fin-link-reset" style="margin-left:.25rem;color:var(--fin-muted)">{% trans "Reset" %}</a>
+        {% endif %}
+      </form>
+
+      <a class="btn btn-secondary btn-sm flex items-center" style="gap:.375rem" href="{% url 'finance:cash_flow_export' %}">
+        <svg class="fin-ico" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+        {% trans "Export report" %}
+      </a>
     {% endif %}
+
+    <div class="fin-dd" id="fin-add-dd">
+      <button type="button" class="btn btn-primary btn-sm flex items-center" style="gap:.375rem" data-dd-toggle
+              aria-haspopup="true" aria-expanded="false" aria-controls="fin-add-menu">
+        <svg class="fin-ico" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m7-7H5"/></svg>
+        {% trans "Add operation" %}
+        <svg class="fin-ico-xs" style="opacity:.7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+      </button>
+
+      <div class="fin-dd-menu" id="fin-add-menu" data-open="false" role="menu">
+        <button type="button" class="fin-dd-item" role="menuitem"
+                data-modal-open="transaction-modal" data-transaction-type="income"
+                data-transaction-title="{% trans 'Add income' %}">
+          <span class="fin-dd-ico fin-a-green" aria-hidden="true">
+            <svg class="fin-ico-xs" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19V5m0 0l-6 6m6-6l6 6"/></svg>
+          </span>
+          {% trans "Add income" %}
+        </button>
+        <button type="button" class="fin-dd-item" role="menuitem"
+                data-modal-open="transaction-modal" data-transaction-type="expense"
+                data-transaction-title="{% trans 'Add expense' %}">
+          <span class="fin-dd-ico fin-a-red" aria-hidden="true">
+            <svg class="fin-ico-xs" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m0 0l6-6m-6 6l-6-6"/></svg>
+          </span>
+          {% trans "Add expense" %}
+        </button>
+        {% if can_manage_finance %}
+          <button type="button" class="fin-dd-item" role="menuitem" data-modal-open="category-modal">
+            <span class="fin-dd-ico fin-a-blue" aria-hidden="true">
+              <svg class="fin-ico-xs" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h10M7 12h10M7 17h6"/></svg>
+            </span>
+            {% trans "+ Add category" %}
+          </button>
+        {% endif %}
+      </div>
+    </div>
   </div>
 </div>
 
@@ -377,103 +414,260 @@
   </div>
 
 {% else %}
-  <!-- General / Dashboard Tab -->
-  <div class="mb-6 flex flex-col gap-4 lg:flex-row">
-    <!-- Balance KPIs: the three accounts + the project budget, one even row -->
-    <div class="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {% for row in account_balances %}
-        <div class="card min-w-0 p-5 bg-card border border-gray-200 dark:border-gray-700 shadow-sm">
-          <p class="ap-stat-label">{{ row.label }}</p>
-          <p class="ap-stat-value mt-2 break-words">{{ row.total|money }} <small class="text-sm font-normal text-gray-400">{{ row.currency }}</small></p>
-        </div>
-      {% endfor %}
+  <!-- ============ General / Dashboard ============ -->
 
-      <div class="card min-w-0 p-5 bg-card border border-gray-200 dark:border-gray-700 shadow-sm">
-        <p class="ap-stat-label">{% trans "Budget" %}</p>
-        <p class="ap-stat-value mt-2 break-words">{{ total_budget|money }} <small class="text-sm font-normal text-gray-400">UZS</small></p>
+  <!-- KPI row: three account balances, the budget, then the headline result -->
+  <div class="fin-kpi-grid">
+    {% for row in account_balances %}
+      <div class="fin-card fin-card-i fin-kpi fin-reveal" style="--d: {{ forloop.counter0 }}00ms">
+        <div class="fin-kpi-head">
+          <span class="fin-kpi-label">{{ row.label }}</span>
+          <span class="fin-kpi-ico {% if row.account == 'usd_bank' %}fin-a-blue{% elif row.account == 'uzs_bank' %}fin-a-green{% else %}fin-a-purple{% endif %}" aria-hidden="true">
+            {% if row.account == "usd_bank" %}
+              <svg class="fin-ico" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18m4-14H10a2.5 2.5 0 000 5h4a2.5 2.5 0 010 5H7"/></svg>
+            {% elif row.account == "uzs_bank" %}
+              <svg class="fin-ico" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10l9-6 9 6M5 10v9h14v-9M3 20h18"/></svg>
+            {% else %}
+              <svg class="fin-ico" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8a2 2 0 012-2h12a2 2 0 012 2M3 8v9a2 2 0 002 2h14a2 2 0 002-2v-5a2 2 0 00-2-2H5a2 2 0 01-2-2zm14 5h.01"/></svg>
+            {% endif %}
+          </span>
+        </div>
+        <p class="fin-kpi-value fin-num">
+          <span data-countup="{{ row.total|stringformat:'f' }}">0</span><span class="fin-kpi-cur">{{ row.currency }}</span>
+        </p>
+        {% if row.sparkline %}
+          <div class="fin-kpi-spark" data-spark="{{ row.sparkline_json }}"
+               data-spark-color="{% if row.account == 'usd_bank' %}var(--fin-accent){% elif row.account == 'uzs_bank' %}var(--fin-green){% else %}var(--fin-purple){% endif %}"></div>
+        {% elif row.currency == "USD" and row.total %}
+          <p class="fin-mt-auto text-xs" style="padding-top:.85rem;color:var(--fin-muted)">
+            ≈ <span class="fin-num" style="color:var(--fin-text);font-weight:600">{{ row.total_in_uzs|money }}</span> UZS
+          </p>
+        {% endif %}
       </div>
+    {% endfor %}
+
+    <div class="fin-card fin-card-i fin-kpi fin-reveal" style="--d: 300ms">
+      <div class="fin-kpi-head">
+        <span class="fin-kpi-label">{% trans "Budget" %}</span>
+        <span class="fin-kpi-ico fin-a-amber" aria-hidden="true">
+          <svg class="fin-ico" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 6V5a2 2 0 012-2h2a2 2 0 012 2v1m-9 0h14a1 1 0 011 1v11a2 2 0 01-2 2H6a2 2 0 01-2-2V7a1 1 0 011-1z"/></svg>
+        </span>
+      </div>
+      <p class="fin-kpi-value fin-num">
+        <span data-countup="{{ total_budget|stringformat:'f' }}">0</span><span class="fin-kpi-cur">UZS</span>
+      </p>
+      {% if total_budget %}
+        <div class="fin-mt-auto" style="padding-top:.75rem">
+          <div class="fin-meter"><div class="fin-meter-fill" data-meter-to="{{ contract_paid_pct }}"></div></div>
+          <p class="mt-2 text-xs" style="color:var(--fin-muted)">
+            {% trans "Paid" %}: <span class="fin-num" style="color:var(--fin-text);font-weight:600">{{ total_contract_paid|money }}</span> · {{ contract_paid_pct }}%
+          </p>
+        </div>
+      {% endif %}
     </div>
 
-    <!-- Right rail: the headline figure, then the rate it is converted at -->
-    <div class="flex flex-col gap-4 lg:w-80 shrink-0">
-      <div class="card min-w-0 border-2 p-5 shadow-sm" style="border-color:var(--ap-primary, #3b82f6)">
-        <p class="ap-stat-label">{% trans "Net profit" %}</p>
-        <p class="mt-2 break-words text-3xl font-extrabold {% if net_profit >= 0 %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">{{ net_profit|money }}</p>
-        <p class="text-xs text-gray-400">UZS</p>
-        <div class="mt-4 flex items-center justify-between gap-2 border-t border-gray-200 pt-3 text-sm dark:border-gray-700">
-          <span class="text-gray-500 dark:text-gray-400">{% trans "Income" %}</span>
-          <span class="font-semibold text-green-600 dark:text-green-400">+{{ total_income|money }}</span>
-        </div>
-        <div class="mt-1 flex items-center justify-between gap-2 text-sm">
-          <span class="text-gray-500 dark:text-gray-400">{% trans "Expense" %}</span>
-          <span class="font-semibold text-red-600 dark:text-red-400">-{{ total_expense|money }}</span>
-        </div>
+    <div class="fin-card fin-card-i fin-kpi fin-kpi-hero fin-reveal {% if net_profit < 0 %}is-negative{% endif %}"
+         style="--d: 400ms">
+      <div class="fin-kpi-head">
+        <span class="fin-kpi-label">{% trans "Net profit" %}</span>
+        <span class="fin-kpi-ico {% if net_profit >= 0 %}fin-a-green{% else %}fin-a-red{% endif %}" aria-hidden="true">
+          <svg class="fin-ico" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 17l6-6 4 4 7-7m0 0h-5m5 0v5"/></svg>
+        </span>
       </div>
+      <p class="fin-kpi-value fin-num" style="color: {% if net_profit >= 0 %}var(--fin-green){% else %}var(--fin-red){% endif %}">
+        <span data-countup="{{ net_profit|stringformat:'f' }}">0</span><span class="fin-kpi-cur">UZS</span>
+      </p>
+      <dl class="fin-split">
+        <div class="fin-split-row">
+          <dt>{% trans "Income" %}</dt>
+          <dd class="fin-num" style="color:var(--fin-green)">+{{ total_income|money }}</dd>
+        </div>
+        <div class="fin-split-row">
+          <dt>{% trans "Expense" %}</dt>
+          <dd class="fin-num" style="color:var(--fin-red)">−{{ total_expense|money }}</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
 
-      <div class="card min-w-0 p-5 bg-card border border-gray-200 dark:border-gray-700 shadow-sm">
-        <p class="ap-stat-label">{% trans "USD exchange rate" %}</p>
-        <p class="ap-stat-value mt-2 break-words">{{ usd_rate|money }} <small class="text-sm font-normal text-gray-400">UZS</small></p>
-        {% if usd_rate_updated_at %}
-          <p class="mt-1 text-xs text-gray-400">{% trans "Updated" %}: {{ usd_rate_updated_at|date:"d.m.Y H:i" }}</p>
-        {% endif %}
-        {% if can_manage_finance %}
-          <div class="mt-3 flex flex-wrap gap-2 border-t border-gray-200 pt-3 dark:border-gray-700">
-            <form method="post" action="{% url 'finance:update_rate' %}">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-secondary btn-xs">{% trans "Refresh from CBU" %}</button>
-            </form>
-            <form method="post" action="{% url 'finance:update_rate_poytaxtbank' %}">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-secondary btn-xs">{% trans "Refresh from Poytaxt Bank" %}</button>
-            </form>
+  <!-- Chart + exchange rate -->
+  <div class="fin-main-grid">
+    <section class="fin-card fin-reveal" style="--d: 460ms" aria-labelledby="fin-chart-title">
+      <header class="fin-sec-head">
+        <div>
+          <h2 class="fin-sec-title" id="fin-chart-title">{% trans "Income and expense dynamics" %}</h2>
+          <div class="fin-legend mt-2">
+            <span class="fin-legend-item">
+              <span class="fin-legend-dot" style="background:var(--fin-green)"></span>
+              <span style="color:var(--fin-muted)">{% trans "Income" %}</span>
+              <span class="fin-legend-val fin-num">{{ total_income|money }}</span>
+            </span>
+            <span class="fin-legend-item">
+              <span class="fin-legend-dot" style="background:var(--fin-red)"></span>
+              <span style="color:var(--fin-muted)">{% trans "Expense" %}</span>
+              <span class="fin-legend-val fin-num">{{ total_expense|money }}</span>
+            </span>
           </div>
-        {% endif %}
+        </div>
+        <span class="fin-period" style="cursor:default">
+          <svg class="fin-ico-xs" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h4l3 8 4-16 3 8h4"/></svg>
+          {% if chart_granularity == "month" %}{% trans "By months" %}{% else %}{% trans "By days" %}{% endif %}
+        </span>
+      </header>
+
+      {% if chart_points %}
+        <div class="fin-chart-wrap">
+          <div class="fin-chart" id="fin-chart"
+               data-a11y-label="{% trans 'Income and expense dynamics' %}"
+               data-unit-bn="{% trans 'bn' %}" data-unit-mn="{% trans 'mn' %}" data-unit-k="{% trans 'k' %}"></div>
+          <div class="fin-tip" id="fin-chart-tip" data-open="false" role="status" aria-live="polite">
+            <p class="fin-tip-label" data-tip-label></p>
+            <p class="fin-tip-row">
+              <span class="fin-tip-key"><span class="fin-legend-dot" style="background:var(--fin-green)"></span>{% trans "Income" %}</span>
+              <span class="fin-num" style="font-weight:700" data-tip-income></span>
+            </p>
+            <p class="fin-tip-row">
+              <span class="fin-tip-key"><span class="fin-legend-dot" style="background:var(--fin-red)"></span>{% trans "Expense" %}</span>
+              <span class="fin-num" style="font-weight:700" data-tip-expense></span>
+            </p>
+          </div>
+        </div>
+        {{ chart_points|json_script:"fin-chart-data" }}
+      {% else %}
+        <div class="fin-empty">
+          <span class="fin-empty-ico" aria-hidden="true">
+            <svg class="fin-ico-lg" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M7 15l4-4 3 3 5-6"/></svg>
+          </span>
+          <p class="fin-empty-title">{% trans "No transactions for this period" %}</p>
+          <p class="fin-empty-text">
+            {% if has_period_filter %}{% trans "Try widening the selected period." %}
+            {% else %}{% trans "Add the first income or expense to see the dynamics here." %}{% endif %}
+          </p>
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="fin-card fin-card-i fin-reveal" style="display:flex;flex-direction:column" style="--d: 520ms" aria-labelledby="fin-rate-title">
+      <div class="fin-kpi-head">
+        <span class="fin-kpi-label" id="fin-rate-title">{% trans "USD exchange rate" %}</span>
+        <span class="fin-kpi-ico fin-a-blue" aria-hidden="true">
+          <svg class="fin-ico" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18m4-14H10a2.5 2.5 0 000 5h4a2.5 2.5 0 010 5H7"/></svg>
+        </span>
       </div>
-    </div>
+
+      <p class="fin-rate-value fin-num" style="margin-top:.75rem">{{ usd_rate|money }}<span class="fin-kpi-cur">UZS</span></p>
+      {% if usd_rate_updated_at %}
+        <p class="mt-1 text-xs" style="color:var(--fin-muted)">
+          {% trans "Updated" %}: {{ usd_rate_updated_at|date:"d.m.Y H:i" }}
+        </p>
+      {% endif %}
+
+      <!-- What the rate actually converts here: the company's own holdings -->
+      <dl class="fin-split">
+        <div class="fin-split-row">
+          <dt>{% trans "USD holdings" %}</dt>
+          <dd class="fin-num">{{ usd_holdings|money }} <span class="fin-kpi-cur">USD</span></dd>
+        </div>
+        <div class="fin-split-row">
+          <dt>{% trans "In som at this rate" %}</dt>
+          <dd class="fin-num">{{ usd_holdings_in_uzs|money }}</dd>
+        </div>
+        <div class="fin-split-row" style="padding-top:.4rem;border-top:1px solid var(--fin-border)">
+          <dt style="font-weight:600;color:var(--fin-text)">{% trans "Total holdings" %}</dt>
+          <dd class="fin-num" style="color:var(--fin-accent)">{{ total_holdings_in_uzs|money }}</dd>
+        </div>
+      </dl>
+
+      {% if can_manage_finance %}
+        <div class="fin-mt-auto fin-stack" style="padding-top:1rem">
+          <form method="post" action="{% url 'finance:update_rate' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-secondary btn-sm w-full">{% trans "Refresh from CBU" %}</button>
+          </form>
+          <form method="post" action="{% url 'finance:update_rate_poytaxtbank' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-secondary btn-sm w-full">{% trans "Refresh from Poytaxt Bank" %}</button>
+          </form>
+        </div>
+      {% endif %}
+    </section>
   </div>
 
-  <div class="card overflow-x-auto shadow-sm">
-    <table class="w-full text-left text-sm">
-      <thead class="border-b border-gray-200 text-gray-500 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400">
-        <tr>
-          <th class="px-4 py-3">{% trans "Project" %}</th>
-          <th class="px-4 py-3 text-right">{% trans "Contract sum" %}</th>
-          <th class="px-4 py-3 text-right">{% trans "Income" %}</th>
-          <th class="px-4 py-3 text-right">{% trans "Expense" %}</th>
-          <th class="px-4 py-3 text-right">{% trans "Expected income" %}</th>
-          <th class="px-4 py-3 text-right">{% trans "Expected expense" %}</th>
-          <th class="px-4 py-3 text-right">{% trans "Profit" %}</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-        {% if project_rows %}
-          <tr class="border-b-2 border-gray-200 font-semibold bg-gray-50/70 dark:border-gray-600 dark:bg-gray-800/70">
-            <td class="px-4 py-3">{% trans "Total" %}</td>
-            <td class="px-4 py-3 text-right font-bold">{{ project_totals.budget|money }}</td>
-            <td class="px-4 py-3 text-right text-green-600 dark:text-green-400 font-bold">{{ project_totals.income_actual|money }}</td>
-            <td class="px-4 py-3 text-right text-red-600 dark:text-red-400 font-bold">{{ project_totals.expense_actual|money }}</td>
-            <td class="px-4 py-3 text-right">{{ project_totals.income_expected|money }}</td>
-            <td class="px-4 py-3 text-right">{{ project_totals.expense_expected|money }}</td>
-            <td class="px-4 py-3 text-right font-black {% if project_totals.profit >= 0 %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">{{ project_totals.profit|money }}</td>
-          </tr>
-        {% endif %}
-        {% for row in project_rows %}
-          <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
-            <td class="px-4 py-3 font-medium">{{ row.project.name }}</td>
-            <td class="px-4 py-3 text-right">{{ row.budget|money }}</td>
-            <td class="px-4 py-3 text-right text-green-600 dark:text-green-400">{{ row.income_actual|money }}</td>
-            <td class="px-4 py-3 text-right text-red-600 dark:text-red-400">{{ row.expense_actual|money }}</td>
-            <td class="px-4 py-3 text-right text-gray-500">{{ row.income_expected|money }}</td>
-            <td class="px-4 py-3 text-right text-gray-500">{{ row.expense_expected|money }}</td>
-            <td class="px-4 py-3 text-right font-semibold {% if row.profit >= 0 %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">{{ row.profit|money }}</td>
-          </tr>
-        {% empty %}
-          <tr><td colspan="7" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">{% trans "No projects yet." %}</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+  <!-- Financial summary by project -->
+  <section class="fin-card fin-reveal" style="--d: 580ms" aria-labelledby="fin-projects-title">
+    <header class="fin-sec-head">
+      <div>
+        <h2 class="fin-sec-title" id="fin-projects-title">{% trans "Financial summary by projects" %}</h2>
+        <p class="fin-sec-sub">{% trans "Income, expenses and the expected financial result" %}</p>
+      </div>
+    </header>
+
+    {% if project_rows %}
+      <div class="fin-table-scroll">
+        <table class="fin-table">
+          <thead>
+            <tr>
+              <th scope="col">{% trans "Project" %}</th>
+              <th scope="col">{% trans "Contract sum" %}</th>
+              <th scope="col">{% trans "Income" %}</th>
+              <th scope="col">{% trans "Expense" %}</th>
+              <th scope="col">{% trans "Expected income" %}</th>
+              <th scope="col">{% trans "Expected expense" %}</th>
+              <th scope="col">{% trans "Profit" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="fin-row-total">
+              <th scope="row" style="text-align:left">{% trans "Total" %}</th>
+              <td class="fin-num">{{ project_totals.budget|money }}</td>
+              <td class="fin-num fin-cell-pos">{{ project_totals.income_actual|money }}</td>
+              <td class="fin-num fin-cell-neg">{{ project_totals.expense_actual|money }}</td>
+              <td class="fin-num fin-cell-soft">{{ project_totals.income_expected|money }}</td>
+              <td class="fin-num fin-cell-soft">{{ project_totals.expense_expected|money }}</td>
+              <td class="fin-num" style="font-weight:800;color:{% if project_totals.profit >= 0 %}var(--fin-green){% else %}var(--fin-red){% endif %}">{{ project_totals.profit|money }}</td>
+            </tr>
+
+            {% for row in project_rows %}
+              <tr {% if forloop.counter > 5 %}data-project-extra hidden{% endif %}>
+                <td>
+                  <a class="fin-proj-link" href="{% url 'projects:detail' row.project.pk %}">
+                    {{ row.project.name }}
+                    <svg class="fin-ico-xs" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                  </a>
+                </td>
+                <td class="fin-num">{{ row.budget|money }}</td>
+                <td class="fin-num {% if row.income_actual %}fin-cell-pos{% else %}fin-cell-soft{% endif %}">{{ row.income_actual|money }}</td>
+                <td class="fin-num {% if row.expense_actual %}fin-cell-neg{% else %}fin-cell-soft{% endif %}">{{ row.expense_actual|money }}</td>
+                <td class="fin-num fin-cell-soft">{{ row.income_expected|money }}</td>
+                <td class="fin-num fin-cell-soft">{{ row.expense_expected|money }}</td>
+                <td class="fin-num" style="font-weight:700;color:{% if row.profit >= 0 %}var(--fin-green){% else %}var(--fin-red){% endif %}">{{ row.profit|money }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if project_rows|length > 5 %}
+        <button type="button" class="fin-more" id="fin-projects-more" aria-expanded="false"
+                data-label-more="{% trans 'Show all projects' %}"
+                data-label-less="{% trans 'Show fewer projects' %}">
+          <span data-more-label>{% trans "Show all projects" %}</span>
+          <svg class="fin-ico" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+        </button>
+      {% endif %}
+    {% else %}
+      <div class="fin-empty">
+        <span class="fin-empty-ico" aria-hidden="true">
+          <svg class="fin-ico-lg" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>
+        </span>
+        <p class="fin-empty-title">{% trans "No projects yet." %}</p>
+        <p class="fin-empty-text">{% trans "Financial figures appear here once projects are created." %}</p>
+      </div>
+    {% endif %}
+  </section>
 {% endif %}
+
+</div><!-- /.fin-scope -->
 
 <!-- Include Modals -->
 {% include "finance/_transaction_modal.html" %}
@@ -487,4 +681,5 @@
 {% block extra_scripts %}
   <script src="{% static 'js/finance.js' %}" defer></script>
   <script src="{% static 'js/money-input.js' %}" defer></script>
+  {% if tab == "dashboard" %}<script src="{% static 'js/finance-dashboard.js' %}" defer></script>{% endif %}
 {% endblock %}

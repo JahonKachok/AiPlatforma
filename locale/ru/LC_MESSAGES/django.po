@@ -3974,3 +3974,91 @@ msgstr "Подключение Telegram"
 
 #~ msgid "Save weights and progress"
 #~ msgstr "Сохранить веса и прогресс"
+
+#: .	emplatesinanceinance_home.html
+msgid "Company financial overview"
+msgstr "Обзор финансовых показателей компании"
+
+#: .	emplatesinanceinance_home.html
+msgid "Export report"
+msgstr "Экспорт отчёта"
+
+#: .	emplatesinanceinance_home.html
+msgid "Add operation"
+msgstr "Добавить операцию"
+
+#: .	emplatesinanceinance_home.html
+msgid "From"
+msgstr "С"
+
+#: .	emplatesinanceinance_home.html
+msgid "To"
+msgstr "По"
+
+#: .	emplatesinanceinance_home.html
+msgid "Income and expense dynamics"
+msgstr "Динамика доходов и расходов"
+
+#: .	emplatesinanceinance_home.html
+msgid "By days"
+msgstr "По дням"
+
+#: .	emplatesinanceinance_home.html
+msgid "By months"
+msgstr "По месяцам"
+
+#: .	emplatesinanceinance_home.html
+msgid "Financial summary by projects"
+msgstr "Финансовая сводка по проектам"
+
+#: .	emplatesinanceinance_home.html
+msgid "Income, expenses and the expected financial result"
+msgstr "Доходы, расходы и ожидаемый финансовый результат"
+
+#: .	emplatesinanceinance_home.html
+msgid "Show all projects"
+msgstr "Показать все проекты"
+
+#: .	emplatesinanceinance_home.html
+msgid "Show fewer projects"
+msgstr "Свернуть список"
+
+#: .	emplatesinanceinance_home.html
+msgid "No transactions for this period"
+msgstr "Нет операций за этот период"
+
+#: .	emplatesinanceinance_home.html
+msgid "Try widening the selected period."
+msgstr "Попробуйте расширить выбранный период."
+
+#: .	emplatesinanceinance_home.html
+msgid "Add the first income or expense to see the dynamics here."
+msgstr "Добавьте первый доход или расход, чтобы увидеть динамику."
+
+#: .	emplatesinanceinance_home.html
+msgid "Financial figures appear here once projects are created."
+msgstr "Финансовые показатели появятся здесь после создания проектов."
+
+#: .	emplatesinanceinance_home.html
+msgid "USD holdings"
+msgstr "Средства в USD"
+
+#: .	emplatesinanceinance_home.html
+msgid "In som at this rate"
+msgstr "В сумах по этому курсу"
+
+#: .	emplatesinanceinance_home.html
+msgid "Total holdings"
+msgstr "Всего средств"
+
+#: .	emplatesinanceinance_home.html
+msgid "bn"
+msgstr "млрд"
+
+#: .	emplatesinanceinance_home.html
+msgid "mn"
+msgstr "млн"
+
+#: .	emplatesinanceinance_home.html
+msgid "k"
+msgstr "тыс"

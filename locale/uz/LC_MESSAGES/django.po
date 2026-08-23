@@ -3974,3 +3974,91 @@ msgstr "Telegram'ni ulash"
 
 #~ msgid "Save weights and progress"
 #~ msgstr "Vaznlar va progressni saqlash"
+
+#: .	emplatesinanceinance_home.html
+msgid "Company financial overview"
+msgstr "Kompaniya moliyaviy ko'rsatkichlari sharhi"
+
+#: .	emplatesinanceinance_home.html
+msgid "Export report"
+msgstr "Hisobotni eksport qilish"
+
+#: .	emplatesinanceinance_home.html
+msgid "Add operation"
+msgstr "Amaliyot qo'shish"
+
+#: .	emplatesinanceinance_home.html
+msgid "From"
+msgstr "Dan"
+
+#: .	emplatesinanceinance_home.html
+msgid "To"
+msgstr "Gacha"
+
+#: .	emplatesinanceinance_home.html
+msgid "Income and expense dynamics"
+msgstr "Daromad va xarajatlar dinamikasi"
+
+#: .	emplatesinanceinance_home.html
+msgid "By days"
+msgstr "Kunlar bo'yicha"
+
+#: .	emplatesinanceinance_home.html
+msgid "By months"
+msgstr "Oylar bo'yicha"
+
+#: .	emplatesinanceinance_home.html
+msgid "Financial summary by projects"
+msgstr "Loyihalar bo'yicha moliyaviy hisobot"
+
+#: .	emplatesinanceinance_home.html
+msgid "Income, expenses and the expected financial result"
+msgstr "Daromad, xarajat va kutilayotgan moliyaviy natija"
+
+#: .	emplatesinanceinance_home.html
+msgid "Show all projects"
+msgstr "Barcha loyihalarni ko'rsatish"
+
+#: .	emplatesinanceinance_home.html
+msgid "Show fewer projects"
+msgstr "Ro'yxatni yig'ish"
+
+#: .	emplatesinanceinance_home.html
+msgid "No transactions for this period"
+msgstr "Bu davr uchun amaliyotlar yo'q"
+
+#: .	emplatesinanceinance_home.html
+msgid "Try widening the selected period."
+msgstr "Tanlangan davrni kengaytirib ko'ring."
+
+#: .	emplatesinanceinance_home.html
+msgid "Add the first income or expense to see the dynamics here."
+msgstr "Dinamikani ko'rish uchun birinchi daromad yoki xarajatni qo'shing."
+
+#: .	emplatesinanceinance_home.html
+msgid "Financial figures appear here once projects are created."
+msgstr "Loyihalar yaratilgach, moliyaviy ko'rsatkichlar shu yerda paydo bo'ladi."
+
+#: .	emplatesinanceinance_home.html
+msgid "USD holdings"
+msgstr "USD mablag'lar"
+
+#: .	emplatesinanceinance_home.html
+msgid "In som at this rate"
+msgstr "Shu kurs bo'yicha so'mda"
+
+#: .	emplatesinanceinance_home.html
+msgid "Total holdings"
+msgstr "Jami mablag'lar"
+
+#: .	emplatesinanceinance_home.html
+msgid "bn"
+msgstr "mlrd"
+
+#: .	emplatesinanceinance_home.html
+msgid "mn"
+msgstr "mln"
+
+#: .	emplatesinanceinance_home.html
+msgid "k"
+msgstr "ming"

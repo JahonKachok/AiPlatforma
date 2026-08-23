@@ -14,6 +14,7 @@ from apps.projects.permissions import can_edit_project, visible_projects_for
 from apps.reports.exports import build_cash_flow_workbook
 
 import datetime
+import json
 
 from .forms import (
     AdministrativeExpenseForm,
@@ -59,6 +60,79 @@ def _to_uzs(amount, currency, rate):
     return amount * rate if currency == Currency.USD else amount
 
 
+def _parse_iso_date(value):
+    """'2026-08-23' -> date, anything unparseable -> None (treated as 'no bound')."""
+    if not value:
+        return None
+    try:
+        return datetime.date.fromisoformat(value)
+    except (ValueError, TypeError):
+        return None
+
+
+def _bucket_series(rows, date_from, date_to, rate):
+    """Income/expense totals per time bucket, derived from the records that are
+    already on screen. Buckets are days for short spans and months for long ones,
+    so the chart stays readable without inventing any data points."""
+    dates = [r.date for r in rows if r.date]
+    if not dates:
+        return {"points": [], "granularity": "day"}
+
+    start = date_from or min(dates)
+    end = date_to or max(dates)
+    if start > end:
+        start, end = end, start
+
+    by_month = (end - start).days > 62
+    buckets = {}
+
+    def key_for(d):
+        return d.replace(day=1) if by_month else d
+
+    cur = key_for(start)
+    while cur <= end:
+        buckets[cur] = {"income": 0.0, "expense": 0.0}
+        if by_month:
+            cur = datetime.date(cur.year + 1, 1, 1) if cur.month == 12 else datetime.date(cur.year, cur.month + 1, 1)
+        else:
+            cur += datetime.timedelta(days=1)
+
+    for r in rows:
+        if not r.date:
+            continue
+        bucket = buckets.get(key_for(r.date))
+        if bucket is None:
+            continue
+        value = _to_uzs(r.amount, r.currency, rate)
+        if r.type == RecordType.INCOME:
+            bucket["income"] += value
+        else:
+            bucket["expense"] += value
+
+    label_fmt = "%m.%Y" if by_month else "%d.%m"
+    points = [
+        {"label": key.strftime(label_fmt), "income": data["income"], "expense": data["expense"]}
+        for key, data in sorted(buckets.items())
+    ]
+    return {"points": points, "granularity": "month" if by_month else "day"}
+
+
+def _account_sparkline(rows, account):
+    """Running balance of one account over its own records, oldest to newest,
+    in that account's own currency. Returns [] when there is nothing real to draw."""
+    account_rows = sorted(
+        [r for r in rows if r.account == account and r.date], key=lambda r: r.date
+    )
+    if len(account_rows) < 2:
+        return []
+    running = 0.0
+    series = []
+    for r in account_rows:
+        running += r.signed_amount
+        series.append(round(running, 2))
+    return series[-24:]
+
+
 def _get_month_nav(month_str=None):
     today = timezone.localdate()
     if month_str:
@@ -92,13 +166,35 @@ def _dashboard_context(request):
     settings_obj = FinanceSettings.get_solo()
     rate = settings_obj.usd_rate
 
-    records = FinancialRecord.objects.filter(project__in=projects, status=RecordStatus.CONFIRMED)
+    all_records = FinancialRecord.objects.filter(project__in=projects, status=RecordStatus.CONFIRMED)
 
+    # Optional period filter. With no ?from/?to given nothing is narrowed, so the
+    # figures stay identical to the all-time totals this page has always shown.
+    date_from = _parse_iso_date(request.GET.get("from"))
+    date_to = _parse_iso_date(request.GET.get("to"))
+    records = all_records
+    admin_expenses_qs = AdministrativeExpense.objects.all()
+    if date_from:
+        records = records.filter(date__gte=date_from)
+        admin_expenses_qs = admin_expenses_qs.filter(date__gte=date_from)
+    if date_to:
+        records = records.filter(date__lte=date_to)
+        admin_expenses_qs = admin_expenses_qs.filter(date__lte=date_to)
+
+    # Account cards are balances, not flows — they stay all-time on purpose so a
+    # period filter never makes a bank balance look like it changed.
+    all_records_list = list(all_records)
     account_balances = []
     for account, label in Account.choices:
-        total = sum(r.signed_amount for r in records.filter(account=account))
+        total = sum(r.signed_amount for r in all_records_list if r.account == account)
+        sparkline = _account_sparkline(all_records_list, account)
+        currency = ACCOUNT_CURRENCY[account]
         account_balances.append({
-            "account": account, "label": label, "total": total, "currency": ACCOUNT_CURRENCY[account],
+            "account": account, "label": label, "total": total,
+            "currency": currency,
+            "total_in_uzs": _to_uzs(total, currency, rate),
+            "sparkline": sparkline,
+            "sparkline_json": json.dumps(sparkline),
         })
 
     total_income = sum(
@@ -109,13 +205,16 @@ def _dashboard_context(request):
         for r in records.filter(type__in=[RecordType.EXPENSE, RecordType.ADVANCE, RecordType.PAYMENT])
     )
     total_admin_expense = sum(
-        _to_uzs(e.amount, e.currency, rate) for e in AdministrativeExpense.objects.all()
+        _to_uzs(e.amount, e.currency, rate) for e in admin_expenses_qs
     )
     total_expense += total_admin_expense
     net_profit = total_income - total_expense
 
     contracts = EmployeeContract.objects.filter(project__in=projects)
     total_contract_amount = sum(_to_uzs(c.amount, c.currency, rate) for c in contracts)
+    total_contract_paid = sum(_to_uzs(c.paid, c.currency, rate) for c in contracts)
+
+    chart = _bucket_series(list(records), date_from, date_to, rate)
 
     project_rows = []
     for project in projects:
@@ -152,6 +251,18 @@ def _dashboard_context(request):
         "profit": sum(row["profit"] for row in project_rows),
     }
 
+    contract_paid_pct = round(total_contract_paid / total_contract_amount * 100) if total_contract_amount else 0
+
+    # What the USD side of the balance sheet is worth at the current rate — the
+    # rate card's own numbers, so it explains why the rate matters here.
+    usd_holdings = sum(
+        row["total"] for row in account_balances if row["currency"] == Currency.USD
+    )
+    uzs_holdings = sum(
+        row["total"] for row in account_balances if row["currency"] == Currency.UZS
+    )
+    usd_holdings_in_uzs = usd_holdings * rate
+
     return {
         "account_balances": account_balances,
         "usd_rate": rate,
@@ -161,8 +272,19 @@ def _dashboard_context(request):
         "total_expense": total_expense,
         "total_contract_amount": total_contract_amount,
         "total_budget": total_contract_amount,
+        "total_contract_paid": total_contract_paid,
+        "contract_paid_pct": contract_paid_pct,
+        "usd_holdings": usd_holdings,
+        "uzs_holdings": uzs_holdings,
+        "usd_holdings_in_uzs": usd_holdings_in_uzs,
+        "total_holdings_in_uzs": uzs_holdings + usd_holdings_in_uzs,
         "project_rows": project_rows,
         "project_totals": project_totals,
+        "chart_points": chart["points"],
+        "chart_granularity": chart["granularity"],
+        "filter_from": request.GET.get("from") or "",
+        "filter_to": request.GET.get("to") or "",
+        "has_period_filter": bool(date_from or date_to),
         "transaction_form": TransactionForm(user=user),
         "employee_form": EmployeeContractForm(),
         "category_form": FinanceCategoryForm(),

@@ -1,0 +1,515 @@
+/* BuildFlow — Finance / General dashboard.
+   Loaded only by templates/finance/finance_home.html. Everything is scoped
+   under .fin-* so the rest of the app keeps its existing look untouched.
+   Light theme is the base; html.dark overrides the palette. */
+
+.fin-scope {
+  /* Surfaces */
+  --fin-bg: #f4f7fe;
+  --fin-card: #ffffff;
+  --fin-card-2: #fbfcfe;
+  --fin-border: rgba(15, 23, 42, 0.09);
+  --fin-border-strong: rgba(15, 23, 42, 0.16);
+  --fin-inset: rgba(15, 23, 42, 0.035);
+
+  /* Text */
+  --fin-text: #101a33;
+  --fin-muted: #64748b;
+  --fin-faint: #94a3b8;
+
+  /* Accents — muted, premium, never neon */
+  --fin-accent: #1d6fa5;
+  --fin-accent-soft: rgba(29, 111, 165, 0.10);
+  --fin-green: #159a6b;
+  --fin-green-soft: rgba(21, 154, 107, 0.10);
+  --fin-red: #d2544b;
+  --fin-red-soft: rgba(210, 84, 75, 0.10);
+  --fin-purple: #7c5cd6;
+  --fin-purple-soft: rgba(124, 92, 214, 0.10);
+  --fin-amber: #b5822a;
+  --fin-amber-soft: rgba(181, 130, 42, 0.12);
+
+  --fin-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px -12px rgba(15, 23, 42, 0.14);
+  --fin-shadow-hover: 0 2px 4px rgba(15, 23, 42, 0.05), 0 16px 40px -16px rgba(15, 23, 42, 0.22);
+
+  color: var(--fin-text);
+}
+
+.dark .fin-scope {
+  --fin-bg: #070b16;
+  --fin-card: #0e1526;
+  --fin-card-2: #111a2e;
+  --fin-border: rgba(148, 178, 232, 0.12);
+  --fin-border-strong: rgba(148, 178, 232, 0.22);
+  --fin-inset: rgba(148, 178, 232, 0.05);
+
+  --fin-text: #e8edf7;
+  --fin-muted: #8fa0bd;
+  --fin-faint: #64748b;
+
+  --fin-accent: #5b9ee0;
+  --fin-accent-soft: rgba(91, 158, 224, 0.14);
+  --fin-green: #4ec99a;
+  --fin-green-soft: rgba(78, 201, 154, 0.12);
+  --fin-red: #e8796f;
+  --fin-red-soft: rgba(232, 121, 111, 0.12);
+  --fin-purple: #a78bfa;
+  --fin-purple-soft: rgba(167, 139, 250, 0.12);
+  --fin-amber: #d9a441;
+  --fin-amber-soft: rgba(217, 164, 65, 0.12);
+
+  --fin-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px -14px rgba(0, 0, 0, 0.7);
+  --fin-shadow-hover: 0 2px 6px rgba(0, 0, 0, 0.45), 0 20px 48px -18px rgba(0, 0, 0, 0.8);
+}
+
+/* Tailwind here is precompiled from the existing templates, so utilities this
+   page needs but no other template used (5-col grids, xl:, sr-only, sizes)
+   simply do not exist in tailwind.css. Everything below is self-contained. */
+.fin-sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+.fin-ico { width: 1rem; height: 1rem; flex: none; }
+.fin-ico-xs { width: 0.875rem; height: 0.875rem; flex: none; }
+.fin-ico-lg { width: 1.25rem; height: 1.25rem; flex: none; }
+.fin-mt-auto { margin-top: auto; }
+.fin-stack { display: grid; gap: 0.5rem; }
+.fin-link-reset { text-decoration: underline; text-decoration-style: dotted; font-size: 0.75rem; }
+
+/* KPI grid: 1 -> 2 -> 3 -> 5 across the app's own breakpoints. */
+.fin-kpi-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+  margin-bottom: 1.25rem;
+  align-items: stretch;
+}
+@media (min-width: 40rem)  { .fin-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 80rem)  { .fin-kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 100rem) { .fin-kpi-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+
+/* Chart takes two thirds, rate card one third, once there is room. */
+.fin-main-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+  margin-bottom: 1.25rem;
+  align-items: stretch;
+}
+@media (min-width: 80rem) { .fin-main-grid { grid-template-columns: 2fr 1fr; } }
+
+/* Financial figures must line up column to column. */
+.fin-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+/* ============ Control bar (tabs + actions) ============ */
+.fin-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.fin-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3rem;
+  border-radius: 0.85rem;
+  background: var(--fin-inset);
+  border: 1px solid var(--fin-border);
+  overflow-x: auto;
+  scrollbar-width: none;
+  max-width: 100%;
+}
+.fin-tabs::-webkit-scrollbar { display: none; }
+
+.fin-tab {
+  position: relative;
+  white-space: nowrap;
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.6rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--fin-muted);
+  border: 1px solid transparent;
+  transition: color .18s ease, background-color .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.fin-tab:hover { color: var(--fin-text); background: var(--fin-inset); }
+.fin-tab:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--fin-card), 0 0 0 4px var(--fin-accent);
+}
+.fin-tab.is-active {
+  color: var(--fin-text);
+  background: linear-gradient(180deg, var(--fin-card-2), var(--fin-card));
+  border-color: var(--fin-border-strong);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+.dark .fin-tab.is-active {
+  background: linear-gradient(180deg, rgba(91, 158, 224, 0.16), rgba(91, 158, 224, 0.04));
+  border-color: rgba(91, 158, 224, 0.32);
+  box-shadow: 0 0 0 1px rgba(91, 158, 224, 0.10), 0 6px 20px -8px rgba(91, 158, 224, 0.45);
+}
+.fin-tab.is-active::after {
+  content: "";
+  position: absolute;
+  left: 0.9rem;
+  right: 0.9rem;
+  bottom: 0.28rem;
+  height: 2px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, transparent, var(--fin-accent), transparent);
+  opacity: .75;
+}
+
+.fin-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+
+/* ============ Period control ============ */
+.fin-period {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 0.65rem;
+  border: 1px solid var(--fin-border);
+  background: var(--fin-card);
+  color: var(--fin-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: border-color .18s ease, color .18s ease, box-shadow .18s ease;
+}
+.fin-period:hover { border-color: var(--fin-border-strong); color: var(--fin-text); }
+.fin-period:focus-within {
+  border-color: var(--fin-accent);
+  box-shadow: 0 0 0 3px var(--fin-accent-soft);
+}
+.fin-period input[type="date"] {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  color: var(--fin-text);
+  width: 8.25rem;
+}
+.fin-period input[type="date"]:focus { outline: none; }
+.dark .fin-period input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); }
+
+/* ============ Dropdown ============ */
+.fin-dd { position: relative; }
+.fin-dd-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.4rem);
+  z-index: 40;
+  min-width: 15rem;
+  padding: 0.35rem;
+  border-radius: 0.8rem;
+  border: 1px solid var(--fin-border-strong);
+  background: var(--fin-card);
+  box-shadow: var(--fin-shadow-hover);
+  opacity: 0;
+  transform: translateY(-4px) scale(0.985);
+  transform-origin: top right;
+  pointer-events: none;
+  transition: opacity .16s ease, transform .16s ease;
+}
+.fin-dd-menu[data-open="true"] { opacity: 1; transform: none; pointer-events: auto; }
+.fin-dd-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.6rem;
+  border-radius: 0.55rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--fin-text);
+  text-align: left;
+  transition: background-color .14s ease, color .14s ease;
+}
+.fin-dd-item:hover, .fin-dd-item:focus-visible { background: var(--fin-inset); outline: none; }
+.fin-dd-item .fin-dd-ico {
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 0.45rem;
+  flex: none;
+}
+
+/* ============ Cards ============ */
+.fin-card {
+  position: relative;
+  border-radius: 1rem;
+  border: 1px solid var(--fin-border);
+  background: var(--fin-card);
+  box-shadow: var(--fin-shadow);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.fin-card-i { padding: 1.15rem 1.25rem; }
+
+.fin-kpi { display: flex; flex-direction: column; min-height: 100%; overflow: hidden; }
+.fin-kpi:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--fin-shadow-hover);
+  border-color: var(--fin-border-strong);
+}
+
+.fin-kpi-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; }
+.fin-kpi-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fin-muted);
+}
+.fin-kpi-ico {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  border-radius: 0.6rem;
+  border: 1px solid transparent;
+}
+.fin-kpi-value {
+  margin-top: 0.6rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  word-break: break-word;
+}
+.fin-kpi-cur { font-size: 0.75rem; font-weight: 600; color: var(--fin-faint); margin-left: 0.15rem; }
+.fin-kpi-spark { margin-top: auto; padding-top: 0.85rem; }
+.fin-kpi-spark svg { display: block; width: 100%; height: 34px; overflow: visible; }
+
+/* Accent variants */
+.fin-a-blue   { color: var(--fin-accent); background: var(--fin-accent-soft); border-color: var(--fin-accent-soft); }
+.fin-a-green  { color: var(--fin-green);  background: var(--fin-green-soft);  border-color: var(--fin-green-soft); }
+.fin-a-purple { color: var(--fin-purple); background: var(--fin-purple-soft); border-color: var(--fin-purple-soft); }
+.fin-a-amber  { color: var(--fin-amber);  background: var(--fin-amber-soft);  border-color: var(--fin-amber-soft); }
+.fin-a-red    { color: var(--fin-red);    background: var(--fin-red-soft);    border-color: var(--fin-red-soft); }
+
+/* Net profit — the one card that carries extra weight */
+.fin-kpi-hero {
+  border-color: color-mix(in srgb, var(--fin-green) 32%, transparent);
+  background:
+    radial-gradient(120% 100% at 100% 0%, var(--fin-green-soft), transparent 62%),
+    var(--fin-card);
+}
+.fin-kpi-hero.is-negative {
+  border-color: color-mix(in srgb, var(--fin-red) 32%, transparent);
+  background:
+    radial-gradient(120% 100% at 100% 0%, var(--fin-red-soft), transparent 62%),
+    var(--fin-card);
+}
+.dark .fin-kpi-hero { box-shadow: var(--fin-shadow), 0 0 0 1px rgba(78, 201, 154, 0.08), 0 12px 40px -18px rgba(78, 201, 154, 0.4); }
+.dark .fin-kpi-hero.is-negative { box-shadow: var(--fin-shadow), 0 0 0 1px rgba(232, 121, 111, 0.08), 0 12px 40px -18px rgba(232, 121, 111, 0.4); }
+.fin-kpi-hero .fin-kpi-value { font-size: 1.75rem; }
+
+.fin-split {
+  margin-top: 0.9rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--fin-border);
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+}
+.fin-split-row { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+.fin-split-row dt { color: var(--fin-muted); }
+.fin-split-row dd { font-weight: 700; }
+
+/* Budget meter */
+.fin-meter {
+  margin-top: 0.9rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: var(--fin-inset);
+  overflow: hidden;
+}
+.fin-meter-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--fin-amber) 55%, transparent), var(--fin-amber));
+  width: 0;
+  transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ============ Section shell ============ */
+.fin-sec-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.15rem 1.25rem;
+  border-bottom: 1px solid var(--fin-border);
+}
+.fin-sec-title { font-size: 0.9375rem; font-weight: 700; letter-spacing: -0.01em; }
+.fin-sec-sub { margin-top: 0.15rem; font-size: 0.75rem; color: var(--fin-muted); }
+
+.fin-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }
+.fin-legend-item { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.75rem; }
+.fin-legend-dot { width: 0.5rem; height: 0.5rem; border-radius: 9999px; flex: none; }
+.fin-legend-val { font-weight: 700; color: var(--fin-text); }
+
+/* ============ Chart ============ */
+.fin-chart-wrap { position: relative; padding: 1.15rem 0.5rem 0.5rem; }
+.fin-chart { position: relative; width: 100%; height: 320px; }
+.fin-chart svg { display: block; width: 100%; height: 100%; overflow: visible; }
+@media (max-width: 640px) { .fin-chart { height: 240px; } }
+
+.fin-grid-line { stroke: var(--fin-border); stroke-width: 1; }
+.fin-axis-text { fill: var(--fin-faint); font-size: 10px; font-variant-numeric: tabular-nums; }
+
+.fin-line { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.fin-line-income { stroke: var(--fin-green); }
+.fin-line-expense { stroke: var(--fin-red); stroke-width: 1.5; }
+
+/* Lines draw themselves in once, then stay put. */
+.fin-line-draw {
+  stroke-dasharray: var(--len);
+  stroke-dashoffset: var(--len);
+  animation: fin-draw 1.1s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+}
+@keyframes fin-draw { to { stroke-dashoffset: 0; } }
+
+.fin-area { opacity: 0; animation: fin-fade .8s ease .35s forwards; }
+@keyframes fin-fade { to { opacity: 1; } }
+
+.fin-hover-line { stroke: var(--fin-border-strong); stroke-width: 1; stroke-dasharray: 3 3; }
+.fin-hover-dot { stroke: var(--fin-card); stroke-width: 2; }
+
+.fin-tip {
+  position: absolute;
+  z-index: 20;
+  min-width: 10rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--fin-border-strong);
+  background: var(--fin-card);
+  box-shadow: var(--fin-shadow-hover);
+  font-size: 0.75rem;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity .12s ease, transform .12s ease;
+}
+.fin-tip[data-open="true"] { opacity: 1; transform: none; }
+.fin-tip-label { font-weight: 700; margin-bottom: 0.35rem; color: var(--fin-text); }
+.fin-tip-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.fin-tip-row + .fin-tip-row { margin-top: 0.2rem; }
+.fin-tip-key { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--fin-muted); }
+
+/* ============ Rate card ============ */
+.fin-rate-value { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+.fin-rate-spark svg { display: block; width: 100%; height: 48px; overflow: visible; }
+
+/* ============ Table ============ */
+.fin-table-scroll { overflow-x: auto; }
+.fin-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.8125rem; }
+.fin-table th, .fin-table td { padding: 0.7rem 1rem; white-space: nowrap; }
+.fin-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--fin-card-2);
+  border-bottom: 1px solid var(--fin-border);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fin-muted);
+  text-align: right;
+}
+.fin-table thead th:first-child { text-align: left; }
+.fin-table td { border-bottom: 1px solid var(--fin-border); text-align: right; }
+.fin-table td:first-child { text-align: left; white-space: normal; min-width: 13rem; }
+.fin-table tbody tr { transition: background-color .14s ease; }
+.fin-table tbody tr:hover td { background: var(--fin-inset); }
+.fin-table tbody tr:last-child td { border-bottom: 0; }
+
+.fin-row-total td {
+  background: var(--fin-inset);
+  border-top: 1px solid var(--fin-border-strong);
+  border-bottom: 1px solid var(--fin-border-strong);
+  font-weight: 700;
+}
+.fin-row-total:hover td { background: var(--fin-inset); }
+
+.fin-cell-pos { color: var(--fin-green); font-weight: 600; }
+.fin-cell-neg { color: var(--fin-red); font-weight: 600; }
+.fin-cell-soft { color: var(--fin-muted); }
+
+.fin-proj-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--fin-text);
+  transition: color .14s ease;
+}
+.fin-proj-link:hover { color: var(--fin-accent); }
+.fin-proj-link svg { opacity: 0; transform: translateX(-3px); transition: opacity .16s ease, transform .16s ease; flex: none; }
+.fin-table tbody tr:hover .fin-proj-link svg,
+.fin-proj-link:focus-visible svg { opacity: .6; transform: none; }
+
+.fin-more {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.8rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--fin-muted);
+  border-top: 1px solid var(--fin-border);
+  transition: color .16s ease, background-color .16s ease;
+}
+.fin-more:hover { color: var(--fin-accent); background: var(--fin-inset); }
+.fin-more svg { transition: transform .22s ease; }
+.fin-more[aria-expanded="true"] svg { transform: rotate(180deg); }
+
+/* ============ Empty state ============ */
+.fin-empty { padding: 3rem 1.25rem; text-align: center; }
+.fin-empty-ico {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: 0 auto 0.75rem;
+  border-radius: 0.75rem;
+  background: var(--fin-inset);
+  color: var(--fin-faint);
+}
+.fin-empty-title { font-weight: 600; font-size: 0.875rem; }
+.fin-empty-text { margin-top: 0.25rem; font-size: 0.8125rem; color: var(--fin-muted); }
+
+/* ============ Entrance choreography ============ */
+.fin-reveal { opacity: 0; transform: translateY(10px); }
+.fin-ready .fin-reveal {
+  animation: fin-rise .5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes fin-rise { to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .fin-reveal,
+  .fin-ready .fin-reveal { opacity: 1; transform: none; animation: none; }
+  .fin-line-draw { animation: none; stroke-dashoffset: 0; }
+  .fin-area { animation: none; opacity: 1; }
+  .fin-meter-fill { transition: none; }
+  .fin-card { transition: none; }
+}

@@ -5,7 +5,10 @@ from django.utils.translation import gettext_lazy as _
 from apps.core.forms import StyledFormMixin
 from apps.projects.models import SubObject
 
-from .models import Account, AdministrativeExpense, EmployeeContract, FinanceCategory, FinancialRecord, RecordCategory, RecordType
+from .models import (
+    ACCOUNT_CURRENCY, Account, AdministrativeExpense, Currency, EmployeeContract,
+    FinanceCategory, FinancialRecord, RecordCategory, RecordType,
+)
 
 
 class FinanceCategoryForm(StyledFormMixin, forms.ModelForm):
@@ -162,11 +165,26 @@ class EmployeeContractPayForm(StyledFormMixin, forms.Form):
         min_value=0.01, help_text=_("The amount being paid now."),
         widget=forms.TextInput(attrs={"inputmode": "decimal", "data-money-input": "true"}),
     )
+    payment_currency = forms.ChoiceField(
+        choices=Currency.choices, initial=Currency.UZS, label=_("Payment currency"),
+        # Optional on the wire so callers that predate the currency picker keep
+        # working unchanged; an omitted value means the legacy behaviour, UZS.
+        required=False,
+        help_text=_("The currency the money actually leaves in. Salary balances stay in the contract currency."),
+    )
     is_advance = forms.BooleanField(
         required=False, label=_("This is an advance"),
         help_text=_("Check if this payment is an advance rather than the final settlement."),
     )
-    account = forms.ChoiceField(choices=Account.choices, help_text=_("The account the payment is made from."))
+    account = forms.ChoiceField(
+        choices=Account.choices, label=_("Account"),
+        help_text=_("The account the payment is made from."),
+    )
+    description = forms.CharField(
+        required=False, max_length=500, label=_("Payment purpose"),
+        widget=forms.TextInput(attrs={"maxlength": "500"}),
+        help_text=_("Optional note stored with the transaction."),
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -175,4 +193,19 @@ class EmployeeContractPayForm(StyledFormMixin, forms.Form):
             .exclude(status__in=["completed", "terminated"])
             .filter(paid__lt=F("amount"))
         )
+
+    def clean(self):
+        cleaned = super().clean()
+        account = cleaned.get("account")
+        currency = cleaned.get("payment_currency")
+        if not currency:
+            # No picker value posted: fall back to the account's own currency,
+            # which is what the pre-currency flow effectively used.
+            currency = ACCOUNT_CURRENCY[account] if account else Currency.UZS
+            cleaned["payment_currency"] = currency
+        # The account already implies a currency; refuse a mismatched pair so the
+        # stored record can never disagree with the account it came out of.
+        if account and ACCOUNT_CURRENCY[account] != currency:
+            self.add_error("account", _("This account is not held in the selected payment currency."))
+        return cleaned
 

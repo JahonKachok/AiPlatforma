@@ -1,40 +1,139 @@
-{% load i18n %}
+{% load i18n core_extras %}
 {% comment %}
-"Give salary" modal for the finance payroll tab. Row-level "Pay" links
+"Give salary" modal for the finance payroll tab. Row-level "Pay" actions
 (data-modal-open="employee-contract-pay-modal" data-contract-id="...") set
 the employee_contract select via initPayModal() in static/js/finance.js.
-Expects `pay_form` in context.
+
+Expects `pay_form`; the live figures come from `pay_contracts` (balance per
+contract) and `usd_rate`. Behaviour lives in static/js/salary-pay.js — with
+JS off the plain form still posts and the server re-validates everything.
 {% endcomment %}
-<div id="employee-contract-pay-modal" class="ap-modal-backdrop" data-modal-backdrop>
-  <div class="card ap-modal-card">
-    <div class="flex items-center justify-between border-b border-gray-200 px-4 py-4 dark:border-gray-700">
-      <h3 class="font-semibold">{% trans "Give salary" %}</h3>
-      <button type="button" class="btn btn-secondary btn-sm" data-modal-close aria-label="{% trans 'Close' %}">&times;</button>
+<div id="employee-contract-pay-modal" class="ap-modal-backdrop fin-scope" data-modal-backdrop>
+  <div class="card ap-modal-card fin-pay-card">
+
+    <div class="fin-pay-head">
+      <h3 class="fin-pay-title">{% trans "Give salary" %}</h3>
+      <button type="button" class="fin-pay-close" data-modal-close aria-label="{% trans 'Close' %}">
+        <svg class="fin-ico" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
     </div>
-    <form method="post" action="{% url 'finance:pay_employee_contract' %}" class="space-y-4 px-4 py-4">
+
+    <form method="post" action="{% url 'finance:pay_employee_contract' %}" class="fin-pay-body" id="fin-pay-form"
+          data-msg-exceeds="{% trans 'The payment amount exceeds the remaining balance.' %}"
+          data-msg-norate="{% trans 'Could not fetch the current USD exchange rate.' %}"
+          data-msg-available="{% trans 'Available' %}"
+          data-msg-entered="{% trans 'Entered' %}">
       {% csrf_token %}
-      <div>
+
+      <!-- Contract -->
+      <div class="fin-pay-field">
         <label class="field-label" for="{{ pay_form.employee_contract.id_for_label }}">{% with field=pay_form.employee_contract %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
         {{ pay_form.employee_contract }}
       </div>
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
-          <label class="field-label" for="{{ pay_form.amount.id_for_label }}">{% with field=pay_form.amount %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
-          {{ pay_form.amount }}
+
+      <!-- Balance + rate, filled in once a contract is chosen -->
+      <div class="fin-pay-info" id="fin-pay-info" hidden>
+        <div class="fin-pay-info-cell">
+          <span class="fin-pay-info-label">{% trans "Remaining to pay" %}</span>
+          <span class="fin-pay-info-value fin-num" id="fin-pay-balance">—</span>
+          <span class="fin-pay-info-alt fin-num" id="fin-pay-balance-alt"></span>
         </div>
-        <div>
-          <label class="field-label" for="{{ pay_form.account.id_for_label }}">{% with field=pay_form.account %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
-          {{ pay_form.account }}
+        <div class="fin-pay-info-cell fin-pay-info-rate">
+          <span class="fin-pay-info-label">{% trans "USD exchange rate" %}</span>
+          <span class="fin-pay-info-value fin-num" id="fin-pay-rate">
+            {% if usd_rate %}1 USD = {{ usd_rate|money }} UZS{% else %}—{% endif %}
+          </span>
+          {% if usd_rate_updated_at %}
+            <span class="fin-pay-info-alt">{% trans "Updated" %}: {{ usd_rate_updated_at|date:"d.m.Y H:i" }}</span>
+          {% endif %}
         </div>
       </div>
-      <label class="flex items-center gap-2 text-sm">
+
+      <!-- Payment currency -->
+      <fieldset class="fin-pay-field">
+        <legend class="field-label">{% trans "Payment currency" %} <span class="fin-req">*</span></legend>
+        <div class="fin-curr" role="radiogroup" aria-label="{% trans 'Payment currency' %}">
+          <label class="fin-curr-opt is-active" data-currency="UZS">
+            <input type="radio" name="payment_currency" value="UZS" checked class="fin-sr">
+            <span class="fin-curr-code">UZS</span>
+            <span class="fin-curr-name">{% trans "Uzbek som" %}</span>
+          </label>
+          <label class="fin-curr-opt" data-currency="USD">
+            <input type="radio" name="payment_currency" value="USD" class="fin-sr">
+            <span class="fin-curr-code">USD</span>
+            <span class="fin-curr-name">{% trans "US dollar" %}</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <!-- Amount: the selected currency drives the input, the other is derived -->
+      <div class="fin-pay-field">
+        <label class="field-label" for="fin-pay-uzs">{% trans "Payment amount" %} <span class="fin-req">*</span></label>
+        <div class="fin-amount">
+          <div class="fin-amount-side" data-side="UZS">
+            <input type="text" id="fin-pay-uzs" class="fin-amount-input fin-num" inputmode="decimal"
+                   autocomplete="off" aria-label="{% trans 'Payment amount' %}, UZS">
+            <span class="fin-amount-cur">UZS</span>
+          </div>
+          <span class="fin-amount-swap" aria-hidden="true">
+            <svg class="fin-ico" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16h13m0 0l-4-4m4 4l-4 4M17 8H4m0 0l4-4M4 8l4 4"/></svg>
+          </span>
+          <div class="fin-amount-side" data-side="USD">
+            <input type="text" id="fin-pay-usd" class="fin-amount-input fin-num" inputmode="decimal"
+                   autocomplete="off" aria-label="{% trans 'Payment amount' %}, USD">
+            <span class="fin-amount-cur">USD</span>
+          </div>
+        </div>
+        {# The real posted amount, always in the selected payment currency. #}
+        <input type="hidden" name="amount" id="fin-pay-amount">
+        <p class="fin-pay-error" id="fin-pay-error" role="alert" hidden></p>
+      </div>
+
+      <!-- Account -->
+      <div class="fin-pay-field">
+        <label class="field-label" for="{{ pay_form.account.id_for_label }}">{% with field=pay_form.account %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+        {{ pay_form.account }}
+      </div>
+
+      <!-- Purpose -->
+      <div class="fin-pay-field">
+        <label class="field-label" for="{{ pay_form.description.id_for_label }}">{% with field=pay_form.description %}{% include "partials/field_label_info.html" %}{% endwith %}</label>
+        {{ pay_form.description }}
+      </div>
+
+      <!-- Advance -->
+      <label class="fin-pay-check">
         {{ pay_form.is_advance }}
         {% with field=pay_form.is_advance %}{% include "partials/field_label_info.html" %}{% endwith %}
       </label>
-      <div class="flex justify-end gap-2 border-t border-gray-200 dark:border-gray-700" style="padding-top:1rem">
+
+      <!-- Summary -->
+      <div class="fin-pay-summary" id="fin-pay-summary" hidden>
+        <p class="fin-pay-summary-title">{% trans "Payment summary" %}</p>
+        <dl class="fin-pay-summary-list">
+          <div class="fin-pay-summary-row">
+            <dt>{% trans "Balance before" %}</dt>
+            <dd class="fin-num" id="fin-sum-before">—</dd>
+          </div>
+          <div class="fin-pay-summary-row">
+            <dt>{% trans "Payment amount" %}</dt>
+            <dd class="fin-num" id="fin-sum-amount">—</dd>
+          </div>
+          <div class="fin-pay-summary-row is-total">
+            <dt>{% trans "Balance after" %}</dt>
+            <dd class="fin-num" id="fin-sum-after">—</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="fin-pay-foot">
         <button type="button" class="btn btn-secondary btn-md" data-modal-close>{% trans "Cancel" %}</button>
-        <button type="submit" class="btn btn-primary btn-md">{% trans "Pay" %}</button>
+        <button type="submit" class="btn btn-primary btn-md" id="fin-pay-submit">{% trans "Give salary" %}</button>
       </div>
     </form>
   </div>
 </div>
+
+{{ pay_contracts|json_script:"fin-pay-contracts" }}
+{{ account_currencies|json_script:"fin-account-currencies" }}
+{{ pay_meta|json_script:"fin-pay-meta" }}

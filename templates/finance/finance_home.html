@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% load i18n static core_extras finance_extras %}
 {% block title %}{% trans "Finance" %}{% endblock %}
-{% block page_title %}{% trans "Finance" %}{% endblock %}
+{% block page_title %}{% if tab == "payroll" %}{% trans "Payroll" %}{% else %}{% trans "Finance" %}{% endif %}{% endblock %}
 {% block page_help %}{% trans "Track the company cash desk, salary payments to employees, and money movement across projects." as help_text %}{% with text=help_text %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
-{% block page_subtitle %}{% trans "Company financial overview" %}{% endblock %}
+{% block page_subtitle %}{% if tab == "payroll" %}{% trans "Managing employee accruals and payments" %}{% else %}{% trans "Company financial overview" %}{% endif %}{% endblock %}
 {% block extra_head %}
-  <link rel="stylesheet" href="{% static 'css/finance-dashboard.css' %}?v=1">
+  <link rel="stylesheet" href="{% static 'css/finance-dashboard.css' %}?v=2">
 {% endblock %}
 
 {% block content %}
@@ -21,17 +21,23 @@
   </nav>
 
   <div class="fin-actions">
-    {% if tab == "dashboard" %}
+    {% if tab == "dashboard" or tab == "payroll" %}
       <form method="get" class="fin-period" role="search">
-        <input type="hidden" name="tab" value="dashboard">
+        <input type="hidden" name="tab" value="{{ tab }}">
+        {% if tab == "payroll" %}
+          <input type="hidden" name="employee" value="{{ filter_employee }}">
+          <input type="hidden" name="project" value="{{ filter_project }}">
+          <input type="hidden" name="sub_object" value="{{ filter_sub_object }}">
+          <input type="hidden" name="pod_object" value="{{ filter_pod_object }}">
+        {% endif %}
         <svg class="fin-ico" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"/></svg>
         <label class="fin-sr" for="fin-from">{% trans "From" %}</label>
         <input type="date" id="fin-from" name="from" value="{{ filter_from }}" onchange="this.form.submit()">
         <span aria-hidden="true">—</span>
         <label class="fin-sr" for="fin-to">{% trans "To" %}</label>
         <input type="date" id="fin-to" name="to" value="{{ filter_to }}" onchange="this.form.submit()">
-        {% if has_period_filter %}
-          <a href="?tab=dashboard" class="fin-link-reset" style="margin-left:.25rem;color:var(--fin-muted)">{% trans "Reset" %}</a>
+        {% if filter_from or filter_to %}
+          <a href="?tab={{ tab }}" class="fin-link-reset" style="margin-left:.25rem;color:var(--fin-muted)">{% trans "Reset" %}</a>
         {% endif %}
       </form>
 
@@ -80,107 +86,345 @@
 </div>
 
 {% if tab == "payroll" %}
-  <!-- Payroll Tab Section -->
-  <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-    <div class="flex items-center gap-2">
-      <button type="button" class="btn btn-secondary btn-sm flex items-center gap-2 cursor-pointer" id="payroll-filter-toggle">
-        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-        <span>{% trans "Filter" %}</span>
-        {% if filter_employee or filter_project or filter_sub_object or filter_pod_object %}
-          <span class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-blue-600 rounded-full">!</span>
-        {% endif %}
-      </button>
-      {% if filter_employee or filter_project or filter_sub_object or filter_pod_object %}
-        <a href="?tab=payroll" class="text-xs text-gray-500 hover:text-gray-700 underline">{% trans "Reset" %}</a>
+  <!-- ============ Payroll ============ -->
+
+  <!-- KPI row -->
+  <div class="fin-kpi-grid">
+    <div class="fin-card fin-card-i fin-kpi fin-reveal" style="--d: 0ms">
+      <div class="fin-kpi-head">
+        <span class="fin-kpi-label">{% trans "Salary fund" %}</span>
+        <span class="fin-kpi-ico fin-a-blue" aria-hidden="true">
+          <svg class="fin-ico" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3h6a1 1 0 011 1v1h2a1 1 0 011 1v13a2 2 0 01-2 2H7a2 2 0 01-2-2V6a1 1 0 011-1h2V4a1 1 0 011-1zm-1 9h8m-8 4h5"/></svg>
+        </span>
+      </div>
+      <p class="fin-kpi-value fin-num">
+        <span data-countup="{{ payroll_fund|stringformat:'f' }}">0</span><span class="fin-kpi-cur">UZS</span>
+      </p>
+      <p class="fin-kpi-note">{% trans "Assigned to employees" %}</p>
+      {% if payroll_points %}
+        <div class="fin-kpi-spark" data-spark-key="accrued" data-spark-color="var(--fin-accent)"></div>
       {% endif %}
     </div>
 
-    <div class="flex gap-2">
-      <button type="button" class="btn btn-secondary btn-sm" data-modal-open="employee-contract-modal">{% trans "+ Assign salary" %}</button>
-      <button type="button" class="btn btn-primary btn-sm" data-modal-open="employee-contract-pay-modal">{% trans "Give salary" %}</button>
+    <div class="fin-card fin-card-i fin-kpi fin-reveal" style="--d: 60ms">
+      <div class="fin-kpi-head">
+        <span class="fin-kpi-label">{% trans "Paid out" %}</span>
+        <span class="fin-kpi-ico fin-a-green" aria-hidden="true">
+          <svg class="fin-ico" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        </span>
+      </div>
+      <p class="fin-kpi-value fin-num" style="color:var(--fin-green)">
+        <span data-countup="{{ payroll_paid|stringformat:'f' }}">0</span><span class="fin-kpi-cur">UZS</span>
+      </p>
+      <p class="fin-kpi-note">{% trans "Actually paid" %}</p>
+      {% if payroll_points %}
+        <div class="fin-kpi-spark" data-spark-key="paid" data-spark-color="var(--fin-green)"></div>
+      {% endif %}
+    </div>
+
+    <div class="fin-card fin-card-i fin-kpi fin-reveal" style="--d: 120ms">
+      <div class="fin-kpi-head">
+        <span class="fin-kpi-label">{% trans "To pay" %}</span>
+        <span class="fin-kpi-ico fin-a-amber" aria-hidden="true">
+          <svg class="fin-ico" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </span>
+      </div>
+      <p class="fin-kpi-value fin-num" style="color:{% if payroll_remaining > 0 %}var(--fin-amber){% else %}var(--fin-green){% endif %}">
+        <span data-countup="{{ payroll_remaining|stringformat:'f' }}">0</span><span class="fin-kpi-cur">UZS</span>
+      </p>
+      <p class="fin-kpi-note">{% trans "Outstanding balance" %}</p>
+      {% if payroll_points %}
+        <div class="fin-kpi-spark" data-spark-key="remaining" data-spark-color="var(--fin-amber)"></div>
+      {% endif %}
+    </div>
+
+    <div class="fin-card fin-card-i fin-kpi fin-reveal" style="--d: 180ms">
+      <div class="fin-kpi-head">
+        <span class="fin-kpi-label">{% trans "Employees" %}</span>
+        <span class="fin-kpi-ico fin-a-purple" aria-hidden="true">
+          <svg class="fin-ico" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-1a3 3 0 00-3-3h-1m-3 4H2v-1a5 5 0 015-5h4a5 5 0 015 5v1zm-7-9a3 3 0 100-6 3 3 0 000 6zm8-1a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"/></svg>
+        </span>
+      </div>
+      <p class="fin-kpi-value fin-num" style="color:var(--fin-purple)">
+        <span data-countup="{{ payroll_employee_count }}">0</span>
+      </p>
+      <p class="fin-kpi-note">{% trans "With salary records" %}</p>
+    </div>
+
+    <div class="fin-card fin-card-i fin-kpi fin-reveal" style="--d: 240ms">
+      <div class="fin-kpi-head">
+        <span class="fin-kpi-label">{% trans "Fund completion" %}</span>
+        <span class="fin-kpi-ico fin-a-green" aria-hidden="true">
+          <svg class="fin-ico" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 17l6-6 4 4 7-7m0 0h-5m5 0v5"/></svg>
+        </span>
+      </div>
+      <div class="fin-ring-row">
+        <div class="fin-ring" data-ring="{{ payroll_completion_pct }}" role="img"
+             aria-label="{% trans 'Fund completion' %}: {{ payroll_completion_pct }}%">
+          <span class="fin-ring-label fin-num">{{ payroll_completion_pct }}%</span>
+        </div>
+        <p class="fin-kpi-note" style="margin:0">{% trans "of the fund is paid out" %}</p>
+      </div>
     </div>
   </div>
 
-  <!-- Collapsible Payroll Filter Panel -->
-  <form method="get" id="payroll-filter-panel" class="card mb-4 hidden p-4 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+  <!-- Filter bar -->
+  <form method="get" class="fin-card fin-filterbar fin-reveal" id="payroll-filters" style="--d: 300ms">
     <input type="hidden" name="tab" value="payroll">
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div>
-        <label class="field-label">{% trans "Employee" %}</label>
-        <select name="employee" class="field-input w-full">
-          <option value="">{% trans "All employees" %}</option>
-          {% for e in employees %}<option value="{{ e.pk }}" {% if filter_employee == e.pk|stringformat:"s" %}selected{% endif %}>{{ e.get_short_name }}</option>{% endfor %}
-        </select>
-      </div>
-      <div>
-        <label class="field-label">{% trans "Project" %}</label>
-        <select name="project" class="field-input w-full">
-          <option value="">{% trans "All projects" %}</option>
-          {% for p in projects %}<option value="{{ p.pk }}" {% if filter_project == p.pk|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
-        </select>
-      </div>
-      <div>
-        <label class="field-label">{% trans "Object" %}</label>
-        <select name="sub_object" class="field-input w-full">
-          <option value="">{% trans "All objects" %}</option>
-          {% for o in objects %}<option value="{{ o.pk }}" {% if filter_sub_object == o.pk|stringformat:"s" %}selected{% endif %}>{{ o.name }}</option>{% endfor %}
-        </select>
-      </div>
-      <div>
-        <label class="field-label">{% trans "Pod-object" %}</label>
-        <select name="pod_object" class="field-input w-full">
-          <option value="">{% trans "All pod-objects" %}</option>
-          {% for o in pod_objects %}<option value="{{ o.pk }}" {% if filter_pod_object == o.pk|stringformat:"s" %}selected{% endif %}>{{ o.name }}</option>{% endfor %}
-        </select>
-      </div>
-    </div>
-    <div class="mt-4 flex justify-end gap-2 border-t border-gray-200 dark:border-gray-700 pt-3">
-      <a href="?tab=payroll" class="btn btn-secondary btn-sm">{% trans "Reset" %}</a>
-      <button type="submit" class="btn btn-primary btn-sm">{% trans "Apply filters" %}</button>
+    <input type="hidden" name="from" value="{{ filter_from }}">
+    <input type="hidden" name="to" value="{{ filter_to }}">
+
+    <span class="fin-filter-title">
+      <svg class="fin-ico" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5h18l-7 8v5l-4 2v-7L3 5z"/></svg>
+      {% trans "Filter" %}
+    </span>
+
+    <label class="fin-field">
+      <span class="fin-field-label">{% trans "Employee" %}</span>
+      <select name="employee" class="fin-select" onchange="this.form.submit()">
+        <option value="">{% trans "All employees" %}</option>
+        {% for e in employees %}<option value="{{ e.pk }}" {% if filter_employee == e.pk|stringformat:"s" %}selected{% endif %}>{{ e.get_short_name }}</option>{% endfor %}
+      </select>
+    </label>
+
+    <label class="fin-field">
+      <span class="fin-field-label">{% trans "Project" %}</span>
+      <select name="project" class="fin-select" id="payroll-project" onchange="this.form.submit()">
+        <option value="">{% trans "All projects" %}</option>
+        {% for p in projects %}<option value="{{ p.pk }}" {% if filter_project == p.pk|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
+      </select>
+    </label>
+
+    <label class="fin-field">
+      <span class="fin-field-label">{% trans "Object" %}</span>
+      <select name="sub_object" class="fin-select" id="payroll-object" onchange="this.form.submit()">
+        <option value="">{% trans "All objects" %}</option>
+        {% for o in objects %}<option value="{{ o.pk }}" data-project="{{ o.project_id }}" {% if filter_sub_object == o.pk|stringformat:"s" %}selected{% endif %}>{{ o.name }}</option>{% endfor %}
+      </select>
+    </label>
+
+    <label class="fin-field">
+      <span class="fin-field-label">{% trans "Pod-object" %}</span>
+      <select name="pod_object" class="fin-select" id="payroll-pod" onchange="this.form.submit()">
+        <option value="">{% trans "All pod-objects" %}</option>
+        {% for o in pod_objects %}<option value="{{ o.pk }}" data-project="{{ o.project_id }}" data-parent="{{ o.parent_id }}" {% if filter_pod_object == o.pk|stringformat:"s" %}selected{% endif %}>{{ o.name }}</option>{% endfor %}
+      </select>
+    </label>
+
+    <div class="fin-filter-end">
+      <noscript><button type="submit" class="btn btn-primary btn-sm">{% trans "Apply filters" %}</button></noscript>
+      {% if has_payroll_filter %}
+        <a href="?tab=payroll" class="btn btn-secondary btn-sm">{% trans "Reset" %}</a>
+      {% endif %}
     </div>
   </form>
 
-  <div class="card overflow-x-auto shadow-sm">
-    <table class="w-full text-left text-sm">
-      <thead class="border-b border-gray-200 text-gray-500 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400">
-        <tr>
-          <th class="px-4 py-3">{% trans "Employee" %}</th>
-          <th class="px-4 py-3">{% trans "Project" %}</th>
-          <th class="px-4 py-3">{% trans "Object" %}</th>
-          <th class="px-4 py-3">{% trans "Pod-object" %}</th>
-          <th class="px-4 py-3 text-right">{% trans "Budget" %}</th>
-          <th class="px-4 py-3 text-right">{% trans "Advance / paid" %}</th>
-          <th class="px-4 py-3 text-right">{% trans "Remaining" %}</th>
-          <th class="px-4 py-3"></th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-        {% for ec in employee_contracts %}
-          <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
-            <td class="px-4 py-3 font-medium">{{ ec.user.get_short_name }}</td>
-            <td class="px-4 py-3">{{ ec.project.name }}</td>
-            <td class="px-4 py-3">{{ ec.sub_object.name|default:"—" }}</td>
-            <td class="px-4 py-3">{{ ec.pod_object.name|default:"—" }}</td>
-            <td class="px-4 py-3 text-right font-semibold">{{ ec.amount|money }} {{ ec.currency }}</td>
-            <td class="px-4 py-3 text-right text-gray-600 dark:text-gray-300">{{ ec.paid|money }}</td>
-            <td class="px-4 py-3 text-right font-semibold {% if ec.balance <= 0 %}text-green-600 dark:text-green-400{% else %}text-amber-600 dark:text-amber-400{% endif %}">{{ ec.balance|money }}</td>
-            <td class="px-4 py-3 text-right whitespace-nowrap">
-              {% if ec.balance > 0 %}
-                <button type="button" class="btn btn-xs btn-primary"
-                        data-modal-open="employee-contract-pay-modal" data-contract-id="{{ ec.pk }}">{% trans "Pay" %}</button>
-              {% endif %}
-              <form method="post" action="{% url 'finance:delete_employee_contract' ec.pk %}" class="inline">
-                {% csrf_token %}
-                <button type="submit" class="ml-2 text-xs text-red-500 hover:underline">{% trans "Delete" %}</button>
-              </form>
-            </td>
-          </tr>
-        {% empty %}
-          <tr><td colspan="8" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">{% trans "No employee contracts yet." %}</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <!-- Primary payroll actions -->
+  <div class="fin-actionrow fin-reveal" style="--d: 340ms">
+    <button type="button" class="btn btn-secondary btn-sm" data-modal-open="employee-contract-modal">{% trans "+ Assign salary" %}</button>
+    <button type="button" class="btn btn-primary btn-sm" data-modal-open="employee-contract-pay-modal">{% trans "Give salary" %}</button>
   </div>
+
+  <!-- Analytics: payments over time + fund structure -->
+  <div class="fin-main-grid">
+    <section class="fin-card fin-reveal" style="--d: 380ms" aria-labelledby="fin-pay-title">
+      <header class="fin-sec-head">
+        <div>
+          <h2 class="fin-sec-title" id="fin-pay-title">
+            {% trans "Payments by period" %}
+            {% trans "Running totals by the salary assignment date: accrued is the assigned amount, paid is what has actually been paid against it." as pay_help %}
+            {% with text=pay_help %}{% include "partials/static_info.html" %}{% endwith %}
+          </h2>
+          <div class="fin-legend mt-2">
+            <span class="fin-legend-item"><span class="fin-legend-dot" style="background:var(--fin-accent)"></span><span style="color:var(--fin-muted)">{% trans "Accrued" %}</span></span>
+            <span class="fin-legend-item"><span class="fin-legend-dot" style="background:var(--fin-green)"></span><span style="color:var(--fin-muted)">{% trans "Paid out" %}</span></span>
+            <span class="fin-legend-item"><span class="fin-legend-dot" style="background:var(--fin-amber)"></span><span style="color:var(--fin-muted)">{% trans "Remaining" %}</span></span>
+          </div>
+        </div>
+        <span class="fin-period" style="cursor:default">
+          <svg class="fin-ico-xs" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h4l3 8 4-16 3 8h4"/></svg>
+          {% if payroll_granularity == "month" %}{% trans "By months" %}{% else %}{% trans "By days" %}{% endif %}
+        </span>
+      </header>
+
+      {% if payroll_points %}
+        <div class="fin-chart-wrap">
+          <div class="fin-chart" id="fin-payroll-chart"
+               data-a11y-label="{% trans 'Payments by period' %}"
+               data-unit-bn="{% trans 'bn' %}" data-unit-mn="{% trans 'mn' %}" data-unit-k="{% trans 'k' %}"></div>
+          <div class="fin-tip" id="fin-payroll-tip" data-open="false" role="status" aria-live="polite">
+            <p class="fin-tip-label" data-tip-label></p>
+            <p class="fin-tip-row"><span class="fin-tip-key"><span class="fin-legend-dot" style="background:var(--fin-accent)"></span>{% trans "Accrued" %}</span><span class="fin-num" style="font-weight:700" data-tip-accrued></span></p>
+            <p class="fin-tip-row"><span class="fin-tip-key"><span class="fin-legend-dot" style="background:var(--fin-green)"></span>{% trans "Paid out" %}</span><span class="fin-num" style="font-weight:700" data-tip-paid></span></p>
+            <p class="fin-tip-row"><span class="fin-tip-key"><span class="fin-legend-dot" style="background:var(--fin-amber)"></span>{% trans "Remaining" %}</span><span class="fin-num" style="font-weight:700" data-tip-remaining></span></p>
+          </div>
+        </div>
+        {{ payroll_points|json_script:"fin-payroll-data" }}
+      {% else %}
+        <div class="fin-empty">
+          <span class="fin-empty-ico" aria-hidden="true">
+            <svg class="fin-ico-lg" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M7 15l4-4 3 3 5-6"/></svg>
+          </span>
+          <p class="fin-empty-title">{% trans "No accruals" %}</p>
+          <p class="fin-empty-text">{% trans "There are no salary accruals for the selected period." %}</p>
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="fin-card fin-reveal" style="--d: 430ms" aria-labelledby="fin-struct-title">
+      <header class="fin-sec-head">
+        <div>
+          <h2 class="fin-sec-title" id="fin-struct-title">{% trans "Salary fund structure" %}</h2>
+          <p class="fin-sec-sub">{% trans "By employee department" %}</p>
+        </div>
+      </header>
+
+      {% if payroll_structure %}
+        <div class="fin-donut-wrap">
+          <div class="fin-donut" data-donut-total="{{ payroll_fund|stringformat:'f' }}">
+            <div class="fin-donut-ring" id="fin-donut-ring"></div>
+            <div class="fin-donut-hole">
+              <span class="fin-donut-hole-label">{% trans "Fund" %}</span>
+              <span class="fin-donut-hole-value fin-num">{{ payroll_fund|millions }}</span>
+              <span class="fin-donut-hole-unit">{% trans "mn" %} UZS</span>
+            </div>
+          </div>
+          <ul class="fin-slices">
+            {% for s in payroll_structure %}
+              <li class="fin-slice">
+                <span class="fin-legend-dot" style="background:{{ s.color }}"></span>
+                <span class="fin-slice-name">{{ s.label }}</span>
+                <span class="fin-slice-amount fin-num">{{ s.amount|money }}</span>
+                <span class="fin-slice-pct fin-num">{{ s.pct }}%</span>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {{ payroll_structure|json_script:"fin-donut-data" }}
+      {% else %}
+        <div class="fin-empty">
+          <span class="fin-empty-ico" aria-hidden="true">
+            <svg class="fin-ico-lg" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 3a9 9 0 109 9h-9V3z"/></svg>
+          </span>
+          <p class="fin-empty-title">{% trans "No data" %}</p>
+          <p class="fin-empty-text">{% trans "The structure appears once salaries are assigned." %}</p>
+        </div>
+      {% endif %}
+    </section>
+  </div>
+
+  <!-- Accruals and payments table -->
+  <section class="fin-card fin-reveal" style="--d: 480ms" aria-labelledby="fin-payroll-table-title">
+    <header class="fin-sec-head">
+      <div>
+        <h2 class="fin-sec-title" id="fin-payroll-table-title">{% trans "Accruals and payments" %}</h2>
+        <p class="fin-sec-sub">{% trans "Assigned salaries, actual payments and outstanding balances" %}</p>
+      </div>
+    </header>
+
+    {% if payroll_rows %}
+      <div class="fin-table-scroll">
+        <table class="fin-table fin-table-payroll">
+          <thead>
+            <tr>
+              <th scope="col">{% trans "Employee" %}</th>
+              <th scope="col" class="fin-th-left">{% trans "Project" %}</th>
+              <th scope="col" class="fin-th-left">{% trans "Object" %}</th>
+              <th scope="col" class="fin-th-left">{% trans "Pod-object" %}</th>
+              <th scope="col">{% trans "Budget" %}</th>
+              <th scope="col">{% trans "Paid" %}</th>
+              <th scope="col">{% trans "Remaining" %}</th>
+              <th scope="col" class="fin-th-center">{% trans "Status" %}</th>
+              <th scope="col" class="fin-th-center">{% trans "Actions" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in payroll_rows %}
+              {% with ec=row.contract %}
+              <tr>
+                <td>
+                  <span class="fin-emp">
+                    <span class="fin-avatar" style="background-color: {{ ec.user.full_name|avatar_color }};" aria-hidden="true">{{ ec.user.full_name|initials }}</span>
+                    <span class="fin-emp-text">
+                      <span class="fin-emp-name">{{ ec.user.get_short_name }}</span>
+                      {% if ec.user.department %}<span class="fin-emp-sub">{{ ec.user.department }}</span>{% endif %}
+                    </span>
+                  </span>
+                </td>
+                <td class="fin-td-left">{{ ec.project.name }}</td>
+                <td class="fin-td-left fin-cell-soft">{{ ec.sub_object.name|default:"—" }}</td>
+                <td class="fin-td-left fin-cell-soft">{{ ec.pod_object.name|default:"—" }}</td>
+                <td class="fin-num" style="font-weight:600">{{ ec.amount|money }} <span class="fin-kpi-cur">{{ ec.currency }}</span></td>
+                <td>
+                  <span class="fin-paid-cell">
+                    <span class="fin-num">{{ ec.paid|money }}</span>
+                    <span class="fin-minibar"><span class="fin-minibar-fill" data-bar-pct="{{ row.paid_pct }}"></span></span>
+                    <span class="fin-minibar-pct fin-num">{{ row.paid_pct }}%</span>
+                  </span>
+                </td>
+                <td class="fin-num" style="font-weight:600;color:{% if ec.balance > 0 %}var(--fin-amber){% else %}var(--fin-green){% endif %}">{{ ec.balance|money }}</td>
+                <td class="fin-td-center">
+                  {% if row.state == "paid" %}
+                    <span class="fin-badge fin-badge-green">{% trans "Paid" %}</span>
+                  {% elif row.state == "partial" %}
+                    <span class="fin-badge fin-badge-amber">{% trans "Partial" %}</span>
+                  {% else %}
+                    <span class="fin-badge fin-badge-grey">{% trans "Not paid" %}</span>
+                  {% endif %}
+                </td>
+                <td class="fin-td-center">
+                  <div class="fin-dd fin-rowmenu">
+                    <button type="button" class="fin-rowmenu-btn" data-dd-toggle aria-haspopup="true" aria-expanded="false"
+                            aria-label="{% trans 'Actions' %}">
+                      <svg class="fin-ico" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5h.01M12 12h.01M12 19h.01"/></svg>
+                    </button>
+                    <div class="fin-dd-menu" data-open="false" role="menu">
+                      {% if ec.balance > 0 %}
+                        <button type="button" class="fin-dd-item" role="menuitem"
+                                data-modal-open="employee-contract-pay-modal" data-contract-id="{{ ec.pk }}">
+                          <span class="fin-dd-ico fin-a-green" aria-hidden="true">
+                            <svg class="fin-ico-xs" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18m5-14H10a2.5 2.5 0 000 5h4a2.5 2.5 0 010 5H7"/></svg>
+                          </span>
+                          {% trans "Pay" %}
+                        </button>
+                      {% else %}
+                        <span class="fin-dd-item is-static" role="menuitem" aria-disabled="true">
+                          <span class="fin-dd-ico fin-a-green" aria-hidden="true">
+                            <svg class="fin-ico-xs" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                          </span>
+                          {% trans "Paid" %}
+                        </span>
+                      {% endif %}
+                      <form method="post" action="{% url 'finance:delete_employee_contract' ec.pk %}"
+                            data-confirm="{% blocktrans with name=ec.user.get_short_name %}Delete the salary record for {{ name }}?{% endblocktrans %}">
+                        {% csrf_token %}
+                        <button type="submit" class="fin-dd-item fin-dd-danger" role="menuitem">
+                          <span class="fin-dd-ico fin-a-red" aria-hidden="true">
+                            <svg class="fin-ico-xs" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12M9 7V5h6v2m-8 0l1 13h8l1-13"/></svg>
+                          </span>
+                          {% trans "Delete" %}
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              {% endwith %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="fin-empty">
+        <span class="fin-empty-ico" aria-hidden="true">
+          <svg class="fin-ico-lg" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-1a3 3 0 00-3-3h-1m-3 4H2v-1a5 5 0 015-5h4a5 5 0 015 5v1zm-7-9a3 3 0 100-6 3 3 0 000 6z"/></svg>
+        </span>
+        <p class="fin-empty-title">{% trans "No accruals" %}</p>
+        <p class="fin-empty-text">{% trans "There are no salary accruals for the selected period." %}</p>
+        <button type="button" class="btn btn-primary btn-sm" style="margin-top:1rem" data-modal-open="employee-contract-modal">{% trans "+ Assign salary" %}</button>
+      </div>
+    {% endif %}
+  </section>
 
 {% elif tab == "cash_flow" %}
   <!-- Cash Flow Section Header & Controls -->
@@ -675,11 +919,13 @@
 {% include "finance/_employee_contract_pay_modal.html" %}
 {% include "finance/_admin_expense_modal.html" %}
 {% include "finance/_category_modal.html" %}
+{% include "finance/_confirm_modal.html" %}
 
 {% endblock %}
 
 {% block extra_scripts %}
   <script src="{% static 'js/finance.js' %}" defer></script>
   <script src="{% static 'js/money-input.js' %}" defer></script>
-  {% if tab == "dashboard" %}<script src="{% static 'js/finance-dashboard.js' %}" defer></script>{% endif %}
+  {% if tab == "dashboard" or tab == "payroll" %}<script src="{% static 'js/finance-dashboard.js' %}" defer></script>{% endif %}
+  {% if tab == "payroll" %}<script src="{% static 'js/salary-pay.js' %}" defer></script>{% endif %}
 {% endblock %}

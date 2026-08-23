@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.db.models import F, Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -15,6 +16,7 @@ from apps.reports.exports import build_cash_flow_workbook
 
 import datetime
 import json
+import uuid
 
 from .forms import (
     AdministrativeExpenseForm,
@@ -58,6 +60,33 @@ def _finance_home_url(tab=None):
 
 def _to_uzs(amount, currency, rate):
     return amount * rate if currency == Currency.USD else amount
+
+
+def _convert_currency(amount, from_currency, to_currency, rate):
+    """Convert between the two currencies the app supports. Returns None when a
+    conversion is required but no usable rate is available, so callers can
+    refuse the operation rather than silently booking a wrong figure."""
+    if from_currency == to_currency:
+        return amount
+    if not rate or rate <= 0:
+        return None
+    if from_currency == Currency.USD and to_currency == Currency.UZS:
+        return amount * rate
+    if from_currency == Currency.UZS and to_currency == Currency.USD:
+        return amount / rate
+    return None
+
+
+def _valid_uuid(value):
+    """Filter ids arrive straight from the query string; a malformed one would
+    raise ValidationError deep inside the queryset. Treat it as 'no filter'."""
+    if not value:
+        return None
+    try:
+        uuid.UUID(str(value))
+    except (ValueError, AttributeError, TypeError):
+        return None
+    return value
 
 
 def _parse_iso_date(value):
@@ -292,6 +321,89 @@ def _dashboard_context(request):
     }
 
 
+#: Donut palette, reused by the payroll fund-structure chart.
+_PAYROLL_SLICE_COLORS = ["#5b9ee0", "#4ec99a", "#a78bfa", "#d9a441", "#e8796f", "#6ac9c0", "#c084c8"]
+
+
+def _payroll_series(contracts, date_from, date_to, rate):
+    """Cumulative accrued / paid / outstanding per bucket, built from the same
+    contracts the KPIs and the table use, so every number on the page ties out.
+
+    Both figures are attributed to the contract's creation date: a payment is
+    recorded on EmployeeContract.paid, which keeps no per-payment history, and
+    the salary/advance FinancialRecords it writes carry no FK back to the
+    contract. Attributing to the accrual date is therefore the only grouping
+    whose running totals end exactly at the fund and paid KPIs.
+    """
+    stamps = [c.created_at.date() for c in contracts]
+    if not stamps:
+        return {"points": [], "granularity": "day"}
+
+    start = date_from or min(stamps)
+    end = date_to or max(stamps)
+    if start > end:
+        start, end = end, start
+
+    by_month = (end - start).days > 62
+
+    def key_for(d):
+        return d.replace(day=1) if by_month else d
+
+    buckets = {}
+    cur = key_for(start)
+    while cur <= end:
+        buckets[cur] = {"accrued": 0.0, "paid": 0.0}
+        if by_month:
+            cur = datetime.date(cur.year + 1, 1, 1) if cur.month == 12 else datetime.date(cur.year, cur.month + 1, 1)
+        else:
+            cur += datetime.timedelta(days=1)
+
+    for c in contracts:
+        bucket = buckets.get(key_for(c.created_at.date()))
+        if bucket is None:
+            continue
+        bucket["accrued"] += _to_uzs(c.amount, c.currency, rate)
+        bucket["paid"] += _to_uzs(c.paid, c.currency, rate)
+
+    label_fmt = "%m.%Y" if by_month else "%d.%m"
+    points = []
+    run_accrued = run_paid = 0.0
+    for key in sorted(buckets):
+        run_accrued += buckets[key]["accrued"]
+        run_paid += buckets[key]["paid"]
+        points.append({
+            "label": key.strftime(label_fmt),
+            "accrued": run_accrued,
+            "paid": run_paid,
+            "remaining": max(0.0, run_accrued - run_paid),
+        })
+    return {"points": points, "granularity": "month" if by_month else "day"}
+
+
+def _payroll_structure(contracts, rate):
+    """Salary fund split by the employee's department — the existing field that
+    actually records what kind of work the salary is for. Employees with no
+    department fall into one 'Other' slice rather than inventing a category."""
+    totals = {}
+    for c in contracts:
+        key = (c.user.department or "").strip() or str(_("Other"))
+        totals[key] = totals.get(key, 0.0) + _to_uzs(c.amount, c.currency, rate)
+
+    total = sum(totals.values())
+    if not total:
+        return []
+    rows = sorted(totals.items(), key=lambda kv: kv[1], reverse=True)
+    return [
+        {
+            "label": name,
+            "amount": value,
+            "pct": round(value / total * 100, 1),
+            "color": _PAYROLL_SLICE_COLORS[i % len(_PAYROLL_SLICE_COLORS)],
+        }
+        for i, (name, value) in enumerate(rows)
+    ]
+
+
 def _payroll_context(request):
     user = request.user
     projects = visible_projects_for(user)
@@ -299,10 +411,12 @@ def _payroll_context(request):
         "user", "project", "sub_object", "pod_object"
     )
 
-    employee_id = request.GET.get("employee")
-    project_id = request.GET.get("project")
-    sub_object_id = request.GET.get("sub_object")
-    pod_object_id = request.GET.get("pod_object")
+    employee_id = _valid_uuid(request.GET.get("employee"))
+    project_id = _valid_uuid(request.GET.get("project"))
+    sub_object_id = _valid_uuid(request.GET.get("sub_object"))
+    pod_object_id = _valid_uuid(request.GET.get("pod_object"))
+    date_from = _parse_iso_date(request.GET.get("from"))
+    date_to = _parse_iso_date(request.GET.get("to"))
     if employee_id:
         contracts = contracts.filter(user_id=employee_id)
     if project_id:
@@ -311,15 +425,77 @@ def _payroll_context(request):
         contracts = contracts.filter(sub_object_id=sub_object_id)
     if pod_object_id:
         contracts = contracts.filter(pod_object_id=pod_object_id)
+    if date_from:
+        contracts = contracts.filter(created_at__date__gte=date_from)
+    if date_to:
+        contracts = contracts.filter(created_at__date__lte=date_to)
 
     employees = User.objects.filter(employee_contracts__project__in=projects).distinct()
 
+    # Everything below — KPIs, chart, donut, table — is derived from this one
+    # filtered list, so the whole page always describes the same dataset.
+    contract_list = list(contracts)
+    settings_obj = FinanceSettings.get_solo()
+    rate = settings_obj.usd_rate
+
+    # Live balances for the "Give salary" modal. Keyed by contract id and taken
+    # from the same objects the pay form offers, so what the dialog shows is
+    # what the server will check against.
+    pay_contracts = {
+        str(c.pk): {
+            "balance": round(c.balance, 2),
+            "amount": round(c.amount, 2),
+            "paid": round(c.paid, 2),
+            "currency": c.currency,
+            "employee": c.user.get_short_name(),
+            "project": c.project.name,
+        }
+        for c in EmployeeContract.objects.filter(project__in=projects)
+        .select_related("user", "project")
+        .exclude(status__in=["completed", "terminated"])
+        if c.balance > 0
+    }
+
+    fund_total = sum(_to_uzs(c.amount, c.currency, rate) for c in contract_list)
+    paid_total = sum(_to_uzs(c.paid, c.currency, rate) for c in contract_list)
+    remaining_total = fund_total - paid_total
+    employee_count = len({c.user_id for c in contract_list})
+    completion_pct = round(paid_total / fund_total * 100) if fund_total else 0
+
+    series = _payroll_series(contract_list, date_from, date_to, rate)
+
+    rows = []
+    for c in contract_list:
+        pct = round(c.paid / c.amount * 100) if c.amount else 0
+        if c.balance <= 0 and c.amount:
+            state = "paid"
+        elif c.paid > 0:
+            state = "partial"
+        else:
+            state = "unpaid"
+        rows.append({"contract": c, "paid_pct": min(100, max(0, pct)), "state": state})
+
     return {
         "employee_contracts": contracts,
+        "payroll_rows": rows,
+        "payroll_fund": fund_total,
+        "payroll_paid": paid_total,
+        "payroll_remaining": remaining_total,
+        "payroll_employee_count": employee_count,
+        "payroll_completion_pct": completion_pct,
+        "payroll_points": series["points"],
+        "payroll_granularity": series["granularity"],
+        "payroll_structure": _payroll_structure(contract_list, rate),
         "employee_form": EmployeeContractForm(),
         "pay_form": EmployeeContractPayForm(),
         "category_form": FinanceCategoryForm(),
         "transaction_form": TransactionForm(user=user),
+        "pay_contracts": pay_contracts,
+        "pay_meta": {"rate": rate or 0},
+        "usd_rate": rate,
+        "usd_rate_updated_at": settings_obj.updated_at,
+        "can_manage_finance": _can_manage_finance(user),
+        "account_currencies": {a: ACCOUNT_CURRENCY[a] for a, _l in Account.choices},
         "employees": employees,
         "projects": projects,
         "objects": SubObject.objects.filter(project__in=projects, parent__isnull=True),
@@ -328,6 +504,11 @@ def _payroll_context(request):
         "filter_project": project_id or "",
         "filter_sub_object": sub_object_id or "",
         "filter_pod_object": pod_object_id or "",
+        "filter_from": request.GET.get("from") or "",
+        "filter_to": request.GET.get("to") or "",
+        "has_payroll_filter": bool(
+            employee_id or project_id or sub_object_id or pod_object_id or date_from or date_to
+        ),
     }
 
 
@@ -335,9 +516,9 @@ def _filtered_cash_flow_records(request, projects):
     records = FinancialRecord.objects.filter(project__in=projects).select_related(
         "project", "sub_object"
     ).order_by("-date", "-created_at")
-    project_id = request.GET.get("project")
-    sub_object_id = request.GET.get("sub_object")
-    pod_object_id = request.GET.get("pod_object")
+    project_id = _valid_uuid(request.GET.get("project"))
+    sub_object_id = _valid_uuid(request.GET.get("sub_object"))
+    pod_object_id = _valid_uuid(request.GET.get("pod_object"))
     month = request.GET.get("month")
     category = request.GET.get("category")
     if project_id:
@@ -548,31 +729,63 @@ def employee_contract_delete(request, pk):
 
 @login_required
 def employee_contract_pay(request):
-    if request.method == "POST":
-        form = EmployeeContractPayForm(request.POST)
-        if form.is_valid():
-            contract = form.cleaned_data["employee_contract"]
-            if not can_edit_project(request.user, contract.project):
-                raise PermissionDenied
-            amount = form.cleaned_data["amount"]
-            if amount > contract.balance + 1e-6:
-                messages.error(request, _("The payment amount exceeds the remaining balance."))
-                return redirect(_finance_home_url("payroll"))
+    if request.method != "POST":
+        return redirect(_finance_home_url("payroll"))
 
-            account = form.cleaned_data["account"]
-            record_type = RecordType.ADVANCE if form.cleaned_data["is_advance"] else RecordType.PAYMENT
-            currency = ACCOUNT_CURRENCY[account]
-            FinancialRecord.objects.create(
-                project=contract.project, sub_object=contract.sub_object or contract.pod_object,
-                type=record_type, account=account, amount=amount, currency=currency,
-                description=_("Salary payment — %(employee)s") % {"employee": contract.user.get_short_name()},
-                date=timezone.localdate(), status=RecordStatus.CONFIRMED, created_by=request.user,
-            )
-            contract.paid = F("paid") + amount
-            contract.save(update_fields=["paid", "updated_at"])
-            messages.success(request, _("Payment recorded."))
-        else:
-            messages.error(request, _("Could not record the payment — please check the form."))
+    form = EmployeeContractPayForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, _("Could not record the payment — please check the form."))
+        return redirect(_finance_home_url("payroll"))
+
+    contract = form.cleaned_data["employee_contract"]
+    if not can_edit_project(request.user, contract.project):
+        raise PermissionDenied
+
+    amount = form.cleaned_data["amount"]
+    pay_currency = form.cleaned_data["payment_currency"]
+    account = form.cleaned_data["account"]
+    rate = FinanceSettings.get_solo().usd_rate
+
+    # The money can leave in a different currency than the contract is written
+    # in; the balance must always move by the contract-currency equivalent.
+    if pay_currency != contract.currency and not rate:
+        messages.error(request, _("Could not fetch the exchange rate — please try again later."))
+        return redirect(_finance_home_url("payroll"))
+
+    applied = _convert_currency(amount, pay_currency, contract.currency, rate)
+    if applied is None:
+        messages.error(request, _("Could not fetch the exchange rate — please try again later."))
+        return redirect(_finance_home_url("payroll"))
+    if contract.currency == Currency.UZS:
+        applied = round(applied)          # balances are whole som
+    if applied <= 0:
+        messages.error(request, _("Could not record the payment — please check the form."))
+        return redirect(_finance_home_url("payroll"))
+
+    record_type = RecordType.ADVANCE if form.cleaned_data["is_advance"] else RecordType.PAYMENT
+    description = (form.cleaned_data.get("description") or "").strip() or (
+        _("Salary payment — %(employee)s") % {"employee": contract.user.get_short_name()}
+    )
+
+    # Lock the row so a concurrent payment cannot read a stale balance and
+    # overshoot it: the check and the increment happen under the same lock.
+    with transaction.atomic():
+        locked = EmployeeContract.objects.select_for_update().get(pk=contract.pk)
+        if applied > locked.balance + 1e-6:
+            messages.error(request, _("The payment amount exceeds the remaining balance."))
+            return redirect(_finance_home_url("payroll"))
+
+        FinancialRecord.objects.create(
+            project=locked.project, sub_object=locked.sub_object or locked.pod_object,
+            type=record_type, account=account, amount=amount, currency=pay_currency,
+            exchange_rate=rate if pay_currency != locked.currency else None,
+            description=description,
+            date=timezone.localdate(), status=RecordStatus.CONFIRMED, created_by=request.user,
+        )
+        locked.paid = F("paid") + applied
+        locked.save(update_fields=["paid", "updated_at"])
+
+    messages.success(request, _("Payment recorded."))
     return redirect(_finance_home_url("payroll"))
 
 

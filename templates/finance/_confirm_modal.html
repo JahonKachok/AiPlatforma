@@ -1,0 +1,23 @@
+{% load i18n %}
+{# Generic confirmation dialog. Any form carrying data-confirm="..." is routed
+   through here by finance-dashboard.js instead of window.confirm(). #}
+<div id="fin-confirm-modal" class="ap-modal-backdrop" data-modal-backdrop>
+  <div class="card ap-modal-card max-w-md w-full">
+    <div class="flex items-center justify-between border-b border-gray-200 px-4 py-4 dark:border-gray-700">
+      <h3 class="font-semibold text-lg flex items-center gap-2">
+        <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/>
+        </svg>
+        {% trans "Confirm the action" %}
+      </h3>
+      <button type="button" class="btn btn-secondary btn-sm" data-modal-close aria-label="{% trans 'Close' %}">&times;</button>
+    </div>
+    <div class="px-4 py-4">
+      <p class="text-sm" id="fin-confirm-text"></p>
+      <div class="flex justify-end gap-2 border-t border-gray-200 dark:border-gray-700 pt-4" style="margin-top:1rem">
+        <button type="button" class="btn btn-secondary btn-md" data-modal-close>{% trans "Cancel" %}</button>
+        <button type="button" class="btn btn-danger btn-md" id="fin-confirm-ok">{% trans "Delete" %}</button>
+      </div>
+    </div>
+  </div>
+</div>

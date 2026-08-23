@@ -12,6 +12,7 @@ urlpatterns = [
     path("<uuid:pk>/download/", views.document_download, name="download"),
     path("<uuid:pk>/delete/", views.document_delete, name="delete"),
     path("<uuid:pk>/versions/add/", views.document_add_version, name="add_version"),
+    path("versions/<uuid:pk>/download/", views.document_version_download, name="version_download"),
     path("<uuid:pk>/quick-approve/", views.document_quick_approve, name="quick_approve"),
     path("<uuid:pk>/stages/", views.approval_stage_assign, name="assign_stages"),
     path("approvals/", views.approvals_list, name="approvals"),

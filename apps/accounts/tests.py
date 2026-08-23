@@ -1,4 +1,5 @@
 import pyotp
+from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 
@@ -67,9 +68,87 @@ class RegisterFormTests(TestCase):
         response = self.client.post(reverse("accounts:register"), {
             "email": "new.designer@example.com",
             "full_name": "New Designer",
-            "role": User.Role.DESIGNER,
             "password1": "s3curePass!23",
             "password2": "s3curePass!23",
         })
         self.assertRedirects(response, reverse("accounts:login"))
         self.assertTrue(User.objects.filter(email="new.designer@example.com").exists())
+
+    def test_register_cannot_choose_its_own_role(self):
+        """Ochiq ro'yxatdan o'tishda rol yuborilsa ham e'tiborga olinmasligi
+        kerak — aks holda har kim o'zini admin qilib yozdirib, hamma loyiha va
+        moliyaviy ma'lumotlarga kirish huquqini olardi."""
+        response = self.client.post(reverse("accounts:register"), {
+            "email": "attacker@example.com",
+            "full_name": "Attacker",
+            "role": User.Role.ADMIN,
+            "is_superuser": "on",
+            "is_staff": "on",
+            "password1": "s3curePass!23",
+            "password2": "s3curePass!23",
+        })
+        self.assertRedirects(response, reverse("accounts:login"))
+        user = User.objects.get(email="attacker@example.com")
+        self.assertEqual(user.role, User.Role.DESIGNER)
+        self.assertFalse(user.is_superuser)
+        self.assertFalse(user.is_staff)
+
+    def test_register_normalizes_email_case(self):
+        User.objects.create_user(email="taken@example.com", password="s3curePass!23", full_name="Taken")
+        response = self.client.post(reverse("accounts:register"), {
+            "email": "Taken@Example.com",
+            "full_name": "Duplicate",
+            "password1": "s3curePass!23",
+            "password2": "s3curePass!23",
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("email", response.context["form"].errors)
+
+
+class BruteForceTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        self.password = "s3curePass!23"
+        self.user = User.objects.create_user(
+            email="target@example.com", password=self.password, full_name="Target",
+        )
+
+    def tearDown(self):
+        cache.clear()
+
+    def test_login_locks_out_after_repeated_failures(self):
+        from .views import LOGIN_ATTEMPT_LIMIT
+
+        for _ in range(LOGIN_ATTEMPT_LIMIT):
+            self.client.post(reverse("accounts:login"), {
+                "email": self.user.email, "password": "wrong",
+            })
+        # To'g'ri parol ham blok muddati tugagunicha o'tmasligi kerak.
+        response = self.client.post(reverse("accounts:login"), {
+            "email": self.user.email, "password": self.password,
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.wsgi_request.user.is_authenticated)
+
+    def test_successful_login_resets_the_counter(self):
+        self.client.post(reverse("accounts:login"), {
+            "email": self.user.email, "password": "wrong",
+        })
+        self.client.post(reverse("accounts:login"), {
+            "email": self.user.email, "password": self.password,
+        })
+        from .views import _attempt_key
+
+        self.assertIsNone(cache.get(_attempt_key(self.user.email)))
+
+
+class LogoutTests(TestCase):
+    def test_logout_rejects_get(self):
+        """GET bilan chiqarib yuborish CSRF hisoblanadi (<img src=...>)."""
+        user = User.objects.create_user(
+            email="logout@example.com", password="s3curePass!23", full_name="Logout",
+        )
+        self.client.force_login(user)
+        response = self.client.get(reverse("accounts:logout"))
+        self.assertEqual(response.status_code, 405)
+        self.assertTrue(self.client.session.get("_auth_user_id"))

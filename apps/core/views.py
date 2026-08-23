@@ -1,7 +1,10 @@
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils import timezone
+from django.utils.http import content_disposition_header, url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
+from django.views.static import serve
 
 from apps.accounts.models import User
 from apps.documents.models import Document, DocumentStatus
@@ -75,7 +78,45 @@ def global_search(request):
 @require_POST
 def set_dark_mode(request):
     value = "1" if request.POST.get("dark_mode") == "1" else "0"
-    next_url = request.POST.get("next") or request.META.get("HTTP_REFERER") or "/"
-    response = redirect(next_url)
-    response.set_cookie("dark_mode", value, max_age=60 * 60 * 24 * 365)
+    # Ochiq redirect (open redirect) bo'lmasligi uchun faqat shu saytga
+    # tegishli manzillarga qaytamiz — aks holda ?next=//evil.example bilan
+    # foydalanuvchini tashqi saytga uzatib yuborish mumkin edi.
+    candidate = request.POST.get("next") or request.META.get("HTTP_REFERER") or "/"
+    if not url_has_allowed_host_and_scheme(
+        candidate, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
+        candidate = "/"
+    response = redirect(candidate)
+    response.set_cookie(
+        "dark_mode", value, max_age=60 * 60 * 24 * 365,
+        samesite="Lax", secure=request.is_secure(),
+    )
+    return response
+
+
+# Brauzerda o'z-o'zidan ochilishiga ruxsat berilgan turlar. Qolgan hamma narsa
+# (jumladan .html va .svg — ular skript ijro eta oladi) majburan yuklab olinadi,
+# shunda yuklangan fayl saytning o'z domenida XSS'ga aylanmaydi.
+_INLINE_MEDIA_TYPES = {"image/png", "image/jpeg", "image/gif", "image/webp"}
+
+
+@login_required
+def protected_media(request, path):
+    """MEDIA_ROOT'dagi fayllarni faqat tizimga kirgan foydalanuvchiga beradi.
+
+    Ilgari /media/ to'g'ridan-to'g'ri nginx (va DEBUG'da Django) orqali ochiq
+    tarqatilardi — ya'ni loyiha hujjatlarini havolani bilgan har kim
+    autentifikatsiyasiz yuklab olishi mumkin edi. ``django.views.static.serve``
+    ``safe_join`` ishlatgani uchun ``../`` bilan katalogdan chiqib ketib
+    bo'lmaydi.
+    """
+    response = serve(request, path, document_root=settings.MEDIA_ROOT)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    if response.headers.get("Content-Type") not in _INLINE_MEDIA_TYPES:
+        # content_disposition_header lotin bo'lmagan nomlarni (masalan
+        # "Проекты/...") RFC 5987 bo'yicha kodlaydi — qo'lda yozilgan sarlavha
+        # bunday nomlarda UnicodeEncodeError bilan tushib qolardi.
+        response.headers["Content-Disposition"] = content_disposition_header(
+            as_attachment=True, filename=path.rsplit("/", 1)[-1]
+        )
     return response

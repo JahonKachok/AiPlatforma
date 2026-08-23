@@ -5,7 +5,7 @@ from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.validators import MaxFileSizeValidator
+from apps.core.validators import IMAGE_EXTENSIONS, AllowedExtensionsValidator, MaxFileSizeValidator
 
 
 class UserManager(BaseUserManager):
@@ -74,7 +74,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone = models.CharField(max_length=50, blank=True, null=True)
     avatar = models.ImageField(
         upload_to="avatars/", blank=True, null=True,
-        validators=[MaxFileSizeValidator(2)],
+        validators=[MaxFileSizeValidator(2), AllowedExtensionsValidator(IMAGE_EXTENSIONS)],
     )
     telegram_chat_id = models.CharField(max_length=64, blank=True, null=True)
 

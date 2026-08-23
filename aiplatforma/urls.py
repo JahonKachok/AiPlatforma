@@ -1,7 +1,7 @@
-from django.conf import settings
-from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
+
+from apps.core.views import protected_media
 
 urlpatterns = [
     path("django-admin/", admin.site.urls),
@@ -19,7 +19,7 @@ urlpatterns = [
     path("telegram/", include("apps.telegram_bot.urls")),
     path("ai/", include("apps.ai_agents.urls")),
     path("", include("apps.core.urls")),
+    # Yuklangan fayllar autentifikatsiyadan o'tgan view orqali beriladi
+    # (nginx ularni ochiq tarqatmasligi kerak — nginx.conf ga qarang).
+    re_path(r"^media/(?P<path>.*)$", protected_media, name="protected_media"),
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

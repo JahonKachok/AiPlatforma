@@ -14,5 +14,6 @@ urlpatterns = [
     path("<uuid:pk>/send-for-approval/", views.task_send_for_approval, name="send_for_approval"),
     path("<uuid:pk>/comments/<uuid:comment_id>/delete/", views.task_comment_delete, name="delete_comment"),
     path("<uuid:pk>/attachments/", views.task_attachment_upload, name="upload_attachment"),
+    path("<uuid:pk>/attachments/<uuid:attachment_id>/", views.task_attachment_download, name="download_attachment"),
     path("<uuid:pk>/attachments/<uuid:attachment_id>/delete/", views.task_attachment_delete, name="delete_attachment"),
 ]

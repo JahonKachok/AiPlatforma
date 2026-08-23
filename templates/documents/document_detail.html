@@ -41,7 +41,7 @@
         {% for v in document.versions.all %}
           <li class="flex items-center justify-between border-b border-gray-100 py-1 dark:border-gray-700">
             <span>v{{ v.version_number }} — {{ v.uploaded_by.get_short_name }} — {{ v.created_at|date:"Y-m-d" }}</span>
-            <a href="{{ v.file.url }}" class="text-blue-600 hover:underline dark:text-blue-400">{% trans "Download" %}</a>
+            <a href="{% url 'documents:version_download' v.pk %}" class="text-blue-600 hover:underline dark:text-blue-400">{% trans "Download" %}</a>
           </li>
         {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No versions yet." %}</li>{% endfor %}
       </ul>

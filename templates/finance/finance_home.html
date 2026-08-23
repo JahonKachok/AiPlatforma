@@ -18,9 +18,11 @@
     <a href="?tab=cash_flow" class="btn btn-sm {% if tab == 'cash_flow' %}btn-primary{% else %}btn-secondary{% endif %}">
       {% trans "Cash flow" %}
     </a>
+    {% if can_manage_finance %}
     <a href="?tab=admin_expenses" class="btn btn-sm {% if tab == 'admin_expenses' %}btn-primary{% else %}btn-secondary{% endif %}">
       {% trans "Administrative expenses" %}
     </a>
+    {% endif %}
   </div>
 
   <!-- Primary Actions Toolbar (Clean Top Action Bar) -->

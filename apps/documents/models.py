@@ -6,7 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.validators import MaxFileSizeValidator
+from apps.core.validators import AllowedExtensionsValidator, MaxFileSizeValidator
 
 
 class DocumentStatus(models.TextChoices):
@@ -39,7 +39,7 @@ class Document(models.Model):
     status = models.CharField(max_length=20, choices=DocumentStatus.choices, default=DocumentStatus.DRAFT)
     file = models.FileField(
         upload_to="documents/%Y/%m/", blank=True, null=True,
-        validators=[MaxFileSizeValidator(50)],
+        validators=[MaxFileSizeValidator(50), AllowedExtensionsValidator()],
     )
     file_size = models.PositiveIntegerField(default=0)
     mime_type = models.CharField(max_length=100, blank=True, null=True)
@@ -61,7 +61,10 @@ class DocumentVersion(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name="versions")
     version_number = models.CharField(max_length=20)
-    file = models.FileField(upload_to="documents/%Y/%m/", validators=[MaxFileSizeValidator(50)])
+    file = models.FileField(
+        upload_to="documents/%Y/%m/",
+        validators=[MaxFileSizeValidator(50), AllowedExtensionsValidator()],
+    )
     file_size = models.PositiveIntegerField(default=0)
     uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     notes = models.CharField(max_length=1000, blank=True, null=True)
@@ -86,7 +89,7 @@ class ApprovalStage(models.Model):
     comment = models.CharField(max_length=1000, blank=True, null=True)
     response_file = models.FileField(
         upload_to="approval_responses/%Y/%m/", blank=True, null=True,
-        validators=[MaxFileSizeValidator(50)],
+        validators=[MaxFileSizeValidator(50), AllowedExtensionsValidator()],
     )
     reviewed_at = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

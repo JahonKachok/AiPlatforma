@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import User
@@ -107,7 +108,7 @@ def template_generate(request, pk):
                     version="1.0",
                 )
                 AuditLog.log(obj=document, action="generate_from_template", user=request.user)
-                download_url = document.file.url
+                download_url = reverse("documents:download", args=[document.pk])
             messages.success(request, _("Document generated."))
     else:
         form = TemplateGenerateForm(projects=projects)

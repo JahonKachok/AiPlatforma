@@ -1,16 +1,16 @@
 import calendar
-import json
 from datetime import date, timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.http import JsonResponse
+from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_POST
 
 from apps.accounts.models import User
+from apps.core.json_utils import script_json
 from apps.documents.models import AuditLog
 from apps.notifications.services import notify_user
 from apps.projects.models import Section, SubObject
@@ -53,7 +53,7 @@ def _task_form_cascade_json(user):
             discipline_users.setdefault(str(discipline.id), []).append(
                 {"id": str(user_obj.id), "name": user_obj.full_name or user_obj.email}
             )
-    return json.dumps({
+    return script_json({
         "subObjects": sub_objects, "sections": sections, "disciplineUsers": discipline_users,
     })
 
@@ -368,6 +368,7 @@ def task_send_for_approval(request, pk):
 
 
 @login_required
+@require_POST
 def task_comment_delete(request, pk, comment_id):
     task = get_object_or_404(_visible_tasks(request.user), pk=pk)
     comment = get_object_or_404(TaskComment, pk=comment_id, task=task)
@@ -393,6 +394,23 @@ def task_attachment_upload(request, pk):
 
 
 @login_required
+def task_attachment_download(request, pk, attachment_id):
+    """Ilovani vazifaning ko'rinish qoidasi bo'yicha beradi — shablondagi
+    ``att.file.url`` havolasi hech qanday tekshiruvdan o'tmasdi."""
+    task = get_object_or_404(_visible_tasks(request.user), pk=pk)
+    attachment = get_object_or_404(TaskAttachment, pk=attachment_id, task=task)
+    try:
+        file_handle = attachment.file.open("rb")
+    except FileNotFoundError:
+        raise Http404
+    return FileResponse(
+        file_handle, as_attachment=True,
+        filename=(attachment.filename or attachment.file.name).rsplit("/", 1)[-1],
+    )
+
+
+@login_required
+@require_POST
 def task_attachment_delete(request, pk, attachment_id):
     task = get_object_or_404(_visible_tasks(request.user), pk=pk)
     attachment = get_object_or_404(TaskAttachment, pk=attachment_id, task=task)

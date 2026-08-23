@@ -1,5 +1,4 @@
 import io
-import json
 import zipfile
 from datetime import date
 
@@ -13,6 +12,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import Discipline, User
+from apps.core.json_utils import script_json
 from apps.documents.models import AuditLog, Document, DocumentVersion
 from apps.finance.forms import FinancialRecordForm
 from apps.notifications.models import NotificationType
@@ -106,7 +106,7 @@ def _next_or(request, project, fallback_url):
         return reverse("projects:detail", args=[project.pk]) + "#tab-structure"
     return fallback_url
 
-REGION_CENTERS_JSON = json.dumps(REGION_CENTERS)
+REGION_CENTERS_JSON = script_json(REGION_CENTERS)
 
 TRACKED_FIELDS = [
     "name", "description", "client_name", "client_contact", "region", "district", "address",

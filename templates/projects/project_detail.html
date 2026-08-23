@@ -258,7 +258,7 @@
             {% if item.documents %}
               <span class="flex flex-col items-end gap-1">
                 {% for document in item.documents %}
-                  <a href="{{ document.file.url }}" target="_blank" rel="noopener" class="text-blue-600 hover:underline dark:text-blue-400">{{ document.name }}</a>
+                  <a href="{% url 'documents:download' document.pk %}" target="_blank" rel="noopener" class="text-blue-600 hover:underline dark:text-blue-400">{{ document.name }}</a>
                 {% endfor %}
               </span>
             {% else %}

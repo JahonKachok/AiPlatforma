@@ -5,7 +5,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.validators import MaxFileSizeValidator
+from apps.core.validators import AllowedExtensionsValidator, MaxFileSizeValidator
 
 _INVALID_PATH_CHARS = re.compile(r'[\\/:*?"<>|]')
 
@@ -104,7 +104,10 @@ class TaskAttachment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="attachments")
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
-    file = models.FileField(upload_to=task_attachment_upload_to, validators=[MaxFileSizeValidator(25)])
+    file = models.FileField(
+        upload_to=task_attachment_upload_to,
+        validators=[MaxFileSizeValidator(25), AllowedExtensionsValidator()],
+    )
     filename = models.CharField(max_length=255)
     file_size = models.PositiveIntegerField(default=0)
     mime_type = models.CharField(max_length=100, blank=True, null=True)

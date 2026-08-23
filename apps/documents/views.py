@@ -1,5 +1,4 @@
 import io
-import json
 import zipfile
 
 from django.contrib import messages
@@ -12,6 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from apps.core.json_utils import script_json
 from apps.notifications.services import notify_user
 from apps.projects.models import Section, SubObject, SubObjectDiscipline
 from apps.projects.permissions import ensure_project_member, visible_projects_for
@@ -33,7 +33,7 @@ def _submission_cascade_json(projects):
          "name": so.name}
         for so in SubObject.objects.filter(project__in=projects)
     ]
-    return json.dumps({"subObjects": sub_objects})
+    return script_json({"subObjects": sub_objects})
 
 
 @login_required
@@ -138,6 +138,25 @@ def document_download(request, pk):
         raise Http404
     AuditLog.log(obj=document, action="downloaded", user=request.user)
     return FileResponse(file_handle, as_attachment=True, filename=document.file.name.split("/")[-1])
+
+
+@login_required
+def document_version_download(request, pk):
+    """Versiya faylini ham hujjatning ko'rinish qoidasi bo'yicha beradi —
+    shablonlardagi to'g'ridan-to'g'ri ``version.file.url`` havolasi hech qanday
+    tekshiruvdan o'tmasdi."""
+    version = get_object_or_404(
+        DocumentVersion.objects.select_related("document"),
+        pk=pk, document__in=_visible_documents(request.user),
+    )
+    if not version.file:
+        raise Http404
+    try:
+        file_handle = version.file.open("rb")
+    except FileNotFoundError:
+        raise Http404
+    AuditLog.log(obj=version.document, action="version_downloaded", user=request.user)
+    return FileResponse(file_handle, as_attachment=True, filename=version.file.name.split("/")[-1])
 
 
 @login_required

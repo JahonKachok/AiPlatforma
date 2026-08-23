@@ -35,14 +35,23 @@ class TaskFlowTests(TestCase):
     def test_comment_owner_can_delete(self):
         comment = TaskComment.objects.create(task=self.task, user=self.assignee, content="hi")
         self.client.force_login(self.assignee)
-        self.client.get(reverse("tasks:delete_comment", args=[self.task.pk, comment.pk]))
+        self.client.post(reverse("tasks:delete_comment", args=[self.task.pk, comment.pk]))
         self.assertFalse(TaskComment.objects.filter(pk=comment.pk).exists())
 
     def test_non_owner_cannot_delete_comment(self):
         comment = TaskComment.objects.create(task=self.task, user=self.assignee, content="hi")
         self.client.force_login(self.other)
-        response = self.client.get(reverse("tasks:delete_comment", args=[self.task.pk, comment.pk]))
+        response = self.client.post(reverse("tasks:delete_comment", args=[self.task.pk, comment.pk]))
         self.assertEqual(response.status_code, 403)
+        self.assertTrue(TaskComment.objects.filter(pk=comment.pk).exists())
+
+    def test_comment_delete_rejects_get(self):
+        """GET bilan o'chirib bo'lmasligi kerak — aks holda <img src=...>
+        joylab CSRF orqali izohlarni o'chirtirish mumkin edi."""
+        comment = TaskComment.objects.create(task=self.task, user=self.assignee, content="hi")
+        self.client.force_login(self.assignee)
+        response = self.client.get(reverse("tasks:delete_comment", args=[self.task.pk, comment.pk]))
+        self.assertEqual(response.status_code, 405)
         self.assertTrue(TaskComment.objects.filter(pk=comment.pk).exists())
 
     def test_task_hidden_from_non_project_member(self):

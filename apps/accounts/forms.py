@@ -34,25 +34,33 @@ class TOTPForm(StyledFormMixin, forms.Form):
 
 
 class RegisterForm(StyledFormMixin, UserCreationForm):
+    """Ochiq (autentifikatsiyasiz) ro'yxatdan o'tish formasi.
+
+    ``role`` bu yerda ATAYLAB yo'q: rol — avtorizatsiya o'qi, shuning uchun uni
+    faqat admin/menejer ``UserCreateForm``/``UserAdminEditForm`` orqali bera
+    oladi. Aks holda har kim ``role=admin`` yuborib o'zini admin qilib
+    ro'yxatdan o'tkazishi mumkin edi (widget'dagi choices faqat ko'rinishga
+    ta'sir qiladi, validatsiya modeldagi to'liq choices bo'yicha ketadi).
+    """
+
     class Meta:
         model = User
-        fields = ["email", "full_name", "role", "department", "phone"]
-        widgets = {
-            "role": forms.Select(choices=[
-                (r.value, r.label) for r in User.Role if r != User.Role.ADMIN
-            ]),
-        }
+        fields = ["email", "full_name", "department", "phone"]
         help_texts = {
             "email": _("The email address used to sign in — this is used as your login."),
             "full_name": _("Your full name, shown to other employees under this name."),
-            "role": _("Your role in the system — permissions and visible sections are set based on this."),
             "department": _("The name of the department you work in (free text)."),
             "phone": _("A contact phone number, e.g. +998901234567."),
         }
 
+    def clean_email(self):
+        # Unique tekshiruvi ham normallashtirilgan qiymat ustida ketishi uchun
+        # email'ni save() emas, clean bosqichida kichik harfga o'tkazamiz.
+        return self.cleaned_data["email"].lower()
+
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.email = self.cleaned_data["email"].lower()
+        user.role = User.Role.DESIGNER
         if commit:
             user.save()
         return user
@@ -137,11 +145,13 @@ class UserCreateForm(StyledFormMixin, forms.ModelForm):
             "phone": _("A contact phone number, e.g. +998901234567."),
         }
 
+    def clean_email(self):
+        return self.cleaned_data["email"].lower()
+
     def save(self, commit=True):
         import secrets
 
         user = super().save(commit=False)
-        user.email = self.cleaned_data["email"].lower()
         temp_password = secrets.token_urlsafe(9)
         user.set_password(temp_password)
         if commit:

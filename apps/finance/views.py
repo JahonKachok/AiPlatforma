@@ -303,12 +303,17 @@ def _admin_expenses_context(request):
 @login_required
 def finance_home(request):
     tab = request.GET.get("tab", "dashboard")
-    context = {"tab": tab}
+    context = {"tab": tab, "can_manage_finance": _can_manage_finance(request.user)}
     if tab == "payroll":
         context.update(_payroll_context(request))
     elif tab == "cash_flow":
         context.update(_cash_flow_context(request))
     elif tab == "admin_expenses":
+        # Ma'muriy xarajatlar butun tashkilot bo'yicha, hech qanday loyihaga
+        # bog'lanmagan — ya'ni visible_projects_for() ularni cheklay olmaydi.
+        # Shuning uchun bu bo'limni faqat moliyaviy rollar ko'radi.
+        if not _can_manage_finance(request.user):
+            raise PermissionDenied
         context.update(_admin_expenses_context(request))
     else:
         tab = context["tab"] = "dashboard"

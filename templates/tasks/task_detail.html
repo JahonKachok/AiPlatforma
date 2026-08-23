@@ -55,7 +55,7 @@
       <ul class="mb-3 space-y-1 text-sm">
         {% for att in task.attachments.all %}
           <li class="flex items-center justify-between border-b border-gray-100 py-1 dark:border-gray-700">
-            <a href="{{ att.file.url }}" class="text-blue-600 hover:underline dark:text-blue-400">{{ att.filename }}</a>
+            <a href="{% url 'tasks:download_attachment' task.pk att.pk %}" class="text-blue-600 hover:underline dark:text-blue-400">{{ att.filename }}</a>
             {% if att.user_id == request.user.id %}
               <form method="post" action="{% url 'tasks:delete_attachment' task.pk att.pk %}">
                 {% csrf_token %}

@@ -8,11 +8,13 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordChangeView
+from django.core.cache import cache
 from django.db.models import ProtectedError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views import View
+from django.views.decorators.http import require_POST
 
 from apps.core.permissions import role_required
 
@@ -34,11 +36,47 @@ MANAGE_ROLES = (User.Role.ADMIN, User.Role.MANAGER)
 SESSION_2FA_USER_ID = "2fa_pending_user_id"
 
 
+# Login urinishlari uchun cheklov: bitta hisob uchun 15 daqiqada 8 ta xato
+# urinishdan keyin kirish vaqtincha bloklanadi (parol va TOTP kodini tanlab
+# topishga qarshi). Hisoblagich email bo'yicha yuritiladi — IP bo'yicha
+# yuritilganda proksi sarlavhasini soxtalashtirib chetlab o'tish mumkin edi.
+LOGIN_ATTEMPT_LIMIT = 8
+LOGIN_ATTEMPT_WINDOW = 15 * 60
+
+
 def _client_ip(request):
-    forwarded = request.META.get("HTTP_X_FORWARDED_FOR")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
+    """Jurnal uchun mijoz IP manzili.
+
+    ``X-Forwarded-For`` — mijozning o'zi yuboradigan, ya'ni soxtalashtirsa
+    bo'ladigan sarlavha. Bizning nginx ``X-Real-IP`` ni ``$remote_addr`` dan
+    qo'yadi, shuning uchun uni faqat proksi ortida ishlaganda ishonchli deb
+    qabul qilamiz.
+    """
+    if getattr(settings, "SECURE_PROXY_SSL_HEADER", None):
+        real_ip = request.META.get("HTTP_X_REAL_IP")
+        if real_ip:
+            return real_ip.strip()
     return request.META.get("REMOTE_ADDR")
+
+
+def _attempt_key(email):
+    return f"login-attempts:{email}"
+
+
+def _is_locked_out(email):
+    return cache.get(_attempt_key(email), 0) >= LOGIN_ATTEMPT_LIMIT
+
+
+def _record_failed_attempt(email):
+    key = _attempt_key(email)
+    try:
+        cache.incr(key)
+    except ValueError:
+        cache.set(key, 1, LOGIN_ATTEMPT_WINDOW)
+
+
+def _reset_attempts(email):
+    cache.delete(_attempt_key(email))
 
 
 def _log_login(request, user, status="success"):
@@ -63,8 +101,16 @@ class LoginView(View):
         if form.is_valid():
             email = form.cleaned_data["email"].lower()
             password = form.cleaned_data["password"]
+
+            if _is_locked_out(email):
+                messages.error(request, _(
+                    "Too many failed sign-in attempts. Please try again in a few minutes."
+                ))
+                return render(request, self.template_name, {"form": form})
+
             user = authenticate(request, username=email, password=password)
             if user is None:
+                _record_failed_attempt(email)
                 messages.error(request, _("Invalid email or password."))
                 try:
                     bad_user = User.objects.get(email=email)
@@ -74,9 +120,13 @@ class LoginView(View):
                 return render(request, self.template_name, {"form": form})
 
             if user.two_factor_enabled:
+                # Parol to'g'ri, lekin ikkinchi bosqich qoldi: sessiyaga faqat
+                # "kutilayotgan foydalanuvchi" yoziladi, login() esa TOTP kodi
+                # tasdiqlangandan keyingina chaqiriladi.
                 request.session[SESSION_2FA_USER_ID] = str(user.pk)
                 return redirect("accounts:2fa_challenge")
 
+            _reset_attempts(email)
             login(request, user)
             _log_login(request, user, status="success")
             return redirect(settings.LOGIN_REDIRECT_URL)
@@ -90,7 +140,11 @@ class TwoFactorChallengeView(View):
         user_id = request.session.get(SESSION_2FA_USER_ID)
         if not user_id:
             return None
-        return User.objects.filter(pk=user_id, two_factor_enabled=True).first()
+        # is_active ham tekshiriladi: parol bosqichi bilan TOTP bosqichi
+        # orasida hisob bloklangan bo'lsa, kirishga ruxsat berilmasin.
+        return User.objects.filter(
+            pk=user_id, two_factor_enabled=True, is_active=True
+        ).exclude(totp_secret__isnull=True).exclude(totp_secret="").first()
 
     def get(self, request):
         if not self._pending_user(request):
@@ -101,18 +155,28 @@ class TwoFactorChallengeView(View):
         user = self._pending_user(request)
         if not user:
             return redirect("accounts:login")
+        if _is_locked_out(user.email):
+            messages.error(request, _(
+                "Too many failed sign-in attempts. Please try again in a few minutes."
+            ))
+            return render(request, self.template_name, {"form": TOTPForm()})
+
         form = TOTPForm(request.POST)
         if form.is_valid():
             totp = pyotp.TOTP(user.totp_secret)
             if totp.verify(form.cleaned_data["code"], valid_window=1):
                 del request.session[SESSION_2FA_USER_ID]
+                _reset_attempts(user.email)
                 login(request, user)
                 _log_login(request, user, status="success")
                 return redirect(settings.LOGIN_REDIRECT_URL)
+            _record_failed_attempt(user.email)
+            _log_login(request, user, status="failed_2fa")
             messages.error(request, _("Invalid verification code."))
         return render(request, self.template_name, {"form": form})
 
 
+@require_POST
 def logout_view(request):
     logout(request)
     return redirect(settings.LOGOUT_REDIRECT_URL)
@@ -213,6 +277,9 @@ def two_factor_setup(request):
 
 @login_required
 def two_factor_disable(request):
+    if not request.user.two_factor_enabled or not request.user.totp_secret:
+        # Aks holda quyidagi pyotp.TOTP(None) 500 xatosi bilan tushib qolardi.
+        return redirect("accounts:profile")
     if request.method == "POST":
         form = TOTPForm(request.POST)
         if form.is_valid():

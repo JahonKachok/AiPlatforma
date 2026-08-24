@@ -3974,3 +3974,275 @@ msgstr "Подключение Telegram"
 
 #~ msgid "Save weights and progress"
 #~ msgstr "Сохранить веса и прогресс"
+
+#: .	emplatesinanceinance_home.html
+msgid "Company financial overview"
+msgstr "Обзор финансовых показателей компании"
+
+#: .	emplatesinanceinance_home.html
+msgid "Export report"
+msgstr "Экспорт отчёта"
+
+#: .	emplatesinanceinance_home.html
+msgid "Add operation"
+msgstr "Добавить операцию"
+
+#: .	emplatesinanceinance_home.html
+msgid "From"
+msgstr "С"
+
+#: .	emplatesinanceinance_home.html
+msgid "To"
+msgstr "По"
+
+#: .	emplatesinanceinance_home.html
+msgid "Income and expense dynamics"
+msgstr "Динамика доходов и расходов"
+
+#: .	emplatesinanceinance_home.html
+msgid "By days"
+msgstr "По дням"
+
+#: .	emplatesinanceinance_home.html
+msgid "By months"
+msgstr "По месяцам"
+
+#: .	emplatesinanceinance_home.html
+msgid "Financial summary by projects"
+msgstr "Финансовая сводка по проектам"
+
+#: .	emplatesinanceinance_home.html
+msgid "Income, expenses and the expected financial result"
+msgstr "Доходы, расходы и ожидаемый финансовый результат"
+
+#: .	emplatesinanceinance_home.html
+msgid "Show all projects"
+msgstr "Показать все проекты"
+
+#: .	emplatesinanceinance_home.html
+msgid "Show fewer projects"
+msgstr "Свернуть список"
+
+#: .	emplatesinanceinance_home.html
+msgid "No transactions for this period"
+msgstr "Нет операций за этот период"
+
+#: .	emplatesinanceinance_home.html
+msgid "Try widening the selected period."
+msgstr "Попробуйте расширить выбранный период."
+
+#: .	emplatesinanceinance_home.html
+msgid "Add the first income or expense to see the dynamics here."
+msgstr "Добавьте первый доход или расход, чтобы увидеть динамику."
+
+#: .	emplatesinanceinance_home.html
+msgid "Financial figures appear here once projects are created."
+msgstr "Финансовые показатели появятся здесь после создания проектов."
+
+#: .	emplatesinanceinance_home.html
+msgid "USD holdings"
+msgstr "Средства в USD"
+
+#: .	emplatesinanceinance_home.html
+msgid "In som at this rate"
+msgstr "В сумах по этому курсу"
+
+#: .	emplatesinanceinance_home.html
+msgid "Total holdings"
+msgstr "Всего средств"
+
+#: .	emplatesinanceinance_home.html
+msgid "bn"
+msgstr "млрд"
+
+#: .	emplatesinanceinance_home.html
+msgid "mn"
+msgstr "млн"
+
+#: .	emplatesinanceinance_home.html
+msgid "k"
+msgstr "тыс"
+
+#: .	emplatesinanceinance_home.html
+msgid "Managing employee accruals and payments"
+msgstr "Управление начислениями и выплатами сотрудникам"
+
+#: .	emplatesinanceinance_home.html
+msgid "Salary fund"
+msgstr "Фонд зарплат"
+
+#: .	emplatesinanceinance_home.html
+msgid "Assigned to employees"
+msgstr "Назначено сотрудникам"
+
+#: .	emplatesinanceinance_home.html
+msgid "Paid out"
+msgstr "Выплачено"
+
+#: .	emplatesinanceinance_home.html
+msgid "Actually paid"
+msgstr "Фактически выплачено"
+
+#: .	emplatesinanceinance_home.html
+msgid "To pay"
+msgstr "К выплате"
+
+#: .	emplatesinanceinance_home.html
+msgid "Outstanding balance"
+msgstr "Непогашенный остаток"
+
+#: .	emplatesinanceinance_home.html
+msgid "With salary records"
+msgstr "С зарплатными записями"
+
+#: .	emplatesinanceinance_home.html
+msgid "of the fund is paid out"
+msgstr "фонда выплачено"
+
+#: .	emplatesinanceinance_home.html
+msgid "Payments by period"
+msgstr "Выплаты по периодам"
+
+#: .	emplatesinanceinance_home.html
+msgid "Accrued"
+msgstr "Начислено"
+
+#: .	emplatesinanceinance_home.html
+msgid "Salary fund structure"
+msgstr "Структура фонда зарплат"
+
+#: .	emplatesinanceinance_home.html
+msgid "By employee department"
+msgstr "По подразделениям сотрудников"
+
+#: .	emplatesinanceinance_home.html
+msgid "Fund"
+msgstr "Фонд"
+
+#: .	emplatesinanceinance_home.html
+msgid "Accruals and payments"
+msgstr "Начисления и выплаты"
+
+#: .	emplatesinanceinance_home.html
+msgid "Assigned salaries, actual payments and outstanding balances"
+msgstr "Назначенные зарплаты, фактические выплаты и остатки"
+
+#: .	emplatesinanceinance_home.html
+msgid "No accruals"
+msgstr "Нет начислений"
+
+#: .	emplatesinanceinance_home.html
+msgid "There are no salary accruals for the selected period."
+msgstr "За выбранный период зарплатные начисления отсутствуют."
+
+#: .	emplatesinanceinance_home.html
+msgid "The structure appears once salaries are assigned."
+msgstr "Структура появится после назначения зарплат."
+
+#: .	emplatesinanceinance_home.html
+msgid "No data"
+msgstr "Нет данных"
+
+#: .	emplatesinanceinance_home.html
+msgid "Partial"
+msgstr "Частично"
+
+#: .	emplatesinanceinance_home.html
+msgid "Not paid"
+msgstr "Не выплачено"
+
+#: .	emplatesinanceinance_home.html
+msgid "Actions"
+msgstr "Действия"
+
+#: .	emplatesinanceinance_home.html
+msgid "Confirm the action"
+msgstr "Подтвердите действие"
+
+#: .	emplatesinanceinance_home.html
+msgid "Accrued is the salary assigned by this date; paid is the salary and advance records for the same projects."
+msgstr "«Начислено» — зарплаты, назначенные к этой дате. «Выплачено» — записи зарплат и авансов по тем же проектам."
+
+#: .	emplatesinanceinance_home.html
+msgid "Running totals by the salary assignment date: accrued is the assigned amount, paid is what has actually been paid against it."
+msgstr "Накопительные итоги по дате назначения зарплаты: «Начислено» — назначенная сумма, «Выплачено» — фактически выплаченная по ней."
+
+#: .	emplatesinanceinance_home.html
+msgid "Employees"
+msgstr "Сотрудники"
+
+#: .	emplatesinanceinance_home.html
+msgid "Fund completion"
+msgstr "Выполнено"
+
+#: .	emplatesinanceinance_home.html
+msgid "Delete the salary record for %(name)s?"
+msgstr "Удалить зарплатную запись для %(name)s?"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Payment currency"
+msgstr "Валюта оплаты"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "The currency the money actually leaves in. Salary balances stay in the contract currency."
+msgstr "Валюта, в которой фактически уходят деньги. Остатки по зарплате остаются в валюте договора."
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Uzbek som"
+msgstr "Узбекский сум"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "US dollar"
+msgstr "Доллар США"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Payment amount"
+msgstr "Сумма выплаты"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Remaining to pay"
+msgstr "Остаток к выплате"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Payment purpose"
+msgstr "Назначение платежа"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Optional note stored with the transaction."
+msgstr "Необязательная заметка, сохраняется вместе с операцией."
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Payment summary"
+msgstr "Итог к выплате"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Balance before"
+msgstr "К выплате до операции"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Balance after"
+msgstr "Остаток после выплаты"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Could not fetch the current USD exchange rate."
+msgstr "Не удалось получить текущий курс доллара."
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Available"
+msgstr "Доступно"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Entered"
+msgstr "Введено"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "This account is not held in the selected payment currency."
+msgstr "Этот счёт не ведётся в выбранной валюте оплаты."
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Exchange rate"
+msgstr "Курс"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "USD rate used at the moment of the operation."
+msgstr "Курс доллара, применённый в момент операции."

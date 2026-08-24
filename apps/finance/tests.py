@@ -81,6 +81,69 @@ class EmployeeContractPayTests(TestCase):
         self.assertEqual(self.contract.paid, 0)
         self.assertEqual(FinancialRecord.objects.filter(project=self.project).count(), 0)
 
+    def test_usd_payment_is_converted_into_the_contract_currency(self):
+        """A USD payout must move a UZS balance by the converted amount, not by
+        the raw figure typed in."""
+        settings_obj = FinanceSettings.get_solo()
+        settings_obj.usd_rate = 12700
+        settings_obj.save()
+        contract = EmployeeContract.objects.create(
+            user=self.employee, project=self.project, amount=25_000_000, currency="UZS",
+        )
+        self.client.force_login(self.admin)
+        self.client.post(reverse("finance:pay_employee_contract"), {
+            "employee_contract": contract.pk, "amount": 1000,
+            "payment_currency": "USD", "account": Account.USD_CASH,
+        })
+        contract.refresh_from_db()
+        self.assertEqual(contract.paid, 12_700_000)
+        self.assertEqual(contract.balance, 12_300_000)
+
+        record = FinancialRecord.objects.filter(project=self.project).latest("created_at")
+        self.assertEqual(record.amount, 1000)          # stored as entered
+        self.assertEqual(record.currency, "USD")
+        self.assertEqual(record.exchange_rate, 12700)  # rate kept for audit
+
+    def test_usd_overpayment_is_refused_after_conversion(self):
+        settings_obj = FinanceSettings.get_solo()
+        settings_obj.usd_rate = 12700
+        settings_obj.save()
+        contract = EmployeeContract.objects.create(
+            user=self.employee, project=self.project, amount=25_000_000, currency="UZS",
+        )
+        self.client.force_login(self.admin)
+        # 3000 USD = 38 100 000 UZS, over the 25 000 000 balance.
+        self.client.post(reverse("finance:pay_employee_contract"), {
+            "employee_contract": contract.pk, "amount": 3000,
+            "payment_currency": "USD", "account": Account.USD_CASH,
+        })
+        contract.refresh_from_db()
+        self.assertEqual(contract.paid, 0)
+
+    def test_currency_must_match_the_account(self):
+        contract = EmployeeContract.objects.create(
+            user=self.employee, project=self.project, amount=25_000_000, currency="UZS",
+        )
+        self.client.force_login(self.admin)
+        self.client.post(reverse("finance:pay_employee_contract"), {
+            "employee_contract": contract.pk, "amount": 100,
+            "payment_currency": "USD", "account": Account.UZS_BANK,
+        })
+        contract.refresh_from_db()
+        self.assertEqual(contract.paid, 0)
+
+    def test_uzs_payment_stores_no_exchange_rate(self):
+        """Same-currency payouts stay exactly as they were before the picker."""
+        self.client.force_login(self.admin)
+        self.client.post(reverse("finance:pay_employee_contract"), {
+            "employee_contract": self.contract.pk, "amount": 400,
+            "payment_currency": "UZS", "account": Account.UZS_BANK,
+        })
+        self.contract.refresh_from_db()
+        self.assertEqual(self.contract.paid, 400)
+        record = FinancialRecord.objects.filter(project=self.project).latest("created_at")
+        self.assertIsNone(record.exchange_rate)
+
 
 class ExchangeRateTests(TestCase):
     def setUp(self):

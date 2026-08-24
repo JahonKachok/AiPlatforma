@@ -74,6 +74,13 @@ class FinancialRecord(models.Model):
     )
     amount = models.FloatField(verbose_name=_("Amount"))
     currency = models.CharField(max_length=10, default="UZS", verbose_name=_("Currency"))
+    #: USD rate applied when this record's currency differs from the amount the
+    #: operation settled against. Null on records written before it was tracked
+    #: (and on same-currency ones), which are read as plain UZS.
+    exchange_rate = models.FloatField(
+        blank=True, null=True, verbose_name=_("Exchange rate"),
+        help_text=_("USD rate used at the moment of the operation."),
+    )
     description = models.CharField(max_length=500, blank=True, null=True, verbose_name=_("Description"))
     category = models.CharField(
         max_length=100, choices=RecordCategory.choices, blank=True, null=True, verbose_name=_("Category"),

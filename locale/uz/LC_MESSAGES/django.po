@@ -3974,3 +3974,275 @@ msgstr "Telegram'ni ulash"
 
 #~ msgid "Save weights and progress"
 #~ msgstr "Vaznlar va progressni saqlash"
+
+#: .	emplatesinanceinance_home.html
+msgid "Company financial overview"
+msgstr "Kompaniya moliyaviy ko'rsatkichlari sharhi"
+
+#: .	emplatesinanceinance_home.html
+msgid "Export report"
+msgstr "Hisobotni eksport qilish"
+
+#: .	emplatesinanceinance_home.html
+msgid "Add operation"
+msgstr "Amaliyot qo'shish"
+
+#: .	emplatesinanceinance_home.html
+msgid "From"
+msgstr "Dan"
+
+#: .	emplatesinanceinance_home.html
+msgid "To"
+msgstr "Gacha"
+
+#: .	emplatesinanceinance_home.html
+msgid "Income and expense dynamics"
+msgstr "Daromad va xarajatlar dinamikasi"
+
+#: .	emplatesinanceinance_home.html
+msgid "By days"
+msgstr "Kunlar bo'yicha"
+
+#: .	emplatesinanceinance_home.html
+msgid "By months"
+msgstr "Oylar bo'yicha"
+
+#: .	emplatesinanceinance_home.html
+msgid "Financial summary by projects"
+msgstr "Loyihalar bo'yicha moliyaviy hisobot"
+
+#: .	emplatesinanceinance_home.html
+msgid "Income, expenses and the expected financial result"
+msgstr "Daromad, xarajat va kutilayotgan moliyaviy natija"
+
+#: .	emplatesinanceinance_home.html
+msgid "Show all projects"
+msgstr "Barcha loyihalarni ko'rsatish"
+
+#: .	emplatesinanceinance_home.html
+msgid "Show fewer projects"
+msgstr "Ro'yxatni yig'ish"
+
+#: .	emplatesinanceinance_home.html
+msgid "No transactions for this period"
+msgstr "Bu davr uchun amaliyotlar yo'q"
+
+#: .	emplatesinanceinance_home.html
+msgid "Try widening the selected period."
+msgstr "Tanlangan davrni kengaytirib ko'ring."
+
+#: .	emplatesinanceinance_home.html
+msgid "Add the first income or expense to see the dynamics here."
+msgstr "Dinamikani ko'rish uchun birinchi daromad yoki xarajatni qo'shing."
+
+#: .	emplatesinanceinance_home.html
+msgid "Financial figures appear here once projects are created."
+msgstr "Loyihalar yaratilgach, moliyaviy ko'rsatkichlar shu yerda paydo bo'ladi."
+
+#: .	emplatesinanceinance_home.html
+msgid "USD holdings"
+msgstr "USD mablag'lar"
+
+#: .	emplatesinanceinance_home.html
+msgid "In som at this rate"
+msgstr "Shu kurs bo'yicha so'mda"
+
+#: .	emplatesinanceinance_home.html
+msgid "Total holdings"
+msgstr "Jami mablag'lar"
+
+#: .	emplatesinanceinance_home.html
+msgid "bn"
+msgstr "mlrd"
+
+#: .	emplatesinanceinance_home.html
+msgid "mn"
+msgstr "mln"
+
+#: .	emplatesinanceinance_home.html
+msgid "k"
+msgstr "ming"
+
+#: .	emplatesinanceinance_home.html
+msgid "Managing employee accruals and payments"
+msgstr "Xodimlarga hisoblash va to'lovlarni boshqarish"
+
+#: .	emplatesinanceinance_home.html
+msgid "Salary fund"
+msgstr "Ish haqi fondi"
+
+#: .	emplatesinanceinance_home.html
+msgid "Assigned to employees"
+msgstr "Xodimlarga tayinlangan"
+
+#: .	emplatesinanceinance_home.html
+msgid "Paid out"
+msgstr "To'langan"
+
+#: .	emplatesinanceinance_home.html
+msgid "Actually paid"
+msgstr "Amalda to'langan"
+
+#: .	emplatesinanceinance_home.html
+msgid "To pay"
+msgstr "To'lanishi kerak"
+
+#: .	emplatesinanceinance_home.html
+msgid "Outstanding balance"
+msgstr "Qoldiq summa"
+
+#: .	emplatesinanceinance_home.html
+msgid "With salary records"
+msgstr "Ish haqi yozuvlari bilan"
+
+#: .	emplatesinanceinance_home.html
+msgid "of the fund is paid out"
+msgstr "fond to'langan"
+
+#: .	emplatesinanceinance_home.html
+msgid "Payments by period"
+msgstr "Davrlar bo'yicha to'lovlar"
+
+#: .	emplatesinanceinance_home.html
+msgid "Accrued"
+msgstr "Hisoblangan"
+
+#: .	emplatesinanceinance_home.html
+msgid "Salary fund structure"
+msgstr "Ish haqi fondi tuzilmasi"
+
+#: .	emplatesinanceinance_home.html
+msgid "By employee department"
+msgstr "Xodimlar bo'limlari bo'yicha"
+
+#: .	emplatesinanceinance_home.html
+msgid "Fund"
+msgstr "Fond"
+
+#: .	emplatesinanceinance_home.html
+msgid "Accruals and payments"
+msgstr "Hisoblashlar va to'lovlar"
+
+#: .	emplatesinanceinance_home.html
+msgid "Assigned salaries, actual payments and outstanding balances"
+msgstr "Tayinlangan ish haqi, amaldagi to'lovlar va qoldiqlar"
+
+#: .	emplatesinanceinance_home.html
+msgid "No accruals"
+msgstr "Hisoblashlar yo'q"
+
+#: .	emplatesinanceinance_home.html
+msgid "There are no salary accruals for the selected period."
+msgstr "Tanlangan davr uchun ish haqi hisoblashlari yo'q."
+
+#: .	emplatesinanceinance_home.html
+msgid "The structure appears once salaries are assigned."
+msgstr "Ish haqi tayinlangach tuzilma paydo bo'ladi."
+
+#: .	emplatesinanceinance_home.html
+msgid "No data"
+msgstr "Ma'lumot yo'q"
+
+#: .	emplatesinanceinance_home.html
+msgid "Partial"
+msgstr "Qisman"
+
+#: .	emplatesinanceinance_home.html
+msgid "Not paid"
+msgstr "To'lanmagan"
+
+#: .	emplatesinanceinance_home.html
+msgid "Actions"
+msgstr "Amallar"
+
+#: .	emplatesinanceinance_home.html
+msgid "Confirm the action"
+msgstr "Amalni tasdiqlang"
+
+#: .	emplatesinanceinance_home.html
+msgid "Accrued is the salary assigned by this date; paid is the salary and advance records for the same projects."
+msgstr "«Hisoblangan» — shu sanaga tayinlangan ish haqi. «To'langan» — shu loyihalar bo'yicha ish haqi va avans yozuvlari."
+
+#: .	emplatesinanceinance_home.html
+msgid "Running totals by the salary assignment date: accrued is the assigned amount, paid is what has actually been paid against it."
+msgstr "Ish haqi tayinlangan sana bo'yicha jamlanma: «Hisoblangan» — tayinlangan summa, «To'langan» — unga qarshi amalda to'langani."
+
+#: .	emplatesinanceinance_home.html
+msgid "Employees"
+msgstr "Xodimlar"
+
+#: .	emplatesinanceinance_home.html
+msgid "Fund completion"
+msgstr "Bajarilgan"
+
+#: .	emplatesinanceinance_home.html
+msgid "Delete the salary record for %(name)s?"
+msgstr "%(name)s uchun ish haqi yozuvini o'chirilsinmi?"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Payment currency"
+msgstr "To'lov valyutasi"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "The currency the money actually leaves in. Salary balances stay in the contract currency."
+msgstr "Pul amalda qaysi valyutada chiqadi. Ish haqi qoldiqlari shartnoma valyutasida qoladi."
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Uzbek som"
+msgstr "O'zbek so'mi"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "US dollar"
+msgstr "AQSH dollari"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Payment amount"
+msgstr "To'lov summasi"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Remaining to pay"
+msgstr "To'lanishi kerak qoldiq"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Payment purpose"
+msgstr "To'lov maqsadi"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Optional note stored with the transaction."
+msgstr "Ixtiyoriy izoh, amaliyot bilan birga saqlanadi."
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Payment summary"
+msgstr "To'lov yakuni"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Balance before"
+msgstr "Amaliyotgacha qoldiq"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Balance after"
+msgstr "To'lovdan keyingi qoldiq"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Could not fetch the current USD exchange rate."
+msgstr "Joriy dollar kursini olishning iloji bo'lmadi."
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Available"
+msgstr "Mavjud"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Entered"
+msgstr "Kiritilgan"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "This account is not held in the selected payment currency."
+msgstr "Bu hisob tanlangan to'lov valyutasida yuritilmaydi."
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "Exchange rate"
+msgstr "Kurs"
+
+#: .	emplatesinance\_employee_contract_pay_modal.html
+msgid "USD rate used at the moment of the operation."
+msgstr "Amaliyot paytida qo'llangan dollar kursi."

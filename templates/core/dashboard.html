@@ -1,130 +1,291 @@
 {% extends "base.html" %}
-{% load i18n core_extras project_extras task_extras %}
+{% load i18n static core_extras dashboard_extras project_extras task_extras %}
 {% block title %}{% trans "Dashboard" %}{% endblock %}
 {% block page_title %}{% trans "Dashboard" %}{% endblock %}
 {% block page_help %}{% trans "An overview of every project, task, and notification — the current state of the system at a glance." as help_text %}{% with text=help_text %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
-{% block page_subtitle %}{% blocktrans with name=user.get_short_name %}Welcome back, {{ name }}{% endblocktrans %}{% endblock %}
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=1">
+{% endblock %}
 {% block content %}
-<div class="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-  <a href="{% url 'projects:list' %}?status=active" class="card ap-stat">
-    <span class="ap-stat-icon">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-    </span>
-    <div>
-      <p class="ap-stat-label">{% trans "Active projects" %}</p>
-      <p class="ap-stat-value">{{ active_projects_count }}</p>
-    </div>
-  </a>
-  <a href="{% url 'tasks:board' %}" class="card ap-stat">
-    <span class="ap-stat-icon is-blue">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-    </span>
-    <div>
-      <p class="ap-stat-label">{% trans "Tasks in progress" %}</p>
-      <p class="ap-stat-value">{{ in_progress_tasks_count }}</p>
-    </div>
-  </a>
-  <a href="{% url 'documents:approvals' %}" class="card ap-stat">
-    <span class="ap-stat-icon is-amber">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-    </span>
-    <div>
-      <p class="ap-stat-label">{% trans "Pending approvals" %}</p>
-      <p class="ap-stat-value">{{ pending_approvals_count }}</p>
-    </div>
-  </a>
-  <a href="{% url 'tasks:board' %}?view=list" class="card ap-stat">
-    <span class="ap-stat-icon is-red">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-    </span>
-    <div>
-      <p class="ap-stat-label">{% trans "Overdue tasks" %}</p>
-      <p class="ap-stat-value text-red-500">{{ overdue_tasks_count }}</p>
-    </div>
-  </a>
-</div>
+{# Cloned by JS when a project thumbnail fails to load. #}
+<template id="dsh-thumb-placeholder">
+  <div class="dsh-thumb-placeholder" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/>
+    </svg>
+  </div>
+</template>
 
-<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-  <div class="card p-4 lg:col-span-2">
-    <div class="mb-3 flex items-center justify-between">
-      <h2 class="font-semibold">{% trans "Active projects" %}</h2>
-      <a href="{% url 'projects:list' %}" class="text-sm text-blue-600 hover:underline dark:text-blue-400">{% trans "View all" %}</a>
+<div class="dsh-scope">
+
+  {# ================================ Hero ================================ #}
+  <div class="dsh-hero dsh-reveal" data-dsh-order="0">
+    <div>
+      <p class="dsh-hero-title">
+        {% blocktrans with name=user.get_short_name %}Welcome back, {{ name }}{% endblocktrans %} 👋
+      </p>
+      <p class="dsh-hero-sub">{% trans "Here is what is happening in your projects today." %}</p>
     </div>
-    <div class="space-y-3">
-      {% for project in recent_projects %}
-        <a href="{% url 'projects:detail' project.pk %}" class="block border-b border-gray-100 pb-2 dark:border-gray-700">
-          <div class="mb-1 flex items-center justify-between text-sm">
-            <span>{{ project.name }}</span>
-            <span class="{{ project.status|project_status_badge }}">{{ project.get_status_display }}</span>
+    <div class="dsh-hero-actions">
+      <a href="{% url 'reports:dashboard' %}" class="btn btn-secondary btn-sm">
+        <svg class="dsh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/>
+        </svg>
+        {% trans "Reports" %}
+      </a>
+      <a href="{% url 'reports:export' 'projects' %}" class="btn btn-primary btn-sm">
+        <svg class="dsh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>
+        </svg>
+        {% trans "Export report" %}
+      </a>
+    </div>
+  </div>
+
+  {# ============================== KPI cards ============================== #}
+  <div class="dsh-kpis">
+    {% for kpi in kpi_cards %}
+      <a href="{{ kpi.url }}" class="dsh-kpi dsh-reveal" data-tone="{{ kpi.tone }}" data-dsh-order="{{ forloop.counter }}">
+        <div class="dsh-kpi-top">
+          <div>
+            <p class="dsh-kpi-label">{{ kpi.label }}</p>
+            <p class="dsh-kpi-value" data-dsh-count="{{ kpi.value }}">{{ kpi.value }}</p>
           </div>
-          <div class="ap-progress">
-            <div data-bar-to="{{ project.paid_percentage }}"></div>
+          <span class="dsh-kpi-icon" aria-hidden="true">
+            {% if kpi.key == 'projects' %}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/>
+              </svg>
+            {% elif kpi.key == 'tasks' %}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
+              </svg>
+            {% elif kpi.key == 'approvals' %}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="m9 15 2 2 4-4"/>
+              </svg>
+            {% else %}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
+              </svg>
+            {% endif %}
+          </span>
+        </div>
+        <p class="dsh-kpi-hint">{{ kpi.hint }}</p>
+        {% with points=kpi.spark|sparkline_points %}
+          {% if points %}
+            <svg class="dsh-kpi-spark" viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true">
+              <polyline points="{{ points }}"/>
+            </svg>
+          {% endif %}
+        {% endwith %}
+      </a>
+    {% endfor %}
+  </div>
+
+  {# ============================== Main grid ============================== #}
+  <div class="dsh-grid">
+
+    {# ---------------------------- Left column ---------------------------- #}
+    <div style="display: flex; flex-direction: column; gap: 1.125rem; min-width: 0;">
+
+      <section class="dsh-card dsh-reveal" data-dsh-order="5">
+        <div class="dsh-card-head">
+          <h2 class="dsh-card-title">{% trans "Active projects" %}</h2>
+          <a href="{% url 'projects:list' %}" class="dsh-link">{% trans "View all" %} →</a>
+        </div>
+        <div class="dsh-card-body">
+          <div class="dsh-projects">
+            {% for project in recent_projects %}
+              <a href="{% url 'projects:detail' project.pk %}" class="dsh-project">
+                <span class="dsh-thumb">
+                  {% if project.image %}
+                    <img src="{{ project.image.url }}" alt="" loading="lazy" decoding="async">
+                  {% else %}
+                    <span class="dsh-thumb-placeholder" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/>
+                      </svg>
+                    </span>
+                  {% endif %}
+                </span>
+
+                <span class="dsh-project-main">
+                  <span class="dsh-project-title">{{ project.name }}</span>
+                  <span class="dsh-project-sub">{{ project.get_stage_display }}{% if project.client_name %} · {{ project.client_name }}{% endif %}</span>
+                  <span class="dsh-project-meta">
+                    <span class="dsh-bar"><span data-dsh-bar="{{ project.paid_percentage }}"></span></span>
+                    <span class="dsh-budget">{{ project.paid_amount|millions }} / {{ project.budget|millions }} {% trans "mln" %}</span>
+                  </span>
+                </span>
+
+                <span class="dsh-project-side">
+                  <span class="dsh-chip" data-status="{{ project.status }}">
+                    {% if project.is_overdue %}{% trans "Overdue" %}{% else %}{{ project.get_status_display }}{% endif %}
+                  </span>
+                  {% if project.progress_value is not None %}
+                    <span class="dsh-ring" data-dsh-ring="{{ project.progress_value }}"
+                          role="img" aria-label="{% blocktrans with n=project.progress_value %}Progress {{ n }}%{% endblocktrans %}">
+                      <span>{{ project.progress_value }}%</span>
+                    </span>
+                  {% else %}
+                    <span class="dsh-ring is-empty" role="img" aria-label="{% trans 'No progress data' %}"><span>—</span></span>
+                  {% endif %}
+                </span>
+              </a>
+            {% empty %}
+              <div class="dsh-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/>
+                </svg>
+                <p>{% trans "No active projects." %}</p>
+                <p class="dsh-empty-hint">{% trans "Projects you are a member of will show up here." %}</p>
+              </div>
+            {% endfor %}
           </div>
-        </a>
-      {% empty %}<p class="text-sm text-gray-500 dark:text-gray-400">{% trans "No projects yet." %}</p>{% endfor %}
-    </div>
-  </div>
+        </div>
+      </section>
 
-  <div class="card p-4">
-    <div class="mb-3 flex items-center justify-between">
-      <h2 class="font-semibold">{% trans "Team" %}</h2>
-      <a href="{% url 'accounts:user_list' %}" class="text-sm text-blue-600 hover:underline dark:text-blue-400">{% trans "View all" %}</a>
-    </div>
-    <ul class="space-y-2 text-sm">
-      {% for member in team %}
-        <li class="flex items-center gap-2">
-          {% if member.avatar %}<img src="{{ member.avatar.url }}" alt="" class="ap-avatar-img h-7 w-7">{% else %}<span class="flex h-7 w-7 items-center justify-center rounded-full text-xs text-white" style="background-color: {{ member.full_name|avatar_color }};">{{ member.full_name|initials }}</span>{% endif %}
-          <span>{{ member.get_short_name }}</span>
-          <span class="text-xs text-gray-400">{{ member.department|default:"" }}</span>
-        </li>
-      {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No team members yet." %}</li>{% endfor %}
-    </ul>
-  </div>
+      {% if ai_report %}
+        <section class="dsh-ai dsh-reveal" data-dsh-order="7">
+          <svg class="dsh-ai-orbits" viewBox="0 0 200 200" aria-hidden="true">
+            <circle cx="100" cy="100" r="46"/>
+            <circle cx="100" cy="100" r="68"/>
+            <circle cx="100" cy="100" r="90"/>
+            <circle class="dsh-orbit-dot" cx="146" cy="100" r="2.5"/>
+            <circle class="dsh-orbit-dot" cx="100" cy="32" r="2"/>
+            <circle class="dsh-orbit-dot" cx="47" cy="139" r="1.8"/>
+          </svg>
+          <div class="dsh-card-head">
+            <h2 class="dsh-card-title">
+              <span class="dsh-ai-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 3v4"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/>
+                </svg>
+              </span>
+              {% trans "AI: deadline control report" %}
+              {% if ai_report_is_new %}<span class="dsh-badge-new">{% trans "New" %}</span>{% endif %}
+            </h2>
+            <span class="dsh-link" style="color: var(--dsh-faint);">{{ ai_report.created_at|date:"d.m.Y H:i" }}</span>
+          </div>
+          <div class="dsh-card-body">
+            <p class="dsh-ai-text">{{ ai_report.response }}</p>
+          </div>
+          <div class="dsh-ai-foot">
+            <a href="{% url 'ai_agents:dashboard' %}" class="btn btn-secondary btn-sm">{% trans "Open the full report" %} →</a>
+          </div>
+        </section>
+      {% endif %}
 
-  {% if ai_report %}
-  <div class="card p-4 lg:col-span-2" style="border-left: 4px solid var(--ap-primary);">
-    <div class="mb-3 flex items-center justify-between">
-      <h2 class="font-semibold">🤖 {% trans "AI: deadline control report" %}</h2>
-      <span class="text-xs text-gray-500 dark:text-gray-400">{{ ai_report.created_at|date:"d.m.Y H:i" }}</span>
+      <section class="dsh-card dsh-reveal" data-dsh-order="8">
+        <div class="dsh-card-head">
+          <h2 class="dsh-card-title">{% trans "Recent tasks" %}</h2>
+          <a href="{% url 'tasks:board' %}" class="dsh-link">{% trans "View all" %} →</a>
+        </div>
+        <div class="dsh-card-body">
+          <div class="dsh-tasks">
+            {% for task in recent_tasks %}
+              <a href="{% url 'tasks:detail' task.pk %}" class="dsh-task">
+                <span class="dsh-task-title">{{ task.title }}</span>
+                <span class="dsh-task-side">
+                  {% if task.is_overdue %}<span class="dsh-chip" data-status="cancelled">{% trans "overdue" %}</span>{% endif %}
+                  <span class="{{ task.status|task_status_badge }}">{{ task.get_status_display }}</span>
+                </span>
+              </a>
+            {% empty %}
+              <div class="dsh-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/>
+                </svg>
+                <p>{% trans "No tasks yet." %}</p>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
     </div>
-    <pre class="ap-clamp-6 mb-2 whitespace-pre-wrap font-sans text-sm">{{ ai_report.response }}</pre>
-    <a href="{% url 'ai_agents:dashboard' %}" class="text-sm text-blue-600 hover:underline dark:text-blue-400">{% trans "AI panel" %} →</a>
-  </div>
-  {% endif %}
 
-  <div class="card p-4 {% if not ai_report %}lg:col-span-3{% endif %}">
-    <div class="mb-3 flex items-center justify-between">
-      <h2 class="font-semibold">{% trans "Recent activity" %}</h2>
-    </div>
-    <ul class="space-y-2 text-sm">
-      {% for entry in recent_activity %}
-        <li class="flex items-center justify-between gap-2 border-b border-gray-100 py-1 dark:border-gray-700">
-          <span class="truncate">
-            <b>{{ entry.user.get_short_name|default:"—" }}</b>
-            <span class="text-gray-500 dark:text-gray-400">{{ entry.action }}</span>
-          </span>
-          <span class="shrink-0 text-xs text-gray-400">{{ entry.created_at|date:"d.m H:i" }}</span>
-        </li>
-      {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No activity yet." %}</li>{% endfor %}
-    </ul>
-  </div>
+    {# ---------------------------- Right column ---------------------------- #}
+    <div style="display: flex; flex-direction: column; gap: 1.125rem; min-width: 0;">
 
-  <div class="card p-4 lg:col-span-3">
-    <div class="mb-3 flex items-center justify-between">
-      <h2 class="font-semibold">{% trans "Recent tasks" %}</h2>
-      <a href="{% url 'tasks:board' %}" class="text-sm text-blue-600 hover:underline dark:text-blue-400">{% trans "View all" %}</a>
+      <section class="dsh-card dsh-reveal" data-dsh-order="6">
+        <div class="dsh-card-head">
+          <h2 class="dsh-card-title">{% trans "Team" %}</h2>
+          <a href="{% url 'accounts:user_list' %}" class="dsh-link">{% trans "View all" %} →</a>
+        </div>
+        <div class="dsh-card-body">
+          <div class="dsh-team">
+            {% for member in team %}
+              <div class="dsh-member">
+                {% if member.avatar %}
+                  <img class="dsh-avatar" src="{{ member.avatar.url }}" alt="" loading="lazy">
+                {% else %}
+                  <span class="dsh-avatar" style="background-color: {{ member.full_name|avatar_color }};">{{ member.full_name|initials }}</span>
+                {% endif %}
+                <span style="min-width: 0;">
+                  <span class="dsh-member-name" style="display: block;">{{ member.get_short_name }}</span>
+                  <span class="dsh-member-role" style="display: block;">
+                    {% for discipline in member.disciplines.all %}{{ discipline.name }}{% if not forloop.last %}, {% endif %}{% empty %}{{ member.get_role_display }}{% endfor %}
+                  </span>
+                </span>
+              </div>
+            {% empty %}
+              <div class="dsh-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                </svg>
+                <p>{% trans "No team members yet." %}</p>
+                <p class="dsh-empty-hint">{% trans "Colleagues on your projects will appear here." %}</p>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+
+      <section class="dsh-card dsh-reveal" data-dsh-order="9">
+        <div class="dsh-card-head">
+          <h2 class="dsh-card-title">{% trans "Recent activity" %}</h2>
+        </div>
+        <div class="dsh-card-body">
+          <div class="dsh-activity">
+            {% for entry in recent_activity %}
+              <div class="dsh-act" data-tone="{{ entry.action|activity_tone }}">
+                <span class="dsh-act-dot" aria-hidden="true">
+                  {% if entry.action == 'deleted' %}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>
+                  {% elif entry.action == 'created' or entry.action == 'uploaded' or entry.action == 'new_version' %}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                  {% elif entry.action == 'status_changed' %}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 6h18"/><path d="M7 22l-4-4 4-4"/><path d="M21 18H3"/></svg>
+                  {% elif entry.action == 'generate_from_template' %}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 1.9 4.6 4.6 1.9-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/></svg>
+                  {% else %}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+                  {% endif %}
+                </span>
+                <span class="dsh-act-body">
+                  <span class="dsh-act-text">
+                    <b>{{ entry.user.get_short_name|default:_("System") }}</b>
+                    <span>{{ entry.action|activity_label }}</span>
+                  </span>
+                  <span class="dsh-act-time">{{ entry.created_at|date:"d.m H:i" }}</span>
+                </span>
+              </div>
+            {% empty %}
+              <div class="dsh-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
+                </svg>
+                <p>{% trans "No activity yet." %}</p>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
     </div>
-    <ul class="space-y-2 text-sm">
-      {% for task in recent_tasks %}
-        <li class="flex items-center justify-between border-b border-gray-100 py-1 dark:border-gray-700">
-          <a href="{% url 'tasks:detail' task.pk %}" class="hover:underline">{{ task.title }}</a>
-          <span class="flex items-center gap-2">
-            <span class="{{ task.status|task_status_badge }}">{{ task.get_status_display }}</span>
-            {% if task.is_overdue %}<span class="text-xs text-red-500">{% trans "overdue" %}</span>{% endif %}
-          </span>
-        </li>
-      {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No tasks yet." %}</li>{% endfor %}
-    </ul>
   </div>
 </div>
+{% endblock %}
+{% block extra_scripts %}
+  <script src="{% static 'js/dashboard.js' %}" defer></script>
 {% endblock %}

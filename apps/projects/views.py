@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
-from django.db.models import Prefetch, Q
+from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -27,6 +27,7 @@ from .forms import (
 )
 from .models import Project, ProjectMember, SubObject, SubObjectDiscipline
 from .permissions import can_create_project, can_edit_project, visible_projects_for
+from .queries import attach_card_fields, card_queryset
 from .services import ensure_discipline_task
 from .uz_regions import REGION_CENTERS
 
@@ -140,20 +141,9 @@ def project_list(request):
             Q(name__icontains=search) | Q(client_name__icontains=search)
         )
 
-    # Kartochkalarga a'zolar avatari va progress kerak. Progress SubObject
-    # zanjiri bo'ylab hisoblanadi, shuning uchun ildiz obyektlarni ichki
-    # bog'lanishlari bilan oldindan yuklaymiz — aks holda har bir loyiha
-    # uchun o'nlab qo'shimcha so'rov ketardi.
-    projects = projects.select_related("created_by").prefetch_related(
-        "members__user",
-        Prefetch(
-            "sub_objects",
-            queryset=SubObject.objects.filter(parent__isnull=True).prefetch_related(
-                "pod_objects__disciplines", "disciplines",
-            ),
-            to_attr="root_sub_objects",
-        ),
-    )
+    # Kartochka uchun kerakli hamma narsa (rasm, progress, a'zolar) —
+    # dashboard bilan umumiy yordamchi orqali, bitta progress algoritmi bilan.
+    projects = card_queryset(projects)
 
     view_mode = "list" if request.GET.get("view") == "list" else "grid"
 
@@ -161,16 +151,7 @@ def project_list(request):
     page_obj = paginator.get_page(request.GET.get("page"))
 
     today = date.today()
-    for project in page_obj:
-        values = [so.progress for so in project.root_sub_objects if so.progress is not None]
-        project.progress_value = round(sum(values) / len(values)) if values else None
-        members = list(project.members.all())
-        project.member_avatars = members[:3]
-        project.member_overflow = max(0, len(members) - 3)
-        project.is_overdue = bool(
-            project.deadline and project.deadline < today
-            and project.status == Project.Status.ACTIVE
-        )
+    attach_card_fields(page_obj, today=today)
 
     total = visible.count()
     active = visible.filter(status=Project.Status.ACTIVE).count()

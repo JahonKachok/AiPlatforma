@@ -5,6 +5,10 @@ from django.core.validators import MaxValueValidator, RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from apps.core.validators import (
+    PROJECT_IMAGE_EXTENSIONS, AllowedExtensionsValidator, MaxFileSizeValidator,
+)
+
 from .uz_regions import REGION_CHOICES
 
 stir_validator = RegexValidator(r"^\d+$", _("STIR must contain digits only."))
@@ -48,6 +52,11 @@ class Project(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, verbose_name=_("Project name"))
     description = models.CharField(max_length=2000, blank=True, null=True, verbose_name=_("Description"))
+    image = models.ImageField(
+        upload_to="projects/%Y/%m/", blank=True, null=True, verbose_name=_("Project image"),
+        validators=[MaxFileSizeValidator(8), AllowedExtensionsValidator(PROJECT_IMAGE_EXTENSIONS)],
+        help_text=_("Cover photo or render shown on the project card."),
+    )
     client_name = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Customer"))
     client_contact = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Client contact"))
     client_type = models.CharField(

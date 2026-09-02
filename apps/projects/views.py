@@ -1,11 +1,12 @@
 import io
 import zipfile
-from datetime import date
+from datetime import date, timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
+from django.db.models import Prefetch, Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -114,6 +115,11 @@ TRACKED_FIELDS = [
 ]
 
 
+def _pct(part, whole):
+    """Ulush foizi — KPI kartochkalaridagi kichik ko'rsatkich uchun."""
+    return round(part / whole * 100) if whole else 0
+
+
 @login_required
 def project_list(request):
     visible = visible_projects_for(request.user)
@@ -122,32 +128,77 @@ def project_list(request):
     status = request.GET.get("status")
     if status:
         projects = projects.filter(status=status)
+    # "Kategoriya" — loyihaning bosqichi (Konsepsiya, Ishchi hujjatlar, ...).
+    # Modelda mavjud yagona kategoriya o'qi shu, yangi maydon o'ylab
+    # topilmadi (kartochka pastida ham aynan shu ko'rsatiladi).
+    stage = request.GET.get("stage")
+    if stage:
+        projects = projects.filter(stage=stage)
     search = request.GET.get("search")
     if search:
-        projects = projects.filter(name__icontains=search)
+        projects = projects.filter(
+            Q(name__icontains=search) | Q(client_name__icontains=search)
+        )
+
+    # Kartochkalarga a'zolar avatari va progress kerak. Progress SubObject
+    # zanjiri bo'ylab hisoblanadi, shuning uchun ildiz obyektlarni ichki
+    # bog'lanishlari bilan oldindan yuklaymiz — aks holda har bir loyiha
+    # uchun o'nlab qo'shimcha so'rov ketardi.
+    projects = projects.select_related("created_by").prefetch_related(
+        "members__user",
+        Prefetch(
+            "sub_objects",
+            queryset=SubObject.objects.filter(parent__isnull=True).prefetch_related(
+                "pod_objects__disciplines", "disciplines",
+            ),
+            to_attr="root_sub_objects",
+        ),
+    )
+
+    view_mode = "list" if request.GET.get("view") == "list" else "grid"
 
     paginator = Paginator(projects, 12)
     page_obj = paginator.get_page(request.GET.get("page"))
 
     today = date.today()
-    stat_cards = [
-        {"label": _("Total"), "value": visible.count()},
-        {"label": _("Active"), "value": visible.filter(status=Project.Status.ACTIVE).count(),
-         "color": "text-blue-600 dark:text-blue-400"},
-        {"label": _("Completed"), "value": visible.filter(status=Project.Status.COMPLETED).count(),
-         "color": "text-green-600 dark:text-green-400"},
-        {"label": _("Deadline passed"), "value": visible.filter(
-            status=Project.Status.ACTIVE, deadline__lt=today).count(),
-         "color": "text-red-600 dark:text-red-400"},
+    for project in page_obj:
+        values = [so.progress for so in project.root_sub_objects if so.progress is not None]
+        project.progress_value = round(sum(values) / len(values)) if values else None
+        members = list(project.members.all())
+        project.member_avatars = members[:3]
+        project.member_overflow = max(0, len(members) - 3)
+        project.is_overdue = bool(
+            project.deadline and project.deadline < today
+            and project.status == Project.Status.ACTIVE
+        )
+
+    total = visible.count()
+    active = visible.filter(status=Project.Status.ACTIVE).count()
+    completed = visible.filter(status=Project.Status.COMPLETED).count()
+    overdue = visible.filter(status=Project.Status.ACTIVE, deadline__lt=today).count()
+    recent = visible.filter(created_at__date__gte=today - timedelta(days=30)).count()
+
+    kpi_cards = [
+        {"key": "total", "tone": "blue", "label": _("Total projects"), "value": total,
+         "hint": _("%(n)s new in 30 days") % {"n": recent}},
+        {"key": "active", "tone": "green", "label": _("Active"), "value": active,
+         "hint": _("%(n)s%% of all") % {"n": _pct(active, total)}},
+        {"key": "completed", "tone": "purple", "label": _("Completed"), "value": completed,
+         "hint": _("%(n)s%% of all") % {"n": _pct(completed, total)}},
+        {"key": "overdue", "tone": "amber", "label": _("Deadline passed"), "value": overdue,
+         "hint": _("%(n)s%% of active") % {"n": _pct(overdue, active)}},
     ]
 
     return render(request, "projects/project_list.html", {
         "page_obj": page_obj,
         "status": status or "",
+        "stage": stage or "",
         "search": search or "",
+        "view_mode": view_mode,
         "statuses": Project.Status.choices,
+        "stages": Project.Stage.choices,
         "can_create": can_create_project(request.user),
-        "stat_cards": stat_cards,
+        "kpi_cards": kpi_cards,
     })
 
 
@@ -156,7 +207,7 @@ def project_create(request):
     if not can_create_project(request.user):
         raise PermissionDenied
     if request.method == "POST":
-        form = ProjectForm(request.POST)
+        form = ProjectForm(request.POST, request.FILES)
         if form.is_valid():
             project = form.save(commit=False)
             project.created_by = request.user
@@ -284,7 +335,7 @@ def project_update(request, pk):
 
     before = {f: getattr(project, f) for f in TRACKED_FIELDS}
     if request.method == "POST":
-        form = ProjectForm(request.POST, instance=project)
+        form = ProjectForm(request.POST, request.FILES, instance=project)
         if form.is_valid():
             project = form.save()
             after = {f: getattr(project, f) for f in TRACKED_FIELDS}

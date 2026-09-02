@@ -20,7 +20,7 @@ class ProjectForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = Project
         fields = [
-            "name", "description", "client_name", "client_contact",
+            "name", "image", "description", "client_name", "client_contact",
             "construction_type",
             "construction_area", "construction_volume",
             "region", "district", "address", "latitude", "longitude",
@@ -37,6 +37,7 @@ class ProjectForm(StyledFormMixin, forms.ModelForm):
         }
         help_texts = {
             "name": _("The project's name — shown under this name in lists and reports."),
+            "image": _("Cover photo or render for the project card. JPG, PNG or WEBP, up to 8 MB."),
             "description": _("A short description of the project (optional)."),
             "client_name": _("The name of the customer organization or person."),
             "client_contact": _("The client's contact info — phone or email."),
@@ -60,15 +61,43 @@ class ProjectForm(StyledFormMixin, forms.ModelForm):
         "region", "district", "address",
     ]
 
+    # Rasmni o'chirish tugmasi: ClearableFileInput ning standart "clear"
+    # katagi o'rniga o'z drag & drop bloklarimiz shu maydonni to'ldiradi.
+    remove_image = forms.BooleanField(required=False, widget=forms.HiddenInput)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         gip_field = self.fields.pop("gip")
         self.fields["gip"] = gip_field
+        # Maydon o'z bloki bilan alohida chiziladi (projects/_image_field.html),
+        # umumiy sikldan chiqarish uchun uni oxiriga suramiz.
+        image_field = self.fields.pop("image")
+        self.fields["image"] = image_field
+        self.fields["image"].widget.attrs.update({
+            "accept": ".jpg,.jpeg,.png,.webp",
+            "class": "prj-upload-input",
+        })
         for field_name in self.REQUIRED_FIELDS:
             self.fields[field_name].required = True
 
+    def clean(self):
+        cleaned = super().clean()
+        # "O'chirish" bosilgan va yangi fayl tanlanmagan bo'lsa — maydonni
+        # bo'shatamiz. Yangi fayl ham bor bo'lsa, almashtirish ustun turadi.
+        if cleaned.get("remove_image") and not cleaned.get("image"):
+            cleaned["image"] = None
+        return cleaned
+
     def save(self, commit=True):
-        project = super().save(commit=commit)
+        project = super().save(commit=False)
+        if self.cleaned_data.get("remove_image") and not self.files.get("image"):
+            # Eski faylni diskdan ham olib tashlaymiz, yetim fayl qolmasin.
+            if project.image:
+                project.image.delete(save=False)
+            project.image = None
+        if commit:
+            project.save()
+            self.save_m2m()
         gip = self.cleaned_data.get("gip")
         if commit and gip:
             ProjectMember.objects.update_or_create(

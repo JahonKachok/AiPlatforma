@@ -36,6 +36,10 @@ DOCUMENT_EXTENSIONS = (
 
 IMAGE_EXTENSIONS = ("png", "jpg", "jpeg", "gif", "webp")
 
+# Loyiha muqova rasmi: brauzerlar hammasini yaxshi ko'rsatadigan va
+# ImageField (Pillow) o'qiy oladigan formatlar.
+PROJECT_IMAGE_EXTENSIONS = ("jpg", "jpeg", "png", "webp")
+
 
 @deconstructible
 class AllowedExtensionsValidator:

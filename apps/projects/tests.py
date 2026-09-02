@@ -89,6 +89,178 @@ class ProjectVisibilityTests(TestCase):
         self.assertFalse(Project.objects.filter(pk=self.project.pk).exists())
 
 
+def _png_bytes():
+    """Smallest valid PNG Pillow will accept — ImageField runs it through
+    Pillow, so raw junk bytes would be rejected as 'not an image'."""
+    from PIL import Image
+
+    buffer = io.BytesIO()
+    Image.new("RGB", (4, 4), "#123456").save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
+BASE_PROJECT_POST = {
+    "name": "Imaged project", "stage": "concept", "status": "active",
+    "budget": 1000, "paid_amount": 0, "currency": "UZS",
+    "construction_type": "new", "region": "tashkent_city",
+    "district": "Yunusobod", "address": "Test address 1",
+}
+
+
+class ProjectImageTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            email="imgadmin@example.com", password="pw12345!", full_name="Admin", role=User.Role.ADMIN,
+        )
+        self.client.force_login(self.admin)
+
+    def tearDown(self):
+        for project in Project.objects.exclude(image=""):
+            if project.image:
+                project.image.delete(save=False)
+
+    def _upload(self, name="render.png", content=None, content_type="image/png"):
+        return SimpleUploadedFile(name, content if content is not None else _png_bytes(), content_type)
+
+    def test_create_stores_the_uploaded_image(self):
+        response = self.client.post(
+            reverse("projects:create"), dict(BASE_PROJECT_POST, image=self._upload()),
+        )
+        self.assertEqual(response.status_code, 302)
+        project = Project.objects.get(name="Imaged project")
+        self.assertTrue(project.image)
+        self.assertIn("projects/", project.image.name)
+
+    def test_create_without_an_image_is_still_valid(self):
+        response = self.client.post(reverse("projects:create"), BASE_PROJECT_POST)
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Project.objects.get(name="Imaged project").image)
+
+    def test_disallowed_extension_is_rejected(self):
+        response = self.client.post(
+            reverse("projects:create"),
+            dict(BASE_PROJECT_POST, image=self._upload("payload.svg", b"<svg onload=alert(1)>", "image/svg+xml")),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Project.objects.filter(name="Imaged project").exists())
+
+    def test_edit_replaces_the_existing_image(self):
+        project = Project.objects.create(name="Imaged project", created_by=self.admin)
+        project.image.save("first.png", SimpleUploadedFile("first.png", _png_bytes()), save=True)
+        first_name = project.image.name
+
+        response = self.client.post(
+            reverse("projects:update", args=[project.pk]),
+            dict(BASE_PROJECT_POST, image=self._upload("second.png")),
+        )
+        self.assertEqual(response.status_code, 302)
+        project.refresh_from_db()
+        self.assertTrue(project.image)
+        self.assertNotEqual(project.image.name, first_name)
+
+    def test_remove_image_flag_clears_the_field(self):
+        project = Project.objects.create(name="Imaged project", created_by=self.admin)
+        project.image.save("first.png", SimpleUploadedFile("first.png", _png_bytes()), save=True)
+
+        response = self.client.post(
+            reverse("projects:update", args=[project.pk]),
+            dict(BASE_PROJECT_POST, remove_image="1"),
+        )
+        self.assertEqual(response.status_code, 302)
+        project.refresh_from_db()
+        self.assertFalse(project.image)
+
+    def test_a_new_file_wins_over_the_remove_flag(self):
+        project = Project.objects.create(name="Imaged project", created_by=self.admin)
+        project.image.save("first.png", SimpleUploadedFile("first.png", _png_bytes()), save=True)
+
+        self.client.post(
+            reverse("projects:update", args=[project.pk]),
+            dict(BASE_PROJECT_POST, remove_image="1", image=self._upload("second.png")),
+        )
+        project.refresh_from_db()
+        self.assertTrue(project.image)
+
+    def test_uploaded_image_is_not_public(self):
+        """Project photos live under MEDIA_ROOT, which protected_media guards."""
+        project = Project.objects.create(name="Imaged project", created_by=self.admin)
+        project.image.save("first.png", SimpleUploadedFile("first.png", _png_bytes()), save=True)
+        self.client.logout()
+        response = self.client.get(project.image.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("accounts:login"), response.url)
+
+
+class ProjectListPageTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            email="listadmin@example.com", password="pw12345!", full_name="List Admin", role=User.Role.ADMIN,
+        )
+        self.active = Project.objects.create(
+            name="Active tower", created_by=self.admin, status=Project.Status.ACTIVE,
+            stage=Project.Stage.CONCEPT, client_name="Alpha LLC",
+        )
+        self.done = Project.objects.create(
+            name="Finished school", created_by=self.admin, status=Project.Status.COMPLETED,
+            stage=Project.Stage.CONSTRUCTION, client_name="Beta LLC",
+        )
+        self.client.force_login(self.admin)
+
+    def test_kpi_values_are_computed_from_real_projects(self):
+        response = self.client.get(reverse("projects:list"))
+        kpis = {card["key"]: card["value"] for card in response.context["kpi_cards"]}
+        self.assertEqual(kpis["total"], 2)
+        self.assertEqual(kpis["active"], 1)
+        self.assertEqual(kpis["completed"], 1)
+        self.assertEqual(kpis["overdue"], 0)
+
+    def test_status_filter_narrows_the_list(self):
+        response = self.client.get(reverse("projects:list"), {"status": "completed"})
+        names = [p.name for p in response.context["page_obj"]]
+        self.assertEqual(names, ["Finished school"])
+
+    def test_stage_filter_narrows_the_list(self):
+        response = self.client.get(reverse("projects:list"), {"stage": "construction"})
+        names = [p.name for p in response.context["page_obj"]]
+        self.assertEqual(names, ["Finished school"])
+
+    def test_search_matches_client_name_too(self):
+        response = self.client.get(reverse("projects:list"), {"search": "Alpha"})
+        names = [p.name for p in response.context["page_obj"]]
+        self.assertEqual(names, ["Active tower"])
+
+    def test_grid_is_the_default_view(self):
+        response = self.client.get(reverse("projects:list"))
+        self.assertEqual(response.context["view_mode"], "grid")
+        self.assertContains(response, "prj-card-wrap")
+
+    def test_list_view_renders_rows(self):
+        response = self.client.get(reverse("projects:list"), {"view": "list"})
+        self.assertEqual(response.context["view_mode"], "list")
+        self.assertContains(response, "prj-row")
+        self.assertNotContains(response, "prj-card-wrap")
+
+    def test_project_without_an_image_gets_the_placeholder(self):
+        response = self.client.get(reverse("projects:list"))
+        self.assertContains(response, "prj-media-placeholder")
+
+    def test_progress_is_none_when_there_are_no_sub_objects(self):
+        response = self.client.get(reverse("projects:list"))
+        for project in response.context["page_obj"]:
+            self.assertIsNone(project.progress_value)
+
+    def test_member_avatars_come_from_real_members(self):
+        for index in range(5):
+            user = User.objects.create_user(
+                email=f"m{index}@example.com", password="pw12345!", full_name=f"Member {index}",
+            )
+            ProjectMember.objects.create(project=self.active, user=user)
+        response = self.client.get(reverse("projects:list"))
+        card = next(p for p in response.context["page_obj"] if p.pk == self.active.pk)
+        self.assertEqual(len(card.member_avatars), 3)
+        self.assertEqual(card.member_overflow, 2)
+
+
 class SubObjectProgressTests(TestCase):
     def setUp(self):
         self.admin = User.objects.create_user(

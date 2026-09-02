@@ -1,56 +1,301 @@
 {% extends "base.html" %}
-{% load i18n core_extras project_extras %}
+{% load i18n static core_extras %}
 {% block title %}{% trans "Projects" %}{% endblock %}
 {% block page_title %}{% trans "Projects" %}{% endblock %}
 {% block page_help %}{% trans "Manage all construction projects: follow their stages, budgets, and deadlines, and create new ones." as help_text %}{% with text=help_text %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'css/projects.css' %}?v=1">
+{% endblock %}
 {% block content %}
-{% include "partials/stat_cards.html" %}
-<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-  <form method="get" class="flex flex-wrap items-center gap-2">
-    <input type="text" name="search" value="{{ search }}" placeholder="{% trans 'Search projects...' %}" class="field-input w-56">
-    <select name="status" onchange="this.form.submit()" class="field-input w-auto">
-      <option value="">{% trans "All statuses" %}</option>
-      {% for value, label in statuses %}
-        <option value="{{ value }}" {% if value == status %}selected{% endif %}>{{ label }}</option>
-      {% endfor %}
-    </select>
-    <button type="submit" class="btn btn-secondary btn-sm">{% trans "Filter" %}</button>
-  </form>
-  {% if can_create %}
-    <a href="{% url 'projects:create' %}" class="btn btn-primary btn-md">{% trans "New project" %}</a>
-  {% endif %}
-</div>
+{# Single blueprint placeholder, cloned by JS when an <img> fails to load. #}
+<template id="prj-placeholder-template">
+  <div class="prj-media-placeholder" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/><path d="M9 11h.01"/><path d="M15 11h.01"/>
+    </svg>
+  </div>
+</template>
 
-<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-  {% for project in page_obj %}
-    <a href="{% url 'projects:detail' project.pk %}" class="card block p-4 hover:shadow-md">
-      <div class="mb-2 flex items-center justify-between">
-        <h3 class="font-semibold">{{ project.name }}</h3>
-        <span class="{{ project.status|project_status_badge }}">{{ project.get_status_display }}</span>
-      </div>
-      <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">{{ project.client_name|default:"—" }}</p>
-      <p class="mb-3 text-xs text-gray-400">{{ project.get_stage_display }}</p>
-      <div class="h-2 w-full rounded-full bg-gray-100 dark:bg-gray-700">
-        <div class="h-2 rounded-full bg-blue-500" style="width: {{ project.paid_percentage }}%"></div>
-      </div>
-      <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-        {{ project.paid_amount|millions }} / {{ project.budget|millions }} {% trans "mln" %}
-      </p>
+<div class="prj-scope">
+
+  {# ============================ Header actions ============================ #}
+  <div class="prj-toolbar" style="justify-content: flex-end; margin-bottom: 1rem;">
+    <a href="{% url 'reports:export' 'projects' %}" class="btn btn-secondary btn-sm">
+      <svg class="prj-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>
+      </svg>
+      {% trans "Export report" %}
     </a>
-  {% empty %}
-    <p class="col-span-full text-center text-sm text-gray-500 dark:text-gray-400">{% trans "No projects found." %}</p>
-  {% endfor %}
-</div>
-
-{% if page_obj.has_other_pages %}
-  <div class="mt-6 flex justify-center gap-2 text-sm">
-    {% if page_obj.has_previous %}
-      <a href="?page={{ page_obj.previous_page_number }}&status={{ status }}&search={{ search }}" class="btn btn-secondary btn-sm">{% trans "Previous" %}</a>
-    {% endif %}
-    <span class="px-2 py-1">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-    {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}&status={{ status }}&search={{ search }}" class="btn btn-secondary btn-sm">{% trans "Next" %}</a>
+    {% if can_create %}
+      <a href="{% url 'projects:create' %}" class="btn btn-primary btn-md">
+        <svg class="prj-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M12 5v14"/><path d="M5 12h14"/>
+        </svg>
+        {% trans "New project" %}
+      </a>
     {% endif %}
   </div>
-{% endif %}
+
+  {# ============================== KPI cards ============================== #}
+  <div class="prj-kpis">
+    {% for kpi in kpi_cards %}
+      <div class="prj-kpi" data-tone="{{ kpi.tone }}">
+        <span class="prj-kpi-icon" aria-hidden="true">
+          {% if kpi.key == 'total' %}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/>
+            </svg>
+          {% elif kpi.key == 'active' %}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 2 3 14h8l-1 8 10-12h-8l1-8z"/>
+            </svg>
+          {% elif kpi.key == 'completed' %}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 6 9 17l-5-5"/>
+            </svg>
+          {% else %}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
+            </svg>
+          {% endif %}
+        </span>
+        <div class="prj-kpi-body">
+          <p class="prj-kpi-label">{{ kpi.label }}</p>
+          <p class="prj-kpi-value">{{ kpi.value }}</p>
+          <p class="prj-kpi-hint">{{ kpi.hint }}</p>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {# ========================= Search / filters / view ========================= #}
+  <div class="prj-toolbar">
+    <form method="get" class="prj-toolbar-form">
+      <input type="hidden" name="view" value="{{ view_mode }}">
+      <label class="prj-search">
+        <span class="prj-sr">{% trans "Search projects..." %}</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
+        </svg>
+        <input type="text" name="search" value="{{ search }}" class="prj-input" placeholder="{% trans 'Search projects...' %}">
+      </label>
+
+      <select name="status" class="prj-select" aria-label="{% trans 'All statuses' %}">
+        <option value="">{% trans "All statuses" %}</option>
+        {% for value, label in statuses %}
+          <option value="{{ value }}" {% if value == status %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      {# "Category" is the project stage — the only category axis the model has. #}
+      <select name="stage" class="prj-select" aria-label="{% trans 'All categories' %}">
+        <option value="">{% trans "All categories" %}</option>
+        {% for value, label in stages %}
+          <option value="{{ value }}" {% if value == stage %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <button type="submit" class="btn btn-secondary btn-sm">{% trans "Filter" %}</button>
+    </form>
+
+    <div class="prj-viewtoggle" role="group" aria-label="{% trans 'View' %}">
+      <a href="?view=grid&amp;search={{ search|urlencode }}&amp;status={{ status }}&amp;stage={{ stage }}"
+         class="prj-viewbtn {% if view_mode == 'grid' %}is-active{% endif %}"
+         aria-label="{% trans 'Grid view' %}" {% if view_mode == 'grid' %}aria-current="true"{% endif %}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
+        </svg>
+      </a>
+      <a href="?view=list&amp;search={{ search|urlencode }}&amp;status={{ status }}&amp;stage={{ stage }}"
+         class="prj-viewbtn {% if view_mode == 'list' %}is-active{% endif %}"
+         aria-label="{% trans 'List view' %}" {% if view_mode == 'list' %}aria-current="true"{% endif %}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+
+  {# ============================== Grid view ============================== #}
+  {% if view_mode == 'grid' %}
+    <div class="prj-grid">
+      {% for project in page_obj %}
+        <div class="prj-card-wrap" data-prj-tilt>
+          <article class="prj-card">
+            <div class="prj-media {% if not project.image %}is-ready{% endif %}">
+              {% if project.image %}
+                <div class="prj-media-skeleton" aria-hidden="true"></div>
+                <img src="{{ project.image.url }}" alt="{{ project.name }}" loading="lazy" decoding="async">
+              {% else %}
+                <div class="prj-media-placeholder" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/><path d="M9 11h.01"/><path d="M15 11h.01"/>
+                  </svg>
+                </div>
+              {% endif %}
+
+              <span class="prj-badge {% if project.is_overdue %}is-overdue{% endif %}" data-status="{{ project.status }}">
+                {% if project.is_overdue %}{% trans "Overdue" %}{% else %}{{ project.get_status_display }}{% endif %}
+              </span>
+            </div>
+
+            <div class="prj-glare" aria-hidden="true"></div>
+
+            <a class="prj-card-link" href="{% url 'projects:detail' project.pk %}">
+              <span class="prj-sr">{{ project.name }}</span>
+            </a>
+
+            <div class="prj-body">
+              <div class="prj-head">
+                <div class="prj-head-text">
+                  <h3 class="prj-title">{{ project.name }}</h3>
+                  {% if project.client_name %}<p class="prj-sub">{{ project.client_name }}</p>{% endif %}
+                </div>
+                {% if project.progress_value is not None %}
+                  <div class="prj-ring" style="--ring-pct: {{ project.progress_value }};"
+                       role="img" aria-label="{% blocktrans with n=project.progress_value %}Progress {{ n }}%{% endblocktrans %}">
+                    <span>{{ project.progress_value }}%</span>
+                  </div>
+                {% else %}
+                  <div class="prj-ring is-empty" role="img" aria-label="{% trans 'No progress data' %}">
+                    <span>—</span>
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="prj-facts">
+                <div>
+                  <p class="prj-fact-label">{% trans "Budget" %}</p>
+                  <p class="prj-fact-value">{{ project.paid_amount|millions }} / {{ project.budget|millions }} {% trans "mln" %}</p>
+                </div>
+                <div>
+                  <p class="prj-fact-label">{% trans "Stage" %}</p>
+                  <p class="prj-fact-value">{{ project.get_stage_display }}</p>
+                </div>
+              </div>
+
+              <div class="prj-foot">
+                {% if project.member_avatars %}
+                  <div class="prj-avatars">
+                    {% for member in project.member_avatars %}
+                      {% if member.user.avatar %}
+                        <img class="prj-avatar" src="{{ member.user.avatar.url }}" alt="{{ member.user.full_name }}" loading="lazy" title="{{ member.user.full_name }}">
+                      {% else %}
+                        <span class="prj-avatar" style="background-color: {{ member.user.full_name|avatar_color }};" title="{{ member.user.full_name }}">{{ member.user.full_name|initials }}</span>
+                      {% endif %}
+                    {% endfor %}
+                    {% if project.member_overflow %}
+                      <span class="prj-avatar-more">+{{ project.member_overflow }}</span>
+                    {% endif %}
+                  </div>
+                {% else %}
+                  <span></span>
+                {% endif %}
+
+                {% if project.deadline %}
+                  <span class="prj-deadline {% if project.is_overdue %}is-overdue{% endif %}">
+                    <svg class="prj-ico" style="width:.8125rem;height:.8125rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                      <rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4"/><path d="M16 3v4"/><path d="M3 11h18"/>
+                    </svg>
+                    {{ project.deadline|date:"d.m.Y" }}
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+
+          </article>
+
+          <div class="prj-menu">
+            <button type="button" class="prj-menu-btn" aria-haspopup="true" aria-expanded="false"
+                    aria-label="{% trans 'Project actions' %}">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/>
+              </svg>
+            </button>
+            <div class="prj-menu-list">
+              <a class="prj-menu-item" href="{% url 'projects:detail' project.pk %}">{% trans "Open" %}</a>
+              <a class="prj-menu-item" href="{% url 'projects:update' project.pk %}">{% trans "Edit" %}</a>
+              <a class="prj-menu-item" href="{% url 'projects:history' project.pk %}">{% trans "History" %}</a>
+              <a class="prj-menu-item is-danger" href="{% url 'projects:delete' project.pk %}">{% trans "Delete" %}</a>
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <div class="prj-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/>
+          </svg>
+          <p>{% trans "No projects found." %}</p>
+        </div>
+      {% endfor %}
+    </div>
+
+  {# ============================== List view ============================== #}
+  {% else %}
+    <div class="prj-list">
+      {% for project in page_obj %}
+        <a class="prj-row" href="{% url 'projects:detail' project.pk %}">
+          <div class="prj-thumb">
+            {% if project.image %}
+              <img src="{{ project.image.url }}" alt="" loading="lazy" decoding="async">
+            {% else %}
+              <div class="prj-media-placeholder" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/>
+                </svg>
+              </div>
+            {% endif %}
+          </div>
+          <div class="prj-row-main">
+            <p class="prj-row-title">{{ project.name }}</p>
+            <div class="prj-row-meta">
+              <span class="prj-chip" data-status="{{ project.status }}">{{ project.get_status_display }}</span>
+              <span>{{ project.get_stage_display }}</span>
+              {% if project.client_name %}<span>· {{ project.client_name }}</span>{% endif %}
+              {% if project.deadline %}
+                <span class="{% if project.is_overdue %}prj-deadline is-overdue{% endif %}">· {{ project.deadline|date:"d.m.Y" }}</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="prj-row-side">
+            <div>
+              <p class="prj-fact-label">{% trans "Budget" %}</p>
+              <p class="prj-fact-value">{{ project.paid_amount|millions }} / {{ project.budget|millions }} {% trans "mln" %}</p>
+            </div>
+            {% if project.progress_value is not None %}
+              <div class="prj-ring" style="--ring-size: 2.5rem; --ring-pct: {{ project.progress_value }};">
+                <span>{{ project.progress_value }}%</span>
+              </div>
+            {% else %}
+              <div class="prj-ring is-empty" style="--ring-size: 2.5rem;"><span>—</span></div>
+            {% endif %}
+          </div>
+        </a>
+      {% empty %}
+        <div class="prj-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/>
+          </svg>
+          <p>{% trans "No projects found." %}</p>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% if page_obj.has_other_pages %}
+    <div class="prj-pager">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&amp;view={{ view_mode }}&amp;status={{ status }}&amp;stage={{ stage }}&amp;search={{ search|urlencode }}" class="btn btn-secondary btn-sm">{% trans "Previous" %}</a>
+      {% endif %}
+      <span>{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&amp;view={{ view_mode }}&amp;status={{ status }}&amp;stage={{ stage }}&amp;search={{ search|urlencode }}" class="btn btn-secondary btn-sm">{% trans "Next" %}</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block extra_scripts %}
+  <script src="{% static 'js/project-cards.js' %}" defer></script>
 {% endblock %}

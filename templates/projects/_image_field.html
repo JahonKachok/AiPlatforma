@@ -1,0 +1,57 @@
+{% load i18n %}
+{% comment %}
+Project cover image field. Progressive enhancement: without JS this is still a
+plain <input type="file"> inside the same multipart form. With JS
+(static/js/project-image-upload.js) it becomes a drag & drop zone with preview,
+replace and remove. Removal is carried by the form's hidden `remove_image`
+field, which ProjectForm.save() acts on — no extra endpoint.
+
+Expects: form (ProjectForm)
+{% endcomment %}
+<div class="prj-scope">
+  <label class="field-label inline-flex items-center" for="{{ form.image.id_for_label }}">
+    {% trans "Project image" %}
+    {% with text=form.image.help_text %}{% include "partials/static_info.html" %}{% endwith %}
+  </label>
+
+  <div class="prj-upload"
+       data-prj-upload
+       data-remove-field="#{{ form.remove_image.auto_id }}"
+       data-confirm-remove="{% trans 'Remove the current project image?' %}"
+       data-error-type="{% trans 'Only JPG, PNG or WEBP images are allowed.' %}"
+       data-error-size="{% trans 'The image must not exceed 8 MB.' %}"
+       data-error-drop="{% trans 'This browser cannot accept dropped files — please pick one instead.' %}">
+
+    {{ form.image }}
+
+    {# Shown when there is no image yet. #}
+    <div class="prj-dropzone {% if form.instance.image %}prj-upload-hidden{% endif %}"
+         role="button" tabindex="0"
+         aria-label="{% trans 'Add project image' %}">
+      <span class="prj-dropzone-plus" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M12 5v14"/><path d="M5 12h14"/>
+        </svg>
+      </span>
+      <span class="prj-dropzone-title">{% trans "Add a project image" %}</span>
+      <span class="prj-dropzone-hint">{% trans "PNG, JPG, WEBP — or drop a file here" %}</span>
+    </div>
+
+    {# Shown once a file is chosen, and immediately for a project that has one. #}
+    <div class="prj-preview {% if not form.instance.image %}prj-upload-hidden{% endif %}">
+      <img {% if form.instance.image %}src="{{ form.instance.image.url }}"{% endif %} alt="">
+      <div class="prj-preview-bar">
+        <span class="prj-preview-name">{% if form.instance.image %}{{ form.instance.image.name|cut:"projects/" }}{% endif %}</span>
+        <span class="prj-preview-actions">
+          <button type="button" class="prj-preview-btn" data-prj-replace>{% trans "Change image" %}</button>
+          <button type="button" class="prj-preview-btn is-danger" data-prj-remove>{% trans "Delete" %}</button>
+        </span>
+      </div>
+    </div>
+
+    <p class="prj-upload-error prj-upload-hidden" role="alert"></p>
+    {% if form.image.errors %}
+      <p class="prj-upload-error">{{ form.image.errors|join:", " }}</p>
+    {% endif %}
+  </div>
+</div>

@@ -11,6 +11,9 @@
     var data = {};
     fields().forEach(function (field) {
       if (field.name === "csrfmiddlewaretoken") return;
+      // A file input's value cannot be restored (assigning to it throws), and
+      // the file itself is not serialisable — leave the picker out of drafts.
+      if (field.type === "file") return;
       data[field.name] = field.type === "checkbox" || field.type === "radio" ? field.checked : field.value;
     });
     try {
@@ -33,6 +36,7 @@
       return;
     }
     fields().forEach(function (field) {
+      if (field.type === "file") return;
       if (!(field.name in data) || field.value) return;
       if (field.type === "checkbox" || field.type === "radio") {
         field.checked = !!data[field.name];

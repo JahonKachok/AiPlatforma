@@ -4509,3 +4509,15 @@ msgstr "Telegram'ni ulash"
 #~ msgstr ""
 #~ "«Hisoblangan» — shu sanaga tayinlangan ish haqi. «To'langan» — shu "
 #~ "loyihalar bo'yicha ish haqi va avans yozuvlari."
+
+#: .\templates\partials\sidebar.html
+msgid "Collapse menu"
+msgstr "Menyuni yig'ish"
+
+#: .\templates\partials\sidebar.html
+msgid "Expand menu"
+msgstr "Menyuni yoyish"
+
+#: .\templates\partials\sidebar.html
+msgid "Main navigation"
+msgstr "Asosiy navigatsiya"

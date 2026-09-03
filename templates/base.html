@@ -11,6 +11,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/tailwind.css' %}?v=7">
   <link rel="stylesheet" href="{% static 'css/theme.css' %}?v=3">
+  <link rel="stylesheet" href="{% static 'css/sidebar.css' %}?v=1">
+  {# Apply the saved collapse state before first paint so the rail never flashes. #}
+  <script>
+    try {
+      if (localStorage.getItem("ap-sidebar-collapsed") === "1") {
+        document.documentElement.classList.add("ap-sb-collapsed");
+      }
+    } catch (e) {}
+  </script>
   <script src="{% static 'js/charts.js' %}" defer></script>
   <script src="{% static 'js/sidebar.js' %}" defer></script>
   <script src="{% static 'js/tabs.js' %}" defer></script>

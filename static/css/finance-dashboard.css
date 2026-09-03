@@ -89,9 +89,16 @@
   margin-bottom: 1.25rem;
   align-items: stretch;
 }
-@media (min-width: 40rem)  { .fin-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 80rem)  { .fin-kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (min-width: 100rem) { .fin-kpi-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+/* Five cards go 1 -> 2 -> 3 -> 5; 4 columns is skipped on purpose because it
+   would leave a lone card stranded on a second row. The 5-across step accounts
+   for the sidebar eating ~256px of the viewport. */
+@media (min-width: 40rem)    { .fin-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 64rem)    { .fin-kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 87.5rem)  { .fin-kpi-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+/* With the rail collapsed there is ~184px more room, so 5 fit sooner. */
+.ap-sb-collapsed .fin-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 64rem) { .ap-sb-collapsed .fin-kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 76rem) { .ap-sb-collapsed .fin-kpi-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 
 /* Chart takes two thirds, rate card one third, once there is room. */
 .fin-main-grid {
@@ -290,7 +297,14 @@
   letter-spacing: -0.015em;
   word-break: break-word;
 }
-.fin-kpi-cur { font-size: 0.75rem; font-weight: 600; color: var(--fin-faint); margin-left: 0.15rem; }
+/* nowrap so a narrow card never splits the code itself ("UZ" / "S"). */
+.fin-kpi-cur {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--fin-faint);
+  margin-left: 0.15rem;
+  white-space: nowrap;
+}
 .fin-kpi-spark { margin-top: auto; padding-top: 0.85rem; }
 .fin-kpi-spark svg { display: block; width: 100%; height: 34px; overflow: visible; }
 
@@ -317,6 +331,11 @@
 .dark .fin-kpi-hero { box-shadow: var(--fin-shadow), 0 0 0 1px rgba(78, 201, 154, 0.08), 0 12px 40px -18px rgba(78, 201, 154, 0.4); }
 .dark .fin-kpi-hero.is-negative { box-shadow: var(--fin-shadow), 0 0 0 1px rgba(232, 121, 111, 0.08), 0 12px 40px -18px rgba(232, 121, 111, 0.4); }
 .fin-kpi-hero .fin-kpi-value { font-size: 1.75rem; }
+/* In the 5-across layout the columns are narrow — ease the hero back down so
+   nine-digit sums stay on one line. */
+@media (min-width: 87.5rem) and (max-width: 105rem) {
+  .fin-kpi-hero .fin-kpi-value { font-size: 1.5rem; }
+}
 
 .fin-split {
   margin-top: 0.9rem;

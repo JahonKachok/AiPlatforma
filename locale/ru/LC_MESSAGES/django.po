@@ -4508,3 +4508,15 @@ msgstr "Подключение Telegram"
 #~ msgstr ""
 #~ "«Начислено» — зарплаты, назначенные к этой дате. «Выплачено» — записи "
 #~ "зарплат и авансов по тем же проектам."
+
+#: .\templates\partials\sidebar.html
+msgid "Collapse menu"
+msgstr "Свернуть меню"
+
+#: .\templates\partials\sidebar.html
+msgid "Expand menu"
+msgstr "Развернуть меню"
+
+#: .\templates\partials\sidebar.html
+msgid "Main navigation"
+msgstr "Основная навигация"

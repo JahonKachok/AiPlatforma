@@ -211,6 +211,38 @@ def project_create(request):
     })
 
 
+def _pct(part, whole):
+    return round(part / whole * 100) if whole else 0
+
+
+def _project_task_stats(project, today=None):
+    """The one task tally the whole overview page reads.
+
+    ``overdue`` is ``Task.is_overdue`` written as a queryset filter (a deadline
+    in the past on a task that is neither completed nor approved), so the
+    progress ring, the mini cards and the statistics panel cannot drift apart:
+    they are all fed from this dict.
+    """
+    today = today or date.today()
+    tasks = project.tasks.all()
+    total = tasks.count()
+    completed = tasks.filter(status=Task.Status.COMPLETED).count()
+    in_progress = tasks.filter(status=Task.Status.IN_PROGRESS).count()
+    overdue = tasks.filter(deadline__lt=today).exclude(
+        status__in=(Task.Status.COMPLETED, Task.Status.APPROVED),
+    ).count()
+    return {
+        "total": total,
+        "completed": completed,
+        "in_progress": in_progress,
+        "overdue": overdue,
+        "total_pct": 100 if total else 0,
+        "completed_pct": _pct(completed, total),
+        "in_progress_pct": _pct(in_progress, total),
+        "overdue_pct": _pct(overdue, total),
+    }
+
+
 @login_required
 def project_detail(request, pk):
     project = get_object_or_404(
@@ -271,11 +303,7 @@ def project_detail(request, pk):
             )
 
     tasks = project.tasks.select_related("assignee")[:6]
-    task_stats = {
-        "total": project.tasks.count(),
-        "completed": project.tasks.filter(status=Task.Status.COMPLETED).count(),
-        "in_progress": project.tasks.filter(status=Task.Status.IN_PROGRESS).count(),
-    }
+    task_stats = _project_task_stats(project)
     records = project.financial_records.all()[:20]
     income = sum(r.amount for r in project.financial_records.filter(type="income"))
     expense = sum(r.amount for r in project.financial_records.filter(type="expense"))
@@ -293,6 +321,9 @@ def project_detail(request, pk):
         "project": project,
         "tasks": tasks,
         "task_stats": task_stats,
+        # The other progress algorithm the project already has: the weighted
+        # discipline roll-up (Project.progress). None when weights are unset.
+        "section_progress": project.progress,
         "records": records,
         "income": income,
         "expense": expense,

@@ -4521,3 +4521,27 @@ msgstr "Menyuni yoyish"
 #: .\templates\partials\sidebar.html
 msgid "Main navigation"
 msgstr "Asosiy navigatsiya"
+
+#: .\templates\projects\project_detail.html
+msgid "Breadcrumb"
+msgstr "Sahifa yo'li"
+
+#: .\templates\projects\project_detail.html
+msgid "More actions"
+msgstr "Boshqa amallar"
+
+#: .\templates\projects\project_detail.html
+msgid "By tasks"
+msgstr "Vazifalar bo'yicha"
+
+#: .\templates\projects\project_detail.html
+msgid "By sections"
+msgstr "Bo'limlar bo'yicha"
+
+#: .\templates\projects\project_detail.html
+msgid "Total tasks"
+msgstr "Jami vazifalar"
+
+#: .\templates\projects\project_detail.html
+msgid "Open in maps"
+msgstr "Xaritada ochish"

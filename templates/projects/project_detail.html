@@ -1,62 +1,418 @@
 {% extends "base.html" %}
 {% load i18n l10n static core_extras project_extras %}
 {% block title %}{{ project.name }}{% endblock %}
-{% block page_title %}{{ project.name }}{% endblock %}
-{% block page_subtitle %}
-  <span class="{{ project.status|project_status_badge }}">{{ project.get_status_display }}</span>
-  <span class="{{ project.stage|project_stage_badge }}">{{ project.get_stage_display }}</span>
-{% endblock %}
+{# The page renders its own header card, so base.html's title strip stays empty. #}
+{% block page_title %}{% endblock %}
+{% block page_subtitle %}{% endblock %}
 {% block extra_head %}
+  <link rel="stylesheet" href="{% static 'css/project-detail.css' %}?v=1">
+  {# base.html always emits the h1/subtitle strip; this page supplies its own. #}
+  <style>main > div.mb-4:first-child { display: none; }</style>
   {% if project.latitude is not None and project.longitude is not None %}
   <link rel="stylesheet" href="{% static 'vendor/leaflet/leaflet.css' %}">
-  <style>#project-overview-map { height: 280px; }</style>
   {% endif %}
 {% endblock %}
 {% block content %}
-<div class="mb-4 flex flex-wrap gap-2">
-  <a href="{% url 'projects:list' %}" class="btn btn-ghost btn-sm">← {% trans "Back" %}</a>
-  <a href="{% url 'projects:history' project.pk %}" class="btn btn-ghost btn-sm">{% trans "History" %}</a>
-  {% if can_edit %}
-    <a href="{% url 'projects:update' project.pk %}" class="btn btn-secondary btn-sm">{% trans "Edit" %}</a>
-    <a href="{% url 'projects:delete' project.pk %}" class="btn btn-danger btn-sm">{% trans "Delete" %}</a>
-  {% endif %}
-</div>
+<div class="pd-page">
 
-<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-  <div class="lg:col-span-2">
-    <div class="ap-tabs mb-4" data-tabs>
-      <button type="button" data-tab="info" class="ap-tab is-active">{% trans "Overview" %}</button>
-      <button type="button" data-tab="structure" class="ap-tab">{% trans "Objects & sub-objects" %}</button>
-      <button type="button" data-tab="tasks" class="ap-tab">{% trans "Tasks" %}</button>
-      <button type="button" data-tab="finance" class="ap-tab">{% trans "Finance" %}</button>
-      <button type="button" data-tab="source_files" class="ap-tab">{% trans "Исходные файлы" %}</button>
+  {# ============ Breadcrumb ============ #}
+  <nav class="pd-crumbs" aria-label="{% trans 'Breadcrumb' %}">
+    <a href="{% url 'projects:list' %}">{% trans "Projects" %}</a>
+    <span class="pd-crumb-sep" aria-hidden="true">/</span>
+    <span class="pd-crumb-current">{{ project.name }}</span>
+  </nav>
+
+  {# ============ Project header ============ #}
+  <div class="pd-card">
+    <div class="pd-head">
+      <div class="pd-head-media">
+        {% if project.image %}
+          <img src="{{ project.image.url }}" alt="{{ project.name }}">
+        {% else %}
+          <span class="pd-head-ph">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 21h18M5 21V8l7-4 7 4v13"/><path d="M9.5 21v-5h5v5"/>
+            </svg>
+            <span>BUILDFLOW</span>
+          </span>
+        {% endif %}
+      </div>
+
+      <div class="pd-head-main">
+        <div class="pd-head-title-row">
+          <h1 class="pd-head-name">{{ project.name }}</h1>
+          <span class="{{ project.status|project_status_badge }}">{{ project.get_status_display }}</span>
+          <span class="{{ project.stage|project_stage_badge }}">{{ project.get_stage_display }}</span>
+        </div>
+        {% if project.description %}
+          <p class="pd-head-desc">{{ project.description }}</p>
+        {% endif %}
+      </div>
+
+      <div class="pd-head-actions">
+        {% if can_edit %}
+          <a href="{% url 'projects:update' project.pk %}" class="btn btn-secondary btn-sm">{% trans "Edit" %}</a>
+        {% endif %}
+        <a href="{% url 'projects:history' project.pk %}" class="btn btn-ghost btn-sm">{% trans "History" %}</a>
+        {% if can_edit %}
+          <a href="{% url 'projects:delete' project.pk %}" class="btn btn-danger btn-sm">{% trans "Delete" %}</a>
+        {% endif %}
+        <details class="pd-kebab">
+          <summary role="button" aria-label="{% trans 'More actions' %}">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/>
+            </svg>
+          </summary>
+          <div class="pd-kebab-menu">
+            <a href="{% url 'projects:list' %}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+              {% trans "Back" %}
+            </a>
+            <a href="{% url 'tasks:board' %}?project={{ project.pk }}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M8 12l2.5 2.5L16 9"/></svg>
+              {% trans "Tasks" %}
+            </a>
+            <a href="{% url 'projects:documents_download_zip' project.pk %}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5M4 21h16"/></svg>
+              {% trans "Download all as ZIP" %}
+            </a>
+            {% if can_edit %}
+              <a href="{% url 'projects:delete' project.pk %}" class="pd-kebab-danger">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>
+                {% trans "Delete" %}
+              </a>
+            {% endif %}
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  {# ============ Tabs (existing client-side switcher, unchanged routing) ============ #}
+  <div class="ap-tabs" data-tabs>
+    <button type="button" data-tab="info" class="ap-tab is-active">{% trans "Overview" %}</button>
+    <button type="button" data-tab="structure" class="ap-tab">{% trans "Objects & sub-objects" %}</button>
+    <button type="button" data-tab="tasks" class="ap-tab">{% trans "Tasks" %}</button>
+    <button type="button" data-tab="finance" class="ap-tab">{% trans "Finance" %}</button>
+    <button type="button" data-tab="source_files" class="ap-tab">{% trans "Исходные файлы" %}</button>
+  </div>
+
+  {# ============================ OVERVIEW ============================ #}
+  <div data-tab-panel="info" class="pd-stack">
+
+    {# ---- Row 1: progress + map ---- #}
+    <div class="pd-grid-top">
+
+      {# ---------- Overall progress ---------- #}
+      <section class="pd-card" id="pd-progress"
+               data-tasks-pct="{{ task_stats.completed_pct }}"
+               data-sections-pct="{% if section_progress is not None %}{{ section_progress }}{% endif %}">
+        <div class="pd-card-head">
+          <h2 class="pd-card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 019 9"/>
+            </svg>
+            {% trans "Overall progress" %}
+          </h2>
+          <button type="button" class="pd-mode" data-progress-mode
+                  {% if section_progress is None %}disabled title="{% trans 'weights not assigned' %}"{% endif %}
+                  data-label-tasks="{% trans 'By tasks' %}" data-label-sections="{% trans 'By sections' %}"
+                  aria-live="polite">
+            <span data-progress-mode-label>{% trans "By tasks" %}</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+        </div>
+
+        <div class="pd-card-body">
+          <div class="pd-prog-main">
+            <div class="pd-ring">
+              <svg viewBox="0 0 148 148" role="img" aria-label="{% trans 'Overall progress' %}">
+                <circle class="pd-ring-track" cx="74" cy="74" r="64" fill="none" stroke-width="11"/>
+                <circle class="pd-ring-bar" data-ring cx="74" cy="74" r="64" fill="none" stroke-width="11"
+                        stroke-dasharray="402.12" stroke-dashoffset="402.12"/>
+              </svg>
+              <div class="pd-ring-center">
+                <span class="pd-ring-val" data-ring-value>0%</span>
+                <span class="pd-ring-cap" data-ring-caption>{% trans "By tasks" %}</span>
+              </div>
+            </div>
+
+            <dl class="pd-prog-rows">
+              <div class="pd-prog-row">
+                <div class="pd-prog-row-top">
+                  <dt class="pd-prog-label">{% trans "Tasks" %}</dt>
+                  <dd class="pd-prog-nums">
+                    <span class="pd-prog-count">{{ task_stats.total }}</span>
+                    <span class="pd-prog-pct">{{ task_stats.total_pct }}%</span>
+                  </dd>
+                </div>
+                <div class="pd-bar pd-bar-blue"><i data-bar="{{ task_stats.total_pct }}"></i></div>
+              </div>
+              <div class="pd-prog-row">
+                <div class="pd-prog-row-top">
+                  <dt class="pd-prog-label">{% trans "Completed" %}</dt>
+                  <dd class="pd-prog-nums">
+                    <span class="pd-prog-count">{{ task_stats.completed }}</span>
+                    <span class="pd-prog-pct">{{ task_stats.completed_pct }}%</span>
+                  </dd>
+                </div>
+                <div class="pd-bar pd-bar-green"><i data-bar="{{ task_stats.completed_pct }}"></i></div>
+              </div>
+              <div class="pd-prog-row">
+                <div class="pd-prog-row-top">
+                  <dt class="pd-prog-label">{% trans "In progress" %}</dt>
+                  <dd class="pd-prog-nums">
+                    <span class="pd-prog-count">{{ task_stats.in_progress }}</span>
+                    <span class="pd-prog-pct">{{ task_stats.in_progress_pct }}%</span>
+                  </dd>
+                </div>
+                <div class="pd-bar pd-bar-amber"><i data-bar="{{ task_stats.in_progress_pct }}"></i></div>
+              </div>
+              <div class="pd-prog-row">
+                <div class="pd-prog-row-top">
+                  <dt class="pd-prog-label">{% trans "Overdue" %}</dt>
+                  <dd class="pd-prog-nums">
+                    <span class="pd-prog-count">{{ task_stats.overdue }}</span>
+                    <span class="pd-prog-pct">{{ task_stats.overdue_pct }}%</span>
+                  </dd>
+                </div>
+                <div class="pd-bar pd-bar-red"><i data-bar="{{ task_stats.overdue_pct }}"></i></div>
+              </div>
+            </dl>
+          </div>
+
+          {# ---- Mini task cards ---- #}
+          <div class="pd-mini">
+            <div class="pd-mini-card">
+              <span class="pd-mini-ico pd-t-blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M8 10h8M8 15h5"/></svg>
+              </span>
+              <span class="pd-mini-text">
+                <span class="pd-mini-label">{% trans "Total tasks" %}</span>
+                <span class="pd-mini-val">{{ task_stats.total }}</span>
+              </span>
+            </div>
+            <div class="pd-mini-card">
+              <span class="pd-mini-ico pd-t-green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>
+              </span>
+              <span class="pd-mini-text">
+                <span class="pd-mini-label">{% trans "Completed" %}</span>
+                <span class="pd-mini-val">{{ task_stats.completed }}</span>
+              </span>
+            </div>
+            <div class="pd-mini-card">
+              <span class="pd-mini-ico pd-t-amber">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              </span>
+              <span class="pd-mini-text">
+                <span class="pd-mini-label">{% trans "In progress" %}</span>
+                <span class="pd-mini-val">{{ task_stats.in_progress }}</span>
+              </span>
+            </div>
+            <div class="pd-mini-card">
+              <span class="pd-mini-ico pd-t-red">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 4.3L2.6 18a1.8 1.8 0 001.6 2.7h15.6A1.8 1.8 0 0021.4 18L13.7 4.3a1.9 1.9 0 00-3.4 0z"/><path d="M12 9.5v4M12 17h.01"/></svg>
+              </span>
+              <span class="pd-mini-text">
+                <span class="pd-mini-label">{% trans "Overdue" %}</span>
+                <span class="pd-mini-val">{{ task_stats.overdue }}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {# ---------- Map ---------- #}
+      <section class="pd-card">
+        <div class="pd-card-head">
+          <h2 class="pd-card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 10.5c0 5.2-8 11-8 11s-8-5.8-8-11a8 8 0 1116 0z"/><circle cx="12" cy="10.2" r="2.8"/>
+            </svg>
+            {% trans "Location on map" %}
+          </h2>
+          {% if project.latitude is not None and project.longitude is not None %}
+            {% localize off %}
+            <a class="pd-map-link" target="_blank" rel="noopener"
+               href="https://www.openstreetmap.org/?mlat={{ project.latitude }}&amp;mlon={{ project.longitude }}#map=16/{{ project.latitude }}/{{ project.longitude }}">
+              {% trans "Open in maps" %}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-8.5 8.5"/><path d="M18 14v5a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 014 19V8a1.5 1.5 0 011.5-1.5H10"/></svg>
+            </a>
+            {% endlocalize %}
+          {% endif %}
+        </div>
+
+        <div class="pd-card-body">
+          {% if project.latitude is not None and project.longitude is not None %}
+            {% localize off %}
+            <div class="pd-map-wrap">
+              <div id="project-overview-map"
+                   data-lat="{{ project.latitude }}" data-lng="{{ project.longitude }}"
+                   data-address="{{ project.address|default:'' }}"></div>
+            </div>
+            {% endlocalize %}
+            {% if project.address %}
+              <p class="pd-map-addr">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10.5c0 5.2-8 11-8 11s-8-5.8-8-11a8 8 0 1116 0z"/><circle cx="12" cy="10.2" r="2.8"/></svg>
+                {{ project.address }}
+              </p>
+            {% endif %}
+          {% else %}
+            <div class="pd-empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 10.5c0 5.2-8 11-8 11s-8-5.8-8-11a8 8 0 1116 0z"/><path d="M4 4l16 16"/>
+              </svg>
+              <p>{% trans "No location was pinned for this project." %}</p>
+              {% if project.address %}<small>{{ project.address }}</small>{% endif %}
+            </div>
+          {% endif %}
+        </div>
+      </section>
     </div>
 
-    <div data-tab-panel="info" class="space-y-6">
-    <div class="card p-6">
-      <h2 class="mb-3 font-semibold">{% trans "Project info" %}</h2>
-      <dl class="grid grid-cols-2 gap-3 text-sm">
-        <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Client" %}</dt><dd>{{ project.client_name|default:"—" }}</dd></div>
-        <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Address" %}</dt><dd>{{ project.address|default:"—" }}</dd></div>
-        <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Start date" %}</dt><dd>{{ project.start_date|default:"—" }}</dd></div>
-        <div><dt class="text-gray-500 dark:text-gray-400">{% trans "Deadline" %}</dt><dd>{{ project.deadline|default:"—" }}</dd></div>
-      </dl>
-      {% if project.description %}<p class="mt-3 text-sm text-gray-600 dark:text-gray-300">{{ project.description }}</p>{% endif %}
-    </div>
+    {# ---- Row 2: info + finance + statistics ---- #}
+    <div class="pd-grid-bottom">
 
-    <div class="card p-6">
-      <h2 class="mb-3 font-semibold">{% trans "Location on map" %}</h2>
-      {% if project.latitude is not None and project.longitude is not None %}
-        {% localize off %}
-        <div id="project-overview-map" class="rounded-lg" data-lat="{{ project.latitude }}" data-lng="{{ project.longitude }}" data-address="{{ project.address|default:'' }}"></div>
-        {% endlocalize %}
-      {% else %}
-        <p class="text-sm text-gray-500 dark:text-gray-400">{% trans "No location was pinned for this project." %}</p>
-      {% endif %}
-    </div>
-    </div>
+      {# ---------- Project info ---------- #}
+      <section class="pd-card pd-card-hover">
+        <div class="pd-card-head">
+          <h2 class="pd-card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>
+            </svg>
+            {% trans "Project info" %}
+          </h2>
+        </div>
+        <div class="pd-card-body">
+          <dl class="pd-info">
+            <div class="pd-info-item">
+              <span class="pd-info-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 20v-1.5a4.5 4.5 0 00-4.5-4.5h-5A4.5 4.5 0 005 18.5V20"/><circle cx="12" cy="8" r="3.6"/></svg>
+              </span>
+              <span class="pd-info-text">
+                <dt class="pd-info-label">{% trans "Client" %}</dt>
+                <dd class="pd-info-value">{{ project.client_name|default:"—" }}</dd>
+              </span>
+            </div>
+            <div class="pd-info-item">
+              <span class="pd-info-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10.5c0 5.2-8 11-8 11s-8-5.8-8-11a8 8 0 1116 0z"/><circle cx="12" cy="10.2" r="2.8"/></svg>
+              </span>
+              <span class="pd-info-text">
+                <dt class="pd-info-label">{% trans "Address" %}</dt>
+                <dd class="pd-info-value">{{ project.address|default:"—" }}</dd>
+              </span>
+            </div>
+            <div class="pd-info-item">
+              <span class="pd-info-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
+              </span>
+              <span class="pd-info-text">
+                <dt class="pd-info-label">{% trans "Start date" %}</dt>
+                <dd class="pd-info-value">{% if project.start_date %}{{ project.start_date|date:"d.m.Y" }}{% else %}—{% endif %}</dd>
+              </span>
+            </div>
+            <div class="pd-info-item">
+              <span class="pd-info-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 11V7.5a2.5 2.5 0 00-2.5-2.5H6a2.5 2.5 0 00-2.5 2.5V18A2.5 2.5 0 006 20.5h5"/><path d="M8 3v4M16 3v4M3.5 10h17"/><circle cx="17.5" cy="17.5" r="4"/><path d="M17.5 15.8v1.9l1.3.9"/></svg>
+              </span>
+              <span class="pd-info-text">
+                <dt class="pd-info-label">{% trans "Deadline" %}</dt>
+                <dd class="pd-info-value">{% if project.deadline %}{{ project.deadline|date:"d.m.Y" }}{% else %}—{% endif %}</dd>
+              </span>
+            </div>
+          </dl>
+        </div>
+      </section>
 
-    <div data-tab-panel="structure" class="hidden space-y-6">
+      {# ---------- Finance summary ---------- #}
+      <section class="pd-card pd-card-hover">
+        <div class="pd-card-head">
+          <h2 class="pd-card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 8a2 2 0 012-2h12a2 2 0 012 2"/><path d="M3 8v9a2 2 0 002 2h14a2 2 0 002-2v-5a2 2 0 00-2-2H5a2 2 0 01-2-2z"/><path d="M17 13.5h.01"/>
+            </svg>
+            {% trans "Finance summary" %}
+          </h2>
+        </div>
+        <div class="pd-card-body">
+          <div class="pd-fin-top">
+            <span class="pd-fin-amount">
+              {{ project.paid_amount|millions }} / {{ project.budget|millions }}
+              <small>{% trans "mln" %} {{ project.currency }}</small>
+            </span>
+            <span class="pd-fin-pct">{{ project.paid_percentage }}%</span>
+          </div>
+          <div class="pd-bar pd-bar-blue"><i data-bar="{{ project.paid_percentage }}"></i></div>
+
+          <dl class="pd-fin-rows">
+            <div class="pd-fin-row">
+              <dt>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+                {% trans "Income" %}
+              </dt>
+              <dd class="pd-fin-in">{{ income|money }}</dd>
+            </div>
+            <div class="pd-fin-row">
+              <dt>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+                {% trans "Expense" %}
+              </dt>
+              <dd class="pd-fin-out">{{ expense|money }}</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      {# ---------- Statistics (same task_stats dict as the progress block) ---------- #}
+      <section class="pd-card pd-card-hover pd-span-2">
+        <div class="pd-card-head">
+          <h2 class="pd-card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>
+            </svg>
+            {% trans "Statistics" %}
+          </h2>
+        </div>
+        <div class="pd-card-body">
+          <dl class="pd-stats">
+            <div class="pd-stat-row">
+              <dt class="pd-stat-name"><span class="pd-dot pd-dot-blue"></span>{% trans "Tasks" %}</dt>
+              <dd class="pd-stat-nums">
+                <span class="pd-stat-val">{{ task_stats.total }}</span>
+                <span class="pd-stat-pct">{{ task_stats.total_pct }}%</span>
+              </dd>
+            </div>
+            <div class="pd-stat-row">
+              <dt class="pd-stat-name"><span class="pd-dot pd-dot-green"></span>{% trans "Completed" %}</dt>
+              <dd class="pd-stat-nums">
+                <span class="pd-stat-val">{{ task_stats.completed }}</span>
+                <span class="pd-stat-pct">{{ task_stats.completed_pct }}%</span>
+              </dd>
+            </div>
+            <div class="pd-stat-row">
+              <dt class="pd-stat-name"><span class="pd-dot pd-dot-amber"></span>{% trans "In progress" %}</dt>
+              <dd class="pd-stat-nums">
+                <span class="pd-stat-val">{{ task_stats.in_progress }}</span>
+                <span class="pd-stat-pct">{{ task_stats.in_progress_pct }}%</span>
+              </dd>
+            </div>
+            <div class="pd-stat-row">
+              <dt class="pd-stat-name"><span class="pd-dot pd-dot-red"></span>{% trans "Overdue" %}</dt>
+              <dd class="pd-stat-nums">
+                <span class="pd-stat-val">{{ task_stats.overdue }}</span>
+                <span class="pd-stat-pct">{{ task_stats.overdue_pct }}%</span>
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  {# ======================= OBJECTS & SUB-OBJECTS ======================= #}
+  <div data-tab-panel="structure" class="hidden space-y-6">
     <div class="card p-6">
       <div class="mb-3 flex items-center justify-between">
         <h2 class="font-semibold">{% trans "Objects" %}</h2>
@@ -161,9 +517,10 @@
       </form>
       {% endif %}
     </div>
-    </div>
+  </div>
 
-    <div data-tab-panel="tasks" class="hidden space-y-6">
+  {# ============================== TASKS ============================== #}
+  <div data-tab-panel="tasks" class="hidden space-y-6">
     <div class="card p-6">
       <div class="mb-3 flex items-center justify-between">
         <h2 class="font-semibold">{% trans "Tasks" %}</h2>
@@ -178,9 +535,10 @@
         {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No tasks yet." %}</li>{% endfor %}
       </ul>
     </div>
-    </div>
+  </div>
 
-    <div data-tab-panel="finance" class="hidden space-y-6">
+  {# ============================= FINANCE ============================= #}
+  <div data-tab-panel="finance" class="hidden space-y-6">
     <div class="card overflow-x-auto p-6">
       <h2 class="mb-3 font-semibold">{% trans "Finance records" %}</h2>
       <table class="mb-4 w-full text-left text-sm">
@@ -207,9 +565,10 @@
         </tbody>
       </table>
     </div>
-    </div>
+  </div>
 
-    <div data-tab-panel="source_files" class="hidden space-y-6">
+  {# ========================== SOURCE FILES ========================== #}
+  <div data-tab-panel="source_files" class="hidden space-y-6">
     <div class="card p-6">
       <div class="mb-3 flex items-center justify-between">
         <h2 class="font-semibold">{% trans "Исходные файлы" %}</h2>
@@ -269,46 +628,11 @@
       </ul>
       {% endif %}
     </div>
-    </div>
-  </div>
-
-  <div class="space-y-6">
-    <div class="card p-6">
-      <h2 class="mb-3 font-semibold">{% trans "Overall progress" %}</h2>
-      {% if project.progress is not None %}
-        <div class="mb-2 h-2 w-full rounded-full bg-gray-100 dark:bg-gray-700">
-          <div class="h-2 rounded-full bg-green-500" style="width: {{ project.progress }}%"></div>
-        </div>
-        <p class="text-sm text-gray-500 dark:text-gray-400">{{ project.progress }}%</p>
-      {% else %}
-        <p class="text-sm text-gray-500 dark:text-gray-400">{% trans "weights not assigned" %}</p>
-      {% endif %}
-    </div>
-
-    <div class="card p-6">
-      <h2 class="mb-3 font-semibold">{% trans "Finance summary" %}</h2>
-      <div class="mb-2 h-2 w-full rounded-full bg-gray-100 dark:bg-gray-700">
-        <div class="h-2 rounded-full bg-blue-500" style="width: {{ project.paid_percentage }}%"></div>
-      </div>
-      <p class="text-sm text-gray-500 dark:text-gray-400">{{ project.paid_amount|millions }} / {{ project.budget|millions }} {% trans "mln" %}</p>
-      <dl class="mt-3 space-y-1 text-sm">
-        <div class="flex justify-between"><dt>{% trans "Income" %}</dt><dd class="text-green-600 dark:text-green-400">{{ income|money }}</dd></div>
-        <div class="flex justify-between"><dt>{% trans "Expense" %}</dt><dd class="text-red-600 dark:text-red-400">{{ expense|money }}</dd></div>
-      </dl>
-    </div>
-
-    <div class="card p-6">
-      <h2 class="mb-3 font-semibold">{% trans "Statistics" %}</h2>
-      <dl class="space-y-1 text-sm">
-        <div class="flex justify-between"><dt>{% trans "Tasks" %}</dt><dd>{{ task_stats.total }}</dd></div>
-        <div class="flex justify-between"><dt>{% trans "Completed" %}</dt><dd>{{ task_stats.completed }}</dd></div>
-        <div class="flex justify-between"><dt>{% trans "In progress" %}</dt><dd>{{ task_stats.in_progress }}</dd></div>
-      </dl>
-    </div>
   </div>
 </div>
 {% endblock %}
 {% block extra_scripts %}
+  <script src="{% static 'js/project-detail.js' %}" defer></script>
   {% if project.latitude is not None and project.longitude is not None %}
   <script src="{% static 'vendor/leaflet/leaflet.js' %}"></script>
   <script src="{% static 'js/project-map-view.js' %}"></script>

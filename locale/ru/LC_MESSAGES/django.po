@@ -4520,3 +4520,27 @@ msgstr "Развернуть меню"
 #: .\templates\partials\sidebar.html
 msgid "Main navigation"
 msgstr "Основная навигация"
+
+#: .\templates\projects\project_detail.html
+msgid "Breadcrumb"
+msgstr "Навигация по разделам"
+
+#: .\templates\projects\project_detail.html
+msgid "More actions"
+msgstr "Ещё действия"
+
+#: .\templates\projects\project_detail.html
+msgid "By tasks"
+msgstr "По задачам"
+
+#: .\templates\projects\project_detail.html
+msgid "By sections"
+msgstr "По разделам"
+
+#: .\templates\projects\project_detail.html
+msgid "Total tasks"
+msgstr "Всего задач"
+
+#: .\templates\projects\project_detail.html
+msgid "Open in maps"
+msgstr "Открыть в картах"

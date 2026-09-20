@@ -26,6 +26,12 @@
     sidebar.addEventListener("click", function (e) {
       if (e.target.closest("a")) closeDrawer();
     });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && sidebar.classList.contains("is-open")) {
+        closeDrawer();
+        toggle.focus();
+      }
+    });
   }
 
   /* ---------- desktop collapse ---------- */

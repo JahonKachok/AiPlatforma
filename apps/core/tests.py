@@ -204,3 +204,26 @@ class DashboardFilterTests(TestCase):
         self.assertEqual(activity_tone("deleted"), "red")
         self.assertEqual(activity_tone("created"), "green")
         self.assertEqual(activity_tone("status_changed"), "amber")
+
+
+class WwwRedirectTests(TestCase):
+    def test_www_is_redirected_to_the_bare_domain(self):
+        with self.settings(ALLOWED_HOSTS=["example.com", "www.example.com"]):
+            response = self.client.get("/accounts/login/?next=/projects/", HTTP_HOST="www.example.com")
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(response["Location"], "http://example.com/accounts/login/?next=/projects/")
+
+    def test_https_scheme_is_kept(self):
+        with self.settings(ALLOWED_HOSTS=["example.com", "www.example.com"]):
+            response = self.client.get("/", HTTP_HOST="www.example.com", secure=True)
+        self.assertEqual(response["Location"], "https://example.com/")
+
+    def test_bare_domain_is_served_normally(self):
+        with self.settings(ALLOWED_HOSTS=["example.com", "www.example.com"]):
+            response = self.client.get("/accounts/login/", HTTP_HOST="example.com")
+        self.assertEqual(response.status_code, 200)
+
+    def test_unlisted_www_host_is_still_rejected(self):
+        with self.settings(ALLOWED_HOSTS=["example.com"]):
+            response = self.client.get("/", HTTP_HOST="www.evil.example")
+        self.assertEqual(response.status_code, 400)

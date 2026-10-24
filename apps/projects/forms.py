@@ -106,26 +106,6 @@ class ProjectForm(StyledFormMixin, forms.ModelForm):
         return project
 
 
-class ProjectClientForm(StyledFormMixin, forms.ModelForm):
-    class Meta:
-        model = Project
-        fields = [
-            "client_type", "client_name", "client_stir", "client_contact",
-            "client_email", "client_contact_person", "client_position", "client_notes",
-        ]
-        widgets = {"client_notes": forms.Textarea(attrs={"rows": 3})}
-        help_texts = {
-            "client_type": _("Whether the client is a legal entity or an individual."),
-            "client_name": _("The name of the client organization or person."),
-            "client_stir": _("The client's tax ID (STIR) — digits only (optional)."),
-            "client_contact": _("The client's phone number."),
-            "client_email": _("The client's email address (optional)."),
-            "client_contact_person": _("The person responsible on the client's side (optional)."),
-            "client_position": _("That person's position (optional)."),
-            "client_notes": _("Any additional information about the client (optional)."),
-        }
-
-
 class ProjectWizardDocumentForm(StyledFormMixin, forms.Form):
     file = forms.FileField(
         validators=[FileExtensionValidator(WIZARD_DOCUMENT_EXTENSIONS)],

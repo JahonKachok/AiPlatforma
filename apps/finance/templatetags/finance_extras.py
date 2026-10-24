@@ -2,7 +2,6 @@ from django import template
 
 register = template.Library()
 
-_STATUS_VARIANT = {"pending": "warning", "confirmed": "success", "cancelled": "danger"}
 _TYPE_VARIANT = {"income": "success", "expense": "danger", "advance": "info", "payment": "purple"}
 
 _BADGE_CLASSES = {
@@ -13,11 +12,6 @@ _BADGE_CLASSES = {
     "info": "badge badge-info",
     "purple": "badge badge-purple",
 }
-
-
-@register.filter
-def record_status_badge(status):
-    return _BADGE_CLASSES[_STATUS_VARIANT.get(status, "default")]
 
 
 @register.filter

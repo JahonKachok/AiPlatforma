@@ -217,16 +217,6 @@ def document_add_version(request, pk):
     return redirect("documents:detail", pk=pk)
 
 
-@login_required
-def document_quick_approve(request, pk):
-    document = get_object_or_404(_visible_documents(request.user), pk=pk)
-    if request.method == "POST" and document.status == DocumentStatus.DRAFT:
-        document.status = DocumentStatus.APPROVED
-        document.save(update_fields=["status", "updated_at"])
-        AuditLog.log(obj=document, action="quick_approved", user=request.user)
-    return redirect("documents:list")
-
-
 # --- Approval workflow ---------------------------------------------------
 
 @login_required
@@ -276,7 +266,7 @@ def approval_submit(request):
                             file_size=document.file_size, uploaded_by=request.user,
                             notes=form.cleaned_data["comment"],
                         )
-                        stage = ApprovalStage.objects.create(
+                        ApprovalStage.objects.create(
                             document=document, stage_order=1,
                             stage_name=f"{discipline.code} → GIP", reviewer=reviewer,
                         )

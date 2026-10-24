@@ -4,7 +4,7 @@ from django.urls import reverse
 
 from apps.accounts.models import Discipline, User
 from apps.notifications.models import Notification
-from apps.projects.models import Project, ProjectMember, Section, SubObject, SubObjectDiscipline
+from apps.projects.models import Project, ProjectMember, SubObject, SubObjectDiscipline
 
 from .models import ApprovalStage, ApprovalStatus, Document, DocumentStatus
 

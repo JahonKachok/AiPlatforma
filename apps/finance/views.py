@@ -49,10 +49,6 @@ def _can_manage_finance(user):
     return user.is_superuser or user.role in _CAN_MANAGE_FINANCE_ROLES
 
 
-def _millions(value):
-    return f"{float(value) / 1_000_000:.1f}"
-
-
 def _finance_home_url(tab=None):
     url = reverse("finance:home")
     return f"{url}?tab={tab}" if tab else url

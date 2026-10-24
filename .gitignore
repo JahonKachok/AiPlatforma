@@ -12,8 +12,6 @@ dist
 dist-ssr
 *.local
 
-# Backend artifacts
-backend/backups/
 __pycache__/
 
 # Django
@@ -26,7 +24,6 @@ celery-broker.sqlite
 celery-results.sqlite
 .env
 !.env.example
-backend/.env
 *.zip
 
 # Editor directories and files
@@ -40,7 +37,6 @@ backend/.env
 *.sln
 *.sw?
 .vite
-tools/
 
 # Django cache katalogi (FileBasedCache)
 .django-cache/

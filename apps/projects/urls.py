@@ -15,7 +15,6 @@ urlpatterns = [
     path("<uuid:pk>/members/<uuid:user_id>/remove/", views.project_remove_member, name="remove_member"),
     path("<uuid:pk>/objects/add/", views.project_add_subobject, name="add_subobject"),
     path("<uuid:pk>/sections/add/", views.project_add_section, name="add_section"),
-    path("<uuid:pk>/update-client/", views.project_update_client, name="update_client"),
     path("<uuid:pk>/wizard/subobjects/", views.project_wizard_subobjects, name="wizard_subobjects"),
     path(
         "<uuid:pk>/wizard/subobjects/quick-create/",

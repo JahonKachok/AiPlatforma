@@ -22,7 +22,7 @@ from apps.tasks.models import Task, sanitize_path_segment
 
 from .excel_import import InvalidExcelStructureError, build_subobjects_import_template, import_subobjects_from_excel
 from .forms import (
-    ProjectClientForm, ProjectForm, ProjectMemberForm, ProjectWizardDocumentForm,
+    ProjectForm, ProjectMemberForm, ProjectWizardDocumentForm,
     SectionForm, SubObjectDisciplineForm, SubObjectForm,
 )
 from .models import Project, ProjectMember, SubObject, SubObjectDiscipline
@@ -360,7 +360,6 @@ def project_update(request, pk):
         form = ProjectForm(instance=project)
     return render(request, "projects/project_form.html", {
         "form": form, "project": project, "is_create": False, "region_centers_json": REGION_CENTERS_JSON,
-        "client_form": ProjectClientForm(instance=project),
     })
 
 
@@ -672,19 +671,6 @@ def wizard_discipline_weights_save(request, pk, sub_id):
 
     messages.success(request, _("Weights and progress saved."))
     return redirect(f"{base_url}?{query}")
-
-
-@login_required
-def project_update_client(request, pk):
-    project = get_object_or_404(Project, pk=pk)
-    if not can_edit_project(request.user, project):
-        raise PermissionDenied
-    if request.method == "POST":
-        form = ProjectClientForm(request.POST, instance=project)
-        if form.is_valid():
-            form.save()
-            messages.success(request, _("Client information updated."))
-    return redirect("projects:update", pk=pk)
 
 
 @login_required

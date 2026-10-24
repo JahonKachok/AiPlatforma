@@ -64,16 +64,6 @@
   --dsh-blueprint-2: #070d18;
   --dsh-blueprint-line: rgba(120, 175, 235, 0.13);
 }
-
-.dsh-sr {
-  position: absolute;
-  width: 1px; height: 1px;
-  padding: 0; margin: -1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-  border: 0;
-}
 .dsh-ico { width: 1rem; height: 1rem; flex: none; }
 
 /* ============================== Hero header ============================== */

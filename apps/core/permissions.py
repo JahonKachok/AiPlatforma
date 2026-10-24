@@ -7,7 +7,6 @@ machinery, which is reserved for /django-admin/ access only.
 from functools import wraps
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
 
 
@@ -25,12 +24,3 @@ def role_required(*roles):
         return wrapped
     return decorator
 
-
-class RoleRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
-    """Class-based-view equivalent of ``role_required``."""
-
-    allowed_roles: tuple[str, ...] = ()
-
-    def test_func(self):
-        user = self.request.user
-        return user.is_superuser or user.role in self.allowed_roles

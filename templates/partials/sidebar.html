@@ -95,48 +95,6 @@ this file only carries the presentation. Collapse state lives on <html> as
       <span class="ap-nav-text">{% trans "Reports" %}</span>
     </a>
 
-    {% if request.user.role == "admin" or request.user.role == "manager" or request.user.is_superuser %}
-      {% url 'ai_agents:dashboard' as ai_url %}
-      <a href="{{ ai_url }}" class="ap-nav-link{% if request.path|slice:':3' == '/ai' %} is-active{% endif %}"
-         data-tip="{% trans 'AI agents' %}">
-        <svg class="ap-nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 4.5V8M8.5 13h.01M15.5 13h.01M9 16.5h6"/>
-          <path d="M2 12.5v2M22 12.5v2"/>
-        </svg>
-        <span class="ap-nav-text">{% trans "AI agents" %}</span>
-      </a>
-    {% endif %}
-
-    {% url 'requests_app:list' as requests_url %}
-    <a href="{{ requests_url }}" class="ap-nav-link{% if request.path|slice:':9' == '/requests' %} is-active{% endif %}"
-       data-tip="{% trans 'Requests' %}">
-      <svg class="ap-nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M3 13h4l2 3h6l2-3h4"/>
-        <path d="M5.5 5h13l2.5 8v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4l2.5-8z"/>
-      </svg>
-      <span class="ap-nav-text">{% trans "Requests" %}</span>
-    </a>
-
-    {% url 'document_templates:list' as templates_url %}
-    <a href="{{ templates_url }}" class="ap-nav-link{% if request.path|slice:':10' == '/templates' %} is-active{% endif %}"
-       data-tip="{% trans 'Templates' %}">
-      <svg class="ap-nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M8 3h7l4 4v10a2 2 0 01-2 2H8a2 2 0 01-2-2V5a2 2 0 012-2z"/>
-        <path d="M15 3v4h4"/><path d="M4 7v12a2 2 0 002 2h9"/>
-      </svg>
-      <span class="ap-nav-text">{% trans "Templates" %}</span>
-    </a>
-
-    {% url 'organization:list' as organization_url %}
-    <a href="{{ organization_url }}" class="ap-nav-link{% if request.path == organization_url %} is-active{% endif %}"
-       data-tip="{% trans 'Organization' %}">
-      <svg class="ap-nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M3 21h18M5 21V6a1 1 0 011-1h6a1 1 0 011 1v15M13 21V10h5a1 1 0 011 1v10"/>
-        <path d="M8 9h2M8 13h2M8 17h2M16 14h.01M16 17h.01"/>
-      </svg>
-      <span class="ap-nav-text">{% trans "Organization" %}</span>
-    </a>
-
     {% url 'accounts:user_list' as users_url %}
     <a href="{{ users_url }}" class="ap-nav-link{% if request.path == users_url %} is-active{% endif %}"
        data-tip="{% trans 'Users' %}">

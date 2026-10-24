@@ -634,7 +634,7 @@
 {% block extra_scripts %}
   <script src="{% static 'js/project-detail.js' %}" defer></script>
   {% if project.latitude is not None and project.longitude is not None %}
-  <script src="{% static 'vendor/leaflet/leaflet.js' %}"></script>
+  {% include "partials/leaflet_assets.html" %}
   <script src="{% static 'js/project-map-view.js' %}"></script>
   {% endif %}
   {% if can_edit %}

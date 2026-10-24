@@ -1,7 +1,7 @@
 (function () {
   function init() {
     var mapEl = document.getElementById("project-map");
-    if (!mapEl || typeof L === "undefined") return;
+    if (!mapEl || typeof L === "undefined" || !window.APMap) return;
 
     var latInput = document.getElementById("id_latitude");
     var lngInput = document.getElementById("id_longitude");
@@ -15,10 +15,7 @@
     var startCenter = hasInitial ? [initialLat, initialLng] : defaultCenter;
 
     var map = L.map(mapEl).setView(startCenter, hasInitial ? 14 : 6);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "&copy; OpenStreetMap contributors",
-      maxZoom: 19,
-    }).addTo(map);
+    window.APMap.addTiles(map);
 
     var marker = hasInitial ? L.marker(startCenter, { draggable: true }).addTo(map) : null;
 

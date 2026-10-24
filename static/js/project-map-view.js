@@ -1,7 +1,7 @@
 (function () {
   function init() {
     var mapEl = document.getElementById("project-overview-map");
-    if (!mapEl || typeof L === "undefined") return;
+    if (!mapEl || typeof L === "undefined" || !window.APMap) return;
 
     var lat = parseFloat(mapEl.dataset.lat);
     var lng = parseFloat(mapEl.dataset.lng);
@@ -13,10 +13,7 @@
       scrollWheelZoom: false,
     }).setView([lat, lng], 15);
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "&copy; OpenStreetMap contributors",
-      maxZoom: 19,
-    }).addTo(map);
+    window.APMap.addTiles(map);
 
     var marker = L.marker([lat, lng]).addTo(map);
     if (mapEl.dataset.address) {

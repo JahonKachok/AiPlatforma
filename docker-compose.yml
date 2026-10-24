@@ -61,27 +61,15 @@ services:
     container_name: aiplatforma_celery_worker
     restart: unless-stopped
     entrypoint: []
-    command: celery -A aiplatforma worker --loglevel=info
+    # -B: beat shu konteyner ichida ishlaydi — alohida celery-beat konteyneri
+    # (~100 MB RAM) kerak emas. Worker bitta bo'lgani uchun bu xavfsiz;
+    # worker'larni ko'paytirsangiz, beat'ni yana alohida xizmatga ajrating.
+    command: celery -A aiplatforma worker -B --concurrency=2 --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     env_file: .env
     environment:
       - DJANGO_SETTINGS_MODULE=aiplatforma.settings.prod
     volumes:
       - media_data:/app/media
-    depends_on:
-      - redis
-      - web
-    networks:
-      - app_network
-
-  celery-beat:
-    build: .
-    container_name: aiplatforma_celery_beat
-    restart: unless-stopped
-    entrypoint: []
-    command: celery -A aiplatforma beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
-    env_file: .env
-    environment:
-      - DJANGO_SETTINGS_MODULE=aiplatforma.settings.prod
     depends_on:
       - redis
       - web

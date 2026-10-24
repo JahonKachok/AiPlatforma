@@ -56,7 +56,7 @@ docker compose exec web python manage.py createsuperuser
 
 - Sayt: `http://server-ip/` (nginx, 80-port)
 - Holat: `docker compose ps` — 7 xizmat ham `running` bo'lishi kerak
-- Loglar: `docker compose logs -f web` (yoki `telegram-bot`, `celery-beat`)
+- Loglar: `docker compose logs -f web` (yoki `telegram-bot`, `celery-worker`)
 
 **Boshqarish buyruqlari:**
 

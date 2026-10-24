@@ -1,0 +1,36 @@
+# Image'ga faqat ishlash uchun kerakli kod tushsin: lokal muhit, ma'lumotlar
+# va maxfiy fayllar (.env!) image ichida qolib ketmasin.
+.git
+.gitignore
+.gitattributes
+.vscode
+.idea
+.venv
+venv
+node_modules
+__pycache__/
+*.pyc
+
+.env
+db.sqlite3
+db.sqlite3.bak-*
+celery-broker.sqlite
+celery-results.sqlite
+.django-cache/
+media/
+staticfiles/
+backups/
+logs
+*.log
+*.zip
+
+# Runtime'da faqat kompilyatsiya qilingan .mo kerak; .po manbalari va
+# Tailwind manbasi kerak emas.
+locale/**/*.po
+static/css/src/
+
+# Hujjatlar va Windows skriptlari
+*.docx
+*.md
+*.ps1
+serve_prod.py

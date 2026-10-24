@@ -71,7 +71,7 @@ python manage.py test apps
 
 ## Deployment
 
-`docker-compose.yml` runs the full stack: `web` (gunicorn), `celery-worker`, `celery-beat`, `telegram-bot`, `redis`, and `nginx` (reverse proxy + static/media serving). Copy `.env.example` to `.env` with real production values first, then:
+`docker-compose.yml` runs the full stack: `web` (gunicorn), `celery-worker` (with embedded beat), `telegram-bot`, `redis`, and `nginx` (reverse proxy + static/media serving). Copy `.env.example` to `.env` with real production values first, then:
 
 ```bash
 docker compose up -d --build

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load i18n core_extras %}
+{% block title %}{% trans "Payroll" %}{% endblock %}
+{% block page_title %}{% trans "Payroll" %}{% endblock %}
+{% block content %}
+{# Moliya rollaridan boshqa foydalanuvchilar faqat o'z maosh shartnomalarini ko'radi (apps/finance/views.py). #}
+<div class="card overflow-x-auto p-6">
+  <table class="w-full text-left text-sm">
+    <thead class="text-gray-500 dark:text-gray-400">
+      <tr>
+        <th class="py-1">{% trans "Project" %}</th>
+        <th>{% trans "Budget" %}</th>
+        <th>{% trans "Advance" %}</th>
+        <th>{% trans "Paid" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ec in contracts %}
+        <tr class="border-t border-gray-100 dark:border-gray-700">
+          <td class="py-1">{{ ec.project.name }}</td>
+          <td>{{ ec.amount|money }} {{ ec.currency }}</td>
+          <td>{{ ec.advance|money }} {{ ec.currency }}</td>
+          <td>{{ ec.paid|money }} {{ ec.currency }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4" class="py-4 text-center text-gray-500 dark:text-gray-400">{% trans "No records yet." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

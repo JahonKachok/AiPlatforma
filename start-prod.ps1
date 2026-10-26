@@ -24,8 +24,9 @@ if ($LASTEXITCODE -ne 0) { throw "migrate xato bilan tugadi" }
 if ($LASTEXITCODE -ne 0) { throw "collectstatic xato bilan tugadi" }
 Write-Host "  [0/4] migrate + collectstatic -> tayyor" -ForegroundColor Green
 
-# Waitress faqat localhost'da tinglaydi: tashqi dunyoga Cloudflare Tunnel
-# chiqaradi, shuning uchun portni butun tarmoqqa ochish shart emas.
+# Waitress faqat localhost'da tinglaydi: bu rejim faqat shu kompyuterda
+# production sozlamalarini sinash uchun. Ommaviy domen uchun serverdagi
+# Docker o'rnatmasidan foydalaning (RUNNING.md, A bo'lim).
 Start-Process -FilePath $python -ArgumentList "serve_prod.py" `
     -WorkingDirectory $PSScriptRoot -WindowStyle Minimized
 Write-Host "  [1/4] Waitress (WSGI)   -> http://127.0.0.1:8000" -ForegroundColor Green
@@ -44,4 +45,3 @@ Write-Host "  [4/4] Celery beat       -> kunlik AI hisobot (08:00)" -ForegroundC
 
 Write-Host ""
 Write-Host "Tayyor. DEBUG=False, statik fayllar whitenoise orqali." -ForegroundColor Cyan
-Write-Host "Domen uchun Cloudflare Tunnel ham kerak:  .\start-tunnel.ps1" -ForegroundColor Yellow

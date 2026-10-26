@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.db.models import Count
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render
@@ -6,6 +7,7 @@ from django.shortcuts import render
 from apps.accounts.models import User
 from apps.documents.models import Document, DocumentStatus
 from apps.finance.models import EmployeeContract, FinancialRecord
+from apps.finance.permissions import can_manage_finance
 from apps.projects.permissions import visible_projects_for
 from apps.tasks.models import Task
 
@@ -77,12 +79,15 @@ def reports_dashboard(request):
         "project_status_distribution": project_status_distribution,
         "projects_total": projects_total,
         "workload": workload,
+        "can_manage_finance": can_manage_finance(request.user),
     })
 
 
 @login_required
 def report_export(request, kind):
     projects = visible_projects_for(request.user)
+    if kind in ("finance", "employees") and not can_manage_finance(request.user):
+        raise PermissionDenied
 
     if kind == "projects":
         wb = build_projects_workbook(projects)

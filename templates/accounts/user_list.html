@@ -49,7 +49,7 @@
         {% if u.discipline_other %}<span class="badge badge-default">{{ u.discipline_other }}</span>{% endif %}
       </p>
       {% endif %}
-      {% if can_manage %}
+      {% if can_manage and u.role != "admin" and not u.is_superuser or is_admin %}
         <a href="{% url 'accounts:user_update' u.pk %}" class="mt-2 inline-block text-xs text-blue-600 hover:underline dark:text-blue-400">{% trans "Edit" %}</a>
       {% endif %}
     </div>

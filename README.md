@@ -71,8 +71,14 @@ python manage.py test apps
 
 ## Deployment
 
-`docker-compose.yml` runs the full stack: `web` (gunicorn), `celery-worker` (with embedded beat), `telegram-bot`, `redis`, and `nginx` (reverse proxy + static/media serving). Copy `.env.example` to `.env` with real production values first, then:
+`docker-compose.yml` runs the full stack: `web` (gunicorn, non-root), `celery-worker` (with embedded beat), `telegram-bot`, `db` (Postgres) with a daily `db-backup`, `redis`, `nginx` (HTTPS reverse proxy + static files) and `certbot` (Let's Encrypt renewal). Uploaded media is never served by nginx — only through Django's permission-checked `protected_media` view.
+
+Step-by-step server setup (firewall, HTTPS certificate, `.env`) is in [RUNNING.md](RUNNING.md), section A. In short:
 
 ```bash
-docker compose up -d --build
+sudo sh deploy/server-setup.sh      # once: updates, Docker, firewall, fail2ban
+cp .env.example .env && nano .env   # DOMAIN, SECRET_KEY, POSTGRES_PASSWORD, ...
+docker compose build
+sh deploy/init-letsencrypt.sh       # once: first HTTPS certificate
+docker compose up -d
 ```

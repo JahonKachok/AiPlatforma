@@ -54,6 +54,57 @@ class ProtectedMediaTests(TestCase):
         response = self.client.get("/media/documents/2026/01/nope.pdf")
         self.assertEqual(response.status_code, 404)
 
+    def test_files_of_other_projects_are_not_served(self):
+        """Login yetarli emas: fayl faqat loyihasini ko'ra oladiganlarga."""
+        import shutil
+        import tempfile
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        from apps.documents.models import Document
+
+        media_root = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, media_root, ignore_errors=True)
+        with self.settings(MEDIA_ROOT=media_root):
+            admin = User.objects.create_user(
+                email="mediaadmin@example.com", password="pw12345!", full_name="A", role=User.Role.ADMIN,
+            )
+            member = User.objects.create_user(email="member@example.com", password="pw12345!", full_name="M")
+            outsider = User.objects.create_user(email="outsider@example.com", password="pw12345!", full_name="O")
+            project = Project.objects.create(name="Secret", created_by=admin)
+            ProjectMember.objects.create(project=project, user=member)
+            document = Document.objects.create(
+                name="Contract", project=project, uploaded_by=admin,
+                file=SimpleUploadedFile("contract.pdf", b"%PDF-1.4 secret"),
+            )
+            url = f"/media/{document.file.name}"
+
+            self.client.force_login(outsider)
+            self.assertEqual(self.client.get(url).status_code, 404)
+
+            self.client.force_login(member)
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(b"".join(response.streaming_content), b"%PDF-1.4 secret")
+
+
+class BackupAccessTests(TestCase):
+    def test_manager_cannot_reach_backups(self):
+        """Backup — butun baza nusxasi (parol xeshlari, TOTP sirlari)."""
+        manager = User.objects.create_user(
+            email="bkmanager@example.com", password="pw12345!", full_name="M", role=User.Role.MANAGER,
+        )
+        self.client.force_login(manager)
+        self.assertEqual(self.client.get(reverse("core:backup_list")).status_code, 403)
+
+    def test_only_backup_files_can_be_downloaded(self):
+        admin = User.objects.create_user(
+            email="bkadmin@example.com", password="pw12345!", full_name="A", role=User.Role.ADMIN,
+        )
+        self.client.force_login(admin)
+        response = self.client.get(reverse("core:backup_download", args=["db.sqlite3"]))
+        self.assertEqual(response.status_code, 404)
+
 
 class DashboardDataTests(TestCase):
     """Every figure on the dashboard has to come out of the database, and only

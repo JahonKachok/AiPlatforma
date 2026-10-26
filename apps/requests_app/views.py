@@ -36,7 +36,7 @@ def request_list(request):
 @login_required
 def request_create(request):
     if request.method == "POST":
-        form = RequestForm(request.POST)
+        form = RequestForm(request.POST, user=request.user)
         if form.is_valid():
             req = form.save(commit=False)
             req.created_by = request.user
@@ -50,7 +50,7 @@ def request_create(request):
             messages.success(request, _("Request created."))
             return redirect("requests_app:detail", pk=req.pk)
     else:
-        form = RequestForm()
+        form = RequestForm(user=request.user)
     return render(request, "requests_app/request_form.html", {"form": form, "is_create": True})
 
 
@@ -81,13 +81,13 @@ def request_detail(request, pk):
 def request_update(request, pk):
     req = get_object_or_404(_visible_requests(request.user), pk=pk)
     if request.method == "POST":
-        form = RequestForm(request.POST, instance=req)
+        form = RequestForm(request.POST, instance=req, user=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, _("Request updated."))
             return redirect("requests_app:detail", pk=pk)
     else:
-        form = RequestForm(instance=req)
+        form = RequestForm(instance=req, user=request.user)
     return render(request, "requests_app/request_form.html", {"form": form, "request_obj": req, "is_create": False})
 
 

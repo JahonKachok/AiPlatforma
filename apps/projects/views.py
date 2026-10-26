@@ -16,6 +16,7 @@ from apps.accounts.models import Discipline, User
 from apps.core.json_utils import script_json
 from apps.documents.models import AuditLog, Document, DocumentVersion
 from apps.finance.forms import FinancialRecordForm
+from apps.finance.permissions import can_manage_finance
 from apps.notifications.models import NotificationType
 from apps.notifications.services import notify_user
 from apps.tasks.models import Task, sanitize_path_segment
@@ -304,9 +305,12 @@ def project_detail(request, pk):
 
     tasks = project.tasks.select_related("assignee")[:6]
     task_stats = _project_task_stats(project)
-    records = project.financial_records.all()[:20]
-    income = sum(r.amount for r in project.financial_records.filter(type="income"))
-    expense = sum(r.amount for r in project.financial_records.filter(type="expense"))
+    can_view_finance = can_manage_finance(request.user)
+    records, income, expense = [], 0, 0
+    if can_view_finance:
+        records = project.financial_records.all()[:20]
+        income = sum(r.amount for r in project.financial_records.filter(type="income"))
+        expense = sum(r.amount for r in project.financial_records.filter(type="expense"))
 
     doc_type_keys = [key for key, _label in get_wizard_doc_types()]
     documents_by_type = {}
@@ -328,6 +332,7 @@ def project_detail(request, pk):
         "income": income,
         "expense": expense,
         "can_edit": can_edit_project(request.user, project),
+        "can_view_finance": can_view_finance,
         "orphan_sections": orphan_sections,
         "top_objects": top_objects,
         "discipline_users": discipline_users,

@@ -30,6 +30,9 @@ SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
+# Standart 2 hafta o'rniga 12 soat: unutib qoldirilgan yoki o'g'irlangan
+# sessiya (umumiy kompyuter, yo'qolgan telefon) uzoq yaroqli bo'lmasin.
+SESSION_COOKIE_AGE = env.int("SESSION_COOKIE_AGE", default=12 * 60 * 60)  # noqa: F405
 
 SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True

@@ -19,7 +19,8 @@ from apps.projects.permissions import ensure_project_member, visible_projects_fo
 from .forms import TaskAttachmentForm, TaskCommentForm, TaskForm
 from .models import Task, TaskAttachment, TaskComment
 from .permissions import (
-    allowed_status_targets, can_change_task_status, is_privileged, resolve_reviewer, reviewer_candidates,
+    allowed_status_targets, can_change_task_status, can_manage_task, is_privileged, resolve_reviewer,
+    reviewer_candidates,
 )
 from .services import submit_task_for_approval
 
@@ -218,6 +219,7 @@ def task_detail(request, pk):
         "reviewer": reviewer,
         "is_reviewer": is_reviewer,
         "can_send_for_review": can_send_for_review,
+        "can_manage": can_manage_task(request.user, task),
         "reviewer_candidates": reviewer_candidates().exclude(pk=request.user.pk),
         "revision_form": TaskCommentForm(),
     })
@@ -226,6 +228,8 @@ def task_detail(request, pk):
 @login_required
 def task_update(request, pk):
     task = get_object_or_404(_visible_tasks(request.user), pk=pk)
+    if not can_manage_task(request.user, task):
+        raise PermissionDenied
     if request.method == "POST":
         old_status = task.status
         old_assignee_id = task.assignee_id
@@ -264,6 +268,8 @@ def task_update(request, pk):
 @login_required
 def task_delete(request, pk):
     task = get_object_or_404(_visible_tasks(request.user), pk=pk)
+    if not can_manage_task(request.user, task):
+        raise PermissionDenied
     if request.method == "POST":
         task.delete()
         messages.success(request, _("Task deleted."))

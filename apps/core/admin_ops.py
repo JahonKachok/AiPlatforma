@@ -1,3 +1,4 @@
+import re
 import zipfile
 from pathlib import Path
 
@@ -11,10 +12,24 @@ from apps.accounts.models import User
 
 from .permissions import role_required
 
-MANAGE_ROLES = (User.Role.ADMIN, User.Role.MANAGER)
+# Backup — butun bazaning nusxasi: parol xeshlari, TOTP sirlari, barcha
+# moliyaviy yozuvlar. Shuning uchun u bilan faqat admin ishlaydi.
+MANAGE_ROLES = (User.Role.ADMIN,)
 DELETE_ROLES = (User.Role.ADMIN,)
 
 BACKUP_DIR = settings.BASE_DIR / "backups"
+_BACKUP_NAME_RE = re.compile(r"^backup_\d{8}_\d{6}\.zip$")
+
+
+def _backup_path(filename):
+    """Faqat o'zimiz yaratgan nomdagi fayllar — boshqa hech narsa backups/
+    katalogidan berilmaydi yoki o'chirilmaydi."""
+    if not _BACKUP_NAME_RE.match(filename):
+        raise Http404
+    path = BACKUP_DIR / filename
+    if not path.is_file():
+        raise Http404
+    return path
 
 
 @role_required(*MANAGE_ROLES)
@@ -47,6 +62,11 @@ def _create_backup():
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
         if db_path.exists():
             zf.write(db_path, arcname="db.sqlite3")
+        # Docker'da baza Postgres: uning nusxasini db-backup konteyneri
+        # backups/db/ ga yozadi (deploy/db-backup.sh) — eng oxirgisi qo'shiladi.
+        dumps = sorted((BACKUP_DIR / "db").glob("db_*.dump"), key=lambda p: p.stat().st_mtime)
+        if dumps:
+            zf.write(dumps[-1], arcname=f"db/{dumps[-1].name}")
         media_root = Path(settings.MEDIA_ROOT)
         if media_root.exists():
             for file_path in media_root.rglob("*"):
@@ -57,17 +77,13 @@ def _create_backup():
 
 @role_required(*MANAGE_ROLES)
 def backup_download(request, filename):
-    path = BACKUP_DIR / filename
-    if ".." in filename or not path.is_file():
-        raise Http404
+    path = _backup_path(filename)
     return FileResponse(open(path, "rb"), as_attachment=True, filename=filename)
 
 
 @role_required(*DELETE_ROLES)
 def backup_delete(request, filename):
-    path = BACKUP_DIR / filename
-    if ".." in filename or not path.is_file():
-        raise Http404
+    path = _backup_path(filename)
     if request.method == "POST":
         path.unlink()
         messages.success(request, _("Backup deleted."))

@@ -222,6 +222,9 @@ msgstr "Tasdiqlash kodi noto'g'ri."
 msgid "Account created. You can now log in."
 msgstr "Hisob yaratildi. Endi tizimga kirishingiz mumkin."
 
+msgid "Account created. You can sign in once an administrator activates it."
+msgstr "Hisob yaratildi. Administrator uni faollashtirgach, tizimga kira olasiz."
+
 #: .\apps\accounts\views.py:207
 msgid "Profile updated."
 msgstr "Profil yangilandi."

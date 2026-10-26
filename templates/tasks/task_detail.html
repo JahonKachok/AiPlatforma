@@ -9,8 +9,10 @@
 {% block content %}
 <div class="mb-4 flex flex-wrap gap-2">
   <a href="{% url 'tasks:board' %}" class="btn btn-ghost btn-sm">← {% trans "Back" %}</a>
-  <a href="{% url 'tasks:update' task.pk %}" class="btn btn-secondary btn-sm">{% trans "Edit" %}</a>
-  <a href="{% url 'tasks:delete' task.pk %}" class="btn btn-danger btn-sm">{% trans "Delete" %}</a>
+  {% if can_manage %}
+    <a href="{% url 'tasks:update' task.pk %}" class="btn btn-secondary btn-sm">{% trans "Edit" %}</a>
+    <a href="{% url 'tasks:delete' task.pk %}" class="btn btn-danger btn-sm">{% trans "Delete" %}</a>
+  {% endif %}
 </div>
 
 <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">

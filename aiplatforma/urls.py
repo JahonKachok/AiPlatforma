@@ -1,7 +1,13 @@
 from django.contrib import admin
+from django.contrib.auth.decorators import login_required
 from django.urls import include, path, re_path
 
 from apps.core.views import protected_media
+
+# /django-admin/ ning o'z login sahifasi 2FA'ni ham, urinishlar cheklovini ham
+# chetlab o'tardi: superuser parolini shu yerda cheksiz tanlab ko'rish mumkin
+# edi. Endi kirish faqat ilovaning login oqimi (cheklov + TOTP) orqali.
+admin.site.login = login_required(admin.site.login)
 
 urlpatterns = [
     path("django-admin/", admin.site.urls),
@@ -20,6 +26,6 @@ urlpatterns = [
     path("ai/", include("apps.ai_agents.urls")),
     path("", include("apps.core.urls")),
     # Yuklangan fayllar autentifikatsiyadan o'tgan view orqali beriladi
-    # (nginx ularni ochiq tarqatmasligi kerak — nginx.conf ga qarang).
+    # (nginx ularni ochiq tarqatmasligi kerak — nginx/default.conf.template ga qarang).
     re_path(r"^media/(?P<path>.*)$", protected_media, name="protected_media"),
 ]

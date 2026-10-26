@@ -22,6 +22,15 @@ class RequestForm(StyledFormMixin, forms.ModelForm):
             "priority": _("The request's priority level: Low, Medium, or High."),
         }
 
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if user is not None:
+            # Faqat o'zi ko'ra oladigan loyihalarga: aks holda begona loyihaga
+            # murojaat biriktirib, uning a'zolariga xabar yuborish mumkin edi.
+            from apps.projects.permissions import visible_projects_for
+
+            self.fields["project"].queryset = visible_projects_for(user)
+
 
 class RequestCommentForm(StyledFormMixin, forms.ModelForm):
     class Meta:

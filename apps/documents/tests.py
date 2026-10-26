@@ -25,6 +25,21 @@ class ApprovalWorkflowTests(TestCase):
         self.client.force_login(user)
         return self.client.post(reverse("documents:review_stage", args=[stage.pk]), {"status": status, "comment": comment})
 
+    def test_view_only_member_cannot_delete_someone_elses_document(self):
+        ProjectMember.objects.filter(project=self.project, user=self.reviewer1).update(can_edit=False)
+        self.client.force_login(self.reviewer1)
+        response = self.client.post(reverse("documents:delete", args=[self.document.pk]))
+        self.assertEqual(response.status_code, 403)
+        self.client.post(reverse("documents:list"), {"delete_selected": "1", "selected": [self.document.pk]})
+        self.assertTrue(Document.objects.filter(pk=self.document.pk).exists())
+
+    def test_uploader_cannot_route_their_own_document(self):
+        """Aks holda o'zini tekshiruvchi qilib, o'z hujjatini tasdiqlardi."""
+        ProjectMember.objects.filter(project=self.project, user=self.uploader).update(can_edit=False)
+        self.client.force_login(self.uploader)
+        response = self.client.get(reverse("documents:assign_stages", args=[self.document.pk]))
+        self.assertEqual(response.status_code, 403)
+
     def test_only_assigned_reviewer_can_review(self):
         response = self._review(self.reviewer2, self.stage1, "approved")
         self.assertEqual(response.status_code, 403)

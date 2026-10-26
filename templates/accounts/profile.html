@@ -57,7 +57,7 @@
         <p class="text-sm font-medium">{% trans "Login history" %}</p>
         <a href="{% url 'accounts:login_journal' %}" class="btn btn-ghost btn-sm">{% trans "View" %}</a>
       </div>
-      {% if user.role == "admin" or user.role == "manager" or user.is_superuser %}
+      {% if user.role == "admin" or user.is_superuser %}
         <div class="flex items-center justify-between border-t border-gray-100 py-2 dark:border-gray-700">
           <p class="text-sm font-medium">{% trans "Backups" %}</p>
           <a href="{% url 'core:backup_list' %}" class="btn btn-ghost btn-sm">{% trans "View" %}</a>

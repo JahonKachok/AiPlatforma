@@ -15,7 +15,7 @@ environ.Env.read_env(BASE_DIR / ".env")
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env.bool("DEBUG", default=False)
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
-# Tashqi domen orqali (masalan, Cloudflare Tunnel) kirishda POST/CSRF ishlashi uchun
+# HTTPS domen orqali kirishda POST/CSRF ishlashi uchun, masalan: https://example.uz
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 
 DJANGO_APPS = [
@@ -129,9 +129,14 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# File upload limits (mirrors the previous FastAPI app's 50MB cap)
-DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024
-FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024
+# Yuklash limitlari. Fayl hajmining o'zi (50 MB) MaxFileSizeValidator va
+# nginx client_max_body_size bilan cheklanadi. Bu yerdagi qiymatlar faqat
+# xotirada nima saqlanishini belgilaydi: 5 MB dan katta fayl diskka
+# (vaqtinchalik faylga) yoziladi — aks holda bir nechta parallel 50 MB'lik
+# yuklash kichik serverning RAM'ini to'ldirib qo'yardi. DATA_... fayllardan
+# tashqari so'rov tanasi uchun; oddiy formalar uchun 5 MB yetarlidan ko'p.
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 
 # Celery
 CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://localhost:6379/0")

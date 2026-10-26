@@ -7,8 +7,10 @@
 <div class="mb-6 flex flex-wrap gap-2">
   <a href="{% url 'reports:export' 'projects' %}" class="btn btn-secondary btn-sm">{% trans "Export projects" %}</a>
   <a href="{% url 'reports:export' 'tasks' %}" class="btn btn-secondary btn-sm">{% trans "Export tasks" %}</a>
+  {% if can_manage_finance %}
   <a href="{% url 'reports:export' 'finance' %}" class="btn btn-secondary btn-sm">{% trans "Export finance" %}</a>
   <a href="{% url 'reports:export' 'employees' %}" class="btn btn-secondary btn-sm">{% trans "Export employees" %}</a>
+  {% endif %}
 </div>
 
 <div class="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">

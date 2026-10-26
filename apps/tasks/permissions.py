@@ -52,6 +52,17 @@ def can_change_task_status(user, task, new_status):
     return False
 
 
+def can_manage_task(user, task):
+    """To'liq tahrirlash va o'chirish: imtiyozli rollar, loyihada tahrir
+    huquqi borlar yoki vazifa muallifi. Ilgari loyihani faqat ko'ra oladigan
+    har kim istalgan vazifani o'chirib yoki ijrochisini almashtirib qo'ya
+    olardi; ijrochi holatni alohida (tekshiriladigan) tugmalar orqali
+    o'zgartiradi."""
+    from apps.projects.permissions import can_edit_project
+
+    return is_privileged(user) or task.creator_id == user.id or can_edit_project(user, task.project)
+
+
 def allowed_status_targets(user, task):
     from .models import Task
 

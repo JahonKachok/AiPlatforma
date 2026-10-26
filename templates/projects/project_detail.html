@@ -93,7 +93,7 @@
     <button type="button" data-tab="info" class="ap-tab is-active">{% trans "Overview" %}</button>
     <button type="button" data-tab="structure" class="ap-tab">{% trans "Objects & sub-objects" %}</button>
     <button type="button" data-tab="tasks" class="ap-tab">{% trans "Tasks" %}</button>
-    <button type="button" data-tab="finance" class="ap-tab">{% trans "Finance" %}</button>
+    {% if can_view_finance %}<button type="button" data-tab="finance" class="ap-tab">{% trans "Finance" %}</button>{% endif %}
     <button type="button" data-tab="source_files" class="ap-tab">{% trans "Исходные файлы" %}</button>
   </div>
 
@@ -326,7 +326,8 @@
         </div>
       </section>
 
-      {# ---------- Finance summary ---------- #}
+      {# ---------- Finance summary (faqat moliya rollari) ---------- #}
+      {% if can_view_finance %}
       <section class="pd-card pd-card-hover">
         <div class="pd-card-head">
           <h2 class="pd-card-title">
@@ -364,6 +365,7 @@
           </dl>
         </div>
       </section>
+      {% endif %}
 
       {# ---------- Statistics (same task_stats dict as the progress block) ---------- #}
       <section class="pd-card pd-card-hover pd-span-2">
@@ -538,6 +540,7 @@
   </div>
 
   {# ============================= FINANCE ============================= #}
+  {% if can_view_finance %}
   <div data-tab-panel="finance" class="hidden space-y-6">
     <div class="card overflow-x-auto p-6">
       <h2 class="mb-3 font-semibold">{% trans "Finance records" %}</h2>
@@ -566,6 +569,7 @@
       </table>
     </div>
   </div>
+  {% endif %}
 
   {# ========================== SOURCE FILES ========================== #}
   <div data-tab-panel="source_files" class="hidden space-y-6">

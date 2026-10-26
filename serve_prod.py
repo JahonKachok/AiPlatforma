@@ -5,10 +5,10 @@ Nega kerak:
   * `manage.py runserver` — development serveri, ommaviy domenga chiqarish
     uchun mo'ljallanmagan;
   * waitress 2.0+ ishonchsiz manbadan kelgan `X-Forwarded-*` sarlavhalarini
-    o'chirib tashlaydi. Cloudflare Tunnel aynan shu sarlavhada asl sxemani
-    (https) uzatadi, u yo'qolsa Django so'rovni HTTP deb bilib, cheksiz
-    SECURE_SSL_REDIRECT halqasiga tushadi. Shuning uchun localhost'dan
-    kelgan proksiga ishonamiz — tashqi ulanishlar bu portga kelmaydi.
+    o'chirib tashlaydi. Oldida localhost'dagi reverse proxy (HTTPS'ni
+    tugatuvchi) bo'lsa, u asl sxemani (https) shu sarlavhada uzatadi —
+    shuning uchun faqat localhost'dan kelgan proksiga ishonamiz. Tashqi
+    ulanishlar bu portga kelmaydi (faqat 127.0.0.1 tinglanadi).
 
 Ishga tushirish:
     python serve_prod.py
@@ -27,7 +27,7 @@ if __name__ == "__main__":
         host="127.0.0.1",
         port=8000,
         threads=8,
-        # Faqat localhost'dagi cloudflared'ga ishonamiz.
+        # Faqat localhost'dagi reverse proxy'ga ishonamiz.
         trusted_proxy="127.0.0.1",
         trusted_proxy_count=1,
         trusted_proxy_headers={"x-forwarded-proto", "x-forwarded-for"},

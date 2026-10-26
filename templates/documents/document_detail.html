@@ -14,11 +14,13 @@
   {% if document.file %}
     <a href="{% url 'documents:download' document.pk %}" class="btn btn-secondary btn-sm">{% trans "Download" %}</a>
   {% endif %}
-  {% if document.status == "draft" %}
+  {% if document.status == "draft" and can_assign_stages %}
     <a href="{% url 'documents:assign_stages' document.pk %}" class="btn btn-primary btn-sm">{% trans "Send for approval" %}</a>
   {% endif %}
   <a href="?audit=1" class="btn btn-ghost btn-sm">{% trans "Audit log" %}</a>
-  <a href="{% url 'documents:delete' document.pk %}" class="btn btn-danger btn-sm">{% trans "Delete" %}</a>
+  {% if can_modify %}
+    <a href="{% url 'documents:delete' document.pk %}" class="btn btn-danger btn-sm">{% trans "Delete" %}</a>
+  {% endif %}
 </div>
 
 <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -45,12 +47,14 @@
           </li>
         {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No versions yet." %}</li>{% endfor %}
       </ul>
+      {% if can_modify %}
       <form method="post" action="{% url 'documents:add_version' document.pk %}" enctype="multipart/form-data" class="flex flex-wrap gap-2">
         {% csrf_token %}
         {% with field=version_form.file %}{% include "partials/field_with_info.html" %}{% endwith %}
         {% with field=version_form.notes %}{% include "partials/field_with_info.html" %}{% endwith %}
         <button type="submit" class="btn btn-secondary btn-sm">{% trans "Add version" %}</button>
       </form>
+      {% endif %}
     </div>
 
     {% if show_audit %}

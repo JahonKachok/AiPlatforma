@@ -223,6 +223,9 @@ msgstr "Неверный код подтверждения."
 msgid "Account created. You can now log in."
 msgstr "Аккаунт создан. Теперь вы можете войти."
 
+msgid "Account created. You can sign in once an administrator activates it."
+msgstr "Аккаунт создан. Вы сможете войти после того, как администратор его активирует."
+
 #: .\apps\accounts\views.py:207
 msgid "Profile updated."
 msgstr "Профиль обновлён."

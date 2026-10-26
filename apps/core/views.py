@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
+from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -270,9 +271,36 @@ def set_dark_mode(request):
 _INLINE_MEDIA_TYPES = {"image/png", "image/jpeg", "image/gif", "image/webp"}
 
 
+def _can_access_media(user, path):
+    """Fayl qaysi yozuvga tegishli ekanini topib, foydalanuvchi o'sha yozuvni
+    ko'ra olishini tekshiradi.
+
+    Faqat login talab qilish yetmasdi: fayl yo'llari taxmin qilinadigan
+    (``documents/2026/01/Shartnoma.pdf``), ya'ni istalgan xodim — mijoz roli
+    ham — o'zi a'zo bo'lmagan loyihalarning hujjatlarini yuklab olardi.
+    """
+    if path.startswith("avatars/"):
+        return True
+    if user.is_superuser or user.role in (User.Role.ADMIN, User.Role.MANAGER):
+        return True
+
+    from apps.documents.models import DocumentVersion
+    from apps.tasks.models import TaskAttachment
+
+    projects = visible_projects_for(user)
+    return (
+        Document.objects.filter(file=path, project__in=projects).exists()
+        or DocumentVersion.objects.filter(file=path, document__project__in=projects).exists()
+        or ApprovalStage.objects.filter(response_file=path, document__project__in=projects).exists()
+        or TaskAttachment.objects.filter(file=path, task__project__in=projects).exists()
+        or projects.filter(image=path).exists()
+    )
+
+
 @login_required
 def protected_media(request, path):
-    """MEDIA_ROOT'dagi fayllarni faqat tizimga kirgan foydalanuvchiga beradi.
+    """MEDIA_ROOT'dagi fayllarni faqat ularni ko'rishga haqli foydalanuvchiga
+    beradi (``_can_access_media``).
 
     Ilgari /media/ to'g'ridan-to'g'ri nginx (va DEBUG'da Django) orqali ochiq
     tarqatilardi — ya'ni loyiha hujjatlarini havolani bilgan har kim
@@ -280,6 +308,9 @@ def protected_media(request, path):
     ``safe_join`` ishlatgani uchun ``../`` bilan katalogdan chiqib ketib
     bo'lmaydi.
     """
+    # 403 emas, 404: begona fayl borligini ham oshkor qilmaymiz.
+    if not _can_access_media(request.user, path):
+        raise Http404
     response = serve(request, path, document_root=settings.MEDIA_ROOT)
     response.headers["X-Content-Type-Options"] = "nosniff"
     if response.headers.get("Content-Type") not in _INLINE_MEDIA_TYPES:

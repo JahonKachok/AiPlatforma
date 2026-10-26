@@ -53,6 +53,43 @@ class FinanceRecordPermissionTests(TestCase):
         self.assertEqual(record.type, "expense")
 
 
+class FinanceVisibilityTests(TestCase):
+    """Moliya ma'lumotlari faqat moliya rollariga; qolganlar o'z maoshini ko'radi."""
+
+    def setUp(self):
+        self.admin = User.objects.create_user(email="fvadmin@example.com", password="pw12345!", full_name="Admin", role=User.Role.ADMIN)
+        self.designer = User.objects.create_user(email="fvdesigner@example.com", password="pw12345!", full_name="Designer", role=User.Role.DESIGNER)
+        self.colleague = User.objects.create_user(email="fvcolleague@example.com", password="pw12345!", full_name="Colleague", role=User.Role.DESIGNER)
+        self.project = Project.objects.create(name="FV", created_by=self.admin)
+        ProjectMember.objects.create(project=self.project, user=self.designer, can_edit=True)
+        self.own = EmployeeContract.objects.create(user=self.designer, project=self.project, amount=1000)
+        self.theirs = EmployeeContract.objects.create(user=self.colleague, project=self.project, amount=9999)
+
+    def test_member_sees_only_their_own_salary(self):
+        self.client.force_login(self.designer)
+        response = self.client.get(reverse("finance:home") + "?tab=cash_flow")
+        self.assertTemplateUsed(response, "finance/my_salary.html")
+        self.assertEqual(list(response.context["contracts"]), [self.own])
+
+    def test_member_cannot_export_finance(self):
+        self.client.force_login(self.designer)
+        self.assertEqual(self.client.get(reverse("finance:cash_flow_export")).status_code, 403)
+        self.assertEqual(self.client.get(reverse("reports:export", args=["employees"])).status_code, 403)
+        self.assertEqual(self.client.get(reverse("reports:export", args=["finance"])).status_code, 403)
+
+    def test_editing_member_without_finance_role_cannot_pay(self):
+        self.client.force_login(self.designer)
+        response = self.client.post(reverse("finance:pay_employee_contract"), {
+            "employee_contract": self.own.pk, "amount": 400, "account": Account.UZS_BANK,
+        })
+        self.assertEqual(response.status_code, 403)
+
+    def test_admin_still_sees_the_dashboard(self):
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse("finance:home"))
+        self.assertTemplateUsed(response, "finance/finance_home.html")
+
+
 class EmployeeContractPayTests(TestCase):
     def setUp(self):
         self.admin = User.objects.create_user(email="admin2@example.com", password="pw12345!", full_name="Admin", role=User.Role.ADMIN)

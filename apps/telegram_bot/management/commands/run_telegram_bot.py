@@ -122,7 +122,7 @@ class Command(BaseCommand):
         @sync_to_async
         def _get_user_by_chat_id(chat_id):
             from apps.accounts.models import User
-            return User.objects.filter(telegram_chat_id=str(chat_id)).first()
+            return User.objects.filter(telegram_chat_id=str(chat_id), is_active=True).first()
 
         async def whoami(update: Update, context: ContextTypes.DEFAULT_TYPE):
             user = await _get_user_by_chat_id(update.effective_chat.id)
@@ -139,7 +139,7 @@ class Command(BaseCommand):
             from apps.telegram_bot.models import TelegramLinkToken
 
             link_token = TelegramLinkToken.objects.filter(token=token).first()
-            if not link_token or not link_token.is_valid():
+            if not link_token or not link_token.is_valid() or not link_token.user.is_active:
                 return None
             user = link_token.user
             user.telegram_chat_id = str(chat_id)
@@ -180,7 +180,7 @@ class Command(BaseCommand):
             from apps.telegram_bot.models import TelegramEvent
 
             text = text or ""
-            user = User.objects.filter(telegram_chat_id=str(chat_id)).first()
+            user = User.objects.filter(telegram_chat_id=str(chat_id), is_active=True).first()
             kind = TelegramEvent.Kind.COMMAND if text.startswith("/") else TelegramEvent.Kind.MESSAGE
             TelegramEvent.objects.create(user=user, chat_id=str(chat_id), kind=kind, text=text)
 
@@ -278,7 +278,7 @@ class Command(BaseCommand):
             from apps.accounts.models import User
             from apps.projects.permissions import visible_projects_for
 
-            user = User.objects.filter(telegram_chat_id=str(chat_id)).first()
+            user = User.objects.filter(telegram_chat_id=str(chat_id), is_active=True).first()
             if user is None:
                 return None, None
             projects = list(visible_projects_for(user).order_by("-created_at").values_list("id", "name")[:20])
@@ -286,15 +286,29 @@ class Command(BaseCommand):
 
         @sync_to_async
         def _save_document(chat_id, project_id, pending, data):
+            from django.core.exceptions import ValidationError
             from django.core.files.base import ContentFile
 
             from apps.accounts.models import User
+            from apps.core.validators import AllowedExtensionsValidator
             from apps.documents.models import AuditLog, Document, DocumentVersion
-            from apps.projects.models import Project
+            from apps.projects.permissions import visible_projects_for
 
-            user = User.objects.filter(telegram_chat_id=str(chat_id)).first()
-            project = Project.objects.filter(pk=project_id).first()
-            if user is None or project is None:
+            user = User.objects.filter(telegram_chat_id=str(chat_id), is_active=True).first()
+            if user is None:
+                return None
+            # callback_data mijoz tomonidan soxtalashtirilishi mumkin, shuning
+            # uchun loyiha yana foydalanuvchi ko'ra oladiganlar ichidan olinadi.
+            try:
+                project = visible_projects_for(user).filter(pk=project_id).first()
+            except ValidationError:  # UUID bo'lmagan qiymat
+                return None
+            if project is None:
+                return None
+            # Saytdagi yuklash bilan bir xil oq ro'yxat (.html/.svg va h.k. yo'q).
+            try:
+                AllowedExtensionsValidator()(ContentFile(b"", name=pending["file_name"]))
+            except ValidationError:
                 return None
             document = Document(
                 name=pending["caption"][:255],
@@ -404,7 +418,7 @@ class Command(BaseCommand):
             from apps.accounts.models import User
             from apps.ai_agents import services
 
-            user = User.objects.filter(telegram_chat_id=str(chat_id)).first()
+            user = User.objects.filter(telegram_chat_id=str(chat_id), is_active=True).first()
             if user is None:
                 return AI_NOT_LINKED, "", []
             if not services.is_configured():
@@ -478,7 +492,7 @@ class Command(BaseCommand):
             from apps.accounts.models import User
             from apps.ai_agents import services
 
-            user = User.objects.filter(telegram_chat_id=str(chat_id)).first()
+            user = User.objects.filter(telegram_chat_id=str(chat_id), is_active=True).first()
             if user is None:
                 return AI_NOT_LINKED, "", []
             if not services.is_configured():

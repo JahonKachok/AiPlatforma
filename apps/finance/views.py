@@ -40,13 +40,14 @@ from .models import (
     RecordStatus,
     RecordType,
 )
+from .permissions import can_manage_finance as _can_manage_finance
 from .services import fetch_usd_rate, fetch_usd_rate_poytaxtbank
 
-_CAN_MANAGE_FINANCE_ROLES = {User.Role.ADMIN, User.Role.MANAGER, User.Role.FINANCE}
 
-
-def _can_manage_finance(user):
-    return user.is_superuser or user.role in _CAN_MANAGE_FINANCE_ROLES
+def _ensure_finance_editor(user, project):
+    """Loyiha moliyasini o'zgartirish: moliya roli VA loyihada tahrir huquqi."""
+    if not (_can_manage_finance(user) and can_edit_project(user, project)):
+        raise PermissionDenied
 
 
 def _finance_home_url(tab=None):
@@ -601,6 +602,9 @@ def _admin_expenses_context(request):
 
 @login_required
 def finance_home(request):
+    if not _can_manage_finance(request.user):
+        contracts = EmployeeContract.objects.filter(user=request.user).select_related("project")
+        return render(request, "finance/my_salary.html", {"contracts": contracts})
     tab = request.GET.get("tab", "dashboard")
     context = {"tab": tab, "can_manage_finance": _can_manage_finance(request.user)}
     if tab == "payroll":
@@ -626,8 +630,7 @@ def transaction_create(request):
         form = TransactionForm(request.POST, user=request.user)
         if form.is_valid():
             project = form.cleaned_data["project"]
-            if not can_edit_project(request.user, project):
-                raise PermissionDenied
+            _ensure_finance_editor(request.user, project)
             record = form.save(commit=False)
             record.currency = ACCOUNT_CURRENCY[record.account]
             record.status = RecordStatus.CONFIRMED
@@ -676,8 +679,7 @@ def update_exchange_rate_poytaxtbank(request):
 @login_required
 def finance_record_create(request, project_pk):
     project = get_object_or_404(Project, pk=project_pk)
-    if not can_edit_project(request.user, project):
-        raise PermissionDenied
+    _ensure_finance_editor(request.user, project)
     if request.method == "POST":
         form = FinancialRecordForm(request.POST)
         if form.is_valid():
@@ -692,8 +694,7 @@ def finance_record_create(request, project_pk):
 @login_required
 def finance_record_delete(request, pk):
     record = get_object_or_404(FinancialRecord, pk=pk)
-    if not can_edit_project(request.user, record.project):
-        raise PermissionDenied
+    _ensure_finance_editor(request.user, record.project)
     if request.method == "POST":
         project_pk = record.project_id
         record.delete()
@@ -708,8 +709,7 @@ def employee_contract_create(request):
         form = EmployeeContractForm(request.POST)
         if form.is_valid():
             contract = form.save(commit=False)
-            if not can_edit_project(request.user, contract.project):
-                raise PermissionDenied
+            _ensure_finance_editor(request.user, contract.project)
             contract.save()
             messages.success(request, _("Employee contract added."))
         else:
@@ -720,8 +720,7 @@ def employee_contract_create(request):
 @login_required
 def employee_contract_delete(request, pk):
     contract = get_object_or_404(EmployeeContract, pk=pk)
-    if not can_edit_project(request.user, contract.project):
-        raise PermissionDenied
+    _ensure_finance_editor(request.user, contract.project)
     if request.method == "POST":
         contract.delete()
         messages.success(request, _("Employee contract deleted."))
@@ -739,8 +738,7 @@ def employee_contract_pay(request):
         return redirect(_finance_home_url("payroll"))
 
     contract = form.cleaned_data["employee_contract"]
-    if not can_edit_project(request.user, contract.project):
-        raise PermissionDenied
+    _ensure_finance_editor(request.user, contract.project)
 
     amount = form.cleaned_data["amount"]
     pay_currency = form.cleaned_data["payment_currency"]
@@ -819,6 +817,8 @@ def administrative_expense_delete(request, pk):
 
 @login_required
 def cash_flow_export(request):
+    if not _can_manage_finance(request.user):
+        raise PermissionDenied
     projects = visible_projects_for(request.user)
     records = _filtered_cash_flow_records(request, projects)
     wb = build_cash_flow_workbook(records)

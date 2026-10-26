@@ -54,6 +54,19 @@ class TaskFlowTests(TestCase):
         self.assertEqual(response.status_code, 405)
         self.assertTrue(TaskComment.objects.filter(pk=comment.pk).exists())
 
+    def test_plain_member_cannot_delete_or_edit_the_task(self):
+        """Loyihani faqat ko'ra oladigan a'zo boshqalarning vazifasini o'chira olmaydi."""
+        ProjectMember.objects.filter(project=self.project, user=self.other).update(can_edit=False)
+        self.client.force_login(self.other)
+        self.assertEqual(self.client.post(reverse("tasks:delete", args=[self.task.pk])).status_code, 403)
+        self.assertEqual(self.client.get(reverse("tasks:update", args=[self.task.pk])).status_code, 403)
+        self.assertTrue(Task.objects.filter(pk=self.task.pk).exists())
+
+    def test_creator_can_delete_the_task(self):
+        self.client.force_login(self.creator)
+        self.client.post(reverse("tasks:delete", args=[self.task.pk]))
+        self.assertFalse(Task.objects.filter(pk=self.task.pk).exists())
+
     def test_task_hidden_from_non_project_member(self):
         outsider = User.objects.create_user(email="outsider2@example.com", password="pw12345!", full_name="Outsider", role=User.Role.DESIGNER)
         self.client.force_login(outsider)

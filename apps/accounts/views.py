@@ -9,6 +9,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordChangeView
 from django.core.cache import cache
+from django.core.exceptions import PermissionDenied
 from django.db.models import ProtectedError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -28,6 +29,7 @@ from .forms import (
     TOTPForm,
     UserAdminEditForm,
     UserCreateForm,
+    is_admin,
 )
 from .models import Discipline, LoginJournal, User
 
@@ -42,6 +44,13 @@ SESSION_2FA_USER_ID = "2fa_pending_user_id"
 # yuritilganda proksi sarlavhasini soxtalashtirib chetlab o'tish mumkin edi.
 LOGIN_ATTEMPT_LIMIT = 8
 LOGIN_ATTEMPT_WINDOW = 15 * 60
+# Email hisoblagichi bitta hisobni himoya qiladi, lekin ko'p hisobga bittadan
+# parol sinash (password spraying) uni chetlab o'tadi — shuning uchun bitta
+# IP'dan barcha hisoblar bo'yicha xato urinishlar ham alohida cheklanadi.
+IP_ATTEMPT_LIMIT = 30
+# Ishlatilgan TOTP kodi shu muddat qayta qabul qilinmaydi (valid_window=1
+# bilan kod ~90 soniya yaroqli).
+TOTP_REUSE_WINDOW = 90
 
 
 def _client_ip(request):
@@ -63,20 +72,41 @@ def _attempt_key(email):
     return f"login-attempts:{email}"
 
 
-def _is_locked_out(email):
+def _ip_attempt_key(ip):
+    return f"login-attempts-ip:{ip}"
+
+
+def _is_locked_out(email, ip=None):
+    if ip and cache.get(_ip_attempt_key(ip), 0) >= IP_ATTEMPT_LIMIT:
+        return True
     return cache.get(_attempt_key(email), 0) >= LOGIN_ATTEMPT_LIMIT
 
 
-def _record_failed_attempt(email):
-    key = _attempt_key(email)
+def _increment(key):
     try:
         cache.incr(key)
     except ValueError:
         cache.set(key, 1, LOGIN_ATTEMPT_WINDOW)
 
 
+def _record_failed_attempt(email, ip=None):
+    _increment(_attempt_key(email))
+    if ip:
+        _increment(_ip_attempt_key(ip))
+
+
 def _reset_attempts(email):
     cache.delete(_attempt_key(email))
+
+
+def _verify_totp(user, secret, code):
+    """TOTP kodini tekshiradi va har bir kodni faqat bir marta qabul qiladi:
+    aks holda ko'rib qolingan yoki tutib olingan kod yaroqlilik oynasi ichida
+    qayta ishlatilishi mumkin edi. ``cache.add`` atomik — bir vaqtdagi ikki
+    so'rovdan faqat bittasi o'tadi."""
+    if not pyotp.TOTP(secret).verify(code, valid_window=1):
+        return False
+    return cache.add(f"totp-used:{user.pk}:{code}", True, TOTP_REUSE_WINDOW)
 
 
 def _log_login(request, user, status="success"):
@@ -101,8 +131,9 @@ class LoginView(View):
         if form.is_valid():
             email = form.cleaned_data["email"].lower()
             password = form.cleaned_data["password"]
+            ip = _client_ip(request)
 
-            if _is_locked_out(email):
+            if _is_locked_out(email, ip):
                 messages.error(request, _(
                     "Too many failed sign-in attempts. Please try again in a few minutes."
                 ))
@@ -110,7 +141,7 @@ class LoginView(View):
 
             user = authenticate(request, username=email, password=password)
             if user is None:
-                _record_failed_attempt(email)
+                _record_failed_attempt(email, ip)
                 messages.error(request, _("Invalid email or password."))
                 try:
                     bad_user = User.objects.get(email=email)
@@ -155,7 +186,8 @@ class TwoFactorChallengeView(View):
         user = self._pending_user(request)
         if not user:
             return redirect("accounts:login")
-        if _is_locked_out(user.email):
+        ip = _client_ip(request)
+        if _is_locked_out(user.email, ip):
             messages.error(request, _(
                 "Too many failed sign-in attempts. Please try again in a few minutes."
             ))
@@ -163,14 +195,13 @@ class TwoFactorChallengeView(View):
 
         form = TOTPForm(request.POST)
         if form.is_valid():
-            totp = pyotp.TOTP(user.totp_secret)
-            if totp.verify(form.cleaned_data["code"], valid_window=1):
+            if _verify_totp(user, user.totp_secret, form.cleaned_data["code"]):
                 del request.session[SESSION_2FA_USER_ID]
                 _reset_attempts(user.email)
                 login(request, user)
                 _log_login(request, user, status="success")
                 return redirect(settings.LOGIN_REDIRECT_URL)
-            _record_failed_attempt(user.email)
+            _record_failed_attempt(user.email, ip)
             _log_login(request, user, status="failed_2fa")
             messages.error(request, _("Invalid verification code."))
         return render(request, self.template_name, {"form": form})
@@ -192,7 +223,9 @@ class RegisterView(View):
         form = RegisterForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, _("Account created. You can now log in."))
+            messages.success(request, _(
+                "Account created. You can sign in once an administrator activates it."
+            ))
             return redirect("accounts:login")
         return render(request, self.template_name, {"form": form})
 
@@ -283,8 +316,7 @@ def two_factor_disable(request):
     if request.method == "POST":
         form = TOTPForm(request.POST)
         if form.is_valid():
-            totp = pyotp.TOTP(request.user.totp_secret)
-            if totp.verify(form.cleaned_data["code"], valid_window=1):
+            if _verify_totp(request.user, request.user.totp_secret, form.cleaned_data["code"]):
                 request.user.totp_secret = None
                 request.user.two_factor_enabled = False
                 request.user.save(update_fields=["totp_secret", "two_factor_enabled"])
@@ -319,6 +351,7 @@ def user_list(request):
         "search": search or "",
         "roles": User.Role.choices,
         "can_manage": can_manage,
+        "is_admin": is_admin(request.user),
         "stats": {
             "total": User.objects.count(),
             "active": User.objects.filter(is_active=True).count(),
@@ -334,7 +367,7 @@ def user_list(request):
 def user_create(request):
     temp_password = None
     if request.method == "POST":
-        form = UserCreateForm(request.POST)
+        form = UserCreateForm(request.POST, requester=request.user)
         if form.is_valid():
             user = form.save()
             temp_password = user.temp_password
@@ -344,21 +377,25 @@ def user_create(request):
             )
             return redirect("accounts:user_list")
     else:
-        form = UserCreateForm()
+        form = UserCreateForm(requester=request.user)
     return render(request, "accounts/user_form.html", {"form": form, "is_create": True})
 
 
 @role_required(*MANAGE_ROLES)
 def user_update(request, pk):
     user = get_object_or_404(User, pk=pk)
+    # Menejer adminni o'zgartira olmaydi: aks holda adminni bloklab yoki
+    # rolini tushirib, tizimni o'z nazoratiga olishi mumkin edi.
+    if (user.is_superuser or user.role == User.Role.ADMIN) and not is_admin(request.user):
+        raise PermissionDenied
     if request.method == "POST":
-        form = UserAdminEditForm(request.POST, instance=user)
+        form = UserAdminEditForm(request.POST, instance=user, requester=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, _("User updated."))
             return redirect("accounts:user_list")
     else:
-        form = UserAdminEditForm(instance=user)
+        form = UserAdminEditForm(instance=user, requester=request.user)
     return render(request, "accounts/user_form.html", {"form": form, "user_obj": user, "is_create": False})
 
 

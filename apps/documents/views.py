@@ -14,7 +14,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.core.json_utils import script_json
 from apps.notifications.services import notify_user
 from apps.projects.models import Section, SubObject, SubObjectDiscipline
-from apps.projects.permissions import ensure_project_member, visible_projects_for
+from apps.projects.permissions import can_edit_project, ensure_project_member, visible_projects_for
 
 from .forms import (
     ApprovalReviewForm, ApprovalStageFormSet, ApprovalSubmissionForm, DocumentUploadForm, DocumentVersionForm,
@@ -25,6 +25,13 @@ from .services import resolve_gip_reviewer as _resolve_gip_reviewer
 
 def _visible_documents(user):
     return Document.objects.filter(project__in=visible_projects_for(user)).select_related("project", "uploaded_by")
+
+
+def _can_modify(user, document):
+    """O'chirish va yangi versiya — loyihada tahrir huquqi borlarga yoki
+    hujjatni yuklaganning o'ziga. Ilgari loyihani faqat ko'ra oladigan har
+    kim (mijoz roli ham) istalgan hujjatni o'chira olardi."""
+    return document.uploaded_by_id == user.id or can_edit_project(user, document.project)
 
 
 def _submission_cascade_json(projects):
@@ -56,11 +63,14 @@ def document_list(request):
     if request.method == "POST":
         ids = request.POST.getlist("selected")
         if "delete_selected" in request.POST and ids:
-            selected = _visible_documents(request.user).filter(pk__in=ids)
+            selected = [
+                document for document in _visible_documents(request.user).filter(pk__in=ids)
+                if _can_modify(request.user, document)
+            ]
             for document in selected:
                 if document.file:
                     document.file.delete(save=False)
-            selected.delete()
+                document.delete()
             messages.success(request, _("Selected documents deleted."))
             return redirect("documents:list")
 
@@ -124,6 +134,8 @@ def document_detail(request, pk):
         "show_audit": show_audit,
         "audit_entries": audit_entries,
         "version_form": DocumentVersionForm(),
+        "can_modify": _can_modify(request.user, document),
+        "can_assign_stages": can_edit_project(request.user, document.project),
     })
 
 
@@ -182,6 +194,8 @@ def document_bulk_download(request):
 @login_required
 def document_delete(request, pk):
     document = get_object_or_404(_visible_documents(request.user), pk=pk)
+    if not _can_modify(request.user, document):
+        raise PermissionDenied
     if request.method == "POST":
         if document.file:
             document.file.delete(save=False)
@@ -194,6 +208,8 @@ def document_delete(request, pk):
 @login_required
 def document_add_version(request, pk):
     document = get_object_or_404(_visible_documents(request.user), pk=pk)
+    if not _can_modify(request.user, document):
+        raise PermissionDenied
     if request.method == "POST":
         form = DocumentVersionForm(request.POST, request.FILES)
         if form.is_valid():
@@ -289,6 +305,10 @@ def approval_submit(request):
 @login_required
 def approval_stage_assign(request, pk):
     document = get_object_or_404(_visible_documents(request.user), pk=pk)
+    # Yuklovchining o'ziga ham ruxsat yo'q: aks holda o'zini tekshiruvchi
+    # qilib tayinlab, o'z hujjatini o'zi tasdiqlab yuborardi.
+    if not can_edit_project(request.user, document.project):
+        raise PermissionDenied
     if request.method == "POST":
         formset = ApprovalStageFormSet(request.POST)
         if formset.is_valid():

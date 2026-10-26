@@ -24,13 +24,15 @@ logs
 *.log
 *.zip
 
-# Runtime'da faqat kompilyatsiya qilingan .mo kerak; .po manbalari va
-# Tailwind manbasi kerak emas.
-locale/**/*.po
+# .po manbalari build'da .mo ga kompilyatsiya qilinadi va keyin o'chiriladi
+# (Dockerfile). Tailwind manbasi runtime'da kerak emas.
 static/css/src/
 
-# Hujjatlar va Windows skriptlari
+# Hujjatlar, Windows skriptlari va server sozlamalari (ular image'ga emas,
+# docker-compose orqali ulanadi)
 *.docx
 *.md
 *.ps1
 serve_prod.py
+deploy/
+nginx/

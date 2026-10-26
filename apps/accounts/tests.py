@@ -93,6 +93,20 @@ class RegisterFormTests(TestCase):
         self.assertFalse(user.is_superuser)
         self.assertFalse(user.is_staff)
 
+    def test_registered_account_waits_for_activation(self):
+        """Ochiq ro'yxatdan o'tgan hisob admin faollashtirmaguncha kira olmaydi."""
+        self.client.post(reverse("accounts:register"), {
+            "email": "stranger@example.com",
+            "full_name": "Stranger",
+            "password1": "s3curePass!23",
+            "password2": "s3curePass!23",
+        })
+        self.assertFalse(User.objects.get(email="stranger@example.com").is_active)
+        response = self.client.post(reverse("accounts:login"), {
+            "email": "stranger@example.com", "password": "s3curePass!23",
+        })
+        self.assertFalse(response.wsgi_request.user.is_authenticated)
+
     def test_register_normalizes_email_case(self):
         User.objects.create_user(email="taken@example.com", password="s3curePass!23", full_name="Taken")
         response = self.client.post(reverse("accounts:register"), {
@@ -140,6 +154,82 @@ class BruteForceTests(TestCase):
         from .views import _attempt_key
 
         self.assertIsNone(cache.get(_attempt_key(self.user.email)))
+
+    def test_one_ip_is_locked_out_across_many_accounts(self):
+        """Ko'p hisobga bittadan parol sinash (password spraying)."""
+        from .views import IP_ATTEMPT_LIMIT
+
+        for i in range(IP_ATTEMPT_LIMIT):
+            self.client.post(reverse("accounts:login"), {
+                "email": f"nobody{i}@example.com", "password": "wrong",
+            })
+        response = self.client.post(reverse("accounts:login"), {
+            "email": self.user.email, "password": self.password,
+        })
+        self.assertFalse(response.wsgi_request.user.is_authenticated)
+
+    def test_totp_code_cannot_be_reused(self):
+        secret = pyotp.random_base32()
+        self.user.totp_secret = secret
+        self.user.two_factor_enabled = True
+        self.user.save()
+        code = pyotp.TOTP(secret).now()
+
+        for expected_login in (True, False):
+            self.client.logout()
+            self.client.post(reverse("accounts:login"), {
+                "email": self.user.email, "password": self.password,
+            })
+            response = self.client.post(reverse("accounts:2fa_challenge"), {"code": code})
+            self.assertEqual(response.wsgi_request.user.is_authenticated, expected_login)
+
+
+class UserManagementTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            email="boss@example.com", password="pw12345!", full_name="Boss", role=User.Role.ADMIN,
+        )
+        self.manager = User.objects.create_user(
+            email="manager@example.com", password="pw12345!", full_name="Manager", role=User.Role.MANAGER,
+        )
+        self.client.force_login(self.manager)
+
+    def test_manager_cannot_promote_to_admin(self):
+        self.client.post(reverse("accounts:user_update", args=[self.manager.pk]), {
+            "full_name": "Manager", "role": User.Role.ADMIN, "is_active": "on",
+        })
+        self.manager.refresh_from_db()
+        self.assertEqual(self.manager.role, User.Role.MANAGER)
+
+    def test_manager_cannot_create_an_admin(self):
+        self.client.post(reverse("accounts:user_create"), {
+            "email": "newadmin@example.com", "full_name": "New", "role": User.Role.ADMIN,
+        })
+        self.assertFalse(User.objects.filter(email="newadmin@example.com").exists())
+
+    def test_manager_cannot_edit_an_admin(self):
+        response = self.client.post(reverse("accounts:user_update", args=[self.admin.pk]), {
+            "full_name": "Boss", "role": User.Role.DESIGNER,
+        })
+        self.assertEqual(response.status_code, 403)
+        self.admin.refresh_from_db()
+        self.assertEqual(self.admin.role, User.Role.ADMIN)
+        self.assertTrue(self.admin.is_active)
+
+    def test_admin_can_promote_to_admin(self):
+        self.client.force_login(self.admin)
+        self.client.post(reverse("accounts:user_update", args=[self.manager.pk]), {
+            "full_name": "Manager", "role": User.Role.ADMIN, "is_active": "on",
+        })
+        self.manager.refresh_from_db()
+        self.assertEqual(self.manager.role, User.Role.ADMIN)
+
+    def test_django_admin_login_goes_through_the_app_login(self):
+        """/django-admin/ ning o'z login sahifasi 2FA va cheklovni chetlab o'tardi."""
+        self.client.logout()
+        response = self.client.get("/django-admin/login/")
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("accounts:login"), response.url)
 
 
 class LogoutTests(TestCase):

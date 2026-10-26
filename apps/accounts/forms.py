@@ -61,6 +61,10 @@ class RegisterForm(StyledFormMixin, UserCreationForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.role = User.Role.DESIGNER
+        # Ochiq ro'yxatdan o'tgan hisob admin/menejer faollashtirmaguncha
+        # kira olmaydi — aks holda internetdagi istalgan odam tizimga kirib,
+        # xodimlar ro'yxati va boshqa ichki ma'lumotlarni ko'rardi.
+        user.is_active = False
         if commit:
             user.save()
         return user
@@ -130,7 +134,24 @@ class NotificationPreferenceForm(forms.Form):
             )
 
 
-class UserCreateForm(StyledFormMixin, forms.ModelForm):
+def is_admin(user):
+    return user.is_superuser or user.role == User.Role.ADMIN
+
+
+class AdminRoleLimitMixin:
+    """Admin rolini faqat admin bera oladi. Busiz menejer o'zini yoki
+    boshqasini admin qilib, faqat adminlarga ochiq amallarga (backup, butun
+    baza nusxasi) kirish huquqini olardi."""
+
+    def __init__(self, *args, requester=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if requester is not None and not is_admin(requester):
+            self.fields["role"].choices = [
+                choice for choice in self.fields["role"].choices if choice[0] != User.Role.ADMIN
+            ]
+
+
+class UserCreateForm(AdminRoleLimitMixin, StyledFormMixin, forms.ModelForm):
     class Meta:
         model = User
         fields = ["email", "full_name", "role", "department", "disciplines", "discipline_other", "phone"]
@@ -161,7 +182,7 @@ class UserCreateForm(StyledFormMixin, forms.ModelForm):
         return user
 
 
-class UserAdminEditForm(StyledFormMixin, forms.ModelForm):
+class UserAdminEditForm(AdminRoleLimitMixin, StyledFormMixin, forms.ModelForm):
     class Meta:
         model = User
         fields = ["full_name", "role", "department", "disciplines", "discipline_other", "phone", "is_active"]

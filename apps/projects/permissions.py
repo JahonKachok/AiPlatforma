@@ -40,4 +40,7 @@ def ensure_project_member(project, user):
 
     if user is None:
         return
-    ProjectMember.objects.get_or_create(project=project, user=user)
+    # Faqat ko'rish huquqi: can_edit modelda standart True bo'lgani uchun
+    # ilgari vazifa/tekshiruvga tayinlangan har kim avtomatik ravishda loyiha
+    # tahrirchisiga (a'zolar, moliya, hujjatlarni o'chirish) aylanardi.
+    ProjectMember.objects.get_or_create(project=project, user=user, defaults={"can_edit": False})

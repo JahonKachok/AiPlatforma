@@ -55,6 +55,17 @@ this file only carries the presentation. Collapse state lives on <html> as
       <span class="ap-nav-text">{% trans "Tasks" %}</span>
     </a>
 
+    {% if request.user.role != 'client' %}
+    {% url 'pult:page' as pult_url %}
+    <a href="{{ pult_url }}" class="ap-nav-link{% if request.path == pult_url %} is-active{% endif %}"
+       data-tip="GASTEC Пульт"{% if request.path == pult_url %} aria-current="page"{% endif %}>
+      <svg class="ap-nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 9h18M8 13h3M8 16h6M15 13h1"/>
+      </svg>
+      <span class="ap-nav-text">{% trans "Pult" %}</span>
+    </a>
+    {% endif %}
+
     {% url 'documents:list' as documents_url %}
     <a href="{{ documents_url }}" class="ap-nav-link{% if request.path == documents_url %} is-active{% endif %}"
        data-tip="{% trans 'Documents' %}">

@@ -24,6 +24,7 @@ urlpatterns = [
     path("notifications/", include("apps.notifications.urls")),
     path("telegram/", include("apps.telegram_bot.urls")),
     path("ai/", include("apps.ai_agents.urls")),
+    path("pult/", include("apps.pult.urls")),
     path("", include("apps.core.urls")),
     # Yuklangan fayllar autentifikatsiyadan o'tgan view orqali beriladi
     # (nginx ularni ochiq tarqatmasligi kerak — nginx/default.conf.template ga qarang).

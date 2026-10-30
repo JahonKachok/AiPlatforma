@@ -1,0 +1,18 @@
+{% load static %}<!doctype html>
+<html lang="ru"{% if dark_mode %} data-theme="dark"{% else %} data-theme="light"{% endif %}>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="csrf-token" content="{{ csrf_token }}">
+<title>GASTEC Пульт</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Oswald:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="{% static 'pult/pult.css' %}?v=4">
+<style>body { margin: 0; } img { max-width: 100%; } [hidden]:not([hidden=until-found i]) { display: none !important; }</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+</head>
+<body data-api-data="{% url 'pult:api_data' %}" data-api-tasks="{% url 'pult:api_create' %}" data-api-report="{% url 'pult:api_report' %}" data-api-plan="{% url 'pult:api_plan' %}" data-api-sync="{% url 'pult:api_sync' %}" data-api-import="{% url 'pult:api_plan_import' %}" data-api-disc="{% url 'pult:api_discipline' %}" data-api-ciph="{% url 'pult:api_cipher' %}" data-api-ops="{% url 'pult:api_ops' %}">
+{% include "pult/_markup.html" %}
+<script src="{% static 'pult/pult.js' %}?v=4"></script>
+</body>
+</html>

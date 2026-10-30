@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}GASTEC Пульт — BuildFlow{% endblock %}
+{% block content %}
+{# Pult o'z CSS'i (global table/button/body uslublari) bilan keladi, shuning uchun u platforma dizaynini buzmasligi uchun iframe ichida ochiladi. #}
+<iframe src="{% url 'pult:app' %}" title="GASTEC Пульт"
+        class="block w-full rounded-lg border border-gray-200 dark:border-gray-700"
+        style="height: calc(100vh - 8.5rem); min-height: 32rem;"></iframe>
+{% endblock %}

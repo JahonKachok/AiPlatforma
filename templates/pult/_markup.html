@@ -1,0 +1,228 @@
+<div class="top">
+  <div class="wrap top-in">
+    <div class="brand"><h1>GASTEC Пульт</h1><span class="stamp" id="stamp">загрузка…</span></div>
+    <div class="filters">
+      <select class="ctl" id="f-project" aria-label="Проект"><option value="">Все проекты</option></select>
+      <select class="ctl" id="f-person" aria-label="Сотрудник"><option value="">Все сотрудники</option></select>
+      <select class="ctl" id="f-as" aria-label="Смотреть как" hidden></select>
+      <button type="button" class="btn ghost" id="f-reset">Сбросить</button>
+      <button type="button" class="btn" id="btn-refresh" title="Обновить данные">Обновить</button>
+      <button type="button" class="btn" id="btn-op">+ Операция</button>
+      <button type="button" class="btn primary" id="btn-task">+ Задача</button>
+    </div>
+  </div>
+  <div class="wrap">
+    <nav class="tabs" role="tablist" aria-label="Разделы">
+      <button class="tab" role="tab" data-tab="work" aria-selected="false">Моя работа</button>
+      <button class="tab" role="tab" data-tab="home" aria-selected="true">Главная</button>
+      <button class="tab" role="tab" data-tab="tasks" aria-selected="false">Задачи</button>
+      <button class="tab" role="tab" data-tab="kanban" aria-selected="false">Канбан</button>
+      <button class="tab" role="tab" data-tab="comp" aria-selected="false">Состав проекта</button>
+      <button class="tab" role="tab" data-tab="plan" aria-selected="false">График проекта</button>
+      <button class="tab" role="tab" data-tab="gantt" aria-selected="false">Ганта задач</button>
+      <button class="tab" role="tab" data-tab="team" aria-selected="false">Сотрудники</button>
+      <button class="tab" role="tab" data-tab="kpi" aria-selected="false">KPI</button>
+      <button class="tab" role="tab" data-tab="money" aria-selected="false">Финансы</button>
+      <button class="tab" role="tab" data-tab="contracts" aria-selected="false">Договоры</button>
+    </nav>
+  </div>
+</div>
+
+<main class="wrap">
+  <div id="banner"></div>
+
+  <section class="page mw" id="p-work" hidden><div id="mw" class="mw-wrap"></div></section>
+
+  <section class="page" id="p-home">
+    <div class="tiles" id="home-task-tiles"></div>
+    <div class="tiles" id="home-money-tiles"></div>
+    <div class="grid">
+      <div class="card"><div class="card-h"><h2>Требуют вашего внимания</h2><button class="btn sm" data-goto="tasks">Все задачи</button></div>
+        <p class="note">Тревога 70%, отставание, нет исходника, просрочка или задача ждёт вашего решения.</p>
+        <div class="scroll" style="max-height: 26rem"><table id="att"><thead><tr><th>№</th><th>Задача</th><th>Кто</th><th>Сдать до</th><th class="hide-narrow">Ход</th><th>Что не так</th></tr></thead><tbody></tbody></table></div>
+      </div>
+      <div class="card"><div class="card-h"><h2>Движение денег по дням</h2><button class="btn sm" data-goto="money">Финансы</button></div>
+        <p class="note">Приход и расход в пересчёте на сумы по курсу из настроек, без начальных остатков.</p>
+        <div class="chart" id="home-flow"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="p-tasks" hidden>
+    <div class="card">
+      <h2>Быстро поставить задачу</h2>
+      <div class="quick">
+        <label class="q-task">Что сделать<input class="ctl" id="q-task" placeholder="Например: перевести спецификацию ТХ" autocomplete="off"></label>
+        <label>Кому<select class="ctl" id="q-person"></select></label>
+        <label>Проект<select class="ctl" id="q-project"></select></label>
+        <label>Дней<input class="ctl num" id="q-days" type="number" min="0" step="1" placeholder="—"></label>
+        <button type="button" class="btn primary" id="q-save">Поставить</button>
+      </div>
+      <p class="note">Если срок пустой, задача получает статус «Новая» и ждёт, когда сотрудник назовёт срок. Подробная форма: кнопка «+ Задача» вверху.</p>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Все задачи <span class="note" id="t-count"></span></h2>
+        <div class="chips">
+          <select class="ctl" id="t-status" aria-label="Статус"><option value="open">Открытые</option><option value="">Все</option><option value="Принята">Принятые</option></select>
+          <input class="ctl" type="search" id="t-search" placeholder="Поиск" aria-label="Поиск по задачам">
+        </div>
+      </div>
+      <div class="scroll"><table id="t-table"><thead><tr></tr></thead><tbody></tbody></table></div>
+      <p class="note">Нажмите на строку, чтобы изменить задачу, записать процент, принять работу или вернуть на доработку.</p>
+    </div>
+  </section>
+
+  <section class="page" id="p-kanban" hidden>
+    <div class="kb-top">
+      <div class="kb-title"><span class="kb-redbar" aria-hidden="true"></span><div><h2>KANBAN</h2><p class="note" id="kb-sub"></p></div></div>
+      <div class="kb-slicers" id="kb-slicers" role="group" aria-label="Срезы"></div>
+    </div>
+    <div class="kb-tools">
+      <div class="seg" id="kb-mode" role="group" aria-label="Какой канбан"><button type="button" data-m="proj">Проекты</button><button type="button" data-m="ns">Нестандартные</button></div>
+      <select class="ctl" id="pk-project" aria-label="Проект"></select>
+      <button type="button" class="btn primary sm" id="kb-add-ns">+ Нестандартная задача</button>
+      <button type="button" class="btn sm" id="kb-filt" aria-expanded="false" aria-controls="kb-slicers">Фильтры</button>
+      <span class="note" id="kb-count"></span>
+      <button type="button" class="btn sm" id="kb-multi" aria-pressed="false" title="Выбирать несколько значений в срезе (или Ctrl+клик)">Множественный выбор</button>
+      <button type="button" class="btn ghost sm" id="kb-reset">Сбросить срезы</button>
+    </div>
+    <div class="kb-main">
+      <aside class="kb-side">
+        <h3>Выполнено</h3>
+        <div class="kb-gauge" role="img" aria-label="Доля принятых задач"><div id="kb-fill"></div><span id="kb-pct">0%</span></div>
+        <p class="note" id="kb-gauge-note"></p>
+        <div class="kb-legend" id="kb-legend" aria-label="Легенда"></div>
+        <label class="chips note" for="kb-old" id="kb-old-l"><input type="checkbox" id="kb-old"> принятые старше 30 дней</label>
+      </aside>
+      <div class="kb-board" id="kb-board"></div>
+    </div>
+  </section>
+
+  <section class="page" id="p-gantt" hidden>
+    <div class="card">
+      <div class="card-h"><h2>Диаграмма Ганта</h2>
+        <div class="chips">
+          <select class="ctl" id="g-group" aria-label="Группировка"><option value="assignee">по сотрудникам</option><option value="project">по проектам</option><option value="stage">по этапам</option></select>
+          <label class="chips note" for="g-done"><input type="checkbox" id="g-done"> принятые</label>
+        </div>
+      </div>
+      <p class="note">Полоса: от начала до плановой сдачи, тёмная часть — процент выполнения. Красный хвост — просрочка до сегодня, ромб — фактическая сдача. Нажмите на задачу, чтобы открыть её.</p>
+      <div class="legend" id="g-legend"></div>
+      <div class="chart" id="g-chart"></div>
+      <p class="note" id="g-undated"></p>
+      <div class="chips" id="g-undated-list"></div>
+    </div>
+  </section>
+
+  <section class="page" id="p-comp" hidden>
+    <div class="card">
+      <div class="card-h"><h2>Состав проекта</h2>
+        <div class="chips">
+          <select class="ctl" id="cp-project" aria-label="Проект"></select>
+          <button type="button" class="btn primary sm" id="cp-obj">+ Объекты</button>
+          <button type="button" class="btn sm" id="cp-import" title="Перенести объекты и дисциплины, введённые в мастере проекта платформы">Из объектов платформы</button>
+          <button type="button" class="btn sm" id="cp-ciph">Правила шифра</button>
+          <button type="button" class="btn sm" id="cp-sync">Задачи и договоры</button>
+          <button type="button" class="btn sm" id="cp-move">Перенести в график</button>
+          <button type="button" class="btn sm" id="cp-xlsx" hidden>Excel</button>
+          <button type="button" class="btn sm" id="cp-pdf" hidden>PDF</button>
+        </div>
+      </div>
+      <p class="note">Строки — объекты (здания и сооружения), колонки — дисциплины. Нажмите «+» в клетке, чтобы добавить дисциплину объекту, или на имя объекта, чтобы отметить дисциплины и исполнителей сразу. Нажмите на заполненную клетку, чтобы изменить раздел.</p>
+      <div class="pl-tools">
+        <label class="chips note" for="cp-owners"><input type="checkbox" id="cp-owners"> исполнители (на экране и в файлах)</label>
+        <span class="legend"><span><i class="sw cp-sw-out"></i>черновик / не в графике</span><span><i class="sw cp-sw-in"></i>в работе</span><span><i class="sw" style="background:var(--st-smeta)"></i>смета</span><span><i class="sw" style="background:var(--st-form)"></i>оформление</span><span><i class="sw" style="background:var(--st-print)"></i>печать</span><span><i class="sw" style="background:var(--ok)"></i>закрыт</span></span>
+        <span class="note" id="cp-count"></span>
+      </div>
+      <div class="cp-wrap" id="cp-matrix"></div>
+      <p class="note" id="cp-other"></p>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Ведомость состава <span class="note" id="cp-list-count"></span></h2></div>
+      <div class="pl-sum" id="cp-fin"></div>
+      <div id="cp-rule"></div>
+      <div class="scroll"><table id="cp-list"></table></div>
+    </div>
+  </section>
+
+  <section class="page" id="p-plan" hidden>
+    <div class="card">
+      <div class="card-h"><h2>Состав и календарный график</h2>
+        <div class="chips">
+          <select class="ctl" id="pl-project" aria-label="Проект"></select>
+          <button type="button" class="btn primary sm" id="pl-add">+ Раздел</button>
+          <button type="button" class="btn sm" id="pl-tpl">Типовой состав</button>
+          <button type="button" class="btn sm" id="pl-base">Сохранить базовый план</button>
+          <button type="button" class="btn sm" id="pl-xlsx" hidden>Excel для заказчика</button>
+          <button type="button" class="btn sm" id="pl-pdf" hidden>PDF для заказчика</button>
+        </div>
+      </div>
+      <div class="pl-sum" id="pl-sum"></div>
+      <div id="pl-errs"></div>
+      <div class="pl-tools">
+        <div class="seg" id="pl-zoom" role="group" aria-label="Масштаб"><button type="button" data-z="day">Дни</button><button type="button" data-z="week">Недели</button><button type="button" data-z="month">Месяцы</button></div>
+        <label class="chips note" for="pl-owners"><input type="checkbox" id="pl-owners"> исполнители</label>
+        <label class="chips note" for="pl-crit"><input type="checkbox" id="pl-crit"> критический путь</label>
+        <label class="chips note" for="pl-basechk"><input type="checkbox" id="pl-basechk"> базовый план</label>
+        <label class="chips note" for="pl-links"><input type="checkbox" id="pl-links"> связи</label>
+        <label class="chips note" for="pl-tails"><input type="checkbox" id="pl-tails"> смета, оформление, печать</label>
+      </div>
+      <div class="legend" id="pl-legend"></div>
+      <div class="chart" id="pl-chart"></div>
+      <p class="note">Связи пишутся как в MS Project: <span class="mono">5</span> — начать после окончания раздела с ID 5; <span class="mono">5НН+3</span> — через 3 рабочих дня после его начала; <span class="mono">ОО</span> — окончание к окончанию, <span class="mono">НО</span> — начало к окончанию. Несколько связей — через «;». Сроки в рабочих днях по календарю платформы (выходные и праздники задаются в админке). Нажмите на строку, чтобы изменить раздел; при сохранении все зависимые сроки пересчитываются.</p>
+    </div>
+  </section>
+
+  <section class="page tm" id="p-team" hidden>
+    <div class="tm-sum" role="group" aria-label="Показать">
+      <button type="button" class="tm-chip" data-f="all" aria-pressed="true"><b id="tm-n-all"></b>все</button>
+      <button type="button" class="tm-chip" data-f="prob" aria-pressed="false"><b id="tm-n-prob"></b>с проблемами</button>
+      <button type="button" class="tm-chip" data-f="work" aria-pressed="false"><b id="tm-n-work"></b>в работе</button>
+    </div>
+    <div class="tm-list" id="tm-list"></div>
+    <div class="tm-free" id="tm-free" hidden><h2 id="tm-free-h"></h2><div class="tm-names" id="tm-free-names"></div></div>
+    <p class="note">Нажмите на строку, чтобы раскрыть задачи. В списке штатные с отметкой «В задачах» и все, у кого есть открытые задачи.</p>
+  </section>
+
+  <section class="page" id="p-kpi" hidden>
+    <div class="card">
+      <div class="card-h"><h2>Рейтинг за <span id="kpi-month-label">—</span></h2>
+        <input class="ctl" type="month" id="kpi-month" aria-label="Месяц рейтинга">
+      </div>
+      <p class="note" id="kpi-note"></p>
+      <div class="chart" id="kpi-chart"></div>
+    </div>
+    <div class="card">
+      <h2>Таблица KPI</h2>
+      <div class="scroll"><table id="kpi-table"><thead><tr><th class="r">Место</th><th>Сотрудник</th><th class="hide-narrow">Оплата</th><th class="r">Принято</th><th class="r">Досрочно</th><th class="r">Вовремя</th><th class="r">С задержкой</th><th class="r">Доработок</th><th class="r">Баллы</th><th class="r">Средний</th><th>Категория</th><th class="r">Надбавка</th><th class="r">Сумма задач, сум</th></tr></thead><tbody></tbody></table></div>
+      <p class="note">Баллы и пороги задаются в админке платформы: «GASTEC Пульт → Pult settings».</p>
+    </div>
+  </section>
+
+  <section class="page" id="p-money" hidden>
+    <div class="tiles" id="money-tiles"></div>
+    <div class="grid">
+      <div class="card"><h2>Прогноз прибыли по открытым договорам, $</h2><div id="profit"></div><p class="note">Деньги на счетах плюс остатки открытых договоров с заказчиками минус долг исполнителям. Курс — из настроек финансов.</p></div>
+      <div class="card"><h2>Остатки по проектам</h2><p class="note">Сумма всех операций проекта в пересчёте на сумы. Красным — проект в минусе.</p><div class="chart" id="proj-bal"></div></div>
+    </div>
+    <div class="card"><div class="card-h"><h2>Движение денег по дням</h2></div><div class="chart" id="money-flow"></div></div>
+    <div class="card">
+      <div class="card-h"><h2>Операции <span class="note" id="op-count"></span></h2>
+        <div class="chips"><input class="ctl" type="search" id="op-search" placeholder="Поиск" aria-label="Поиск по операциям"><button class="btn primary sm" id="btn-op2">+ Операция</button></div></div>
+      <div class="scroll"><table id="op-table"><thead><tr><th class="r">№</th><th>Дата</th><th>Проект</th><th>Кто / контрагент</th><th>Категория</th><th class="r">Сумма, сум</th><th class="r">Сумма, $</th><th class="hide-narrow">Договор</th><th class="hide-narrow">Примечание</th><th class="hide-narrow">Кто внёс</th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="card"><h2>По месяцам</h2><div class="scroll"><table id="month-table"><thead><tr><th>Месяц</th><th class="r">Приход, сум</th><th class="r">Расход, сум</th><th class="r">Приход, $</th><th class="r">Расход, $</th><th class="r">Зарплаты</th><th class="r">Налоги</th><th class="r">Офис</th></tr></thead><tbody></tbody></table></div></div>
+  </section>
+
+  <section class="page" id="p-contracts" hidden>
+    <div class="card">
+      <div class="card-h"><h2>Договоры <span class="note" id="c-count"></span></h2>
+        <div class="chips"><select class="ctl" id="c-status" aria-label="Статус договора"><option value="Открыт">Открытые</option><option value="">Все</option><option value="Закрыт">Закрытые</option></select>
+        <input class="ctl" type="search" id="c-search" placeholder="Поиск" aria-label="Поиск по договорам"></div></div>
+      <div class="scroll"><table id="c-table"><thead><tr><th>ID</th><th>Проект</th><th>Сторона</th><th>Имя</th><th>Раздел</th><th>Валюта</th><th class="r">Сумма</th><th class="r">Оплачено</th><th class="r">Остаток</th><th class="r">Остаток, $</th><th>Статус</th><th></th></tr></thead><tbody></tbody></table></div>
+      <p class="note">Оплата по договору: кнопка «Оплатить» откроет форму операции с уже выбранным договором. Договоры с исполнителями создаются из состава проекта («Задачи и договоры»), остальные — в админке платформы.</p>
+    </div>
+  </section>
+</main>
+<div id="modal-root"></div>
+<div id="toast-root"></div>

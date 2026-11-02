@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n static core_extras finance_extras %}
+{% load i18n static core_extras finance_extras pult_nav %}
 {% block title %}{% trans "Finance" %}{% endblock %}
 {% block page_title %}{% if tab == "payroll" %}{% trans "Payroll" %}{% else %}{% trans "Finance" %}{% endif %}{% endblock %}
 {% block page_help %}{% trans "Track the company cash desk, salary payments to employees, and money movement across projects." as help_text %}{% with text=help_text %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
@@ -21,6 +21,11 @@
     {% if can_manage_finance %}
     <a href="?tab=admin_expenses" class="fin-tab {% if tab == 'admin_expenses' %}is-active{% endif %}" {% if tab == 'admin_expenses' %}aria-current="page"{% endif %}>{% trans "Administrative expenses" %}</a>
     {% endif %}
+    {# Pult'ning «Операции» va «Договоры» bo'limlari (apps/pult/nav.py) #}
+    {% pult_sections "finance" as pult_tabs %}
+    {% for pt in pult_tabs %}
+    <a href="{{ pt.url }}" class="fin-tab">{{ pt.label }}</a>
+    {% endfor %}
   </nav>
 
   <div class="fin-actions">

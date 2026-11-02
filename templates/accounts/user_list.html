@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n core_extras %}
+{% load i18n core_extras pult_nav %}
 {% block title %}{% trans "Users" %}{% endblock %}
 {% block page_title %}{% trans "Users" %}{% endblock %}
 {% block page_help %}{% trans "Manage system users: add employees, change their roles, and activate or deactivate accounts." as help_text %}{% with text=help_text %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
@@ -7,6 +7,11 @@
 <div class="ap-tabs mb-4" data-tabs>
   <button type="button" data-tab="users" class="ap-tab is-active">{% trans "Users" %}</button>
   <button type="button" data-tab="disciplines" class="ap-tab">{% trans "Disciplines" %}</button>
+  {# Pult'ning «Сотрудники» va «KPI» bo'limlari — alohida sahifalar (apps/pult/nav.py) #}
+  {% pult_sections "users" as pult_tabs %}
+  {% for pt in pult_tabs %}
+  <a href="{{ pt.url }}" class="ap-tab">{{ pt.label }}</a>
+  {% endfor %}
 </div>
 
 <div data-tab-panel="users">

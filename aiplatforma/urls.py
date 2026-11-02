@@ -12,6 +12,9 @@ admin.site.login = login_required(admin.site.login)
 urlpatterns = [
     path("django-admin/", admin.site.urls),
     path("i18n/", include("django.conf.urls.i18n")),
+    # Pult bo'limlari boshqa menyular ichida (/tasks/gantt/, /finance/contracts/, ...)
+    # va uning API'si /pult/ ostida — apps/pult/nav.py.
+    path("", include("apps.pult.urls")),
     path("accounts/", include("apps.accounts.urls")),
     path("projects/", include("apps.projects.urls")),
     path("tasks/", include("apps.tasks.urls")),
@@ -24,7 +27,6 @@ urlpatterns = [
     path("notifications/", include("apps.notifications.urls")),
     path("telegram/", include("apps.telegram_bot.urls")),
     path("ai/", include("apps.ai_agents.urls")),
-    path("pult/", include("apps.pult.urls")),
     path("", include("apps.core.urls")),
     # Yuklangan fayllar autentifikatsiyadan o'tgan view orqali beriladi
     # (nginx ularni ochiq tarqatmasligi kerak — nginx/default.conf.template ga qarang).

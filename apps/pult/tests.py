@@ -67,6 +67,43 @@ class WorkflowRowTests(PultTestBase):
         self.assertTrue(row["canApprove"])
 
 
+class SectionPageTests(PultTestBase):
+    """Pult sahifalari alohida menyuda emas, platforma bo'limlari ichida."""
+
+    def test_sections_live_under_their_menus(self):
+        self.client.force_login(self.boss)
+        for name, path in (("section_gantt", "/tasks/gantt/"), ("section_plan", "/projects/schedule/"),
+                           ("section_contracts", "/finance/contracts/"), ("section_kpi", "/accounts/users/kpi/"),
+                           ("section_home", "/reports/summary/")):
+            self.assertEqual(reverse(f"pult:{name}"), path)
+            response = self.client.get(path)
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, "?embed=1#")
+
+    def test_role_without_the_page_is_refused(self):
+        self.client.force_login(self.worker)
+        self.assertEqual(self.client.get(reverse("pult:section_kanban")).status_code, 200)
+        self.assertEqual(self.client.get(reverse("pult:section_contracts")).status_code, 403)
+        self.client.force_login(self.client_user)
+        self.assertEqual(self.client.get(reverse("pult:section_work")).status_code, 403)
+
+    def test_viewer_pages_come_from_the_server(self):
+        self.client.force_login(self.worker)
+        pages = self.client.get(reverse("pult:api_data")).json()["viewer"]["pages"]
+        self.assertEqual(pages, ["work", "kanban", "plan", "kpi"])
+
+    def test_menu_shows_only_allowed_tabs(self):
+        self.client.force_login(self.worker)
+        board = self.client.get(reverse("tasks:board"))
+        self.assertContains(board, reverse("pult:section_kanban"))
+        self.assertNotContains(board, reverse("pult:section_gantt"))
+        self.assertNotContains(board, 'href="/pult/"')
+
+    def test_old_address_redirects(self):
+        self.client.force_login(self.boss)
+        self.assertRedirects(self.client.get("/pult/"), reverse("pult:section_work"))
+
+
 class ActionTests(PultTestBase):
     def test_full_cycle_accept_submit_review(self):
         self.wf.days = 5

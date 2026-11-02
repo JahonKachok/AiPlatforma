@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n static core_extras %}
+{% load i18n static core_extras pult_nav %}
 {% block title %}{% trans "Projects" %}{% endblock %}
 {% block page_title %}{% trans "Projects" %}{% endblock %}
 {% block page_help %}{% trans "Manage all construction projects: follow their stages, budgets, and deadlines, and create new ones." as help_text %}{% with text=help_text %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="{% static 'css/projects.css' %}?v=1">
 {% endblock %}
 {% block content %}
+{% pult_tabs "projects" %}
 {# Single blueprint placeholder, cloned by JS when an <img> fails to load. #}
 <template id="prj-placeholder-template">
   <div class="prj-media-placeholder" aria-hidden="true">

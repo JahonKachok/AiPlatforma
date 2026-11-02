@@ -2,26 +2,36 @@ import json
 from functools import wraps
 
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.urls import reverse
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_GET, require_POST
 
 from . import finance, plan, services
+from .nav import SECTIONS, allowed_pages, section_url_name
 from .payload import build_payload
 from .services import PultError, pult_role
 
 
 @login_required
-def pult_page(request):
-    """Platforma ichidagi sahifa: menyu + Pult iframe'da (uning CSS'i platformaga aralashmaydi)."""
-    return render(request, "pult/page.html")
+def pult_section(request, section):
+    """Pult'ning bitta bo'limi o'z menyusi ichida: tablar + Pult iframe'da
+    (uning CSS'i platformaga aralashmaydi)."""
+    if section not in allowed_pages(request.user):
+        raise PermissionDenied
+    group, _route, label = SECTIONS[section]
+    return render(request, "pult/section.html", {"section": section, "group": group, "label": label})
 
 
 @xframe_options_sameorigin
 @login_required
 def pult_app(request):
-    return render(request, "pult/app.html")
+    # Iframe ichidan boshqa bo'limga o'tish (masalan «Все задачи» tugmasi)
+    # butun sahifani o'sha bo'lim menyusiga olib boradi.
+    links = {s: reverse(f"pult:{section_url_name(s)}") for s in SECTIONS}
+    return render(request, "pult/app.html", {"links": links})
 
 
 def api(view):

@@ -4547,3 +4547,43 @@ msgstr "Всего задач"
 #: .\templates\projects\project_detail.html
 msgid "Open in maps"
 msgstr "Открыть в картах"
+
+#: .\apps\pult\nav.py
+msgid "My work"
+msgstr "Моя работа"
+
+#: .\apps\pult\nav.py
+msgid "Task register"
+msgstr "Реестр задач"
+
+#: .\apps\pult\nav.py
+msgid "Section kanban"
+msgstr "Канбан разделов"
+
+#: .\apps\pult\nav.py
+msgid "Gantt chart"
+msgstr "Диаграмма Ганта"
+
+#: .\apps\pult\nav.py
+msgid "Project composition"
+msgstr "Состав проекта"
+
+#: .\apps\pult\nav.py
+msgid "Project schedule"
+msgstr "График проекта"
+
+#: .\apps\pult\nav.py
+msgid "Operations"
+msgstr "Операции"
+
+#: .\apps\pult\nav.py
+msgid "Workload"
+msgstr "Загрузка сотрудников"
+
+#: .\apps\pult\nav.py
+msgid "KPI"
+msgstr "KPI"
+
+#: .\apps\pult\nav.py
+msgid "Operational summary"
+msgstr "Оперативная сводка"

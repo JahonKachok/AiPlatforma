@@ -5,6 +5,11 @@
   const DS = document.body.dataset;
   const API = { data: DS.apiData, tasks: DS.apiTasks, report: DS.apiReport, plan: DS.apiPlan, planImport: DS.apiImport, sync: DS.apiSync, disc: DS.apiDisc, ciph: DS.apiCiph, ops: DS.apiOps };
   const CSRF = document.querySelector('meta[name="csrf-token"]').content;
+  // ?embed=1#<tab>: the platform shows one Pult page inside its own menu (apps/pult/nav.py).
+  // The tab is fixed by the URL; going to another tab opens that page's platform URL.
+  const EMBED = new URLSearchParams(location.search).has('embed');
+  const EMBED_TAB = location.hash.slice(1);
+  const LINKS = JSON.parse(document.getElementById('pult-links')?.textContent || '{}');
   const REFRESH_MS = 60000;
   // Tabs whose data the platform does not provide yet (next integration stages).
   const PAGE_FEATURE = { comp: 'plan', plan: 'plan', money: 'finance', contracts: 'finance' };
@@ -72,7 +77,7 @@
   // ---------- state
   const S = { raw: {}, payload: null, load: 'loading', loadErr: '', loadedAt: 0, d: {}, tab: 'home', mcp: null, fatal: null, filters: { project: '', person: '' }, gGroup: 'assignee', gDone: false, tSort: ['plan', 1], teamF: 'all', teamOpen: new Set(), kb: { f: { prio: new Set(), proj: new Set(), time: new Set(), who: new Set() }, over: new Map(), multi: false, oldDone: false, drag: null }, pl: { project: '', zoom: 'week', crit: true, base: true, links: true, owners: true, tails: true }, cp: { busy: new Set() }, kbMode: 'proj', pk: { project: '', f: { obj: new Set(), disc: new Set(), who: new Set(), sig: new Set() } }, rep: new Map(), repNote: '', as: null, me: null, meRaw: undefined, started: new Set(), dl: null, tStatus: 'open', cStatus: 'Открыт', kpiMonth: null };
   S.kpiMonth = (() => { const n = new Date(); return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0'); })();
-  try { const t = localStorage.getItem('gx-tab'); if (t) S.tab = t; const g = localStorage.getItem('gx-group'); if (g) S.gGroup = g; const z = localStorage.getItem('gx-zoom'); if (z) S.pl.zoom = z; if (localStorage.getItem('gx-owners') === '0') S.pl.owners = false; const km = localStorage.getItem('gx-kbmode'); if (km) S.kbMode = km; } catch (e) { /* storage unavailable */ }
+  try { const t = localStorage.getItem('gx-tab'); if (t && !EMBED) S.tab = t; const g = localStorage.getItem('gx-group'); if (g) S.gGroup = g; const z = localStorage.getItem('gx-zoom'); if (z) S.pl.zoom = z; if (localStorage.getItem('gx-owners') === '0') S.pl.owners = false; const km = localStorage.getItem('gx-kbmode'); if (km) S.kbMode = km; } catch (e) { /* storage unavailable */ }
   const h = location.hash.slice(1); if (h) S.tab = h;
 
   // ---------- server payload into S.d (the same shapes the sheets used to give)
@@ -191,9 +196,16 @@
   function render() {
     parseAll();
     const pages = !S.payload ? ['work'] : allowedPages();
-    if (!pages.includes(S.tab)) S.tab = pages[0] || 'work';
+    if (EMBED) S.tab = EMBED_TAB;
+    else if (!pages.includes(S.tab)) S.tab = pages[0] || 'work';
     $$('.tab').forEach((b) => { b.hidden = !pages.includes(b.dataset.tab); });
     renderBanner(); renderTop();
+    // embedded: nothing to draw until the data is here, or if this page is closed to the viewer («смотреть как»)
+    if (EMBED && (!S.payload || !pages.includes(S.tab))) {
+      $$('main > .page').forEach((p) => { p.hidden = true; });
+      if (S.payload) $('#banner').append(el('div', 'banner', 'Этот раздел недоступен для выбранной роли.'));
+      return;
+    }
     $$('.tab').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === S.tab)));
     $$('main > .page').forEach((p) => { p.hidden = p.id !== 'p-' + S.tab; });
     const fn = { work: renderWork, home: renderHome, tasks: renderTasks, kanban: renderKanban, gantt: renderGantt, comp: renderComp, plan: renderPlan, team: renderTeam, kpi: renderKpi, money: renderMoney, contracts: renderContracts }[S.tab];
@@ -3022,7 +3034,9 @@
   }
 
   // ---------- wiring
-  function goTab(t) { S.tab = t; try { localStorage.setItem('gx-tab', t); } catch (e) { /* ignore */ } render(); window.scrollTo({ top: 0 }); }
+  function goTab(t) {
+    if (EMBED) { if (LINKS[t] && t !== S.tab) window.top.location.href = LINKS[t]; return; }
+    S.tab = t; try { localStorage.setItem('gx-tab', t); } catch (e) { /* ignore */ } render(); window.scrollTo({ top: 0 }); }
   $$('.tab').forEach((b) => b.addEventListener('click', () => goTab(b.dataset.tab)));
   $$('[data-goto]').forEach((b) => b.addEventListener('click', () => goTab(b.dataset.goto)));
   $('#f-project').addEventListener('change', (e) => { S.filters.project = e.target.value; if (e.target.value) { S.pl.project = e.target.value; S.pl.keepScroll = false; } render(); });

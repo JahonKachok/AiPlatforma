@@ -1,9 +1,10 @@
 {% extends "base.html" %}
-{% load i18n core_extras %}
+{% load i18n core_extras pult_nav %}
 {% block title %}{% trans "Reports" %}{% endblock %}
 {% block page_title %}{% trans "Reports" %}{% endblock %}
 {% block page_help %}{% trans "View reports on projects, tasks, finance, and staff, and export them to Excel or CSV." as help_text %}{% with text=help_text %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
 {% block content %}
+{% pult_tabs "reports" %}
 <div class="mb-6 flex flex-wrap gap-2">
   <a href="{% url 'reports:export' 'projects' %}" class="btn btn-secondary btn-sm">{% trans "Export projects" %}</a>
   <a href="{% url 'reports:export' 'tasks' %}" class="btn btn-secondary btn-sm">{% trans "Export tasks" %}</a>

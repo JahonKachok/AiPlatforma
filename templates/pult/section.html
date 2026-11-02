@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load i18n pult_nav %}
+{% block title %}{{ label }}{% endblock %}
+{% block page_title %}{{ label }}{% endblock %}
+{% block content %}
+{% pult_tabs group %}
+{# Pult o'z CSS'i (global table/button/body uslublari) bilan keladi, shuning uchun u platforma dizaynini buzmasligi uchun iframe ichida ochiladi. ?embed — faqat shu bo'lim, Pult'ning o'z tablarisiz. #}
+<iframe src="{% url 'pult:app' %}?embed=1#{{ section }}" title="{{ label }}"
+        class="block w-full rounded-lg border border-gray-200 dark:border-gray-700"
+        style="height: calc(100vh - 11rem); min-height: 32rem;"></iframe>
+{% endblock %}

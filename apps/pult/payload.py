@@ -11,6 +11,7 @@ from apps.projects.permissions import visible_projects_for
 
 from .finance import can_finance, finance_payload
 from .models import ProgressReport, PultSettings, TaskTemplate, TaskWorkflow
+from .nav import allowed_pages
 from .plan import ciphers_json, disciplines_json, plan_state, stages_json
 from .services import (
     BOSS, GIP, WorkCalendar, can_approve, ensure_workflow, is_boss, kpi_config, pult_role, task_payload,
@@ -35,7 +36,8 @@ def _viewer(user):
     if role is None:
         return {"role": None, "unknown": True, "email": user.email, "name": user.full_name}
     return {
-        "role": role, "person": user.full_name, "email": user.email, "owner": role == BOSS, "pages": None,
+        "role": role, "person": user.full_name, "email": user.email, "owner": role == BOSS,
+        "pages": allowed_pages(user),
         "projects": _member_project_names(user) if role == GIP else [],
     }
 

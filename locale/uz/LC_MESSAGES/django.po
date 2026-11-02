@@ -4548,3 +4548,43 @@ msgstr "Jami vazifalar"
 #: .\templates\projects\project_detail.html
 msgid "Open in maps"
 msgstr "Xaritada ochish"
+
+#: .\apps\pult\nav.py
+msgid "My work"
+msgstr "Mening ishim"
+
+#: .\apps\pult\nav.py
+msgid "Task register"
+msgstr "Vazifalar reyestri"
+
+#: .\apps\pult\nav.py
+msgid "Section kanban"
+msgstr "Bo'limlar kanbani"
+
+#: .\apps\pult\nav.py
+msgid "Gantt chart"
+msgstr "Gant diagrammasi"
+
+#: .\apps\pult\nav.py
+msgid "Project composition"
+msgstr "Loyiha tarkibi"
+
+#: .\apps\pult\nav.py
+msgid "Project schedule"
+msgstr "Loyiha jadvali"
+
+#: .\apps\pult\nav.py
+msgid "Operations"
+msgstr "Operatsiyalar"
+
+#: .\apps\pult\nav.py
+msgid "Workload"
+msgstr "Xodimlar bandligi"
+
+#: .\apps\pult\nav.py
+msgid "KPI"
+msgstr "KPI"
+
+#: .\apps\pult\nav.py
+msgid "Operational summary"
+msgstr "Tezkor xulosa"

@@ -56,11 +56,21 @@ python manage.py run_ai_agent            # manual test run (prints the report; -
 python manage.py setup_ai_periodic_tasks # registers the daily 08:00 Celery Beat task
 ```
 
-### GASTEC Pult (`/pult/`)
+### GASTEC Pult
 
 The former Google-Sheets "GASTEC Пульт" page now runs on the platform's own data (`apps/pult`). Every `tasks.Task` gets a `TaskWorkflow` row with a sequential № and the Pult's 10-step status (Черновик → Новая → … → Принята); `Task.status` is kept in sync, so the regular task board stays correct. All transitions (issue ТЗ, propose/approve the term, submit, accept, send back) are checked on the server in `apps/pult/services.py`. KPI points, the working calendar (holidays) and task templates are edited in the Django admin under "GASTEC Пульт".
 
-The UI lives in `static/pult/pult.js` + `templates/pult/` and is shown in an iframe so its global CSS does not touch the platform layout.
+The UI lives in `static/pult/pult.js` + `templates/pult/` and is shown in an iframe so its global CSS does not touch the platform layout. There is no separate Pult menu: each Pult page is a tab inside the matching platform section (`apps/pult/nav.py`), and the iframe (`/pult/app/?embed=1#<page>`) shows only that page:
+
+| Menu | Pult pages (URL) |
+|---|---|
+| Tasks | Моя работа `/tasks/my-work/`, Задачи `/tasks/register/`, Канбан `/tasks/sections/`, Ганта `/tasks/gantt/` |
+| Projects | Состав `/projects/composition/`, График `/projects/schedule/` |
+| Finance | Операции `/finance/operations/`, Договоры `/finance/contracts/` |
+| Users | Сотрудники `/accounts/users/workload/`, KPI `/accounts/users/kpi/` |
+| Reports | Главная `/reports/summary/` |
+
+Which pages a role sees is decided on the server (`nav.allowed_pages`) and sent to the browser as `viewer.pages`. The old `/pult/` address redirects to "My work".
 
 - **Состав / График проекта** — `PlanRow` (`apps/pult/plan.py`). Dates, links and the critical path are calculated in the browser; the server stores the rows, writes only projects the user may plan (admin/manager, or a GIP of the project) and rejects a save made on stale data (`PultSettings.plan_version`). The «Из объектов платформы» button copies objects, pod-objects and disciplines entered in the project wizard into the composition (once per item, tracked by `PlanRow.source_key`). Disciplines are the platform's `accounts.Discipline` plus `DisciplineConfig` (duration, typical links, cipher code); cipher rules and stages (Смета/Оформление/Печать) are in the admin.
 - **Финансы / Договоры** — `apps/pult/finance.py`, visible to admin/manager/finance only. An operation is a `finance.FinancialRecord` (one per currency) plus `OperationInfo`; a contract with a platform employee is mirrored into `finance.EmployeeContract`, so the payment also shows on the Finance and "My salary" pages. The USD rate comes from Finance settings.

@@ -1,10 +1,12 @@
 import asyncio
+from html import escape
 
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from apps.core.validators import AllowedExtensionsValidator
 from apps.telegram_bot.texts import LANGUAGE_LABELS, all_menu_labels, menu_key_for, t
 
 
@@ -16,6 +18,8 @@ class Command(BaseCommand):
             self.stderr.write(self.style.ERROR("TELEGRAM_BOT_TOKEN is not configured."))
             return
 
+        from django.core.exceptions import ValidationError
+        from django.core.files.base import ContentFile
         from telegram import (
             BotCommand,
             InlineKeyboardButton,
@@ -128,7 +132,7 @@ class Command(BaseCommand):
             user = await _get_user_by_chat_id(update.effective_chat.id)
             if user:
                 await update.message.reply_html(
-                    f"<b>{user.full_name}</b>\n{user.email}\n{user.get_role_display()}"
+                    f"<b>{escape(user.full_name)}</b>\n{escape(user.email)}\n{user.get_role_display()}"
                 )
             else:
                 lang = await get_lang(update, context)
@@ -136,12 +140,18 @@ class Command(BaseCommand):
 
         @sync_to_async
         def _do_link(token, chat_id):
+            from apps.accounts.models import User
             from apps.telegram_bot.models import TelegramLinkToken
 
             link_token = TelegramLinkToken.objects.filter(token=token).first()
             if not link_token or not link_token.is_valid() or not link_token.user.is_active:
                 return None
             user = link_token.user
+            # Bitta chat — bitta hisob: aks holda bot qaysi foydalanuvchi
+            # nomidan ishlashi (va kimning bildirishnomalari kelishi) noaniq.
+            User.objects.filter(telegram_chat_id=str(chat_id)).exclude(pk=user.pk).update(
+                telegram_chat_id=None
+            )
             user.telegram_chat_id = str(chat_id)
             user.save(update_fields=["telegram_chat_id"])
             link_token.used_at = timezone.now()
@@ -158,7 +168,8 @@ class Command(BaseCommand):
             if user:
                 await update.message.reply_html(
                     t("link.success", lang,
-                      name=user.full_name, role=user.get_role_display(), email=user.email),
+                      name=escape(user.full_name), role=user.get_role_display(),
+                      email=escape(user.email)),
                     reply_markup=main_keyboard(lang, _is_manager(user)),
                 )
             else:
@@ -357,6 +368,17 @@ class Command(BaseCommand):
                 await message.reply_text(t("upload.too_big", lang))
                 return
 
+            # Ruxsat etilmagan turni loyiha so'ralmasdan oldin rad etamiz
+            # (_save_document'dagi tekshiruv — callback soxtalashtirilsa ham).
+            validator = AllowedExtensionsValidator()
+            try:
+                validator(ContentFile(b"", name=file_name))
+            except ValidationError:
+                await message.reply_text(
+                    t("upload.bad_type", lang, allowed=", ".join(validator.allowed))
+                )
+                return
+
             context.user_data["pending_doc"] = {
                 "file_id": attachment.file_id,
                 "file_name": file_name,
@@ -371,7 +393,7 @@ class Command(BaseCommand):
                 [InlineKeyboardButton(t("upload.cancel", lang), callback_data="tgdoc:cancel")]
             )
             await message.reply_text(
-                t("upload.choose_project", lang, caption=caption),
+                t("upload.choose_project", lang, caption=escape(caption)),
                 parse_mode="HTML",
                 reply_markup=InlineKeyboardMarkup(keyboard),
             )
@@ -405,7 +427,7 @@ class Command(BaseCommand):
                 return
             await query.edit_message_text(
                 t("upload.saved", lang,
-                  name=document.name, project=document.project.name,
+                  name=escape(document.name), project=escape(document.project.name),
                   url=f"{settings.FRONTEND_URL}/documents/{document.pk}/"),
                 parse_mode="HTML",
             )

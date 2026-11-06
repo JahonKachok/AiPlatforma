@@ -1,4 +1,5 @@
 import logging
+from html import escape
 
 from celery import shared_task
 from django.conf import settings
@@ -35,7 +36,8 @@ def send_notification_telegram(user_id, title, message):
         return
     if not user.telegram_chat_id:
         return
-    send_message(user.telegram_chat_id, f"<b>{title}</b>\n{message}")
+    # Matnlar oddiy matn — HTML rejimida "<" yoki "&" Telegram'da xabarni buzadi.
+    send_message(user.telegram_chat_id, f"<b>{escape(title)}</b>\n{escape(message)}")
 
 
 @shared_task

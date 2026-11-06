@@ -165,6 +165,11 @@ T = {
         "en": "The file is over 20 MB — it can't be uploaded via the Telegram "
               "bot. Upload large files through the website.",
     },
+    "upload.bad_type": {
+        "uz": "Bu turdagi faylni yuklab bo'lmaydi. Ruxsat etilgan turlar: {allowed}.",
+        "ru": "Файлы такого типа загружать нельзя. Разрешённые типы: {allowed}.",
+        "en": "Files of this type can't be uploaded. Allowed types: {allowed}.",
+    },
     "upload.choose_project": {
         "uz": "📄 <b>{caption}</b>\nQaysi loyihaga saqlansin?",
         "ru": "📄 <b>{caption}</b>\nВ какой проект сохранить?",

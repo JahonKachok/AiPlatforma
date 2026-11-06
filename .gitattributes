@@ -11,6 +11,8 @@ Dockerfile      text eol=lf
 
 # PowerShell skriptlari faqat Windows'da ishlaydi.
 *.ps1           text eol=crlf
+# LF bilan saqlangan .bat faylda goto/label ishonchsiz ishlaydi.
+*.bat           text eol=crlf
 
 # Ikkilik fayllar hech qachon o'zgartirilmasin.
 *.png           binary

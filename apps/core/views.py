@@ -14,6 +14,7 @@ from django.views.decorators.http import require_POST
 from django.views.static import serve
 
 from apps.accounts.models import User
+from apps.finance.permissions import can_manage_finance
 from apps.documents.models import ApprovalStage, ApprovalStatus, AuditLog, Document, DocumentStatus
 from apps.projects.models import Project
 from apps.projects.permissions import visible_projects_for
@@ -211,6 +212,7 @@ def dashboard(request):
     return render(request, "core/dashboard.html", {
         "kpi_cards": kpi_cards,
         "recent_projects": recent_projects,
+        "can_view_budget": can_manage_finance(user),
         "recent_tasks": tasks.select_related("assignee", "project").order_by("-created_at")[:6],
         "team": team,
         "ai_report": ai_report,

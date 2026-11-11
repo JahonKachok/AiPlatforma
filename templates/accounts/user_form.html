@@ -3,7 +3,7 @@
 {% block title %}{% if is_create %}{% trans "Add user" %}{% else %}{% trans "Edit user" %}{% endif %}{% endblock %}
 {% block page_title %}{% if is_create %}{% trans "Add user" %}{% else %}{% trans "Edit user" %}{% endif %}{% endblock %}
 {% block content %}
-<form method="post" class="card max-w-xl space-y-4 p-6">
+<form method="post" class="card max-w-xl space-y-4 p-6" autocomplete="off">
   {% csrf_token %}
   {% for field in form %}
     <div>
@@ -13,7 +13,7 @@
     </div>
   {% endfor %}
   {% if is_create %}
-    <p class="text-xs text-gray-500 dark:text-gray-400">{% trans "A random temporary password will be generated and shown once after creation." %}</p>
+    <p class="text-xs text-gray-500 dark:text-gray-400">{% trans "If you leave the password blank, a random temporary password will be generated and shown once after creation." %}</p>
   {% endif %}
   <div class="flex gap-3">
     <button type="submit" class="btn btn-primary btn-md">{% trans "Save" %}</button>

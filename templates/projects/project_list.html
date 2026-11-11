@@ -4,7 +4,7 @@
 {% block page_title %}{% trans "Projects" %}{% endblock %}
 {% block page_help %}{% trans "Manage all construction projects: follow their stages, budgets, and deadlines, and create new ones." as help_text %}{% with text=help_text %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
 {% block extra_head %}
-  <link rel="stylesheet" href="{% static 'css/projects.css' %}?v=1">
+  <link rel="stylesheet" href="{% static 'css/projects.css' %}?v=2">
 {% endblock %}
 {% block content %}
 {% pult_tabs "projects" %}
@@ -19,54 +19,32 @@
 
 <div class="prj-scope">
 
-  {# ============================ Header actions ============================ #}
-  <div class="prj-toolbar" style="justify-content: flex-end; margin-bottom: 1rem;">
-    <a href="{% url 'reports:export' 'projects' %}" class="btn btn-secondary btn-sm">
-      <svg class="prj-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>
-      </svg>
-      {% trans "Export report" %}
-    </a>
-    {% if can_create %}
-      <a href="{% url 'projects:create' %}" class="btn btn-primary btn-md">
-        <svg class="prj-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-          <path d="M12 5v14"/><path d="M5 12h14"/>
-        </svg>
-        {% trans "New project" %}
-      </a>
-    {% endif %}
-  </div>
-
-  {# ============================== KPI cards ============================== #}
-  <div class="prj-kpis">
-    {% for kpi in kpi_cards %}
-      <div class="prj-kpi" data-tone="{{ kpi.tone }}">
-        <span class="prj-kpi-icon" aria-hidden="true">
-          {% if kpi.key == 'total' %}
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/>
-            </svg>
-          {% elif kpi.key == 'active' %}
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M13 2 3 14h8l-1 8 10-12h-8l1-8z"/>
-            </svg>
-          {% elif kpi.key == 'completed' %}
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 6 9 17l-5-5"/>
-            </svg>
-          {% else %}
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
-            </svg>
-          {% endif %}
-        </span>
-        <div class="prj-kpi-body">
-          <p class="prj-kpi-label">{{ kpi.label }}</p>
-          <p class="prj-kpi-value">{{ kpi.value }}</p>
-          <p class="prj-kpi-hint">{{ kpi.hint }}</p>
+  {# ===== Ixcham statistika + amallar: bitta ingichka qator (ilgari 4 ta katta kartochka edi) ===== #}
+  <div class="prj-topbar">
+    <dl class="prj-stats">
+      {% for kpi in kpi_cards %}
+        <div class="prj-stat" data-tone="{{ kpi.tone }}" title="{{ kpi.hint }}">
+          <dt>{{ kpi.label }}</dt>
+          <dd>{{ kpi.value }}</dd>
         </div>
-      </div>
-    {% endfor %}
+      {% endfor %}
+    </dl>
+    <div class="prj-topbar-actions">
+      <a href="{% url 'reports:export' 'projects' %}" class="btn btn-secondary btn-sm">
+        <svg class="prj-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>
+        </svg>
+        {% trans "Export report" %}
+      </a>
+      {% if can_create %}
+        <a href="{% url 'projects:create' %}" class="btn btn-primary btn-sm">
+          <svg class="prj-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M12 5v14"/><path d="M5 12h14"/>
+          </svg>
+          {% trans "New project" %}
+        </a>
+      {% endif %}
+    </div>
   </div>
 
   {# ========================= Search / filters / view ========================= #}
@@ -166,10 +144,12 @@
               </div>
 
               <div class="prj-facts">
+                {% if can_view_budget %}
                 <div>
                   <p class="prj-fact-label">{% trans "Budget" %}</p>
                   <p class="prj-fact-value">{{ project.paid_amount|millions }} / {{ project.budget|millions }} {% trans "mln" %}</p>
                 </div>
+                {% endif %}
                 <div>
                   <p class="prj-fact-label">{% trans "Stage" %}</p>
                   <p class="prj-fact-value">{{ project.get_stage_display }}</p>
@@ -260,10 +240,12 @@
             </div>
           </div>
           <div class="prj-row-side">
+            {% if can_view_budget %}
             <div>
               <p class="prj-fact-label">{% trans "Budget" %}</p>
               <p class="prj-fact-value">{{ project.paid_amount|millions }} / {{ project.budget|millions }} {% trans "mln" %}</p>
             </div>
+            {% endif %}
             {% if project.progress_value is not None %}
               <div class="prj-ring" style="--ring-size: 2.5rem; --ring-pct: {{ project.progress_value }};">
                 <span>{{ project.progress_value }}%</span>

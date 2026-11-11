@@ -21,7 +21,7 @@ class DisciplineConfigAdmin(admin.ModelAdmin):
 
 @admin.register(CipherRule)
 class CipherRuleAdmin(admin.ModelAdmin):
-    list_display = ("project", "prefix", "stage", "code", "digits", "common")
+    list_display = ("project", "prefix", "client", "code", "digits", "common")
 
 
 @admin.register(StageConfig)

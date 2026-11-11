@@ -90,7 +90,7 @@ def report_export(request, kind):
         raise PermissionDenied
 
     if kind == "projects":
-        wb = build_projects_workbook(projects)
+        wb = build_projects_workbook(projects, with_budget=can_manage_finance(request.user))
     elif kind == "tasks":
         wb = build_tasks_workbook(Task.objects.filter(project__in=projects).select_related("project", "assignee"))
     elif kind == "finance":

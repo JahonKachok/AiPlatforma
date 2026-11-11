@@ -1944,15 +1944,15 @@ msgstr "Qoraqalpog'iston Respublikasi"
 
 #: .\apps\projects\views.py:34
 msgid "90_Проектная документация"
-msgstr "90_Проектная документация"
+msgstr "90_Loyiha hujjatlari"
 
 #: .\apps\projects\views.py:39
 msgid "05_Планшет"
-msgstr "05_Планшет"
+msgstr "05_Planshet"
 
 #: .\apps\projects\views.py:40
 msgid "10_ТЭ"
-msgstr "10_ТЭ"
+msgstr "10_Texnik-iqtisodiy asoslash"
 
 #: .\apps\projects\views.py:41
 msgid "20_Геология"
@@ -4588,3 +4588,99 @@ msgstr "KPI"
 #: .\apps\pult\nav.py
 msgid "Operational summary"
 msgstr "Tezkor xulosa"
+
+msgid "Password confirmation"
+msgstr "Parolni tasdiqlash"
+
+msgid "New password"
+msgstr "Yangi parol"
+
+msgid "Enter the same password again to avoid mistakes."
+msgstr "Xato bo'lmasligi uchun parolni yana bir marta kiriting."
+
+msgid "A user with this email already exists."
+msgstr "Bunday elektron pochtali foydalanuvchi allaqachon mavjud."
+
+msgid "The two passwords do not match."
+msgstr "Kiritilgan ikki parol bir xil emas."
+
+msgid "The password the employee will sign in with. Leave blank to generate a random temporary password."
+msgstr "Xodim tizimga shu parol bilan kiradi. Bo'sh qoldirilsa, tasodifiy vaqtinchalik parol yaratiladi."
+
+msgid "Set a new password for the employee. Leave blank to keep the current password."
+msgstr "Xodimga yangi parol o'rnating. Bo'sh qoldirilsa, joriy parol o'zgarmaydi."
+
+msgid "The email address the employee signs in with (their login)."
+msgstr "Xodim tizimga kiradigan elektron pochta (login)."
+
+msgid "User created. Login: %(email)s — they can sign in with the password you set."
+msgstr "Foydalanuvchi yaratildi. Login: %(email)s — u siz qo'ygan parol bilan kira oladi."
+
+msgid "User updated. The new password is now in effect."
+msgstr "Foydalanuvchi yangilandi. Yangi parol kuchga kirdi."
+
+msgid "If you leave the password blank, a random temporary password will be generated and shown once after creation."
+msgstr "Parol bo'sh qoldirilsa, tasodifiy vaqtinchalik parol yaratiladi va yaratilgandan keyin bir marta ko'rsatiladi."
+
+msgid "Language"
+msgstr "Til"
+
+msgid "Upload failed."
+msgstr "Yuklashda xatolik yuz berdi."
+
+msgid "Network error — please try again."
+msgstr "Tarmoq xatoligi — qayta urinib ko'ring."
+
+msgid "Comment (required):"
+msgstr "Izoh (majburiy):"
+
+msgid "Opening Telegram…"
+msgstr "Telegram ochilmoqda…"
+
+msgid "If you're on a phone, scan the QR code with Telegram or your camera."
+msgstr "Telefondan foydalanayotgan bo'lsangiz — QR-kodni Telegram yoki kamera bilan skanerlang."
+
+msgid "Open the Telegram app"
+msgstr "Telegram ilovasini ochish"
+
+msgid "App didn't open? Open via t.me"
+msgstr "Ilova ochilmasa: t.me orqali ochish"
+
+msgid "Back to profile"
+msgstr "Profilga qaytish"
+
+msgid "When the Telegram app opens, press <b>Start</b> in the bot — your account will be linked automatically."
+msgstr "Telegram ilovasi ochilganda botda <b>Start</b> tugmasini bosing — hisobingiz avtomatik ulanadi."
+
+msgid "Number"
+msgstr "Raqam"
+
+msgid "Term, days"
+msgstr "Muddat, kun"
+
+msgid "Estimated hours"
+msgstr "Taxminiy soatlar"
+
+msgid "Reworks"
+msgstr "Qayta ishlashlar"
+
+msgid "Missed reports"
+msgstr "O'tkazib yuborilgan hisobotlar"
+
+msgid "Task workflow"
+msgstr "Vazifa jarayoni"
+
+msgid "Task workflows"
+msgstr "Vazifa jarayonlari"
+
+msgid "Task template"
+msgstr "Vazifa shabloni"
+
+msgid "Task templates"
+msgstr "Vazifa shablonlari"
+
+msgid "Needs estimate stage"
+msgstr "Smeta bosqichi kerak"
+
+msgid "Customer code"
+msgstr "Buyurtmachi kodi"

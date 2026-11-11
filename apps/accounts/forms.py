@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth import password_validation
 from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
 from django.utils.translation import gettext_lazy as _
 
@@ -151,7 +152,51 @@ class AdminRoleLimitMixin:
             ]
 
 
-class UserCreateForm(AdminRoleLimitMixin, StyledFormMixin, forms.ModelForm):
+class AdminPasswordMixin(forms.Form):
+    """Admin xodimga parolni o'zi qo'yadi (yaratishda yoki tahrirlashda).
+
+    Ikkala maydon ham ixtiyoriy: yaratishda bo'sh qolsa tasodifiy vaqtinchalik
+    parol chiqariladi, tahrirlashda bo'sh qolsa parol o'zgarmaydi. Parol
+    platformaning umumiy parol talablaridan (AUTH_PASSWORD_VALIDATORS) o'tadi."""
+
+    password1 = forms.CharField(
+        label=_("Password"), required=False, strip=False,
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
+    )
+    password2 = forms.CharField(
+        label=_("Password confirmation"), required=False, strip=False,
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
+        help_text=_("Enter the same password again to avoid mistakes."),
+    )
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+        others = User.objects.filter(email__iexact=email)
+        if self.instance.pk:
+            others = others.exclude(pk=self.instance.pk)
+        if others.exists():
+            raise forms.ValidationError(_("A user with this email already exists."))
+        return email
+
+    def clean(self):
+        cleaned = super().clean()
+        p1, p2 = cleaned.get("password1") or "", cleaned.get("password2") or ""
+        if p1 or p2:
+            if p1 != p2:
+                self.add_error("password2", _("The two passwords do not match."))
+            else:
+                user = self.instance
+                for name in ("email", "full_name"):
+                    if cleaned.get(name):
+                        setattr(user, name, cleaned[name])
+                try:
+                    password_validation.validate_password(p1, user)
+                except forms.ValidationError as error:
+                    self.add_error("password1", error)
+        return cleaned
+
+
+class UserCreateForm(AdminRoleLimitMixin, AdminPasswordMixin, StyledFormMixin, forms.ModelForm):
     class Meta:
         model = User
         fields = ["email", "full_name", "role", "department", "disciplines", "discipline_other", "phone"]
@@ -166,15 +211,20 @@ class UserCreateForm(AdminRoleLimitMixin, StyledFormMixin, forms.ModelForm):
             "phone": _("A contact phone number, e.g. +998901234567."),
         }
 
-    def clean_email(self):
-        return self.cleaned_data["email"].lower()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["password1"].help_text = _(
+            "The password the employee will sign in with. Leave blank to generate a random temporary password."
+        )
 
     def save(self, commit=True):
         import secrets
 
         user = super().save(commit=False)
-        temp_password = secrets.token_urlsafe(9)
-        user.set_password(temp_password)
+        password = self.cleaned_data.get("password1")
+        # Admin parolni o'zi kiritgan bo'lsa, uni yana ko'rsatish shart emas.
+        temp_password = None if password else secrets.token_urlsafe(9)
+        user.set_password(password or temp_password)
         if commit:
             user.save()
             self.save_m2m()
@@ -182,12 +232,17 @@ class UserCreateForm(AdminRoleLimitMixin, StyledFormMixin, forms.ModelForm):
         return user
 
 
-class UserAdminEditForm(AdminRoleLimitMixin, StyledFormMixin, forms.ModelForm):
+class UserAdminEditForm(AdminRoleLimitMixin, AdminPasswordMixin, StyledFormMixin, forms.ModelForm):
+    """Xodimni tahrirlash. Login (email) va parolni faqat admin o'zgartiradi:
+    aks holda menejer boshqa xodimning (masalan, moliyachining) parolini
+    almashtirib, uning nomidan tizimga kira olardi."""
+
     class Meta:
         model = User
-        fields = ["full_name", "role", "department", "disciplines", "discipline_other", "phone", "is_active"]
+        fields = ["email", "full_name", "role", "department", "disciplines", "discipline_other", "phone", "is_active"]
         widgets = {"disciplines": forms.CheckboxSelectMultiple}
         help_texts = {
+            "email": _("The email address the employee signs in with (their login)."),
             "full_name": _("The employee's full name."),
             "role": _("The employee's role in the system — permissions are set based on this."),
             "department": _("The name of the department the employee works in (free text)."),
@@ -196,6 +251,30 @@ class UserAdminEditForm(AdminRoleLimitMixin, StyledFormMixin, forms.ModelForm):
             "phone": _("A contact phone number, e.g. +998901234567."),
             "is_active": _("If unchecked, the employee cannot sign in (the account is blocked, but its data is kept)."),
         }
+
+    def __init__(self, *args, requester=None, **kwargs):
+        super().__init__(*args, requester=requester, **kwargs)
+        if requester is not None and not is_admin(requester):
+            for name in ("email", "password1", "password2"):
+                del self.fields[name]
+        else:
+            self.fields["password1"].label = _("New password")
+            self.fields["password1"].help_text = _(
+                "Set a new password for the employee. Leave blank to keep the current password."
+            )
+
+    @property
+    def password_changed(self):
+        return bool(self.cleaned_data.get("password1"))
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        if self.cleaned_data.get("password1"):
+            user.set_password(self.cleaned_data["password1"])
+        if commit:
+            user.save()
+            self.save_m2m()
+        return user
 
 
 class DisciplineForm(StyledFormMixin, forms.ModelForm):

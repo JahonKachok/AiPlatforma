@@ -1,0 +1,48 @@
+# English catalog: only msgids whose source text is not English.
+msgid ""
+msgstr ""
+"Project-Id-Version: BuildFlow\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "90_Проектная документация"
+msgstr "90_Project documentation"
+
+msgid "05_Планшет"
+msgstr "05_Site plan"
+
+msgid "10_ТЭ"
+msgstr "10_Technical and economic study"
+
+msgid "20_Геология"
+msgstr "20_Geology"
+
+msgid "30_Экология"
+msgstr "30_Ecology"
+
+msgid "40_Кадастр"
+msgstr "40_Cadastre"
+
+msgid "50_АПЗ"
+msgstr "50_Urban planning brief"
+
+msgid "60_ТУ"
+msgstr "60_Technical conditions"
+
+msgid "70_КД оборудования"
+msgstr "70_Equipment design documentation"
+
+msgid "80_Фото и видео"
+msgstr "80_Photo and video"
+
+msgid "Исходные файлы"
+msgstr "Source files"
+
+msgid "Kechikkan yoki muddati yaqin vazifalar yo'q — hisobot kerak emas."
+msgstr "No overdue or near-deadline tasks — no report needed."
+
+msgid "Agent ishga tushirildi. Hisobot admin va rahbarlarga yuborildi."
+msgstr "Agent started. The report was sent to admins and managers."

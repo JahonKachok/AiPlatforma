@@ -614,3 +614,58 @@ class DocumentsDownloadZipTests(TestCase):
         self.client.force_login(outsider)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 403)
+
+
+class BudgetVisibilityTests(TestCase):
+    """Byudjet va to'langan summa faqat moliya rollariga (admin, menejer, moliyachi) ko'rinadi."""
+
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            email="budgetadmin@example.com", password="pw12345!", full_name="Budget Admin", role=User.Role.ADMIN,
+        )
+        self.gip = User.objects.create_user(
+            email="budgetgip@example.com", password="pw12345!", full_name="Budget Gip", role=User.Role.GIP,
+        )
+        self.project = Project.objects.create(
+            name="Secret tower", created_by=self.admin, budget=7_654_000_000, paid_amount=1_234_000_000,
+        )
+        ProjectMember.objects.create(project=self.project, user=self.gip, can_edit=True)
+
+    def test_list_hides_budget_from_non_finance_roles(self):
+        self.client.force_login(self.gip)
+        for view in ("grid", "list"):
+            response = self.client.get(reverse("projects:list"), {"view": view})
+            self.assertContains(response, "Secret tower")
+            self.assertNotContains(response, "7654.0")
+
+    def test_list_shows_budget_to_admin(self):
+        self.client.force_login(self.admin)
+        self.assertContains(self.client.get(reverse("projects:list")), "7654.0")
+
+    def test_dashboard_hides_budget_from_non_finance_roles(self):
+        self.client.force_login(self.gip)
+        self.assertNotContains(self.client.get(reverse("core:dashboard")), "7654.0")
+
+    def test_edit_form_has_no_budget_fields_and_keeps_values(self):
+        self.client.force_login(self.gip)
+        url = reverse("projects:update", args=[self.project.pk])
+        form = self.client.get(url).context["form"]
+        for name in ("budget", "paid_amount", "currency"):
+            self.assertNotIn(name, form.fields)
+        data = {k: v for k, v in form.initial.items() if v is not None and k in form.fields and k != "image"}
+        data.update({"name": "Secret tower 2", "construction_type": "new", "region": "tashkent_city",
+                     "district": "Yunusobod", "address": "Street 1", "budget": "1", "paid_amount": "1"})
+        self.client.post(url, data)
+        self.project.refresh_from_db()
+        self.assertEqual(self.project.name, "Secret tower 2")
+        self.assertEqual(self.project.budget, 7_654_000_000)
+        self.assertEqual(self.project.paid_amount, 1_234_000_000)
+
+    def test_projects_export_has_no_budget_columns_for_non_finance_roles(self):
+        from openpyxl import load_workbook
+
+        self.client.force_login(self.gip)
+        response = self.client.get(reverse("reports:export", args=["projects"]))
+        headers = [c.value for c in next(load_workbook(io.BytesIO(response.content)).active.iter_rows(max_row=1))]
+        self.assertNotIn("Budget", headers)
+        self.assertNotIn("Paid", headers)

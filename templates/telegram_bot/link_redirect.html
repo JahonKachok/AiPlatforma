@@ -5,27 +5,26 @@
 {% block content %}
 <div class="card mx-auto max-w-md p-6 text-center">
   <p class="mb-1 text-4xl">✈️</p>
-  <h2 class="mb-2 text-lg font-semibold">Telegram ochilmoqda…</h2>
+  <h2 class="mb-2 text-lg font-semibold">{% trans "Opening Telegram…" %}</h2>
   <p class="mb-6 text-sm text-gray-500 dark:text-gray-400">
-    Telegram ilovasi ochilganda botda <b>Start</b> tugmasini bosing —
-    hisobingiz avtomatik ulanadi.
+    {% blocktrans trimmed %}When the Telegram app opens, press <b>Start</b> in the bot — your account will be linked automatically.{% endblocktrans %}
   </p>
   <div class="mb-5 flex justify-center">
     <img src="data:image/png;base64,{{ qr_base64 }}" alt="QR"
          class="h-44 w-44 rounded-lg border border-gray-200 bg-white p-2 dark:border-gray-600">
   </div>
   <p class="mb-4 text-xs text-gray-500 dark:text-gray-400">
-    Telefondan foydalanayotgan bo'lsangiz — QR-kodni Telegram yoki kamera bilan skanerlang.
+    {% trans "If you're on a phone, scan the QR code with Telegram or your camera." %}
   </p>
   <div class="space-y-3">
     <a href="{{ app_link }}" class="btn btn-primary btn-md w-full">
-      Telegram ilovasini ochish
+      {% trans "Open the Telegram app" %}
     </a>
     <a href="{{ web_link }}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm w-full">
-      Ilova ochilmasa: t.me orqali ochish
+      {% trans "App didn't open? Open via t.me" %}
     </a>
     <a href="{% url 'accounts:profile' %}" class="btn btn-ghost btn-sm w-full">
-      ← Profilga qaytish
+      ← {% trans "Back to profile" %}
     </a>
   </div>
 </div>

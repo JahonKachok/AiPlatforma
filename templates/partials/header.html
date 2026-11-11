@@ -20,18 +20,7 @@
         <div data-bell-content></div>
       </div>
     </div>
-    <form method="post" action="{% url 'set_language' %}" class="flex items-center">
-      {% csrf_token %}
-      <input type="hidden" name="next" value="{{ request.path }}">
-      <select name="language" onchange="this.form.submit()"
-              class="rounded-lg border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-700">
-        {% get_current_language as CURRENT_LANGUAGE %}
-        {% get_available_languages as LANGUAGES %}
-        {% for code, name in LANGUAGES %}
-          <option value="{{ code }}" {% if code == CURRENT_LANGUAGE %}selected{% endif %}>{{ name }}</option>
-        {% endfor %}
-      </select>
-    </form>
+    {% include "partials/language_switcher.html" %}
 
     <form method="post" action="{% url 'core:set_dark_mode' %}">
       {% csrf_token %}

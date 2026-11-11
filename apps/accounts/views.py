@@ -5,7 +5,7 @@ import pyotp
 import qrcode
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordChangeView
 from django.core.cache import cache
@@ -371,10 +371,17 @@ def user_create(request):
         if form.is_valid():
             user = form.save()
             temp_password = user.temp_password
-            messages.success(
-                request,
-                _("User created. Temporary password: %(password)s") % {"password": temp_password},
-            )
+            if temp_password:
+                messages.success(
+                    request,
+                    _("User created. Temporary password: %(password)s") % {"password": temp_password},
+                )
+            else:
+                messages.success(
+                    request,
+                    _("User created. Login: %(email)s — they can sign in with the password you set.")
+                    % {"email": user.email},
+                )
             return redirect("accounts:user_list")
     else:
         form = UserCreateForm(requester=request.user)
@@ -392,7 +399,13 @@ def user_update(request, pk):
         form = UserAdminEditForm(request.POST, instance=user, requester=request.user)
         if form.is_valid():
             form.save()
-            messages.success(request, _("User updated."))
+            if form.password_changed:
+                if user.pk == request.user.pk:
+                    # O'z parolini almashtirgan admin tizimdan chiqib ketmasin.
+                    update_session_auth_hash(request, user)
+                messages.success(request, _("User updated. The new password is now in effect."))
+            else:
+                messages.success(request, _("User updated."))
             return redirect("accounts:user_list")
     else:
         form = UserAdminEditForm(instance=user, requester=request.user)

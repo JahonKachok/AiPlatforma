@@ -181,6 +181,7 @@ def project_list(request):
         "stages": Project.Stage.choices,
         "can_create": can_create_project(request.user),
         "kpi_cards": kpi_cards,
+        "can_view_budget": can_manage_finance(request.user),
     })
 
 
@@ -189,7 +190,7 @@ def project_create(request):
     if not can_create_project(request.user):
         raise PermissionDenied
     if request.method == "POST":
-        form = ProjectForm(request.POST, request.FILES)
+        form = ProjectForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
             project = form.save(commit=False)
             project.created_by = request.user
@@ -206,7 +207,7 @@ def project_create(request):
             messages.success(request, _("Project created."))
             return redirect("projects:wizard_subobjects", pk=project.pk)
     else:
-        form = ProjectForm()
+        form = ProjectForm(user=request.user)
     return render(request, "projects/project_form.html", {
         "form": form, "is_create": True, "region_centers_json": REGION_CENTERS_JSON,
     })
@@ -352,7 +353,7 @@ def project_update(request, pk):
 
     before = {f: getattr(project, f) for f in TRACKED_FIELDS}
     if request.method == "POST":
-        form = ProjectForm(request.POST, request.FILES, instance=project)
+        form = ProjectForm(request.POST, request.FILES, instance=project, user=request.user)
         if form.is_valid():
             project = form.save()
             after = {f: getattr(project, f) for f in TRACKED_FIELDS}
@@ -362,7 +363,7 @@ def project_update(request, pk):
             messages.success(request, _("Project updated."))
             return redirect("projects:wizard_subobjects", pk=project.pk)
     else:
-        form = ProjectForm(instance=project)
+        form = ProjectForm(instance=project, user=request.user)
     return render(request, "projects/project_form.html", {
         "form": form, "project": project, "is_create": False, "region_centers_json": REGION_CENTERS_JSON,
     })

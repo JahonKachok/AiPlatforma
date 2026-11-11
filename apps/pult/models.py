@@ -228,15 +228,21 @@ class DisciplineConfig(models.Model):
 
 
 class CipherRule(models.Model):
+    """Shifr: ИСПОЛНИТЕЛЬ_ЗАКАЗЧИК_ДОГОВОР_ОБЪЕКТ_ДИСЦИПЛИНА_№, masalan
+    GTP_MIM_D125_OF_AR_001. Obyekt kodi obyektning o'zidan, distsiplina —
+    loyiha tarkibidan (DisciplineConfig.latin_code) olinadi."""
+
     project = models.OneToOneField("projects.Project", on_delete=models.CASCADE, related_name="pult_cipher")
-    prefix = models.CharField(max_length=20)
-    stage = models.CharField(max_length=10)
-    code = models.CharField(max_length=20)
-    digits = models.PositiveSmallIntegerField(default=5)
+    prefix = models.CharField(max_length=20, verbose_name=_("Contractor prefix"))
+    client = models.CharField(max_length=20, blank=True, default="", verbose_name=_("Customer code"))
+    code = models.CharField(max_length=20, verbose_name=_("Contract number / project code"))
+    # Eski formatdan (FGCBAS_...) qolgan; yangi shifrga kirmaydi.
+    stage = models.CharField(max_length=10, blank=True, default="")
+    digits = models.PositiveSmallIntegerField(default=3)
     common = models.CharField(max_length=10, default="ZZ01")
 
     def __str__(self):
-        return f"{self.prefix}{self.stage}_{self.code}"
+        return "_".join(x for x in (self.prefix, self.client, self.code) if x)
 
 
 class StageConfig(models.Model):

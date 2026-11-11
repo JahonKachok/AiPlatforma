@@ -113,10 +113,12 @@
                 <span class="dsh-project-main">
                   <span class="dsh-project-title">{{ project.name }}</span>
                   <span class="dsh-project-sub">{{ project.get_stage_display }}{% if project.client_name %} · {{ project.client_name }}{% endif %}</span>
+                  {% if can_view_budget %}
                   <span class="dsh-project-meta">
                     <span class="dsh-bar"><span data-dsh-bar="{{ project.paid_percentage }}"></span></span>
                     <span class="dsh-budget">{{ project.paid_amount|millions }} / {{ project.budget|millions }} {% trans "mln" %}</span>
                   </span>
+                  {% endif %}
                 </span>
 
                 <span class="dsh-project-side">

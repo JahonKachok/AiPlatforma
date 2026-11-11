@@ -188,7 +188,7 @@ def stages_json():
 
 def ciphers_json(user):
     return [
-        {"project": c.project.name, "prefix": c.prefix, "stage": c.stage, "code": c.code, "digits": c.digits, "common": c.common}
+        {"project": c.project.name, "prefix": c.prefix, "client": c.client, "code": c.code, "digits": c.digits, "common": c.common}
         for c in CipherRule.objects.filter(project__in=_projects_for(user)).select_related("project")
     ]
 
@@ -225,15 +225,17 @@ def add_discipline(user, data):
 @transaction.atomic
 def save_cipher(user, data):
     project = _manager_project(user, data.get("project"))
-    prefix, stage, code = (str(data.get(k) or "").strip().upper() for k in ("prefix", "stage", "code"))
-    if not prefix or not stage or not code:
-        raise PultError("Нужны префикс, стадия и код проекта.")
+    prefix, client, code = (
+        "".join(str(data.get(k) or "").split()).upper() for k in ("prefix", "client", "code")
+    )
+    if not prefix or not client or not code:
+        raise PultError("Нужны префикс исполнителя, код заказчика и номер договора.")
     try:
-        digits = max(2, min(8, int(data.get("digits") or 5)))
+        digits = max(2, min(8, int(data.get("digits") or 3)))
     except (TypeError, ValueError):
-        digits = 5
+        digits = 3
     CipherRule.objects.update_or_create(project=project, defaults={
-        "prefix": prefix[:20], "stage": stage[:10], "code": code[:20], "digits": digits,
+        "prefix": prefix[:20], "client": client[:20], "code": code[:20], "stage": "", "digits": digits,
         "common": (str(data.get("common") or "").strip().upper() or "ZZ01")[:10],
     })
 

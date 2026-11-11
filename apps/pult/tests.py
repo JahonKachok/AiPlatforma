@@ -397,3 +397,31 @@ class ReminderTests(PultTestBase):
         digest_pending_decisions()
         self.assertTrue(Notification.objects.filter(user=self.gip, title=DIGEST_TITLE).exists())
         self.assertFalse(Notification.objects.filter(user=self.worker, title=DIGEST_TITLE).exists())
+
+class CipherRuleTests(PultTestBase):
+    """Shifr: ИСПОЛНИТЕЛЬ_ЗАКАЗЧИК_ДОГОВОР_ОБЪЕКТ_ДИСЦИПЛИНА_№ (GTP_MIM_D125_OF_AR_001)."""
+
+    def save(self, user, **kw):
+        body = {"project": "P1", "prefix": "GTP", "client": "MIM", "code": "D125", "digits": 3, **kw}
+        return self.post(user, reverse("pult:api_cipher"), body)
+
+    def test_gip_saves_six_part_rule(self):
+        response = self.save(self.gip, prefix=" gtp ", client="m im", digits=4)
+        self.assertEqual(response.status_code, 200, response.content)
+        rule = self.project.pult_cipher
+        self.assertEqual((rule.prefix, rule.client, rule.code, rule.digits, rule.stage), ("GTP", "MIM", "D125", 4, ""))
+        self.assertEqual(str(rule), "GTP_MIM_D125")
+
+    def test_customer_code_is_required(self):
+        response = self.save(self.gip, client="")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("заказчика", response.json()["error"])
+
+    def test_rule_reaches_the_browser_with_customer_code(self):
+        self.save(self.gip)
+        self.client.force_login(self.gip)
+        ciphers = self.client.get(reverse("pult:api_data")).json()["ciphers"]
+        self.assertEqual(ciphers, [{"project": "P1", "prefix": "GTP", "client": "MIM", "code": "D125", "digits": 3, "common": "ZZ01"}])
+
+    def test_designer_cannot_change_rule(self):
+        self.assertEqual(self.save(self.worker).status_code, 403)

@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let comment = "";
     if (status === "revision") {
-      comment = window.prompt("Izoh (majburiy):", "") || "";
+      comment = window.prompt((column.closest("[data-kanban-board]") || {dataset: {}}).dataset.msgComment || "Comment (required):", "") || "";
       if (!comment.trim()) { placeholder.remove(); return; }
     }
 

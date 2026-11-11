@@ -16,12 +16,17 @@ def _make_workbook(headers, rows):
     return wb
 
 
-def build_projects_workbook(projects):
-    headers = ["Name", "Client", "Stage", "Status", "Budget", "Paid", "Deadline"]
-    rows = [
-        [p.name, p.client_name, p.get_stage_display(), p.get_status_display(), p.budget, p.paid_amount, p.deadline]
-        for p in projects
-    ]
+def build_projects_workbook(projects, with_budget=True):
+    # Byudjet ustunlari faqat moliya rollariga (reports.views.report_export).
+    if with_budget:
+        headers = ["Name", "Client", "Stage", "Status", "Budget", "Paid", "Deadline"]
+        rows = [
+            [p.name, p.client_name, p.get_stage_display(), p.get_status_display(), p.budget, p.paid_amount, p.deadline]
+            for p in projects
+        ]
+    else:
+        headers = ["Name", "Client", "Stage", "Status", "Deadline"]
+        rows = [[p.name, p.client_name, p.get_stage_display(), p.get_status_display(), p.deadline] for p in projects]
     return _make_workbook(headers, rows)
 
 

@@ -369,3 +369,16 @@ textarea.ctl { min-height: 4.5rem; resize: vertical; }
   #kb-multi { display: none; }
 }
 .kv .tot { font-weight: 600; border-top: 1px solid var(--line); padding-top: 4px; }
+
+/* quick executor picker (Состав проекта) */
+.op-list { margin-top: var(--s2); max-height: 20rem; }
+.op-item { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); width: 100%; text-align: left; padding: 6px 8px; border: 1px solid transparent; border-radius: 6px; background: none; }
+.op-item:hover, .op-item:focus-visible { background: var(--panel-2); }
+.op-item.is-cur { border-color: var(--ink); background: var(--ink-soft); }
+.op-item .note { font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+.op-item { display: grid; grid-template-columns: 18px 1fr auto; align-items: center; gap: var(--s3); }
+.op-check { width: 16px; height: 16px; border: 1px solid var(--line, #888); border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; line-height: 1; }
+.op-item.is-cur .op-check { background: var(--ink); border-color: var(--ink); color: #fff; }
+.op-main { margin-left: 8px; font-size: 10px; font-weight: 600; vertical-align: middle; }
+.op-sum { margin: 8px 0 4px; }

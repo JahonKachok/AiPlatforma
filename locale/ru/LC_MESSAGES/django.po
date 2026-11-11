@@ -4587,3 +4587,99 @@ msgstr "KPI"
 #: .\apps\pult\nav.py
 msgid "Operational summary"
 msgstr "Оперативная сводка"
+
+msgid "Password confirmation"
+msgstr "Подтверждение пароля"
+
+msgid "New password"
+msgstr "Новый пароль"
+
+msgid "Enter the same password again to avoid mistakes."
+msgstr "Введите тот же пароль ещё раз, чтобы не ошибиться."
+
+msgid "A user with this email already exists."
+msgstr "Пользователь с таким email уже существует."
+
+msgid "The two passwords do not match."
+msgstr "Пароли не совпадают."
+
+msgid "The password the employee will sign in with. Leave blank to generate a random temporary password."
+msgstr "Пароль, с которым сотрудник будет входить. Оставьте пустым — будет создан случайный временный пароль."
+
+msgid "Set a new password for the employee. Leave blank to keep the current password."
+msgstr "Задайте сотруднику новый пароль. Оставьте пустым, чтобы сохранить текущий."
+
+msgid "The email address the employee signs in with (their login)."
+msgstr "Email, с которым сотрудник входит в систему (логин)."
+
+msgid "User created. Login: %(email)s — they can sign in with the password you set."
+msgstr "Пользователь создан. Логин: %(email)s — вход по заданному вами паролю."
+
+msgid "User updated. The new password is now in effect."
+msgstr "Пользователь обновлён. Новый пароль уже действует."
+
+msgid "If you leave the password blank, a random temporary password will be generated and shown once after creation."
+msgstr "Если оставить пароль пустым, будет создан случайный временный пароль — он покажется один раз после создания."
+
+msgid "Language"
+msgstr "Язык"
+
+msgid "Upload failed."
+msgstr "Не удалось загрузить файл."
+
+msgid "Network error — please try again."
+msgstr "Ошибка сети — попробуйте ещё раз."
+
+msgid "Comment (required):"
+msgstr "Комментарий (обязательно):"
+
+msgid "Opening Telegram…"
+msgstr "Открываем Telegram…"
+
+msgid "If you're on a phone, scan the QR code with Telegram or your camera."
+msgstr "Если вы с телефона — отсканируйте QR-код в Telegram или камерой."
+
+msgid "Open the Telegram app"
+msgstr "Открыть приложение Telegram"
+
+msgid "App didn't open? Open via t.me"
+msgstr "Приложение не открылось? Откройте через t.me"
+
+msgid "Back to profile"
+msgstr "Вернуться в профиль"
+
+msgid "When the Telegram app opens, press <b>Start</b> in the bot — your account will be linked automatically."
+msgstr "Когда откроется Telegram, нажмите в боте <b>Start</b> — аккаунт привяжется автоматически."
+
+msgid "Number"
+msgstr "Номер"
+
+msgid "Term, days"
+msgstr "Срок, дней"
+
+msgid "Estimated hours"
+msgstr "Оценка часов"
+
+msgid "Reworks"
+msgstr "Доработок"
+
+msgid "Missed reports"
+msgstr "Пропущено отчётов"
+
+msgid "Task workflow"
+msgstr "Ход задачи"
+
+msgid "Task workflows"
+msgstr "Ход задач"
+
+msgid "Task template"
+msgstr "Шаблон задачи"
+
+msgid "Task templates"
+msgstr "Шаблоны задач"
+
+msgid "Needs estimate stage"
+msgstr "Нужен этап сметы"
+
+msgid "Customer code"
+msgstr "Код заказчика"

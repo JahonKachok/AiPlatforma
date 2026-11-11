@@ -33,6 +33,7 @@
       <p class="ap-stat-value">{{ docs_approved }} <span class="text-sm font-normal text-gray-400">/ {{ docs_total }}</span></p>
     </div>
   </div>
+  {% if can_manage_finance %}
   <div class="card ap-stat">
     <span class="ap-stat-icon">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -42,6 +43,7 @@
       <p class="ap-stat-value">{{ total_paid|millions }} <span class="text-sm font-normal text-gray-400">{% trans "mln" %}</span></p>
     </div>
   </div>
+  {% endif %}
   <div class="card ap-stat">
     <span class="ap-stat-icon is-amber">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>

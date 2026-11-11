@@ -97,7 +97,7 @@
   </div>
 
 {% else %}
-  <div data-kanban-board class="kb-board">
+  <div data-kanban-board class="kb-board" data-msg-comment="{% trans 'Comment (required):' %}">
     {% for value, label, column_tasks in columns %}
       <div data-kanban-column="{{ value }}" class="kb-column">
         <h3 class="kb-col-header">

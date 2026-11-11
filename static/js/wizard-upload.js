@@ -64,12 +64,12 @@
       if (xhr.status >= 200 && xhr.status < 300 && data.documents) {
         data.documents.forEach(function (doc) { addFileRow(card, doc.id, doc.name); });
       } else {
-        showError(card, data.error || "Yuklashda xatolik yuz berdi.");
+        showError(card, data.error || grid.dataset.msgUploadError || "Upload failed.");
       }
     });
 
     xhr.addEventListener("error", function () {
-      showError(card, "Tarmoq xatoligi — qayta urinib ko'ring.");
+      showError(card, grid.dataset.msgNetworkError || "Network error — please try again.");
     });
 
     xhr.send(formData);

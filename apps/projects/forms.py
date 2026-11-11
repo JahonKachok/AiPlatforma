@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import User
 from apps.core.forms import StyledFormMixin
+from apps.finance.permissions import can_manage_finance
 
 from .models import Project, ProjectMember, Section, SectionStatus, SubObject, SubObjectDiscipline
 
@@ -65,8 +66,16 @@ class ProjectForm(StyledFormMixin, forms.ModelForm):
     # katagi o'rniga o'z drag & drop bloklarimiz shu maydonni to'ldiradi.
     remove_image = forms.BooleanField(required=False, widget=forms.HiddenInput)
 
-    def __init__(self, *args, **kwargs):
+    # Byudjet, to'langan summa va valyuta — faqat moliya rollariga (rahbar,
+    # menejer, moliyachi). Boshqalarning formasida bu maydonlar yo'q, shuning
+    # uchun ular saqlaganda ham mavjud qiymatlar o'zgarmaydi.
+    BUDGET_FIELDS = ("budget", "paid_amount", "currency")
+
+    def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
+        if user is not None and not can_manage_finance(user):
+            for name in self.BUDGET_FIELDS:
+                self.fields.pop(name, None)
         gip_field = self.fields.pop("gip")
         self.fields["gip"] = gip_field
         # Maydon o'z bloki bilan alohida chiziladi (projects/_image_field.html),

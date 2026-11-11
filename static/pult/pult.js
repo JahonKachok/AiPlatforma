@@ -17,7 +17,10 @@
   const WAIT = ['Новая', 'На согласовании', 'На проверке', 'Есть вопрос', 'Согласование'];
   const CLOSED = ['Принята', 'Отменена'];
   const STATUSES = ['Черновик', 'Новая', 'На согласовании', 'В работе', 'Есть вопрос', 'Согласование', 'На проверке', 'На доработке', 'Принята', 'Отменена'];
-  const MONTHS = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
+  // Til: pult-i18n.js (ekrandagi matn shu yerda emas, chiqish paytida tarjima qilinadi).
+  const I18N = window.PULT_I18N || {};
+  const LOCALE = I18N.locale || 'ru-RU';
+  const MONTHS = I18N.months || ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
   const DAY = 86400000;
   const COLORS = { ok: 'var(--ink)', lag: 'var(--warn)', alert: 'var(--bad)', review: 'var(--ok)', done: 'var(--muted-bar)' };
 
@@ -39,7 +42,7 @@
   const fDs = (d) => pad(d.getDate()) + '.' + pad(d.getMonth() + 1);
   const today = () => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); };
   const ruDate = (d) => pad(d.getDate()) + '.' + pad(d.getMonth() + 1) + '.' + d.getFullYear();
-  const plural = (n, a, b, c) => { const x = Math.abs(n) % 100, y = x % 10; if (x > 10 && x < 20) return c; if (y > 1 && y < 5) return b; if (y === 1) return a; return c; };
+  const plural = (n, a, b, c) => { if (I18N.plural) return I18N.plural(n, a, b, c); const x = Math.abs(n) % 100, y = x % 10; if (x > 10 && x < 20) return c; if (y > 1 && y < 5) return b; if (y === 1) return a; return c; };
   const str = (v) => (v == null ? '' : String(v).trim());
   const toNum = (v) => {
     let t = str(v).replace(/[\s ]/g, '').replace(/[,.]$/, '');
@@ -221,7 +224,7 @@
     b.append(x);
   }
   function renderTop() {
-    $('#stamp').textContent = S.load === 'loading' ? 'загрузка…' : S.loadedAt ? 'обновлено ' + new Date(S.loadedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '';
+    $('#stamp').textContent = S.load === 'loading' ? 'загрузка…' : S.loadedAt ? 'обновлено ' + new Date(S.loadedAt).toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' }) : '';
     // filters
     const fill = (sel, opts, all, val) => { if (document.activeElement === sel) return; sel.replaceChildren(new Option(all, ''), ...opts); sel.value = val; if (sel.value !== val) { sel.value = ''; } };
     const projs = (S.d.projects || []).filter((p) => p.status !== 'Закрыт').map((p) => p.name);
@@ -1080,6 +1083,7 @@
     const H = axisH + rows.length * rowH + 6;
     const L = d3.create('svg').attr('width', labelW).attr('height', H).attr('viewBox', `0 0 ${labelW} ${H}`).attr('font-family', 'var(--f-ui)');
     const R = d3.create('svg').attr('width', tlW).attr('height', H).attr('viewBox', `0 0 ${tlW} ${H}`).attr('font-family', 'var(--f-ui)');
+    { const pat = R.append('defs').append('pattern').attr('id', 'pl-late').attr('width', 6).attr('height', 6).attr('patternUnits', 'userSpaceOnUse').attr('patternTransform', 'rotate(45)'); pat.append('rect').attr('width', 6).attr('height', 6).attr('fill', 'var(--bad-soft)'); pat.append('rect').attr('width', 2.5).attr('height', 6).attr('fill', 'var(--bad)').attr('fill-opacity', 0.55); }
     const idx = new Map(rows.map((r, i) => [r.id, i])); const yOf = (i) => axisH + i * rowH;
     // background: summary stripes, non-working days, row lines
     rows.forEach((r, i) => { if (r.summary) [L, R].forEach((s, k) => s.append('rect').attr('x', 0).attr('y', yOf(i)).attr('width', k ? tlW : labelW).attr('height', rowH).attr('fill', 'var(--panel-2)').attr('fill-opacity', k ? 0.55 : 1)); });
@@ -1162,7 +1166,7 @@
       if (hasBase) {
         const b0 = dn(r.bs), b1 = dn(r.bf);
         if (r.mile) { const c = x(b1) + pxDay / 2; g.append('path').attr('d', `M${c},${cy + 4}L${c + 4},${cy + 8}L${c},${cy + 12}L${c - 4},${cy + 8}Z`).attr('fill', 'var(--muted-bar)'); }
-        else g.append('rect').attr('x', x(b0)).attr('y', cy + 7).attr('width', Math.max(2, x(b1 + 1) - x(b0))).attr('height', 4).attr('rx', 1).attr('fill', 'var(--muted-bar)');
+        else g.append('rect').attr('x', x(b0)).attr('y', cy - 9).attr('width', Math.max(2, x(b1 + 1) - x(b0))).attr('height', 18).attr('rx', 4).attr('fill', 'var(--muted-bar)').attr('fill-opacity', 0.28).append('title').text(`План: ${fN(b0)} → ${fN(b1)}`);
       }
       if (r.mile) {
         const c = x(r.Fd) + pxDay / 2;
@@ -1179,6 +1183,12 @@
         g.append('rect').attr('x', x0).attr('y', cy - bh / 2).attr('width', w).attr('height', bh).attr('rx', 3).attr('fill', color).attr('fill-opacity', 0.22).attr('stroke', S.pl.crit && r.crit ? 'var(--bad)' : color).attr('stroke-width', S.pl.crit && r.crit ? 2 : 1).attr('stroke-opacity', S.pl.crit && r.crit ? 1 : 0.6);
         if (r.p > 0) g.append('rect').attr('x', x0).attr('y', cy - bh / 2).attr('width', Math.max(2, w * r.p)).attr('height', bh).attr('rx', 3).attr('fill', color);
         let xl = x1;
+        // plan vs fact: the part of the bar past the planned finish is the delay
+        if (hasBase && r.Fd > dn(r.bf)) {
+          const xb = Math.max(x0, x(dn(r.bf) + 1));
+          g.append('rect').attr('x', xb).attr('y', cy - bh / 2).attr('width', Math.max(2, x1 - xb)).attr('height', bh).attr('fill', 'url(#pl-late)').attr('stroke', 'var(--bad)').attr('stroke-width', 1);
+          if (isNum(r.varD) && r.varD > 0) { g.append('text').attr('x', x1 + 4).attr('y', cy + 4).attr('font-size', 10).attr('font-weight', 700).attr('fill', 'var(--bad)').text(`+${r.varD} дн.`); xl = x1 + 40; }
+        }
         if (S.pl.tails && r.tails) r.tails.forEach((tl) => { const a = x(tl.Sd), b = Math.max(x(tl.Fd + 1), a + 3); g.append('rect').attr('x', a).attr('y', cy - 4).attr('width', b - a).attr('height', 8).attr('rx', 2).attr('fill', STAGE_CLR[tl.st]).attr('fill-opacity', tl.done >= 0.999 ? 0.95 : 0.3 + 0.6 * tl.done).append('title').text(`${tl.st}: ${fN(tl.Sd)} → ${fN(tl.Fd)}`); if (b - a > 12) g.append('text').attr('x', (a + b) / 2).attr('y', cy + 3).attr('text-anchor', 'middle').attr('font-size', 8).attr('font-weight', 600).attr('fill', 'var(--fg)').attr('pointer-events', 'none').text(tl.st[0]); xl = b; });
         const label = [r.code || '', S.pl.owners ? r.owner || '' : ''].filter(Boolean).join(' · ');
         if (label) fit(g.append('text').attr('x', xl + 6).attr('y', cy + 4).attr('font-size', 11).attr('fill', 'var(--muted)').text(label), Math.max(30, tlW - xl - 12));
@@ -1301,7 +1311,7 @@
           const tl = el('div', 'pl-tasks'); tl.append(el('div', 'note', r.tasks.length ? 'Задачи по разделу:' : 'Задач по разделу пока нет.'));
           r.tasks.forEach((t) => { const b = el('button', 'linkbtn', `№${t.id} ${t.task || ''} · ${t.assignee || ''} · ${t.status || ''} · ${fPct(t.done)}`); b.type = 'button'; b.addEventListener('click', () => { close(); openTask(t.id); }); tl.append(b); });
           const add = el('button', 'btn sm', '+ задача по разделу'); add.type = 'button';
-          add.addEventListener('click', () => { close(); openTask(null, { project: proj, section: r.id, assignee: personBy(r.owner) ? r.owner : '', task: `${r.code ? r.code + ' — ' : ''}${r.name || ''}` }); });
+          add.addEventListener('click', () => { close(); openTask(null, { project: proj, section: r.id, assignee: personBy(mainOwner(r)) ? mainOwner(r) : '', task: `${r.code ? r.code + ' — ' : ''}${r.name || ''}` }); });
           tl.append(add); m.append(tl);
         }
       }
@@ -1667,6 +1677,10 @@
   const discList = () => (S.d.disc && S.d.disc.length ? S.d.disc : DISC_FALLBACK);
   const parentWbs = (w) => { w = str(w); return w.includes('.') ? w.slice(0, w.lastIndexOf('.')) : ''; };
   const ownerShort = (n) => { const s = str(n); if (!s) return ''; const p = s.split(/\s+/); return p.length > 1 ? p[0] + ' ' + p[1][0] + '.' : s; };
+  // a section may have several executors: «Иванов И., Петров П.»; the first one is responsible (task, pay, contract)
+  const ownersOf = (r) => str(r && r.owner).split(/\s*[,;]\s*/).filter(Boolean);
+  const mainOwner = (r) => ownersOf(r)[0] || '';
+  const ownersShort = (r) => { const o = ownersOf(r); return o.length ? ownerShort(o[0]) + (o.length > 1 ? ' +' + (o.length - 1) : '') : ''; };
   function compData(proj) {
     const rows = (S.d.plan || []).filter((r) => r.project === proj).sort((a, b) => wbsCmp(a.wbs, b.wbs) || a.id - b.id);
     const order = new Map(discList().map((d, i) => [d.code, i]));
@@ -1726,9 +1740,9 @@
           const s = secs[0]; const sch = S.d.sched?.byId.get(s.id);
           const ss = secState(s); const b = el('button', 'cp-chip ' + (s.inPlan === 'Нет' ? 'out' : 'in') + ' st-' + ss.col); b.type = 'button';
           b.title = `${s.doc ? s.doc + '\n' : ''}${s.code} — ${s.name || ''}${s.owner ? '\nИсполнитель: ' + s.owner + ' · ' + (payOf(s, S.d.people || []) === 'Оклад' ? 'оклад' : 'договор' + (isNum(s.price) ? ' ' + fMoney(s.price, curOf(s)) : ', нет цены')) : ''}${s.inPlan === 'Нет' ? '\nЕщё не в графике' : sch && sch.Sd != null ? `\nВ графике: ${fN(sch.Sd)} → ${fN(sch.Fd)}, ${fPct(sch.p)}` : ''}`;
-          b.textContent = S.pl.owners ? (ownerShort(s.owner) || '✓') : '✓';
+          b.textContent = S.pl.owners ? (ownersShort(s) || '✓') : '✓';
           if (secs.length > 1) b.append(el('sup', null, '×' + secs.length));
-          b.addEventListener('click', () => openPlan(s.id)); td.append(b);
+          b.addEventListener('click', () => openOwnerPicker(s)); td.append(b);
         } else {
           const b = el('button', 'cp-add'); b.type = 'button'; b.textContent = S.cp.busy.has(g.o.id + '|' + c.code) ? '…' : '+'; b.title = `Добавить ${c.code} в «${g.o.name}»`;
           b.addEventListener('click', () => addCell(g.o, c, b)); td.append(b);
@@ -1744,6 +1758,58 @@
     box.replaceChildren(tbl);
     renderCompList(C);
     $('#cp-other').textContent = other.length ? `Вне объектов: ${other.map((r) => r.name).join(', ')} — видны и меняются на вкладке «График проекта».` : '';
+  }
+
+  // quick executor choice from the composition matrix: one click on a section -> list of employees
+  function openOwnerPicker(s) {
+    if (!isMgr()) return openPlan(s.id);
+    if (!S.mcp) return toast('Сервер недоступен.');
+    const people = (S.d.people || []).filter((p) => str(p.name) && !/^(Заказчик|Партнёр)$/.test(p.role || ''));
+    const load = new Map();
+    (S.d.tasks || []).forEach((t) => { if (t.assignee && !CLOSED.includes(t.status)) load.set(t.assignee, (load.get(t.assignee) || 0) + 1); });
+    const chosen = ownersOf(s); // order matters: the first one is responsible
+    modal(`Исполнители · ${s.code ? s.code + ' — ' : ''}${s.name || ''}`, (m, close) => {
+      const q = input('op-q', 'search', '', { placeholder: 'Поиск по имени', autocomplete: 'off' });
+      const sum = el('p', 'note op-sum');
+      const list = el('div', 'tp-list op-list'); const err = el('span', 'err');
+      const save = el('button', 'btn primary', 'Сохранить'); save.type = 'button';
+      const btns = () => [...m.querySelectorAll('button')];
+      const store = async (names) => {
+        btns().forEach((b) => { b.disabled = true; }); err.textContent = '';
+        const val = names.join(', ');
+        try {
+          await savePlan((rows) => { const x = rows.find((r) => r.id === s.id); if (x) x.owner = val; return rows; });
+          toast(names.length ? `Исполнители: ${val}` : 'Исполнители сняты'); close(); refreshAll();
+        } catch (e) { err.textContent = e && e.userText ? e.userText : errText(e); btns().forEach((b) => { b.disabled = false; }); }
+      };
+      const toggle = (name) => { const i = chosen.indexOf(name); if (i >= 0) chosen.splice(i, 1); else chosen.push(name); draw(); };
+      const draw = () => {
+        sum.textContent = chosen.length ? `Выбрано: ${chosen.length}. Ответственный (на него задача и оплата): ${chosen[0]}` : 'Отметьте одного или нескольких исполнителей. Первый отмеченный — ответственный.';
+        const f = q.value.trim().toLowerCase(); list.replaceChildren();
+        const names = new Set(people.map((p) => p.name));
+        const extra = chosen.filter((n) => !names.has(n)).map((n) => ({ name: n, role: 'не из списка сотрудников' }));
+        [...people, ...extra].filter((p) => !f || str(p.name).toLowerCase().includes(f)).forEach((p) => {
+          const at = chosen.indexOf(p.name);
+          const b = el('button', 'op-item' + (at >= 0 ? ' is-cur' : '')); b.type = 'button';
+          b.setAttribute('aria-pressed', at >= 0 ? 'true' : 'false');
+          const n = load.get(p.name) || 0;
+          const mark = el('span', 'op-check', at >= 0 ? '✓' : '');
+          const nm = el('b', null, p.name); if (at === 0) nm.append(el('span', 'pill op-main', 'ответственный'));
+          b.append(mark, nm, el('span', 'note', [p.role || '', n ? `открытых задач: ${n}` : 'свободен'].filter(Boolean).join(' · ')));
+          b.addEventListener('click', () => toggle(p.name)); list.append(b);
+        });
+        if (!list.children.length) list.append(el('p', 'note', 'Никого не найдено.'));
+      };
+      q.addEventListener('input', draw); draw();
+      q.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); const b = list.querySelector('button'); if (b) b.click(); } });
+      m.append(q, sum, list);
+      const foot = el('div', 'modal-foot');
+      const full = el('button', 'btn ghost', 'Все поля раздела…'); full.type = 'button'; full.addEventListener('click', () => { close(); openPlan(s.id); });
+      foot.append(err, full);
+      if (s.owner) { const clr = el('button', 'btn ghost', 'Снять всех'); clr.type = 'button'; clr.addEventListener('click', () => store([])); foot.append(clr); }
+      save.addEventListener('click', () => store(chosen)); foot.append(save);
+      m.append(foot);
+    });
   }
 
   // objects/pod-objects and disciplines from the platform's project wizard; repeat runs add only new ones
@@ -1782,9 +1848,9 @@
       const form = el('div', 'form');
       const fName = obj ? input('ob-name', 'text', obj.name || '', { autocomplete: 'off' }) : el('textarea', 'ctl');
       if (!obj) { fName.id = 'ob-name'; fName.placeholder = 'Офис\nСтоловая\nКПП'; fName.rows = 3; }
-      const fCode = input('ob-code', 'text', obj?.code || '', { placeholder: obj ? 'например CS01' : 'по порядку: ' + nextObjCode(C.rows), autocomplete: 'off' }); fCode.classList.add('mono');
+      const fCode = input('ob-code', 'text', obj?.code || '', { placeholder: obj ? 'например OF' : 'по порядку: ' + nextObjCode(C.rows), autocomplete: 'off' }); fCode.classList.add('mono');
       const fClient = select('ob-client', [new Option('Да, показывать', 'Да'), new Option('Нет, только для нас', 'Нет')], obj?.client === 'Нет' ? 'Нет' : 'Да');
-      form.append(field(obj ? 'Наименование объекта' : 'Объекты — каждый с новой строки', fName, 'full'), field('Код объекта в шифре (2 буквы + 2 цифры)', fCode), field('Показывать заказчику', fClient));
+      form.append(field(obj ? 'Наименование объекта' : 'Объекты — каждый с новой строки', fName, 'full'), field('Код объекта в шифре (например OF — офис)', fCode), field('Показывать заказчику', fClient));
       const dl = el('datalist'); dl.id = 'ob-people'; (S.d.people || []).filter((p) => !/^(Заказчик|Партнёр)$/.test(p.role || '')).forEach((p) => dl.append(new Option(p.name)));
       // bulk executor
       const bulk = el('div', 'picker full'); const fBulk = input('ob-bulk', 'text', '', { list: 'ob-people', autocomplete: 'off', placeholder: 'один исполнитель на все отмеченные' });
@@ -1907,7 +1973,7 @@
       const list = el('div', 'tp-list full'); const boxes = new Map();
       groups.forEach((g) => {
         const l = el('label', 'tp-item'); const c = el('input'); c.type = 'checkbox'; c.checked = true; c.id = 'tr-o-' + g.o.id; boxes.set(g.o.id, c);
-        l.append(c, el('b', null, g.o.name || '—'), el('span', 'note', g.pend.map((k) => k.code + (k.owner && S.pl.owners ? ' (' + ownerShort(k.owner) + ')' : '')).join(', ')));
+        l.append(c, el('b', null, g.o.name || '—'), el('span', 'note', g.pend.map((k) => k.code + (k.owner && S.pl.owners ? ' (' + ownersOf(k).map(ownerShort).join(', ') + ')' : '')).join(', ')));
         list.append(l);
       });
       form.append(el('p', 'note full', 'Что переносим (порядок объектов — как в составе):'), list,
@@ -2041,17 +2107,17 @@
     finally { btn.disabled = false; btn.textContent = t0; }
   }
 
-  // ---------- CIPHERS: ПРЕФИКС+СТАДИЯ_ПРОЕКТ_ОБЪЕКТ_ДИСЦИПЛИНА_ТИП_00001 (как в MDR: FGCBAS_OXS01_CS01_EL_DWG_00001)
+  // ---------- CIPHERS: ИСПОЛНИТЕЛЬ_ЗАКАЗЧИК_ДОГОВОР_ОБЪЕКТ_ДИСЦИПЛИНА_001 (например GTP_MIM_D125_OF_AR_001)
   const areaOf = (code, rule) => { const c = str(code).toUpperCase(); if (!c) return str(rule.common || 'ZZ01').toUpperCase(); return /^\d+$/.test(c) ? 'BL' + c.padStart(2, '0') : c; };
   function cipherBase(r, rows, rule, lib) {
     if (r.kind === 'Объект' || r.kind === 'Этап' || r.kind === 'Веха' || !str(r.code)) return null;
     const d = lib.get(str(r.code)); const lat = str(d?.lat).toUpperCase(); if (!lat) return null;
     const obj = rows.find((x) => x.project === r.project && x.kind === 'Объект' && str(x.wbs) && str(r.wbs).startsWith(str(x.wbs) + '.'));
     const area = obj ? areaOf(obj.code, rule) : str(rule.common || 'ZZ01').toUpperCase();
-    return [str(rule.prefix) + str(rule.stage), str(rule.code), area, lat, str(d.dtype) || 'DWG'].map((x) => x.toUpperCase().replace(/\s+/g, '')).join('_');
+    return [rule.prefix, rule.client, rule.code, area, lat].map((x) => str(x).toUpperCase().replace(/\s+/g, '')).filter(Boolean).join('_');
   }
   function assignCiphers(rows, proj, all, rule) {
-    const lib = new Map(discList().map((d) => [d.code, d])); const digits = Math.max(2, Math.min(8, rule.digits || 5));
+    const lib = new Map(discList().map((d) => [d.code, d])); const digits = Math.max(2, Math.min(8, rule.digits || 3));
     const prs = rows.filter((r) => r.project === proj).sort((a, b) => wbsCmp(a.wbs, b.wbs) || a.id - b.id);
     if (all) prs.forEach((r) => { if (cipherBase(r, rows, rule, lib)) r.doc = ''; });
     const max = new Map();
@@ -2062,8 +2128,8 @@
   function renderCompList(C) {
     const proj = S.pl.project; const rule = S.d.ciph?.get(proj); const lib = new Map(discList().map((d) => [d.code, d]));
     const rb = $('#cp-rule'); rb.replaceChildren();
-    if (!rule) { const b = el('div', 'banner'); b.append(el('span', null, `Для проекта «${proj}» ещё не заданы правила шифра (префикс, стадия, код проекта). Пока их нет, разделы остаются без шифра.`)); const x = el('button', 'btn sm', 'Задать правила'); x.type = 'button'; x.addEventListener('click', () => openCipher(proj)); b.append(x); rb.append(b); }
-    else { const p = el('p', 'note'); p.append(document.createTextNode('Шифр: '), el('span', 'mono', `${str(rule.prefix)}${str(rule.stage)}_${str(rule.code)}_объект_дисциплина_тип_${'0'.repeat(Math.max(1, (rule.digits || 5) - 1))}1`), document.createTextNode('. Номер идёт по порядку внутри одинакового начала шифра.')); rb.append(p); }
+    if (!rule || !str(rule.client)) { const b = el('div', 'banner'); b.append(el('span', null, rule ? `Правило шифра проекта «${proj}» в старом формате: укажите код заказчика, чтобы шифр был ИСПОЛНИТЕЛЬ_ЗАКАЗЧИК_ДОГОВОР_ОБЪЕКТ_ДИСЦИПЛИНА_001.` : `Для проекта «${proj}» ещё не заданы правила шифра (исполнитель, заказчик, договор). Пока их нет, разделы остаются без шифра.`)); const x = el('button', 'btn sm', 'Задать правила'); x.type = 'button'; x.addEventListener('click', () => openCipher(proj)); b.append(x); rb.append(b); }
+    else { const p = el('p', 'note'); p.append(document.createTextNode('Шифр: '), el('span', 'mono', `${str(rule.prefix)}_${str(rule.client)}_${str(rule.code)}_объект_дисциплина_${'0'.repeat(Math.max(1, (rule.digits || 3) - 1))}1`), document.createTextNode('. Номер идёт по порядку внутри одинакового начала шифра.')); rb.append(p); }
     const t = $('#cp-list'); const own = S.pl.owners; const people = S.d.people || [];
     const hd = el('thead'); const hr = el('tr'); ['№', 'Обозначение', 'Наименование', 'Объект', ...(own ? ['Исполнитель'] : []), 'Оплата', 'Стоимость', 'Договор', 'Этап', 'В графике'].forEach((h) => hr.append(el('th', null, h))); hd.append(hr);
     const conById = new Map((S.d.contracts || []).map((c) => [c.id, c])); const taskById = new Map((S.d.tasks || []).map((x) => [x.id, x]));
@@ -2104,28 +2170,28 @@
     const cur = S.d.ciph?.get(proj) || {};
     modal(`Правила шифра · ${proj}`, (m, close) => {
       const form = el('div', 'form');
-      const fPre = input('cf-pre', 'text', cur.prefix ?? 'FGC', { autocomplete: 'off' });
-      const fStage = input('cf-stage', 'text', cur.stage ?? 'BAS', { list: 'cf-stages', autocomplete: 'off' });
-      const dl = el('datalist'); dl.id = 'cf-stages'; ['BAS', 'DET'].forEach((x) => dl.append(new Option(x)));
-      const fCode = input('cf-code', 'text', cur.code ?? '', { placeholder: 'например OXS01', autocomplete: 'off' });
-      const fDig = input('cf-dig', 'number', cur.digits ?? 5, { min: 2, max: 8, step: 1 });
+      const up = (x) => x.value.replace(/\s+/g, '').toUpperCase();
+      const fPre = input('cf-pre', 'text', cur.prefix ?? 'GTP', { autocomplete: 'off', placeholder: 'GTP' });
+      const fCli = input('cf-cli', 'text', cur.client ?? '', { placeholder: 'например MIM', autocomplete: 'off' });
+      const fCode = input('cf-code', 'text', cur.code ?? '', { placeholder: 'номер договора / код проекта', autocomplete: 'off' });
+      const fDig = select('cf-dig', [new Option('3 цифры (001)', '3'), new Option('4 цифры (0001)', '4')], String(cur.digits === 4 ? 4 : 3));
       const fCom = input('cf-com', 'text', cur.common ?? 'ZZ01', { autocomplete: 'off' });
-      [fPre, fStage, fCode, fCom].forEach((x) => x.classList.add('mono'));
+      [fPre, fCli, fCode, fCom].forEach((x) => x.classList.add('mono'));
       const prev = el('div', 'confirm full mono');
-      form.append(field('Префикс (организация / договор)', fPre), field('Стадия: BAS — основной, DET — рабочий', fStage), field('Код проекта', fCode), field('Цифр в порядковом номере', fDig), field('Код для разделов вне объектов', fCom), dl, prev,
-        el('p', 'note full', 'Код объекта берётся из объекта (CS01, AS01…; задаётся при клике на имя объекта в составе). Латинский код дисциплины и тип документа (DWG, DES, LST…) — в админке платформы («GASTEC Пульт → Discipline configs»). Шифр присваивается сам каждому новому разделу; уже выданные шифры не меняются, пока вы не нажмёте «Присвоить заново».'));
+      form.append(field('1. Исполнитель (префикс организации)', fPre), field('2. Заказчик', fCli), field('3. Номер договора / код проекта', fCode), field('6. Порядковый номер', fDig), field('Код объекта для разделов вне объектов', fCom), prev,
+        el('p', 'note full', '4. Код объекта (OF — офис…) берётся из объекта: задаётся при клике на имя объекта в составе. 5. Код дисциплины (AR, KJ…) берётся из раздела состава; латинский код настраивается в админке платформы («GASTEC Пульт → Discipline configs»). Шифр присваивается сам каждому новому разделу; уже выданные шифры не меняются, пока вы не нажмёте «Присвоить заново».'));
       m.append(form);
-      const rule = () => ({ prefix: fPre.value.trim().toUpperCase(), stage: fStage.value.trim().toUpperCase(), code: fCode.value.trim().toUpperCase(), digits: Math.max(2, Math.min(8, Number(fDig.value) || 5)), common: fCom.value.trim().toUpperCase() || 'ZZ01' });
+      const rule = () => ({ prefix: up(fPre), client: up(fCli), code: up(fCode), digits: Number(fDig.value) === 4 ? 4 : 3, common: up(fCom) || 'ZZ01' });
       const C = compData(proj); const lib = new Map(discList().map((d) => [d.code, d]));
       const sample = C.groups.flatMap((g) => g.kids).find((k) => cipherBase(k, C.rows, rule(), lib));
-      const showPrev = () => { const r = rule(); const b = sample ? cipherBase(sample, C.rows, r, lib) : [r.prefix + r.stage, r.code, 'CS01', 'AR', 'DWG'].join('_'); prev.textContent = 'Пример: ' + b + '_' + '1'.padStart(r.digits, '0') + (sample ? `  (${sample.code}, ${sample.name})` : ''); };
+      const showPrev = () => { const r = rule(); const b = sample ? cipherBase(sample, C.rows, r, lib) : [r.prefix, r.client, r.code, 'OF', 'AR'].filter(Boolean).join('_'); prev.textContent = 'Пример: ' + b + '_' + '1'.padStart(r.digits, '0') + (sample ? `  (${sample.code}, ${sample.name})` : ''); };
       form.addEventListener('input', showPrev); showPrev();
       const foot = el('div', 'modal-foot'); const err = el('span', 'err'); const cancel = el('button', 'btn ghost', 'Отмена'); cancel.type = 'button'; cancel.addEventListener('click', close);
       const regen = el('button', 'btn', 'Сохранить и присвоить заново всем'); regen.type = 'button';
       const save = el('button', 'btn primary', 'Сохранить'); save.type = 'button'; foot.append(err, cancel, regen, save); m.append(foot);
       let armed = false;
       const go = async (all) => {
-        const r = rule(); if (!r.prefix || !r.stage || !r.code) { err.textContent = 'Нужны префикс, стадия и код проекта.'; return; }
+        const r = rule(); if (!r.prefix || !r.client || !r.code) { err.textContent = 'Нужны исполнитель, заказчик и номер договора.'; return; }
         if (all && !armed) { armed = true; regen.textContent = 'Все шифры проекта будут выданы заново. Нажмите ещё раз'; return; }
         [save, regen].forEach((b) => { b.disabled = true; }); err.textContent = '';
         try {
@@ -2151,7 +2217,7 @@
   function personIn(people, name) { const n = str(name); if (!n) return null; return people.find((p) => p.name === n) || people.find((p) => str(p.first) === n) || null; }
   function payOf(s, people) {
     if (s.pay === 'Договор' || s.pay === 'Оклад') return s.pay;
-    const p = personIn(people, s.owner); if (!p) return 'Договор';
+    const p = personIn(people, mainOwner(s)); if (!p) return 'Договор';
     if (p.pay === 'Договор' || p.pay === 'Оклад') return p.pay;
     return /Штатный/i.test(p.role || '') ? 'Оклад' : 'Договор';
   }
@@ -2175,12 +2241,12 @@
       const usd = curOf(s) === 'USD';
       let amount = '';
       if (pay === 'Договор' && isNum(s.price) && s.price > 0) amount = usd ? (D.rate ? Math.round(s.price * D.rate) : '') : s.price;
-      return { assignee: str(s.owner), project: proj, task: `${s.code ? s.code + ' — ' : ''}${s.name || ''}${obj ? ' · ' + obj.name : ''}`, amount,
+      return { assignee: mainOwner(s), project: proj, task: `${s.code ? s.code + ' — ' : ''}${s.name || ''}${obj ? ' · ' + obj.name : ''}`, amount,
         start: '', days: sc && sc.Sd != null ? Math.max(1, sc.Fd - sc.Sd) : '', planned: sc && sc.Sd != null ? dIso(sc.Sd) : '', section: s.id, comment: SYNC_MARK + (s.doc ? ': ' + s.doc : '') };
     };
     // ---- tasks
     secs.forEach((s) => {
-      const owner = str(s.owner); const pay = owner ? payOf(s, D.people) : null;
+      const owner = mainOwner(s); const pay = owner ? payOf(s, D.people) : null;
       let t = isNum(s.task) ? tById.get(s.task) : null; if (t && t.section !== s.id) t = null;
       if (t && t.stage && t.stage !== 'Проектирование') t = null;
       if (!t) t = tasks.filter((x) => x.section === s.id && (!x.stage || x.stage === 'Проектирование') && x.status !== 'Отменена').sort((a, b) => b.id - a.id)[0] || null;
@@ -2212,7 +2278,7 @@
     if (noCons) { out.info.push('Договоры не проверялись: нет доступа к финансам. Их создаст руководитель или бухгалтер.'); out.secChanges = [...out.sec.entries()].filter(([id, v]) => { const s = rows.find((r) => r.id === id); return s && 'task' in v && str(v.task) !== str(s.task ?? ''); }); out.count = out.taskNew.length + out.taskUpd.length; return out; }
     const groups = new Map();
     secs.forEach((s) => {
-      const owner = str(s.owner); const linked = s.contract ? cons.find((c) => c.id === s.contract) : null;
+      const owner = mainOwner(s); const linked = s.contract ? cons.find((c) => c.id === s.contract) : null;
       if (!owner || payOf(s, D.people) !== 'Договор') { if (s.contract && (!linked || linked.src === AUTO_SRC)) setSec(s, 'contract', ''); return; }
       if (linked && linked.src !== AUTO_SRC) { setSec(s, 'contract', linked.id); return; }
       if (!(isNum(s.price) && s.price > 0)) { out.warn.push(`${label(s)} (${owner}): по договору, но не указана стоимость — в договор не включён`); if (s.contract) setSec(s, 'contract', ''); return; }
@@ -2910,7 +2976,7 @@
     if (v.unknown) { box.replaceChildren(noAccessBlock()); return; }
     if (!S.d.tasks || !S.d.progress) { if (status('tasks') === 'error') failIn(box, 'tasks'); else skel(box, 260); return; }
     const parts = []; const me = v.person;
-    const hello = el('div', 'mw-hello'); hello.append(el('h2', null, me || 'Моя работа'), el('p', 'note', [v.role, (v.projects || []).length ? v.projects.join(', ') : '', new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })].filter(Boolean).join(' · ')));
+    const hello = el('div', 'mw-hello'); hello.append(el('h2', null, me || 'Моя работа'), el('p', 'note', [v.role, (v.projects || []).length ? v.projects.join(', ') : '', new Date().toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' })].filter(Boolean).join(' · ')));
     parts.push(hello);
     if (isMgr()) parts.push(decisionsBlock());
     if (me) {

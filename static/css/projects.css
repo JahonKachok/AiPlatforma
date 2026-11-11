@@ -81,6 +81,47 @@
 }
 .prj-ico { width: 1rem; height: 1rem; flex: none; }
 
+/* ===================== Compact stats + actions row ===================== */
+
+.prj-topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.875rem;
+}
+.prj-topbar-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-left: auto; }
+.prj-stats {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+  border: 1px solid var(--prj-border);
+  border-radius: 0.625rem;
+  background: var(--prj-card);
+  overflow: hidden;
+}
+.prj-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.35rem 0.8rem;
+  border-left: 1px solid var(--prj-border);
+}
+.prj-stat:first-child { border-left: 0; }
+.prj-stat dt { font-size: 0.75rem; color: var(--prj-muted); white-space: nowrap; }
+.prj-stat dd {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--kpi-color, var(--prj-text));
+}
+.prj-stat[data-tone="blue"]   { --kpi-color: var(--prj-accent); }
+.prj-stat[data-tone="green"]  { --kpi-color: var(--prj-green); }
+.prj-stat[data-tone="purple"] { --kpi-color: var(--prj-purple); }
+.prj-stat[data-tone="amber"]  { --kpi-color: var(--prj-amber); }
+
 /* ============================ KPI cards ============================ */
 
 .prj-kpis {

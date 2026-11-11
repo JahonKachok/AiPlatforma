@@ -219,10 +219,78 @@ class UserManagementTests(TestCase):
     def test_admin_can_promote_to_admin(self):
         self.client.force_login(self.admin)
         self.client.post(reverse("accounts:user_update", args=[self.manager.pk]), {
-            "full_name": "Manager", "role": User.Role.ADMIN, "is_active": "on",
+            "email": "manager@example.com", "full_name": "Manager", "role": User.Role.ADMIN, "is_active": "on",
         })
         self.manager.refresh_from_db()
         self.assertEqual(self.manager.role, User.Role.ADMIN)
+
+    def _create(self, **extra):
+        data = {"email": "New.Worker@Example.com", "full_name": "New Worker", "role": User.Role.DESIGNER, **extra}
+        return self.client.post(reverse("accounts:user_create"), data)
+
+    def test_admin_creates_user_with_own_password(self):
+        self.client.force_login(self.admin)
+        self._create(password1="Strong-pass-2026", password2="Strong-pass-2026")
+        user = User.objects.get(email="new.worker@example.com")
+        self.assertTrue(user.check_password("Strong-pass-2026"))
+        self.client.logout()
+        self.assertTrue(self.client.login(username="new.worker@example.com", password="Strong-pass-2026"))
+
+    def test_blank_password_generates_temporary_one(self):
+        self.client.force_login(self.admin)
+        self._create()
+        user = User.objects.get(email="new.worker@example.com")
+        self.assertTrue(user.has_usable_password())
+
+    def test_create_rejects_mismatched_or_weak_password(self):
+        self.client.force_login(self.admin)
+        self._create(password1="Strong-pass-2026", password2="Other-pass-2026")
+        self._create(password1="12345678", password2="12345678")
+        self.assertFalse(User.objects.filter(email="new.worker@example.com").exists())
+
+    def test_create_rejects_duplicate_email_in_other_case(self):
+        self.client.force_login(self.admin)
+        response = self._create(email="MANAGER@example.com")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(User.objects.filter(email__iexact="manager@example.com").count(), 1)
+
+    def test_admin_changes_login_and_password(self):
+        self.client.force_login(self.admin)
+        self.client.post(reverse("accounts:user_update", args=[self.manager.pk]), {
+            "email": "Mgr@Example.com", "full_name": "Manager", "role": User.Role.MANAGER, "is_active": "on",
+            "password1": "Fresh-pass-2026", "password2": "Fresh-pass-2026",
+        })
+        self.manager.refresh_from_db()
+        self.assertEqual(self.manager.email, "mgr@example.com")
+        self.assertTrue(self.manager.check_password("Fresh-pass-2026"))
+
+    def test_admin_edit_without_password_keeps_it(self):
+        self.client.force_login(self.admin)
+        self.client.post(reverse("accounts:user_update", args=[self.manager.pk]), {
+            "email": "manager@example.com", "full_name": "Manager 2", "role": User.Role.MANAGER, "is_active": "on",
+        })
+        self.manager.refresh_from_db()
+        self.assertEqual(self.manager.full_name, "Manager 2")
+        self.assertTrue(self.manager.check_password("pw12345!"))
+
+    def test_admin_changing_own_password_stays_signed_in(self):
+        self.client.force_login(self.admin)
+        self.client.post(reverse("accounts:user_update", args=[self.admin.pk]), {
+            "email": "boss@example.com", "full_name": "Boss", "role": User.Role.ADMIN, "is_active": "on",
+            "password1": "Fresh-pass-2026", "password2": "Fresh-pass-2026",
+        })
+        response = self.client.get(reverse("accounts:user_list"))
+        self.assertEqual(response.status_code, 200)
+
+    def test_manager_cannot_change_login_or_password(self):
+        designer = User.objects.create_user(email="d@example.com", password="pw12345!", full_name="D")
+        self.client.post(reverse("accounts:user_update", args=[designer.pk]), {
+            "email": "hijack@example.com", "full_name": "D", "role": User.Role.DESIGNER, "is_active": "on",
+            "password1": "Fresh-pass-2026", "password2": "Fresh-pass-2026",
+        })
+        designer.refresh_from_db()
+        self.assertEqual(designer.email, "d@example.com")
+        self.assertTrue(designer.check_password("pw12345!"))
 
     def test_django_admin_login_goes_through_the_app_login(self):
         """/django-admin/ ning o'z login sahifasi 2FA va cheklovni chetlab o'tardi."""

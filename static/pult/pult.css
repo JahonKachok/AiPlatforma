@@ -382,3 +382,5 @@ textarea.ctl { min-height: 4.5rem; resize: vertical; }
 .op-item.is-cur .op-check { background: var(--ink); border-color: var(--ink); color: #fff; }
 .op-main { margin-left: 8px; font-size: 10px; font-weight: 600; vertical-align: middle; }
 .op-sum { margin: 8px 0 4px; }
+.op-group { position: sticky; top: 0; z-index: 1; padding: 8px 8px 4px; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); background: var(--panel); }
+.op-group.is-fit { color: var(--ink); }

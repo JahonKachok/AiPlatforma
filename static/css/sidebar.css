@@ -1,4 +1,4 @@
-/* BuildFlow — primary navigation.
+/* GASTEC — primary navigation.
    Tailwind here is precompiled, so the sidebar owns its layout in plain CSS.
    Collapse is driven by .ap-sb-collapsed on <html>; the mobile drawer rules in
    theme.css (max-width: 767.98px) still win below that breakpoint. */

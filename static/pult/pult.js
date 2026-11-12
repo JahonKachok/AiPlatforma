@@ -1680,6 +1680,7 @@
   // a section may have several executors: «Иванов И., Петров П.»; the first one is responsible (task, pay, contract)
   const ownersOf = (r) => str(r && r.owner).split(/\s*[,;]\s*/).filter(Boolean);
   const mainOwner = (r) => ownersOf(r)[0] || '';
+  const ROLE_ORDER = ['designer', 'gip_assistant', 'gip', 'reviewer', 'manager', 'finance', 'admin'];
   const ownersShort = (r) => { const o = ownersOf(r); return o.length ? ownerShort(o[0]) + (o.length > 1 ? ' +' + (o.length - 1) : '') : ''; };
   function compData(proj) {
     const rows = (S.d.plan || []).filter((r) => r.project === proj).sort((a, b) => wbsCmp(a.wbs, b.wbs) || a.id - b.id);
@@ -1788,17 +1789,32 @@
         const f = q.value.trim().toLowerCase(); list.replaceChildren();
         const names = new Set(people.map((p) => p.name));
         const extra = chosen.filter((n) => !names.has(n)).map((n) => ({ name: n, role: 'не из списка сотрудников' }));
+        // groups: first those whose disciplines match this section, then by role (designers first)
+        const code = str(s.code).toUpperCase();
+        const fits = (p) => (p.disc || []).some((c) => str(c).toUpperCase() === code);
+        const groups = new Map();
+        const put = (key, title, p) => { if (!groups.has(key)) groups.set(key, { title, list: [] }); groups.get(key).list.push(p); };
         [...people, ...extra].filter((p) => !f || str(p.name).toLowerCase().includes(f)).forEach((p) => {
+          if (code && fits(p)) put(' fit', `Подходят по дисциплине ${code}`, p);
+          else put(p.roleKey || p.role || '~', p.role || 'Без роли', p);
+        });
+        const order = [' fit', ...ROLE_ORDER];
+        const rank = (k) => { const i = order.indexOf(k); return i < 0 ? order.length : i; };
+        [...groups.entries()].sort((a, b) => rank(a[0]) - rank(b[0]) || a[1].title.localeCompare(b[1].title, 'ru')).forEach(([key, g]) => {
+          list.append(el('div', 'op-group' + (key === ' fit' ? ' is-fit' : ''), `${g.title} · ${g.list.length}`));
+          g.list.sort((a, b) => str(a.name).localeCompare(str(b.name), 'ru')).forEach((p) => drawOne(p, key === ' fit'));
+        });
+        if (!list.children.length) list.append(el('p', 'note', 'Никого не найдено.'));
+      };
+      const drawOne = (p, fit) => {
           const at = chosen.indexOf(p.name);
           const b = el('button', 'op-item' + (at >= 0 ? ' is-cur' : '')); b.type = 'button';
           b.setAttribute('aria-pressed', at >= 0 ? 'true' : 'false');
           const n = load.get(p.name) || 0;
           const mark = el('span', 'op-check', at >= 0 ? '✓' : '');
           const nm = el('b', null, p.name); if (at === 0) nm.append(el('span', 'pill op-main', 'ответственный'));
-          b.append(mark, nm, el('span', 'note', [p.role || '', n ? `открытых задач: ${n}` : 'свободен'].filter(Boolean).join(' · ')));
+          b.append(mark, nm, el('span', 'note', [fit ? p.role || '' : (p.disc || []).join(', '), n ? `открытых задач: ${n}` : 'свободен'].filter(Boolean).join(' · ')));
           b.addEventListener('click', () => toggle(p.name)); list.append(b);
-        });
-        if (!list.children.length) list.append(el('p', 'note', 'Никого не найдено.'));
       };
       q.addEventListener('input', draw); draw();
       q.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); const b = list.querySelector('button'); if (b) b.click(); } });
@@ -2058,13 +2074,26 @@
     } catch (e) { toast('Excel не собрался: ' + (e.message || e)); }
     finally { btn.disabled = false; btn.textContent = t0; }
   }
-  async function exportCompPdf(btn) {
+  // before the PDF: ask whether executors' names go into the file
+  function askCompPdf(btn) {
+    modal('Выгрузка PDF', (m, close) => {
+      m.append(el('p', null, 'Показывать в PDF исполнителей разделов?'));
+      const foot = el('div', 'modal-foot');
+      const go = (own) => { close(); exportCompPdf(btn, own); };
+      const no = el('button', 'btn', 'Без исполнителей'); no.type = 'button'; no.addEventListener('click', () => go(false));
+      const yes = el('button', 'btn primary', 'С исполнителями'); yes.type = 'button'; yes.addEventListener('click', () => go(true));
+      foot.append(no, yes); m.append(foot);
+      setTimeout(() => (S.pl.owners ? yes : no).focus(), 0);
+    });
+  }
+
+  async function exportCompPdf(btn, withOwners) {
     const proj = S.pl.project; const E = compExportRows(proj); if (!E.rows.length) return toast('Нечего выгружать.');
     btn.disabled = true; const t0 = btn.textContent; btn.textContent = 'Готовлю…';
     try {
       const lib = await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', 'jspdf');
       try { await document.fonts.ready; } catch (e) { /* optional */ }
-      const PW = 595.28, PHt = 841.89, M = 40, k = 3; const own = S.pl.owners;
+      const PW = 595.28, PHt = 841.89, M = 40, k = 3; const own = typeof withOwners === 'boolean' ? withOwners : S.pl.owners;
       const FONT = '"Golos Text", Arial, sans-serif';
       const cols = [['n', '№ п/п', 30, 'center'], ['code', 'Обозначение', 150, 'left'], ['name', 'Наименование', 0, 'left'], ...(own ? [['owner', 'Исполнитель', 104, 'left']] : []), ['note', 'Примечание', 74, 'left']];
       const fixedW = d3.sum(cols, (c) => c[2]); cols.forEach((c) => { if (c[0] === 'name') c[2] = PW - 2 * M - fixedW; });
@@ -3134,7 +3163,7 @@
   $('#cp-sync').addEventListener('click', () => openSync(S.pl.project));
   $('#cp-move').addEventListener('click', () => openTransfer(S.pl.project));
   $('#cp-xlsx').addEventListener('click', (e) => exportCompXlsx(e.currentTarget));
-  $('#cp-pdf').addEventListener('click', (e) => exportCompPdf(e.currentTarget));
+  $('#cp-pdf').addEventListener('click', (e) => askCompPdf(e.currentTarget));
   ['#cp-owners', '#pl-owners'].forEach((id) => $(id).addEventListener('change', (e) => { S.pl.owners = e.target.checked; try { localStorage.setItem('gx-owners', S.pl.owners ? '1' : '0'); } catch (x) { /* ignore */ } render(); }));
   $('#pl-project').addEventListener('change', (e) => { S.pl.project = e.target.value; S.pl.keepScroll = false; renderPlan(); });
   $('#pl-add').addEventListener('click', () => openPlan(null, { project: S.pl.project }));

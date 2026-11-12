@@ -1,4 +1,4 @@
-/* BuildFlow — project image upload widget.
+/* GASTEC — project image upload widget.
  *
  * Progressive enhancement over a plain <input type="file">: without JS the
  * field still works, the browser just shows its native picker. With JS you get

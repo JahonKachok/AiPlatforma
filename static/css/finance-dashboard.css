@@ -1,4 +1,4 @@
-/* BuildFlow — Finance / General dashboard.
+/* GASTEC — Finance / General dashboard.
    Loaded only by templates/finance/finance_home.html. Everything is scoped
    under .fin-* so the rest of the app keeps its existing look untouched.
    Light theme is the base; html.dark overrides the palette. */

@@ -1,4 +1,4 @@
-/* BuildFlow — dashboard entrance animation, KPI count-up and progress fills.
+/* GASTEC — dashboard entrance animation, KPI count-up and progress fills.
  *
  * Everything here is first-paint only: it runs once, animates from a neutral
  * start value to the real value already present in the markup, and then does

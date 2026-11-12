@@ -1,4 +1,4 @@
-/* BuildFlow — project card 3D tilt, image parallax and cursor glare.
+/* GASTEC — project card 3D tilt, image parallax and cursor glare.
  *
  * Design notes:
  *  - Nothing is animated in JS. The pointer position is written into CSS

@@ -1,7 +1,7 @@
 # English catalog: only msgids whose source text is not English.
 msgid ""
 msgstr ""
-"Project-Id-Version: BuildFlow\n"
+"Project-Id-Version: GASTEC\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"

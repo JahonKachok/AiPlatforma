@@ -51,6 +51,7 @@ def _people():
         out.append({
             "id": str(u.pk), "first": u.full_name, "last": "", "name": u.full_name,
             "role": u.get_role_display(), "sections": u.department or codes or "",
+            "disc": [d.code for d in u.disciplines.all()], "roleKey": u.role,
             # Sozlanmagan xodim — shtatda (oklad): bo'limlari shartnoma yaratmaydi.
             "pay": ps.pay_type if ps else "Оклад", "norm": ps.norm_hours if ps else 40,
             "stageRole": ps.stage_role if ps else "", "inTasks": "Да",

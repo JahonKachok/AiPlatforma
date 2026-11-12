@@ -1,4 +1,4 @@
-/* BuildFlow — Dashboard.
+/* GASTEC — Dashboard.
    Loaded only by templates/core/dashboard.html. Scoped under .dsh-* so the
    rest of the app is untouched. Tailwind is precompiled here, so utilities no
    other template used do not exist — everything below is self-contained. */

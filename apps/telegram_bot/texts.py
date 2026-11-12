@@ -16,7 +16,7 @@ T = {
 
     # --- Asosiy buyruqlar ---------------------------------------------------
     "start": {
-        "uz": "\U0001F44B Salom! Men <b>BuildFlow</b> botiman — qurilishni "
+        "uz": "\U0001F44B Salom! Men <b>GASTEC</b> botiman — qurilishni "
               "avtomatlashtirish platformasining rasmiy yordamchisi.\n\n"
               "Nimalar qila olaman:\n"
               "🔔 Vazifalar, muddatlar va tasdiqlashlar haqida bildirishnoma yuboraman\n"
@@ -28,7 +28,7 @@ T = {
               "<b>Telegram → Ulash</b> tugmasini bosing yoki /link &lt;token&gt; "
               "yuboring. To'liq yordam — /help\n\n"
               "🌐 Interfeys tilini tanlang:",
-        "ru": "\U0001F44B Здравствуйте! Я бот <b>BuildFlow</b> — официальный "
+        "ru": "\U0001F44B Здравствуйте! Я бот <b>GASTEC</b> — официальный "
               "помощник платформы автоматизации строительства.\n\n"
               "Что я умею:\n"
               "🔔 Присылаю уведомления о задачах, сроках и согласованиях\n"
@@ -40,7 +40,7 @@ T = {
               "<b>Telegram → Привязать</b> или отправьте /link &lt;token&gt;. "
               "Полная справка — /help\n\n"
               "🌐 Выберите язык интерфейса:",
-        "en": "\U0001F44B Hello! I'm the <b>BuildFlow</b> bot — the official "
+        "en": "\U0001F44B Hello! I'm the <b>GASTEC</b> bot — the official "
               "assistant of the Construction Automation Platform.\n\n"
               "What I can do:\n"
               "🔔 Send notifications about tasks, deadlines and approvals\n"

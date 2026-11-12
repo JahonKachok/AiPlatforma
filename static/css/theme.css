@@ -1,9 +1,9 @@
-/* BuildFlow design layer — loaded AFTER tailwind.css. Tailwind is
+/* GASTEC design layer — loaded AFTER tailwind.css. Tailwind is
    precompiled (no Node at runtime), so the modern component design lives
    here and overrides the base component classes. Dark mode: html.dark. */
 
 :root {
-  /* BuildFlow brend ranglari — logodagi to'q ko'k (#0B3C5D) + yashil (#72C07D) */
+  /* GASTEC brend ranglari — logodagi to'q ko'k (#0B3C5D) + yashil (#72C07D) */
   --ap-primary: #0b3c5d;
   --ap-primary-2: #1d6fa5;
   --ap-primary-soft: rgba(11, 60, 93, 0.10);
@@ -12,9 +12,9 @@
   --ap-danger: #ee5d50;
 }
 
-/* BuildFlow logo belgisi — qorong'i fonda yorqinroq ko'rinadi */
+/* GASTEC logo belgisi — o'z foni bor; qorong'i fonda ingichka hoshiya bilan ajraladi */
 .ap-logo-mark { flex: none; }
-.dark .ap-logo-mark { filter: brightness(2.2) saturate(0.8); }
+.dark .ap-logo-mark { box-shadow: 0 0 0 1px rgba(255,255,255,.12); border-radius: 22%; }
 /* Login/ro'yxatdan o'tish sahifasidagi katta logo — SVG'da width/height
    atributi yo'q, shuning uchun aniq o'lcham bermasak brauzer uni juda
    katta (default ~300px) chizadi. */

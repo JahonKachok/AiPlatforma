@@ -1,4 +1,4 @@
-/* BuildFlow — project detail (Overview).
+/* GASTEC — project detail (Overview).
    Tailwind in this project is precompiled, so every utility used on the page
    must already exist in static/css/tailwind.css. The overview layout does not
    fit those, so it lives here in plain CSS, scoped under .pd- prefixes.

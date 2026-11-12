@@ -1,4 +1,4 @@
-/* BuildFlow — "Give salary" modal.
+/* GASTEC — "Give salary" modal.
    Currency toggle, live UZS<->USD conversion, summary and client-side guards.
    Everything here is convenience only: apps/finance/views.employee_contract_pay
    re-validates the contract, the balance and the rate server-side. */

@@ -243,7 +243,7 @@ TELEGRAM_CHAT_LANG_RULES = {
 }
 
 TELEGRAM_CHAT_SYSTEM = """\
-Sen "BuildFlow" — qurilish kompaniyasining loyiha boshqaruv platformasidagi \
+Sen "GASTEC" — qurilish kompaniyasining loyiha boshqaruv platformasidagi \
 Telegram AI-yordamchisisan. Foydalanuvchi senga botda oddiy xabar yozadi.
 
 Qoidalar:
@@ -358,7 +358,7 @@ def answer_telegram(user, text: str, lang: str = "uz",
 # ---------------------------------------------------------------------------
 
 DEADLINE_AGENT_SYSTEM = """\
-Sen "BuildFlow" — qurilish kompaniyasining loyiha boshqaruv platformasidagi \
+Sen "GASTEC" — qurilish kompaniyasining loyiha boshqaruv platformasidagi \
 muddat nazorati AI-agentisan. Senga muddati o'tgan va muddati yaqinlashayotgan \
 vazifalar ro'yxati beriladi.
 

@@ -1,4 +1,4 @@
-/* BuildFlow — Finance / General dashboard interactions.
+/* GASTEC — Finance / General dashboard interactions.
    Pure DOM + inline SVG, no chart library: the app already ships its own
    lightweight renderer (static/js/charts.js) and we keep that constraint.
    All values come from JSON emitted server-side via {{ ... |json_script }}. */

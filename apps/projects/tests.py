@@ -598,7 +598,9 @@ class DocumentsDownloadZipTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/zip")
         archive = zipfile.ZipFile(io.BytesIO(response.content))
-        expected_path = "10_ТЭ/tz.pdf"
+        # Papka nomi joriy til bo'yicha tarjima qilinadi (uz: 10_Texnik-iqtisodiy asoslash).
+        from apps.projects.views import get_wizard_doc_types
+        expected_path = f"{dict(get_wizard_doc_types())['tz']}/tz.pdf"
         self.assertEqual(archive.namelist(), [expected_path])
         self.assertEqual(archive.read(expected_path), b"hello")
 

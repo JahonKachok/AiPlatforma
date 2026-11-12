@@ -1,4 +1,4 @@
-# BuildFlow — ishga tushirish qo'llanmasi
+# GASTEC — ishga tushirish qo'llanmasi
 
 ## A. Serverda ishga tushirish (Docker, tavsiya etiladi)
 

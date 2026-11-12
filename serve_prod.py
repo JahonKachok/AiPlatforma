@@ -33,5 +33,5 @@ if __name__ == "__main__":
         trusted_proxy_headers={"x-forwarded-proto", "x-forwarded-for"},
         # Boshqa manbadan kelgan X-Forwarded-* sarlavhalari o'chiriladi.
         clear_untrusted_proxy_headers=True,
-        ident="BuildFlow",
+        ident="GASTEC",
     )

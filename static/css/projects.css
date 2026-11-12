@@ -1,4 +1,4 @@
-/* BuildFlow — Projects page.
+/* GASTEC — Projects page.
    Loaded only by templates/projects/project_list.html and the project form.
    Everything is scoped under .prj-* so the rest of the app is untouched.
    Tailwind here is precompiled, so utilities this page needs but no other

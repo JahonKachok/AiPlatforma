@@ -4,58 +4,80 @@
 {% block page_title %}{% if is_create %}{% trans "New project" %}{% else %}{% trans "Edit project" %}{% endif %}{% endblock %}
 {% block extra_head %}
   <link rel="stylesheet" href="{% static 'vendor/leaflet/leaflet.css' %}">
-  <link rel="stylesheet" href="{% static 'css/projects.css' %}?v=1">
-  <style>#project-map { height: 320px; }</style>
+  <link rel="stylesheet" href="{% static 'css/projects.css' %}?v=5">
 {% endblock %}
 {% block content %}
 {% include "projects/_wizard_steps.html" with active_step=1 %}
-<form method="post" enctype="multipart/form-data" class="card w-full space-y-4 p-6" {% if is_create %}data-draft-key="project-create-draft"{% endif %}>
+<form method="post" enctype="multipart/form-data" class="pf" novalidate {% if is_create %}data-draft-key="project-create-draft"{% endif %}>
   {% csrf_token %}
-  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    {% for field in form %}
-      {% if field.is_hidden %}
-        {{ field }}
-      {% elif field.name == 'currency' %}
-        {# rendered inline next to the budget and paid amount fields below #}
-      {% elif field.name == 'image' %}
-        <div class="sm:col-span-2 lg:col-span-3">
-          {% include "projects/_image_field.html" %}
+  {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+  {% if form.non_field_errors %}<div class="pf-alert">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+
+  <section class="pf-section">
+    <h2 class="pf-section-title">{% trans "Main" %}</h2>
+    {% include "projects/_pf_row.html" with field=form.name %}
+    {% include "projects/_pf_row.html" with field=form.construction_type %}
+    {% include "projects/_pf_row.html" with field=form.stage %}
+    {% include "projects/_pf_row.html" with field=form.status %}
+    {% trans "Responsible (GIP)" as gip_label %}
+    {% include "projects/_pf_row.html" with field=form.gip label=gip_label %}
+  </section>
+
+  <section class="pf-section">
+    <h2 class="pf-section-title">{% trans "Location" %}</h2>
+    {% include "projects/_pf_row.html" with field=form.region %}
+    {% include "projects/_pf_row.html" with field=form.district %}
+    <div class="pf-row{% if form.address.errors %} has-error{% endif %}">
+      <label class="pf-label" for="{{ form.address.id_for_label }}">{% include "partials/field_label_info.html" with field=form.address %}</label>
+      <div class="pf-control">
+        <div class="pf-pair pf-pair-btn">
+          {{ form.address }}
+          <button type="button" class="pf-map-btn" data-map-toggle aria-expanded="false" aria-controls="pf-map-wrap">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+            <span>{% trans "Map" %}</span><span class="pf-map-dot" data-map-dot hidden></span>
+          </button>
         </div>
-      {% else %}
-      <div class="{% if field.name == 'description' %}sm:col-span-2 lg:col-span-3{% endif %}">
-        <label class="field-label inline-flex items-center" for="{{ field.id_for_label }}">{% include "partials/field_label_info.html" %}</label>
-        {% if field.name == 'budget' %}
-          <div class="flex gap-2">
-            <div class="flex-1">{{ field }}</div>
-            <div class="w-24 shrink-0">{{ form.currency }}</div>
-          </div>
-        {% elif field.name == 'paid_amount' %}
-          <div class="flex gap-2">
-            <div class="flex-1">{{ field }}</div>
-            <div id="paid-amount-currency" class="flex w-24 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400">{% if form.instance.currency == 'USD' %}${% else %}so'm{% endif %}</div>
-          </div>
-        {% else %}
-          {{ field }}
-        {% endif %}
-        {% if field.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ field.errors|join:", " }}</p>{% endif %}
+        {% if form.address.errors %}<p class="pf-error">{{ form.address.errors|join:", " }}</p>{% endif %}
       </div>
-      {% endif %}
-      {% if field.name == 'address' %}
-        <div class="sm:col-span-2 lg:col-span-3">
-          <label class="field-label">{% trans "Location on map" %}</label>
-          <p class="mb-1 text-xs text-gray-500 dark:text-gray-400">{% trans "Select the region above, then click the map to pin the exact location." %}</p>
-          <div id="project-map" class="rounded-lg"></div>
-        </div>
-      {% endif %}
-    {% endfor %}
-  </div>
-  <div class="flex gap-3">
-    <button type="submit" class="btn btn-primary btn-md">{% trans "Continue" %}</button>
+    </div>
+    <div id="pf-map-wrap" class="pf-map-wrap" hidden>
+      <p class="pf-hint">{% trans "Select the region above, then click the map to pin the exact location." %}</p>
+      <div id="project-map" class="pf-map"></div>
+    </div>
+  </section>
+
+  <section class="pf-section">
+    <h2 class="pf-section-title">{% trans "Money and dates" %}</h2>
+    {% if form.budget %}
+      {% include "projects/_pf_row.html" with field=form.budget extra=form.currency %}
+    {% endif %}
+    {% trans "Start date / deadline" as dates_label %}
+    {% include "projects/_pf_row.html" with field=form.start_date extra=form.deadline label=dates_label %}
+  </section>
+
+  <details class="pf-more" {% if form.client_name.errors or form.client_contact.errors or form.construction_area.errors or form.construction_volume.errors or form.paid_amount.errors or form.description.errors or form.image.errors %}open{% endif %}>
+    <summary class="pf-more-sum">
+      <svg class="pf-more-ico" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+      {% if form.paid_amount %}{% trans "Additional (client, area, description, paid)" %}{% else %}{% trans "Additional (client, area, description)" %}{% endif %}
+    </summary>
+    {% include "projects/_pf_row.html" with field=form.client_name %}
+    {% include "projects/_pf_row.html" with field=form.client_contact %}
+    {% trans "Area / volume" as area_label %}
+    {% include "projects/_pf_row.html" with field=form.construction_area extra=form.construction_volume label=area_label %}
+    {% if form.paid_amount %}
+      {% include "projects/_pf_row.html" with field=form.paid_amount %}
+    {% endif %}
+    {% include "projects/_pf_row.html" with field=form.description %}
+    <div class="pf-image">{% include "projects/_image_field.html" %}</div>
+  </details>
+
+  <div class="pf-foot">
     {% if project %}
       <a href="{% url 'projects:detail' project.pk %}" class="btn btn-secondary btn-md">{% trans "Cancel" %}</a>
     {% else %}
       <a href="{% url 'projects:list' %}" class="btn btn-secondary btn-md">{% trans "Cancel" %}</a>
     {% endif %}
+    <button type="submit" class="btn btn-primary btn-md">{% if is_create %}{% trans "Create project" %}{% else %}{% trans "Continue" %}{% endif %}</button>
   </div>
 </form>
 {% endblock %}
@@ -65,17 +87,5 @@
   <script src="{% static 'js/project-image-upload.js' %}" defer></script>
   {% include "partials/leaflet_assets.html" %}
   <script>window.REGION_CENTERS = {{ region_centers_json|safe }};</script>
-  <script src="{% static 'js/project-map.js' %}"></script>
-  <script>
-    (function () {
-      var currencySelect = document.getElementById("{{ form.currency.id_for_label }}");
-      var paidBadge = document.getElementById("paid-amount-currency");
-      if (!currencySelect || !paidBadge) return;
-      function syncPaidCurrency() {
-        paidBadge.textContent = currencySelect.value === "USD" ? "$" : "so'm";
-      }
-      currencySelect.addEventListener("change", syncPaidCurrency);
-      syncPaidCurrency();
-    })();
-  </script>
+  <script src="{% static 'js/project-map.js' %}?v=2"></script>
 {% endblock %}

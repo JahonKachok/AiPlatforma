@@ -77,7 +77,7 @@ class ProjectVisibilityTests(TestCase):
             "funding_source": "own_funds", "region": "tashkent_city", "district": "Yunusobod",
             "address": "Test address 1",
         })
-        self.assertRedirects(response, reverse("projects:wizard_subobjects", args=[self.project.pk]))
+        self.assertRedirects(response, reverse("projects:wizard_documents", args=[self.project.pk]))
 
     def test_admin_can_delete_project_with_employee_contracts(self):
         from apps.finance.models import EmployeeContract

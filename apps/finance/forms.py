@@ -33,7 +33,7 @@ class TransactionForm(StyledFormMixin, forms.ModelForm):
         fields = ["project", "sub_object", "type", "account", "amount", "date", "category", "description"]
         widgets = {
             "type": forms.HiddenInput,
-            "date": forms.DateInput(attrs={"type": "date"}),
+            "date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "amount": forms.TextInput(attrs={"inputmode": "decimal", "data-money-input": "true"}),
         }
         help_texts = {
@@ -90,7 +90,7 @@ class FinancialRecordForm(StyledFormMixin, forms.ModelForm):
         model = FinancialRecord
         fields = ["type", "amount", "currency", "description", "category", "date", "status"]
         widgets = {
-            "date": forms.DateInput(attrs={"type": "date"}),
+            "date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "amount": forms.TextInput(attrs={"inputmode": "decimal", "data-money-input": "true"}),
         }
         help_texts = {
@@ -133,7 +133,7 @@ class AdministrativeExpenseForm(StyledFormMixin, forms.ModelForm):
         model = AdministrativeExpense
         fields = ["category", "amount", "currency", "period", "date", "note"]
         widgets = {
-            "date": forms.DateInput(attrs={"type": "date"}),
+            "date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "amount": forms.TextInput(attrs={"inputmode": "decimal", "data-money-input": "true"}),
         }
         help_texts = {

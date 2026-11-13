@@ -25,22 +25,23 @@
     L.Icon.Default.imagePath = "";
   })();
 
+  // CARTO basemap'lari endi API kalitsiz "API KEY REQUIRED" rasmini qaytaradi
+  // (200 status bilan, shuning uchun tileerror ham ishlamaydi). Esri ArcGIS
+  // Online taylari kalitsiz ishlaydi; atributsiya ko'rsatilishi shart.
+  // tile.openstreetmap.org — ko'ngilli serverlar, ilova trafigini bloklashi
+  // mumkin, shuning uchun faqat zaxira sifatida ishlatiladi.
+  var ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/";
   var ATTRIBUTION =
-    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> ' +
-    '&copy; <a href="https://carto.com/attributions">CARTO</a>';
-
-  // CARTO basemap'lari OSM ma'lumotidan quriladi, lekin CDN orqali tarqatiladi.
-  // tile.openstreetmap.org — ko'ngilli serverlar; ular ilova trafigini bloklab,
-  // taylar o'rniga "403 Access blocked" rasmini qaytaradi (403 bo'lsa ham brauzer
-  // uni oddiy rasm sifatida chizadi, shuning uchun tileerror ham ishlamaydi).
+    'Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap contributors';
   var PRIMARY = {
-    light: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-    dark: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+    light: ESRI + "World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+    dark: ESRI + "Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
   };
-  var PRIMARY_OPTS = { subdomains: "abcd", maxZoom: 20, attribution: ATTRIBUTION };
+  // Qorong'i fonda nomlar alohida qatlamda keladi.
+  var DARK_LABELS = ESRI + "Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}";
+  var PRIMARY_OPTS = { maxZoom: 19, attribution: ATTRIBUTION };
 
-  // CDN umuman ochilmasa (tarmoq/DNS), OSM'ga qaytamiz — u yerda tayl kelmasa
-  // hech bo'lmasa xarita bo'sh emas, eski holicha ishlaydi.
+  // Esri ochilmasa (tarmoq/DNS), OSM'ga qaytamiz.
   var FALLBACK_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
   var FALLBACK_OPTS = {
     maxZoom: 19,
@@ -52,8 +53,10 @@
   }
 
   function addTiles(map) {
-    var url = (global.AP_MAP_TILE_URL || (isDark() ? PRIMARY.dark : PRIMARY.light));
+    var dark = !global.AP_MAP_TILE_URL && isDark();
+    var url = global.AP_MAP_TILE_URL || (dark ? PRIMARY.dark : PRIMARY.light);
     var layer = L.tileLayer(url, PRIMARY_OPTS).addTo(map);
+    var labels = dark ? L.tileLayer(DARK_LABELS, { maxZoom: 19 }).addTo(map) : null;
 
     var errors = 0;
     var swapped = false;
@@ -62,6 +65,7 @@
       if (swapped || errors < 5) return;
       swapped = true;
       map.removeLayer(layer);
+      if (labels) map.removeLayer(labels);
       L.tileLayer(FALLBACK_URL, FALLBACK_OPTS).addTo(map);
     });
     return layer;

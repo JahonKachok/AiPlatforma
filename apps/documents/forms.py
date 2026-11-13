@@ -13,7 +13,7 @@ class DocumentUploadForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = Document
         fields = ["name", "doc_type", "project", "section", "version", "deadline", "file"]
-        widgets = {"deadline": forms.DateInput(attrs={"type": "date"})}
+        widgets = {"deadline": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")}
         help_texts = {
             "name": _("The document's name — shown under this name in lists."),
             "doc_type": _("The document type (drawing, estimate, contract, etc.)."),

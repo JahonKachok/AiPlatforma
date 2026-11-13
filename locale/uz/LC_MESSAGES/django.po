@@ -4684,3 +4684,43 @@ msgstr "Smeta bosqichi kerak"
 
 msgid "Customer code"
 msgstr "Buyurtmachi kodi"
+
+#: templates/projects/project_form.html
+msgid "Main"
+msgstr "Asosiy"
+
+#: templates/projects/project_form.html
+msgid "Location"
+msgstr "Joylashuv"
+
+#: templates/projects/project_form.html
+msgid "Map"
+msgstr "Xarita"
+
+#: templates/projects/project_form.html
+msgid "Money and dates"
+msgstr "Pul va muddatlar"
+
+#: templates/projects/project_form.html
+msgid "Start date / deadline"
+msgstr "Boshlanish / muddat"
+
+#: templates/projects/project_form.html
+msgid "Additional (client, area, description, paid)"
+msgstr "Qo'shimcha (buyurtmachi, maydon, tavsif, to'langan)"
+
+#: templates/projects/project_form.html
+msgid "Additional (client, area, description)"
+msgstr "Qo'shimcha (buyurtmachi, maydon, tavsif)"
+
+#: templates/projects/project_form.html
+msgid "Area / volume"
+msgstr "Maydon / hajm"
+
+#: templates/projects/project_form.html
+msgid "Create project"
+msgstr "Loyiha yaratish"
+
+#: templates/projects/project_form.html
+msgid "Responsible (GIP)"
+msgstr "Mas'ul (GIP)"

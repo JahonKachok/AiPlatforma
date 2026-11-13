@@ -46,3 +46,43 @@ msgstr "No overdue or near-deadline tasks — no report needed."
 
 msgid "Agent ishga tushirildi. Hisobot admin va rahbarlarga yuborildi."
 msgstr "Agent started. The report was sent to admins and managers."
+
+#: templates/projects/project_form.html
+msgid "Main"
+msgstr "Main"
+
+#: templates/projects/project_form.html
+msgid "Location"
+msgstr "Location"
+
+#: templates/projects/project_form.html
+msgid "Map"
+msgstr "Map"
+
+#: templates/projects/project_form.html
+msgid "Money and dates"
+msgstr "Money and dates"
+
+#: templates/projects/project_form.html
+msgid "Start date / deadline"
+msgstr "Start date / deadline"
+
+#: templates/projects/project_form.html
+msgid "Additional (client, area, description, paid)"
+msgstr "Additional (client, area, description, paid)"
+
+#: templates/projects/project_form.html
+msgid "Additional (client, area, description)"
+msgstr "Additional (client, area, description)"
+
+#: templates/projects/project_form.html
+msgid "Area / volume"
+msgstr "Area / volume"
+
+#: templates/projects/project_form.html
+msgid "Create project"
+msgstr "Create project"
+
+#: templates/projects/project_form.html
+msgid "Responsible (GIP)"
+msgstr "Responsible (GIP)"

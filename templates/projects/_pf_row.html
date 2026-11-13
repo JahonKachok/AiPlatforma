@@ -1,0 +1,13 @@
+{% load i18n %}{# One «label | control» row of the project form. Params: field, label (optional), extra (optional 2nd field). #}
+<div class="pf-row{% if field.errors or extra.errors %} has-error{% endif %}">
+  <label class="pf-label" for="{{ field.id_for_label }}">{% if label %}{{ label }}{% if field.field.required %}<span class="pf-req" aria-hidden="true"> *</span>{% endif %}{% else %}{% include "partials/field_label_info.html" %}{% endif %}</label>
+  <div class="pf-control">
+    {% if extra %}
+      <div class="pf-pair">{{ field }}{{ extra }}</div>
+    {% else %}
+      {{ field }}
+    {% endif %}
+    {% if field.errors %}<p class="pf-error">{{ field.errors|join:", " }}</p>{% endif %}
+    {% if extra.errors %}<p class="pf-error">{{ extra.errors|join:", " }}</p>{% endif %}
+  </div>
+</div>

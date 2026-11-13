@@ -28,9 +28,9 @@ class ProjectForm(StyledFormMixin, forms.ModelForm):
             "stage", "status", "start_date", "deadline", "budget", "paid_amount", "currency",
         ]
         widgets = {
-            "start_date": forms.DateInput(attrs={"type": "date"}),
-            "deadline": forms.DateInput(attrs={"type": "date"}),
-            "description": forms.Textarea(attrs={"rows": 3}),
+            "start_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "deadline": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "description": forms.Textarea(attrs={"rows": 2}),
             "latitude": forms.HiddenInput(),
             "longitude": forms.HiddenInput(),
             "budget": forms.TextInput(attrs={"inputmode": "decimal", "data-money-input": "true"}),
@@ -78,6 +78,10 @@ class ProjectForm(StyledFormMixin, forms.ModelForm):
                 self.fields.pop(name, None)
         gip_field = self.fields.pop("gip")
         self.fields["gip"] = gip_field
+        # Birlik belgisi maydon ichida (namunadagidek): «m²» / «m³».
+        for name, unit in (("construction_area", "m²"), ("construction_volume", "m³")):
+            if name in self.fields:
+                self.fields[name].widget.attrs.setdefault("placeholder", unit)
         # Maydon o'z bloki bilan alohida chiziladi (projects/_image_field.html),
         # umumiy sikldan chiqarish uchun uni oxiriga suramiz.
         image_field = self.fields.pop("image")
@@ -126,7 +130,7 @@ class ProjectMemberForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = ProjectMember
         fields = ["user", "role_in_project", "can_edit", "expires_at"]
-        widgets = {"expires_at": forms.DateTimeInput(attrs={"type": "datetime-local"})}
+        widgets = {"expires_at": forms.DateTimeInput(attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M")}
         help_texts = {
             "user": _("The employee being added to the project."),
             "role_in_project": _("The employee's role in the project (e.g. GIP, engineer)."),
@@ -141,8 +145,8 @@ class SubObjectForm(StyledFormMixin, forms.ModelForm):
         fields = ["name", "description", "priority", "start_date", "deadline", "gip", "status"]
         widgets = {
             "description": forms.Textarea(attrs={"rows": 2}),
-            "start_date": forms.DateInput(attrs={"type": "date"}),
-            "deadline": forms.DateInput(attrs={"type": "date"}),
+            "start_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "deadline": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
         }
         help_texts = {
             "name": _("The sub-object's name."),
@@ -159,7 +163,7 @@ class SubObjectDisciplineForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = SubObjectDiscipline
         fields = ["assignee", "deadline", "status"]
-        widgets = {"deadline": forms.DateInput(attrs={"type": "date"})}
+        widgets = {"deadline": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")}
         help_texts = {
             "assignee": _("The specialist responsible for this discipline (filtered to matching specialists)."),
             "deadline": _("The deadline for this section (optional)."),

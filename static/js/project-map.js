@@ -17,6 +17,30 @@
     var map = L.map(mapEl).setView(startCenter, hasInitial ? 14 : 6);
     window.APMap.addTiles(map);
 
+    // The map may sit behind a «Map» button (project form). Leaflet measures
+    // its box on init, so after showing it we must re-measure.
+    var wrap = document.getElementById("pf-map-wrap");
+    var toggle = document.querySelector("[data-map-toggle]");
+    var dot = document.querySelector("[data-map-dot]");
+    function syncDot() {
+      if (dot) dot.hidden = !(latInput.value && lngInput.value);
+    }
+    if (wrap && toggle) {
+      toggle.addEventListener("click", function () {
+        var open = wrap.hidden;
+        wrap.hidden = !open;
+        toggle.setAttribute("aria-expanded", open ? "true" : "false");
+        toggle.classList.toggle("is-open", open);
+        if (open) {
+          setTimeout(function () {
+            map.invalidateSize();
+            if (marker) map.setView(marker.getLatLng(), Math.max(map.getZoom(), 14));
+          }, 0);
+        }
+      });
+    }
+    syncDot();
+
     var marker = hasInitial ? L.marker(startCenter, { draggable: true }).addTo(map) : null;
 
     function setMarker(latlng) {
@@ -34,6 +58,7 @@
     function updateInputs(latlng) {
       latInput.value = latlng.lat.toFixed(6);
       lngInput.value = latlng.lng.toFixed(6);
+      syncDot();
     }
 
     map.on("click", function (e) {

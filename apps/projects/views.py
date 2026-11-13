@@ -205,7 +205,7 @@ def project_create(request):
                 )
             AuditLog.log(obj=project, action="created", user=request.user)
             messages.success(request, _("Project created."))
-            return redirect("projects:wizard_subobjects", pk=project.pk)
+            return redirect("projects:wizard_documents", pk=project.pk)
     else:
         form = ProjectForm(user=request.user)
     return render(request, "projects/project_form.html", {
@@ -361,7 +361,7 @@ def project_update(request, pk):
             if changes:
                 AuditLog.log(obj=project, action="updated", user=request.user, details=changes)
             messages.success(request, _("Project updated."))
-            return redirect("projects:wizard_subobjects", pk=project.pk)
+            return redirect("projects:wizard_documents", pk=project.pk)
     else:
         form = ProjectForm(instance=project, user=request.user)
     return render(request, "projects/project_form.html", {

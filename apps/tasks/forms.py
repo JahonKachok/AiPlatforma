@@ -13,7 +13,7 @@ class TaskForm(StyledFormMixin, forms.ModelForm):
         fields = ["title", "description", "project", "section", "assignee", "status", "priority", "deadline"]
         widgets = {
             "description": forms.Textarea(attrs={"rows": 3}),
-            "deadline": forms.DateInput(attrs={"type": "date"}),
+            "deadline": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
         }
         help_texts = {
             "title": _("A short, clear title for the task."),

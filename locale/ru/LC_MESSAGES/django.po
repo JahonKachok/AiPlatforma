@@ -4683,3 +4683,43 @@ msgstr "Нужен этап сметы"
 
 msgid "Customer code"
 msgstr "Код заказчика"
+
+#: templates/projects/project_form.html
+msgid "Main"
+msgstr "Основное"
+
+#: templates/projects/project_form.html
+msgid "Location"
+msgstr "Место"
+
+#: templates/projects/project_form.html
+msgid "Map"
+msgstr "Карта"
+
+#: templates/projects/project_form.html
+msgid "Money and dates"
+msgstr "Деньги и сроки"
+
+#: templates/projects/project_form.html
+msgid "Start date / deadline"
+msgstr "Дата начала / срок"
+
+#: templates/projects/project_form.html
+msgid "Additional (client, area, description, paid)"
+msgstr "Дополнительно (заказчик, площадь, описание, оплачено)"
+
+#: templates/projects/project_form.html
+msgid "Additional (client, area, description)"
+msgstr "Дополнительно (заказчик, площадь, описание)"
+
+#: templates/projects/project_form.html
+msgid "Area / volume"
+msgstr "Площадь / объём"
+
+#: templates/projects/project_form.html
+msgid "Create project"
+msgstr "Создать проект"
+
+#: templates/projects/project_form.html
+msgid "Responsible (GIP)"
+msgstr "Ответственный (ГИП)"

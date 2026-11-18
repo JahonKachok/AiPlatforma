@@ -6,7 +6,9 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 from django.views.decorators.http import require_POST
 
 from apps.accounts.models import User
@@ -19,7 +21,7 @@ from apps.projects.permissions import ensure_project_member, visible_projects_fo
 from .forms import TaskAttachmentForm, TaskCommentForm, TaskForm
 from .models import Task, TaskAttachment, TaskComment
 from .permissions import (
-    allowed_status_targets, can_change_task_status, can_manage_task, is_privileged, resolve_reviewer,
+    can_change_task_status, can_manage_task, is_privileged, resolve_reviewer,
     reviewer_candidates,
 )
 from .services import submit_task_for_approval
@@ -54,13 +56,72 @@ def _task_form_cascade_json(user):
             discipline_users.setdefault(str(discipline.id), []).append(
                 {"id": str(user_obj.id), "name": user_obj.full_name or user_obj.email}
             )
+    from apps.pult.plan import composition_members
+
+    # Ijrochi faqat loyiha tarkibiga biriktirilganlardan tanlanadi
+    members = {pid: sorted(ids) for pid, ids in composition_members(projects).items()}
     return script_json({
         "subObjects": sub_objects, "sections": sections, "disciplineUsers": discipline_users,
+        "projectMembers": members,
     })
+
+
+# «Задачи» doskasi: Pult «Канбан разделов» shu yerga qo'shildi. Ustunlar Pult
+# holati va bo'lim bosqichidan olinadi (apps.pult.services.board_column).
+BOARD_LABELS = {
+    "draft": pgettext_lazy("board column", "Draft"), "new": pgettext_lazy("board column", "New"),
+    "work": pgettext_lazy("board column", "In progress"), "appr": pgettext_lazy("board column", "Approval"),
+    "smeta": pgettext_lazy("board column", "Estimate"), "form": pgettext_lazy("board column", "Formatting"),
+    "print": pgettext_lazy("board column", "Printing"), "closed": pgettext_lazy("board column", "Closed"),
+}
+BOARD_HINTS = {
+    "draft": _("From the project composition, waiting for the brief"),
+    "new": _("Brief issued, the assignee accepts it"),
+    "work": _("Design, questions and rework"),
+    "appr": _("With the chief engineer or the client"),
+    "smeta": _("Estimate stage"),
+    "form": _("Drawing formatting"),
+    "print": _("Printing and handover"),
+    "closed": _("Accepted in the last 30 days"),
+}
+TASK_KINDS = (("", pgettext_lazy("task kind", "All")), ("project", pgettext_lazy("task kind", "Project")),
+              ("other", pgettext_lazy("task kind", "Non-standard")))
+# Ustun ichidagi oraliq holatlar kartochkada alohida yoziladi
+SUBSTATUS = {
+    "Есть вопрос": _("Has a question"), "На проверке": _("Under review"),
+    "На доработке": _("Needs revision"), "На согласовании": _("Deadline proposed"),
+}
+CLOSED_DAYS = 30
+
+
+def _board_rows(tasks):
+    """(task, wf, holat, ustun) — har bir vazifa uchun bir marta hisoblanadi."""
+    from apps.pult.models import TaskWorkflow
+    from apps.pult.services import board_column, effective_status, ensure_workflow
+
+    rows = []
+    for task in tasks.select_related("workflow"):
+        try:
+            wf = task.workflow
+        except TaskWorkflow.DoesNotExist:  # signal'dan oldingi eski vazifa
+            wf = ensure_workflow(task)
+        status = effective_status(task, wf)
+        rows.append((task, wf, status, board_column(status, wf.stage)))
+    return rows
+
+
+def _section_codes(rows):
+    from apps.pult.models import PlanRow
+
+    ids = {wf.section for _t, wf, _s, _c in rows if wf.section}
+    return dict(PlanRow.objects.filter(pk__in=ids).values_list("pk", "code")) if ids else {}
 
 
 @login_required
 def task_board(request):
+    from apps.pult.models import Flow
+    from apps.pult.services import can_move
+
     tasks = _visible_tasks(request.user)
 
     project_id = request.GET.get("project")
@@ -78,6 +139,14 @@ def task_board(request):
     search = request.GET.get("search")
     if search:
         tasks = tasks.filter(title__icontains=search)
+    # «Проектные» — Состав bo'limlariga bog'langan, «Нестандартные» — qolgan hammasi
+    kind = request.GET.get("kind", "")
+    if kind == "project":
+        tasks = tasks.filter(workflow__flow=Flow.PROJECT)
+    elif kind == "other":
+        tasks = tasks.exclude(workflow__flow=Flow.PROJECT)
+    else:
+        kind = ""
 
     objects_qs = SubObject.objects.none()
     subobjects_qs = Section.objects.none()
@@ -101,6 +170,8 @@ def task_board(request):
     ]
     context = {
         "view": view,
+        "kind": kind,
+        "kinds": TASK_KINDS,
         "project_id": project_id or "",
         "object_id": object_id or "",
         "subobject_id": subobject_id or "",
@@ -114,7 +185,13 @@ def task_board(request):
     }
 
     if view == "list":
-        context["tasks"] = tasks
+        rows = _board_rows(tasks)
+        codes = _section_codes(rows)
+        context["rows"] = [
+            {"task": t, "number": wf.number, "column": BOARD_LABELS.get(col, status),
+             "code": codes.get(wf.section, ""), "project_kind": wf.flow == Flow.PROJECT}
+            for t, wf, status, col in rows
+        ]
     elif view == "calendar":
         year = int(request.GET.get("year", date.today().year))
         month = int(request.GET.get("month", date.today().month))
@@ -134,15 +211,37 @@ def task_board(request):
             "today": date.today(),
         })
     else:
-        columns = [(value, label, list(tasks.filter(status=value))) for value, label in Task.Status.choices]
-        context["columns"] = columns
-        context["task_allowed_targets"] = {
-            task.pk: sorted(allowed_status_targets(request.user, task))
-            for _value, _label, column_tasks in columns
-            for task in column_tasks
-        }
+        rows = _board_rows(tasks)
+        codes = _section_codes(rows)
+        visible_ids = set(visible_projects_for(request.user).values_list("pk", flat=True))
+        since = date.today() - timedelta(days=CLOSED_DAYS)
+        by_col = {key: [] for key in BOARD_LABELS}
+        for task, wf, status, col in rows:
+            if col is None or (col == "closed" and (wf.finished_at or task.updated_at.date()) < since):
+                continue
+            by_col[col].append({
+                "task": task, "number": wf.number, "note": SUBSTATUS.get(status, ""),
+                "code": codes.get(wf.section, ""), "project_kind": wf.flow == Flow.PROJECT,
+                "can_move": can_move(request.user, task, wf, visible_ids),
+                "can_delete": can_manage_task(request.user, task),
+            })
+        context["columns"] = [(key, BOARD_LABELS[key], BOARD_HINTS[key], by_col[key]) for key in BOARD_LABELS]
 
     return render(request, "tasks/task_board.html", context)
+
+
+@require_POST
+@login_required
+def task_board_move(request, pk):
+    """Doskada kartochkani istalgan ustunga surish (JSON)."""
+    from apps.pult.services import PultError, board_column, board_move
+
+    task = get_object_or_404(_visible_tasks(request.user), pk=pk)
+    try:
+        task, wf = board_move(request.user, task, request.POST.get("column", ""))
+    except PultError as e:
+        return JsonResponse({"ok": False, "error": e.message}, status=e.status)
+    return JsonResponse({"ok": True, "column": board_column(wf.status, wf.stage), "status": wf.status})
 
 
 @login_required
@@ -167,6 +266,12 @@ def task_create(request):
             messages.success(request, _("Task created."))
             return redirect("tasks:detail", pk=task.pk)
     else:
+        from apps.pult.nav import allowed_pages
+
+        # «Новая задача» — hamma joyda bitta oyna: Pult «Моя работа» (+ Задача).
+        # Pult'ga kira olmaydiganlar uchun eski forma qoladi.
+        if "work" in allowed_pages(request.user):
+            return redirect(reverse("pult:section_work") + "?new=1")
         project_id = request.GET.get("project")
         initial = {"project": project_id} if project_id else {}
         form = TaskForm(initial=initial, user=request.user)
@@ -271,7 +376,10 @@ def task_delete(request, pk):
     if not can_manage_task(request.user, task):
         raise PermissionDenied
     if request.method == "POST":
+        AuditLog.log(obj=task, action="deleted", user=request.user, details={"title": task.title})
         task.delete()
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return JsonResponse({"ok": True})
         messages.success(request, _("Task deleted."))
         return redirect("tasks:board")
     return render(request, "tasks/task_confirm_delete.html", {"task": task})

@@ -15,8 +15,6 @@ from .services import ACCOUNTANT, ADMIN_DEPT, BOSS, GIP, HR, pult_role
 SECTIONS = {
     "work": ("tasks", "tasks/my-work/", _("My work")),
     "tasks": ("tasks", "tasks/register/", _("Task register")),
-    "kanban": ("tasks", "tasks/sections/", _("Section kanban")),
-    "gantt": ("tasks", "tasks/gantt/", _("Gantt chart")),
     "comp": ("projects", "projects/composition/", _("Project composition")),
     "plan": ("projects", "projects/schedule/", _("Project schedule")),
     "money": ("finance", "finance/operations/", _("Operations")),
@@ -35,10 +33,11 @@ GROUP_HOME = {
     "reports": ("reports:dashboard", _("Reports")),
 }
 
-ALL_PAGES = ["work", "home", "kanban", "tasks", "comp", "plan", "gantt", "team", "kpi", "money", "contracts"]
+# «kanban» — tab emas: «Задачи» doskasining «Проектные» rejimi (urls.py yo'naltiradi).
+ALL_PAGES = ["work", "home", "kanban", "tasks", "comp", "plan", "team", "kpi", "money", "contracts"]
 ROLE_PAGES = {
     BOSS: ALL_PAGES,
-    GIP: ["work", "kanban", "tasks", "comp", "plan", "gantt", "team", "kpi"],
+    GIP: ["work", "kanban", "tasks", "comp", "plan", "team", "kpi"],
     ACCOUNTANT: ["work", "kanban", "money", "contracts", "kpi"],
     HR: ["work", "kanban", "kpi"],
     ADMIN_DEPT: ["work", "kanban", "kpi"],

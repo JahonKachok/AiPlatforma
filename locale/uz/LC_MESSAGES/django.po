@@ -4799,3 +4799,130 @@ msgstr "Noto'g'ri tanlov."
 
 msgid "Value must not contain spaces."
 msgstr "Qiymatda bo'sh joy bo'lmasligi kerak."
+
+msgid "This discipline is used in a project composition and cannot be deleted."
+msgstr "Bu fan loyiha tarkibida ishlatilgan, shuning uchun uni o'chirib bo'lmaydi."
+
+msgid "Title"
+msgstr "Nomi"
+
+msgid "Write a comment..."
+msgstr "Izoh yozing..."
+
+msgid "Only employees assigned in the project composition are shown."
+msgstr "Faqat loyiha tarkibiga biriktirilgan xodimlar ko'rsatiladi."
+
+msgid "No employees are assigned in this project composition yet. Add them in Projects → Project composition."
+msgstr "Bu loyiha tarkibida hali xodim yo'q. Ularni «Loyihalar → Loyiha tarkibi» bo'limida biriktiring."
+
+msgid "Nobody found."
+msgstr "Hech kim topilmadi."
+
+msgid "This employee is not assigned in the project composition."
+msgstr "Bu xodim loyiha tarkibiga biriktirilmagan."
+
+msgctxt "board column"
+msgid "Draft"
+msgstr "Qoralama"
+
+msgctxt "board column"
+msgid "New"
+msgstr "Yangi"
+
+msgctxt "board column"
+msgid "In progress"
+msgstr "Ishda"
+
+msgctxt "board column"
+msgid "Approval"
+msgstr "Kelishuv"
+
+msgctxt "board column"
+msgid "Estimate"
+msgstr "Smeta"
+
+msgctxt "board column"
+msgid "Formatting"
+msgstr "Rasmiylashtirish"
+
+msgctxt "board column"
+msgid "Printing"
+msgstr "Chop etish"
+
+msgctxt "board column"
+msgid "Closed"
+msgstr "Yopilgan"
+
+msgctxt "task kind"
+msgid "All"
+msgstr "Barchasi"
+
+msgctxt "task kind"
+msgid "Project"
+msgstr "Loyiha vazifalari"
+
+msgctxt "task kind"
+msgid "Non-standard"
+msgstr "Nostandart"
+
+msgctxt "task badge"
+msgid "Project"
+msgstr "Loyiha"
+
+msgctxt "task badge"
+msgid "Non-standard"
+msgstr "Nostandart"
+
+msgid "From the project composition, waiting for the brief"
+msgstr "Loyiha tarkibidan, TT kutilmoqda"
+
+msgid "Brief issued, the assignee accepts it"
+msgstr "TT berilgan, ijrochi qabul qiladi"
+
+msgid "Design, questions and rework"
+msgstr "Loyihalash, savollar, qayta ishlash"
+
+msgid "With the chief engineer or the client"
+msgstr "GIP yoki buyurtmachida"
+
+msgid "Estimate stage"
+msgstr "Smeta bosqichi"
+
+msgid "Drawing formatting"
+msgstr "Chizmalarni rasmiylashtirish"
+
+msgid "Printing and handover"
+msgstr "Chop etish va topshirish"
+
+msgid "Accepted in the last 30 days"
+msgstr "So'nggi 30 kunda qabul qilinganlar"
+
+msgid "Has a question"
+msgstr "Savol bor"
+
+msgid "Under review"
+msgstr "Tekshiruvda"
+
+msgid "Deadline proposed"
+msgstr "Muddat taklif qilingan"
+
+msgid "Task type"
+msgstr "Vazifa turi"
+
+msgid "Project composition section"
+msgstr "Loyiha tarkibi bo'limi"
+
+msgid "Delete this task? This cannot be undone."
+msgstr "Vazifani o'chirasizmi? Buni qaytarib bo'lmaydi."
+
+msgid "Could not move the task."
+msgstr "Vazifani ko'chirib bo'lmadi."
+
+msgid "Could not delete the task."
+msgstr "Vazifani o'chirib bo'lmadi."
+
+msgid "One board for all tasks: project composition sections and non-standard tasks move through the same stages. Drag a card to another column to change its stage."
+msgstr "Barcha vazifalar uchun bitta doska: loyiha tarkibi bo'limlari va nostandart vazifalar bir xil bosqichlardan o'tadi. Bosqichni o'zgartirish uchun kartochkani boshqa ustunga suring."
+
+msgid "Discipline %(code)s already exists as %(existing)s."
+msgstr "%(code)s fani allaqachon %(existing)s sifatida mavjud."

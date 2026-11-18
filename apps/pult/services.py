@@ -643,12 +643,80 @@ def _date(value):
         raise PultError("Неверная дата.")
 
 
+DESIGN_STAGE = "Проектирование"
+
+
+def _owners(row):
+    import re
+    return [n for n in (x.strip() for x in re.split(r"[,;]", row.owner or "")) if n]
+
+
+def check_section_owner(project, section, assignee):
+    """«Раздел состава проекта» faqat unga biriktirilgan xodimga beriladi."""
+    from .models import PlanRow
+    row = PlanRow.objects.filter(pk=section, project=project).first()
+    owners = _owners(row) if row else []
+    if owners and (assignee.full_name or "").strip() not in owners:
+        label = " ".join(x for x in (row.code, row.name) if x)
+        raise PultError(f"Раздел «{label}» закреплён за: {', '.join(owners)}. "
+                        "Выберите исполнителя этого раздела или измените исполнителя в «Состав проекта».")
+
+
+def open_section_task(project, section, stage):
+    """Bo'lim (va bosqich) uchun hali yopilmagan vazifa — bitta bo'limga bitta vazifa."""
+    stages = (stage, "") if stage == DESIGN_STAGE else (stage,)
+    return (TaskWorkflow.objects.filter(task__project=project, section=section, stage__in=stages)
+            .exclude(status__in=CLOSED).select_related("task").order_by("-number").first())
+
+
+def link_section(project, section, wf):
+    """Состав qatorida «Задача №» — Задачи'da yaratilgan vazifa ham Состав'da ko'rinadi."""
+    from .models import PlanRow
+    if section and wf.stage in ("", DESIGN_STAGE):
+        PlanRow.objects.filter(pk=section, project=project).update(task=wf.number)
+
+
+def _merge_into_open(user, wf, data, assignee, days, status):
+    """Состав'dan tushgan qoralamaga «+ Задача» bosilsa — ikkinchi vazifa emas,
+    o'sha vazifaning o'zi to'ldiriladi (ikkala joyda bitta obyekt)."""
+    task = wf.task
+    if wf.status not in (WS.DRAFT, WS.NEW):
+        raise PultError(f"Для этого раздела уже есть задача №{wf.number} «{task.title}» ({wf.status}). "
+                        "Откройте её вместо создания новой.", 409)
+    old_assignee = task.assignee_id
+    task.title = str(data.get("task") or "").strip() or task.title
+    task.description = str(data.get("comment") or "").strip() or task.description
+    task.assignee = assignee
+    task.priority = PRIORITY_FROM_PULT.get(_num(data.get("priority"), int), task.priority)
+    task.save()
+    if status != WS.DRAFT:
+        wf.status = status
+    wf.days = days or wf.days
+    if data.get("tz"):
+        wf.tz = str(data.get("tz"))
+    if data.get("type"):
+        wf.type = str(data.get("type"))
+    wf.hours = _num(data.get("hours")) if data.get("hours") not in (None, "") else wf.hours
+    wf.amount = _num(data.get("amount")) if data.get("amount") not in (None, "") else wf.amount
+    if wf.status == WS.IN_PROGRESS and not wf.start_date:
+        wf.start_date = _date(data.get("start")) or today()
+    save_workflow(task, wf)
+    log_status(task, wf, user, f"{wf.status}: дополнена из «Задачи» (без дубликата)")
+    AuditLog.log(obj=task, action="updated", user=user, details={"pult": True, "merged": True})
+    if task.assignee_id != old_assignee:
+        ensure_project_member(task.project, assignee)
+    _notify(user, assignee, "Задача назначена вам", f"№{wf.number} «{task.title}»", task)
+    return task, wf
+
+
 @transaction.atomic
 def create_task(user, data):
     role = pult_role(user)
     nonstd = data.get("flow") == Flow.OTHER and not data.get("section")
     if role not in (BOSS, GIP) and not (nonstd and role in NONSTD_CREATORS):
         raise PultError("Ставить задачи может ГИП или руководитель.", 403)
+    if data.get("flow") == Flow.PROJECT and data.get("section") in (None, ""):
+        raise PultError("Проектная задача привязывается к разделу: выберите «Раздел состава проекта».")
     title = str(data.get("task") or "").strip()
     if not title:
         raise PultError("Напишите, что нужно сделать.")
@@ -658,6 +726,14 @@ def create_task(user, data):
     status = data.get("status") or (WS.IN_PROGRESS if days else WS.NEW)
     if status not in (WS.DRAFT, WS.NEW, WS.IN_PROGRESS):
         status = WS.NEW
+    section = _section(project, data.get("section"))
+    if section:
+        stage = str(data.get("stage") or "") or DESIGN_STAGE
+        if stage == DESIGN_STAGE:
+            check_section_owner(project, section, assignee)
+        existing = open_section_task(project, section, stage)
+        if existing is not None:
+            return _merge_into_open(user, existing, data, assignee, days, status)
     task = Task.objects.create(
         title=title, description=str(data.get("comment") or "").strip() or None, project=project,
         assignee=assignee, creator=user, priority=PRIORITY_FROM_PULT.get(_num(data.get("priority"), int), Task.Priority.MEDIUM),
@@ -666,12 +742,13 @@ def create_task(user, data):
     wf.status, wf.days, wf.type = status, days, str(data.get("type") or "")
     wf.hours, wf.amount = _num(data.get("hours")), _num(data.get("amount"))
     wf.start_date = (_date(data.get("start")) or today()) if status == WS.IN_PROGRESS else None
-    wf.section = _section(project, data.get("section"))
+    wf.section = section
     wf.flow = Flow.PROJECT if data.get("flow") == Flow.PROJECT or wf.section else Flow.OTHER
     wf.stage, wf.dept, wf.tz = str(data.get("stage") or ""), str(data.get("dept") or ""), str(data.get("tz") or "")
     if wf.section and not wf.stage:
-        wf.stage = "Проектирование"
+        wf.stage = DESIGN_STAGE
     save_workflow(task, wf)
+    link_section(project, wf.section, wf)
     log_status(task, wf, user, f"{wf.status}: поставлена")
     AuditLog.log(obj=task, action="created", user=user, details={"pult": True})
     ensure_project_member(project, assignee)
@@ -690,6 +767,7 @@ def edit_task(user, number, data):
         raise PultError("Нет прав на изменение этой задачи.", 403)
     wf = TaskWorkflow.objects.select_for_update().get(pk=wf.pk)
     old_status, old_assignee, old_done = effective_status(task, wf), task.assignee_id, wf.done
+    old_section = wf.section
 
     title = str(data.get("task") or "").strip()
     if not title:
@@ -716,6 +794,12 @@ def edit_task(user, number, data):
         wf.section = _section(task.project, data.get("section"))
         if wf.section:
             wf.flow = Flow.PROJECT
+        elif data.get("flow") == Flow.OTHER:
+            # «Нестандартная»ga o'tkazildi — bo'lim va bosqichdan uziladi
+            wf.flow, wf.stage = Flow.OTHER, ""
+    if wf.section and wf.stage in ("", DESIGN_STAGE) and (
+            task.assignee_id != old_assignee or wf.section != old_section):
+        check_section_owner(task.project, wf.section, task.assignee)
     if "done" in data:
         wf.done = max(0.0, min(1.0, _num(data.get("done")) or 0.0))
     if "source_ok" in data:
@@ -729,6 +813,11 @@ def edit_task(user, number, data):
     if "missed" in data:
         wf.missed_reports = max(0, _num(data.get("missed"), int) or 0)
     save_workflow(task, wf)
+    if wf.section != old_section:
+        from .models import PlanRow
+        if old_section:
+            PlanRow.objects.filter(pk=old_section, task=wf.number).update(task=None)
+        link_section(task.project, wf.section, wf)
 
     if status != old_status:
         log_status(task, wf, user, f"{status}: изменено вручную")
@@ -738,4 +827,94 @@ def edit_task(user, number, data):
     if task.assignee_id != old_assignee:
         ensure_project_member(task.project, task.assignee)
         _notify(user, task.assignee, "Задача назначена вам", f"№{wf.number} «{task.title}»", task)
+    return task, wf
+
+
+# ---------------------------------------------------------------- delete
+
+@transaction.atomic
+def delete_task(user, number):
+    """Xato yaratilgan vazifani o'chirish. Состав'dagi «Задача №» havolasi
+    signal orqali tozalanadi (signals.unlink_plan_rows)."""
+    task, wf = get_task(user, number)
+    if not (is_boss(user) or can_manage_task(user, task)):
+        raise PultError("Удалить задачу может её постановщик, ГИП проекта или руководитель.", 403)
+    AuditLog.log(obj=task, action="deleted", user=user, details={"pult": True, "number": wf.number, "title": task.title})
+    task.delete()
+
+
+# ---------------------------------------------------------------- unified board («Задачи» kanban)
+
+# Ustunlar ketma-ketligi: Состав'dan tushgan bo'lim vazifalari ham, oddiy vazifalar ham
+# shu bosqichlardan o'tadi. Kalit — URL/JS uchun, qiymat — Pult holati/bosqichi.
+BOARD_COLUMNS = ("draft", "new", "work", "appr", "smeta", "form", "print", "closed")
+STAGE_COLUMNS = {"Смета": "smeta", "Оформление": "form", "Печать": "print"}
+COLUMN_STAGES = {v: k for k, v in STAGE_COLUMNS.items()}
+COLUMN_STATUS = {"draft": WS.DRAFT, "new": WS.NEW, "work": WS.IN_PROGRESS, "appr": WS.APPROVAL, "closed": WS.ACCEPTED}
+
+
+def board_column(status, stage):
+    """Vazifa doskaning qaysi ustunida turadi (bekor qilingan — hech qaysida)."""
+    if status == WS.CANCELLED:
+        return None
+    if status == WS.ACCEPTED:
+        return "closed"
+    if stage in STAGE_COLUMNS:
+        return STAGE_COLUMNS[stage]
+    if status == WS.DRAFT:
+        return "draft"
+    if status in (WS.NEW, WS.DAYS_PROPOSED):
+        return "new"
+    if status == WS.APPROVAL:
+        return "appr"
+    return "work"
+
+
+def can_move(user, task, wf, visible_project_ids=None):
+    return can_approve(user, task, wf, visible_project_ids)
+
+
+@transaction.atomic
+def board_move(user, task, column):
+    """Kartochkani istalgan ustunga surish. Holat va bosqich ustunga moslanadi,
+    platformadagi Task.status ham (save_workflow) sinxronlanadi."""
+    if column not in BOARD_COLUMNS:
+        raise PultError("Неизвестная колонка.")
+    wf = TaskWorkflow.objects.select_for_update().get(pk=ensure_workflow(task).pk)
+    status = effective_status(task, wf)
+    if not can_move(user, task, wf):
+        raise PultError("Перемещать карточку может ГИП проекта, постановщик задачи или руководитель.", 403)
+    if board_column(status, wf.stage) == column:
+        return task, wf
+    if column in COLUMN_STAGES and not wf.section:
+        raise PultError("Этапы «Смета», «Оформление» и «Печать» есть только у проектных задач (по разделу состава).")
+    wf.status = status
+    note = ""
+    if column in COLUMN_STAGES:
+        wf.stage = COLUMN_STAGES[column]
+        target = WS.IN_PROGRESS
+    else:
+        if wf.stage in STAGE_COLUMNS and column != "closed":
+            wf.stage = DESIGN_STAGE
+        target = COLUMN_STATUS[column]
+        if column == "work" and status == WS.REVIEW:
+            target = WS.REVISION
+            wf.reworks += 1
+            note = f" · доработка №{wf.reworks}"
+    if column == "appr":
+        wf.approval_since, wf.approver_kind = today(), "ГИП"
+    elif status == WS.APPROVAL:
+        wf.approval_since, wf.approver_kind = None, ""
+    if column == "closed":
+        wf.done, wf.finished_at = 1, wf.finished_at or today()
+    else:
+        wf.finished_at = None
+    if target in ACTIVE + (WS.APPROVAL,) and wf.days and not wf.start_date:
+        wf.start_date = today()
+    wf.status = target
+    save_workflow(task, wf)
+    where = wf.stage if column in COLUMN_STAGES else target
+    log_status(task, wf, user, f"{where}: перенесено на доске задач{note}")
+    AuditLog.log(obj=task, action="status_changed", user=user, details={"pult": "board", "column": column})
+    _notify(user, task.assignee, f"№{wf.number}: {where}", f"«{task.title}»: перенесено на доске задач", task)
     return task, wf

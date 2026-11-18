@@ -183,7 +183,18 @@
     // Excel/PDF exports: a plain browser download instead of Claude's downloads capability
     S.dl = { save: async ({ filename, data }) => { const url = URL.createObjectURL(data); const a = el('a'); a.href = url; a.download = filename; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 10000); } };
     await refreshAll();
+    // «Задачи → Новая задача» shu yerga ?new=1 bilan keladi: ikkala joyda bitta oyna.
+    // Render (parseAll) tugagach ochiladi; parametr olib tashlanadi — yangilaganda qayta ochilmasin.
+    const qs = new URLSearchParams(location.search);
+    if (qs.has('new') && S.load === 'ok') {
+      const kind = qs.get('kind'); qs.delete('new'); qs.delete('kind');
+      history.replaceState(null, '', location.pathname + (qs.toString() ? '?' + qs : '') + location.hash);
+      requestAnimationFrame(() => setTimeout(() => openTask(null, kind ? { kind } : {}), 0));
+    }
     setInterval(() => { if (!document.hidden && !$('#modal-root').children.length) refreshAll(); }, REFRESH_MS);
+    // вернулись на вкладку (например, после «Пользователи → Дисциплины») — данные свежие без перезагрузки
+    const wake = () => { if (!document.hidden && !$('#modal-root').children.length && Date.now() - (S.loadedAt || 0) > 5000) refreshAll(); };
+    document.addEventListener('visibilitychange', wake); window.addEventListener('focus', wake);
   }
   const taskUrl = (id, what) => API.tasks + id + '/' + what + '/';
   const taskAction = (t, action, params = {}) => apiFetch(taskUrl(t.id, 'action'), { action, params, expect_status: t.status });
@@ -374,14 +385,29 @@
     });
     if (!rows.length) emptyRow(tb, TCOLS.length, S.d.tasks.length ? 'По фильтрам ничего не найдено.' : 'Задач пока нет. Поставьте первую выше.');
   }
-  function fillTaskSelects(selP, selPr, keepP, keepPr) {
+  // sec — tanlangan «Раздел состава»: avval shu bo'limning o'z xodimlari chiqadi
+  // only — faqat shu ismlar (loyiha tarkibi)
+  function fillTaskSelects(selP, selPr, keepP, keepPr, sec, only = null) {
     if (document.activeElement !== selP) {
       const cur = keepP ?? selP.value;
-      const team = teamPeople().map((p) => p.name).sort((a, b) => a.localeCompare(b, 'ru'));
-      const others = (S.d.people || []).filter((p) => p.inTasks !== 'Да' && !/^Заказчик$/.test(p.role || '') && !/^Партнёр$/.test(p.role || '')).map((p) => p.name).sort((a, b) => a.localeCompare(b, 'ru'));
-      const g1 = el('optgroup'); g1.label = 'Сотрудники'; team.forEach((n) => g1.append(new Option(n, n)));
-      const g2 = el('optgroup'); g2.label = 'Исполнители по договору'; others.forEach((n) => g2.append(new Option(n, n)));
-      selP.replaceChildren(new Option('— выберите —', ''), g1, g2); selP.value = cur || S.filters.person || '';
+      const byName = (a, b) => a.localeCompare(b, 'ru');
+      const ok = (n) => !only || only.has(n);
+      const team = teamPeople().map((p) => p.name).filter(ok);
+      const others = (S.d.people || []).filter((p) => p.inTasks !== 'Да' && !/^Заказчик$/.test(p.role || '') && !/^Партнёр$/.test(p.role || '')).map((p) => p.name).filter(ok);
+      const own = (sec ? ownersOf(sec) : []).filter(ok);
+      const code = sec ? str(sec.code) : '';
+      const fit = code ? (S.d.people || []).filter((p) => (p.disc || []).some((c) => sameDisc(c, code))).map((p) => p.name).filter((n) => ok(n) && !own.includes(n)).sort(byName) : [];
+      const taken = new Set([...own, ...fit]);
+      const group = (label, names) => { const g = el('optgroup'); g.label = label; names.forEach((n) => g.append(new Option(n, n))); return g; };
+      const groups = [];
+      if (own.length) groups.push(group(`Исполнители раздела ${code}`.trim(), own));
+      if (fit.length) groups.push(group(`По дисциплине ${code}`, fit));
+      groups.push(group(taken.size ? 'Другие сотрудники' : 'Сотрудники', team.filter((n) => !taken.has(n)).sort(byName)));
+      groups.push(group('Исполнители по договору', others.filter((n) => !taken.has(n)).sort(byName)));
+      selP.replaceChildren(new Option('— выберите —', ''), ...groups.filter((g) => g.children.length));
+      // Tanlangan odam ro'yxatdan tushib qolmasin (masalan, nofaol xodim)
+      if (cur && ![...selP.options].some((o) => o.value === cur)) selP.append(new Option(cur, cur));
+      selP.value = cur || S.filters.person || '';
     }
     if (document.activeElement !== selPr) {
       const cur = keepPr ?? selPr.value;
@@ -645,9 +671,44 @@
       fillTaskSelects(fP, fPr, t?.assignee || preset.assignee || '', t?.project || preset.project || '');
       if (t && t.assignee && ![...fP.options].some((o) => o.value === t.assignee)) { fP.append(new Option(t.assignee, t.assignee)); fP.value = t.assignee; }
       if (t && t.project && ![...fPr.options].some((o) => o.value === t.project)) { fPr.append(new Option(t.project, t.project)); fPr.value = t.project; }
+      // Вид задачи: «Проектная» — привязана к разделу «Состава проекта» и идёт по его этапам;
+      // «Нестандартная» — вне состава (внутренние, срочные поручения), с проектом или без.
+      const kind0 = t ? (isProjectTask(t) ? 'project' : 'other') : preset.kind === 'other' || preset.kind === 'project' ? preset.kind : preset.section != null ? 'project' : 'other';
+      const fKind = select('m-kind', [new Option('Проектная — раздел состава проекта', 'project'), new Option('Нестандартная — вне состава проекта', 'other')], kind0);
+      const isProj = () => fKind.value === 'project';
       const fSec = el('select', 'ctl'); fSec.id = 'm-sec';
-      const fillSec = (keep) => { const cur = keep != null ? String(keep) : fSec.value; const list = (S.d.sched?.rows || []).filter((x) => x.project === fPr.value && !x.summary && !x.mile); fSec.replaceChildren(new Option(list.length ? '— без раздела —' : '— у проекта нет состава —', ''), ...list.map((x) => new Option(`${x.wbs || ''} ${x.code || ''} ${x.name || ''}`.replace(/\s+/g, ' ').trim(), x.id))); fSec.value = list.some((x) => String(x.id) === cur) ? cur : ''; };
-      fillSec(t?.section ?? preset.section ?? ''); fPr.addEventListener('change', () => fillSec(''));
+      // В списке — только разделы выбранного исполнителя (кому они назначены в «Составе проекта»)
+      const planRow = (id) => (S.d.plan || []).find((r) => r.id === id);
+      const fillSec = (keep) => {
+        const cur = keep != null ? String(keep) : fSec.value; const who = fP.value;
+        const all = (S.d.sched?.rows || []).filter((x) => x.project === fPr.value && !x.summary && !x.mile);
+        const list = who ? all.filter((x) => ownersOf(planRow(x.id) || x).includes(who) || (t && String(x.id) === String(t.section))) : all;
+        const empty = !fPr.value ? '— сначала выберите проект —' : !all.length ? '— у проекта нет состава —' : !list.length ? '— у исполнителя нет разделов в этом проекте —' : '— выберите раздел —';
+        fSec.replaceChildren(new Option(empty, ''), ...list.map((x) => new Option(`${x.wbs || ''} ${x.code || ''} ${x.name || ''}`.replace(/\s+/g, ' ').trim(), x.id)));
+        fSec.value = list.some((x) => String(x.id) === cur) ? cur : '';
+      };
+      fPr.addEventListener('change', () => {
+        if (isProj() && fP.value && !projTeam().has(fP.value)) fP.value = ''; // boshqa loyiha tarkibida yo'q
+        fillPeople(); fillSec('');
+      });
+      // Ijrochi — faqat «Состав проекта»ga biriktirilganlar.
+      // Bo'lim tanlansa — avval shu bo'limning o'z xodimlari.
+      const pHint = el('span', 'note');
+      const projTeam = () => new Set(((S.d.projects || []).find((p) => p.name === fPr.value) || {}).team || []);
+      const secRow = () => (fSec.value ? (S.d.plan || []).find((x) => String(x.id) === fSec.value) : null);
+      const fillPeople = (pick) => {
+        const sec = isProj() ? secRow() : null; const keep = fP.value;
+        const team = isProj() && fPr.value ? projTeam() : null;
+        fillTaskSelects(fP, fPr, keep, fPr.value, sec, team);
+        pHint.textContent = !isProj() ? 'Любой сотрудник.' : !fPr.value ? 'Сначала выберите проект.' : !team.size ? 'В составе проекта пока нет исполнителей — назначьте их в «Состав проекта».' : 'Только исполнители из состава проекта.';
+        // yangi vazifada ijrochi hali tanlanmagan bo'lsa — bo'lim mas'uli
+        if (pick && !t && !keep && sec && mainOwner(sec) && [...fP.options].some((o) => o.value === mainOwner(sec))) fP.value = mainOwner(sec);
+      };
+      fSec.addEventListener('change', () => fillPeople(true));
+      fP.addEventListener('change', () => { if (isProj()) fillSec(); });
+      const sec0 = t?.section ?? preset.section ?? '';
+      fillSec(sec0); fillPeople(!(preset.assignee)); fillSec(sec0);
+      const fPbox = el('div', 'pick-person'); fPbox.append(fP, pHint);
       const tpl = S.d.templates || []; const fType = select('m-type', [new Option('—', ''), ...tpl.map((x) => new Option(x.name, x.name))], t?.type || '');
       const fPrio = select('m-prio', [new Option('1 — срочно', '1'), new Option('2 — обычный', '2'), new Option('3 — когда будет время', '3')], String(t?.priority || 2));
       const fDays = input('m-days', 'number', t?.days ?? preset.days ?? '', { min: 0, step: 1, placeholder: 'назовёт сотрудник' });
@@ -659,7 +720,10 @@
       fType.addEventListener('change', () => { const x = tpl.find((y) => y.name === fType.value); if (!x) return; if (!fDays.value && isNum(x.days)) fDays.value = x.days; if (!fHours.value && isNum(x.hours)) fHours.value = x.hours; autoStatus(); });
       const autoStatus = () => { if (t) return; fStatus.value = fDays.value ? 'В работе' : 'Новая'; };
       fDays.addEventListener('input', autoStatus); if (!t) autoStatus();
-      form.append(field('Задача', fTask, 'full'), field('Исполнитель', fP), field('Проект', fPr), field('Раздел состава проекта', fSec), field('Тип', fType), field('Приоритет', fPrio), field('Срок, дней', fDays), field('Дата начала', fStart), field('Оценка часов', fHours), field('Сумма, сум', fAmount), field('Статус', fStatus));
+      const lSec = field('Раздел состава проекта', fSec);
+      const syncKind = () => { lSec.hidden = !isProj(); fillPeople(); if (isProj()) fillSec(); };
+      fKind.addEventListener('change', syncKind); lSec.hidden = !isProj();
+      form.append(field('Вид задачи', fKind, 'full'), field('Задача', fTask, 'full'), field('Исполнитель', fPbox), field('Проект', fPr), lSec, field('Тип', fType), field('Приоритет', fPrio), field('Срок, дней', fDays), field('Дата начала', fStart), field('Оценка часов', fHours), field('Сумма, сум', fAmount), field('Статус', fStatus));
       let fDone, fSrc, fFin, fRew, fMiss;
       if (t) {
         fDone = input('m-done', 'number', isNum(t.done) ? Math.round(t.done * 100) : 0, { min: 0, max: 100, step: 5 });
@@ -686,13 +750,15 @@
       const cancel = el('button', 'btn ghost', 'Отмена'); cancel.type = 'button'; cancel.addEventListener('click', close);
       const save = el('button', 'btn primary', t ? 'Сохранить' : 'Поставить задачу'); save.type = 'button';
       const more = t ? null : el('button', 'btn', 'Сохранить и ещё');
+      if (t && t.canDelete) foot.append(deleteButton(t, close));
       foot.append(cancel); if (more) { more.type = 'button'; foot.append(more); } foot.append(save); m.append(foot);
       const collect = () => {
-        const v = { task: fTask.value.trim(), assignee: fP.value, project: fPr.value, type: fType.value, priority: Number(fPrio.value), days: fDays.value === '' ? null : Number(fDays.value), start: fStart.value || null, hours: fHours.value === '' ? null : Number(fHours.value), amount: fAmount.value === '' ? null : Number(fAmount.value), status: fStatus.value, comment: fComment.value.trim(), section: fSec.value === '' ? null : Number(fSec.value) };
+        const v = { task: fTask.value.trim(), assignee: fP.value, project: fPr.value, type: fType.value, priority: Number(fPrio.value), days: fDays.value === '' ? null : Number(fDays.value), start: fStart.value || null, hours: fHours.value === '' ? null : Number(fHours.value), amount: fAmount.value === '' ? null : Number(fAmount.value), status: fStatus.value, comment: fComment.value.trim(), section: isProj() && fSec.value !== '' ? Number(fSec.value) : null, flow: isProj() ? 'Проект' : 'Нестандартная' };
         if (t) Object.assign(v, { done: Math.max(0, Math.min(100, Number(fDone.value) || 0)) / 100, source_ok: fSrc.value, finished: fFin.value || null, reworks: Number(fRew.value) || 0, missed: Number(fMiss.value) || 0 });
         if (!v.task) return 'Напишите, что нужно сделать.';
         if (!v.assignee) return 'Выберите исполнителя.';
-        if (!v.project) return 'Выберите проект.';
+        if (!v.project && isProj()) return 'Выберите проект.';
+        if (isProj() && v.section == null) return 'Проектная задача: выберите раздел состава проекта (только разделы этого исполнителя).';
         if (v.days != null && (v.days < 0 || !Number.isFinite(v.days))) return 'Срок должен быть числом дней.';
         if (v.status === 'Принята' && !v.finished) v.finished = iso(today());
         return v;
@@ -717,6 +783,18 @@
   }
   async function updateTask(t, v) {
     return apiFetch(taskUrl(t.id, 'edit'), v);
+  }
+  // «Удалить» — для ошибочно созданных задач (постановщик, ГИП проекта, руководитель)
+  function deleteButton(t, close) {
+    const b = el('button', 'btn danger', 'Удалить'); b.type = 'button';
+    b.addEventListener('click', async () => {
+      const tr = (window.PULT_I18N && window.PULT_I18N.t) || ((x) => x);
+      if (!window.confirm(tr(`Удалить задачу №${t.id}? Это нельзя отменить.`))) return;
+      b.disabled = true;
+      try { await apiFetch(taskUrl(t.id, 'delete'), {}); toast(`Задача №${t.id} удалена`); close(); refreshAll(); }
+      catch (e) { b.disabled = false; toast(errText(e)); }
+    });
+    return b;
   }
 
   // ---------- OPERATION modal
@@ -1398,14 +1476,25 @@
     ['эк', '5.5', 'ЭК', 'Экспертиза и снятие замечаний', 'Раздел', 30, 'вд'],
     ['ут', '5.6', '', 'Проект утверждён', 'Веха', 0, 'эк'],
   ];
-  // The template uses Russian codes (АР, КЖ…); the platform's disciplines may be in Latin (AR, KR…).
-  // Use the platform's code when it has the same discipline, so the matrix and ciphers don't split in two.
-  const CODE_ALIASES = { 'АР': ['AR'], 'КЖ': ['KJ', 'KZH', 'KR'], 'КР': ['KR'], 'КМ': ['KM'], 'ЭС': ['ES', 'EL'], 'ЭО': ['EO'], 'ОВ': ['OV', 'HVAC'], 'ВК': ['VK'], 'ТХ': ['TX', 'TH'], 'ГП': ['GP'], 'АТХ': ['ATX', 'ATH'], 'СС': ['SS'], 'ПОС': ['POS'], 'ООС': ['OOS'], 'СД': ['SD'], 'ИД': ['ID'], 'ИИ': ['II'], 'ЭК': ['EK'] };
+  // Fanlar faqat ma'lumotnomadan (DB: «Пользователи → Дисциплины»), kodda ro'yxat yo'q.
+  // «АР» (kirill) va «AR» (lotin) — bitta fan: kod lotinga o'giriladi va fan kodi yoki
+  // uning lotin kodi (sozlama «lat») bilan solishtiriladi. Server ham xuddi shunday qiladi (plan.canonical_code).
+  const TRANSLIT = Object.fromEntries([...'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯЎҚҒҲ'].map((ch, i) => [ch, ['A', 'B', 'V', 'G', 'D', 'E', 'E', 'J', 'Z', 'I', 'Y', 'K', 'L', 'M', 'N', 'O', 'P', 'R', 'S', 'T', 'U', 'F', 'X', 'TS', 'CH', 'SH', 'SH', '', 'Y', '', 'E', 'YU', 'YA', 'O', 'Q', 'G', 'H'][i]]));
+  const latinOf = (c) => [...str(c).trim().toUpperCase()].map((ch) => TRANSLIT[ch] ?? ch).join('').replace(/[^A-Z0-9]/g, '');
+  function discOf(code) {
+    const up = str(code).trim().toUpperCase(); const k = latinOf(up); const list = S.d.disc || [];
+    if (!up) return null;
+    return list.find((d) => str(d.code).toUpperCase() === up) || (k ? list.find((d) => latinOf(d.code) === k || (d.lat && latinOf(d.lat) === k)) : null) || null;
+  }
+  // bitta fanmi: xodim fani va bo'lim kodi har xil yozilgan bo'lishi mumkin
+  function sameDisc(a, b) {
+    if (!str(a).trim() || !str(b).trim()) return false;
+    const da = discOf(a), db = discOf(b);
+    return da && db ? da.code === db.code : latinOf(a) === latinOf(b);
+  }
   function platformCode(code) {
     if (!code) return code;
-    const have = new Set((S.d.disc || []).map((d) => d.code));
-    if (have.has(code)) return code;
-    return (CODE_ALIASES[code] || []).find((c) => have.has(c)) || code;
+    const d = discOf(code); return d ? d.code : code;
   }
   function openTemplate(proj) {
     if (!S.mcp) return toast('Сервер недоступен.');
@@ -1673,8 +1762,8 @@
   }
 
   // ---------- COMPOSITION: объекты × дисциплины, перенос в график
-  const DISC_FALLBACK = TEMPLATE.filter((t) => t[4] === 'Раздел' && t[2] && t[2] !== 'ИД' && t[2] !== 'ЭК').map((t, i) => ({ code: t[2], name: t[3], dur: t[5], links: '', order: i + 1 }));
-  const discList = () => (S.d.disc && S.d.disc.length ? S.d.disc : DISC_FALLBACK);
+  // matritsa ustunlari — faqat ma'lumotnomadagi fanlar (DB); kodda zaxira ro'yxat yo'q
+  const discList = () => S.d.disc || [];
   const parentWbs = (w) => { w = str(w); return w.includes('.') ? w.slice(0, w.lastIndexOf('.')) : ''; };
   const ownerShort = (n) => { const s = str(n); if (!s) return ''; const p = s.split(/\s+/); return p.length > 1 ? p[0] + ' ' + p[1][0] + '.' : s; };
   // a section may have several executors: «Иванов И., Петров П.»; the first one is responsible (task, pay, contract)
@@ -1686,8 +1775,8 @@
     const rows = (S.d.plan || []).filter((r) => r.project === proj).sort((a, b) => wbsCmp(a.wbs, b.wbs) || a.id - b.id);
     const order = new Map(discList().map((d, i) => [d.code, i]));
     const objs = rows.filter((r) => str(r.wbs) && !str(r.wbs).includes('.') && (r.kind === 'Объект' || r.kind === 'Этап'));
-    const groups = objs.map((o) => ({ o, kids: rows.filter((x) => parentWbs(x.wbs) === str(o.wbs) && x.kind !== 'Веха' && x.kind !== 'Объект').sort((a, b) => (order.get(a.code) ?? 999) - (order.get(b.code) ?? 999) || wbsCmp(a.wbs, b.wbs)) }));
-    const extra = [...new Set(groups.flatMap((g) => g.kids.map((k) => k.code)).filter((c) => c && !order.has(c)))];
+    const groups = objs.map((o) => ({ o, kids: rows.filter((x) => parentWbs(x.wbs) === str(o.wbs) && x.kind !== 'Веха' && x.kind !== 'Объект').sort((a, b) => (order.get(platformCode(a.code)) ?? 999) - (order.get(platformCode(b.code)) ?? 999) || wbsCmp(a.wbs, b.wbs)) }));
+    const extra = [...new Set(groups.flatMap((g) => g.kids.map((k) => platformCode(k.code))).filter((c) => c && !order.has(c)))];
     return { rows, groups, cols: [...discList().map((d) => ({ code: d.code, name: d.name, dur: d.dur, lib: true })), ...extra.map((c) => ({ code: c, name: c, lib: false }))] };
   }
   const nextObjCode = (rows) => { const n = d3.max(rows.filter((r) => r.kind === 'Объект'), (r) => Number(str(r.code).replace(/\D/g, '')) || 0) || 0; return 'BL' + pad(n + 1); };
@@ -1736,7 +1825,7 @@
       ob.append(el('span', 'cp-objname', g.o.name || '—'), el('span', 'cp-objmeta', [g.o.code ? 'шифр ' + g.o.code : '', `${g.kids.length} ${plural(g.kids.length, 'раздел', 'раздела', 'разделов')}`, g.o.client === 'Нет' ? 'скрыт от заказчика' : ''].filter(Boolean).join(' · ')));
       td0.append(ob); tr.append(td0);
       C.cols.forEach((c) => {
-        const td = el('td', 'cp-cell'); const secs = g.kids.filter((k) => k.code === c.code);
+        const td = el('td', 'cp-cell'); const secs = g.kids.filter((k) => platformCode(k.code) === c.code);
         if (secs.length) {
           const s = secs[0]; const sch = S.d.sched?.byId.get(s.id);
           const ss = secState(s); const b = el('button', 'cp-chip ' + (s.inPlan === 'Нет' ? 'out' : 'in') + ' st-' + ss.col); b.type = 'button';
@@ -1753,7 +1842,7 @@
       tr.append(el('td', 'cp-cell')); tb.append(tr);
     });
     const fr = el('tr', 'cp-foot'); fr.append(el('th', 'cp-obj', 'Всего'));
-    C.cols.forEach((c) => { const n = d3.sum(C.groups, (g) => g.kids.filter((k) => k.code === c.code).length); fr.append(el('td', 'cp-cell num', n ? String(n) : '')); });
+    C.cols.forEach((c) => { const n = d3.sum(C.groups, (g) => g.kids.filter((k) => platformCode(k.code) === c.code).length); fr.append(el('td', 'cp-cell num', n ? String(n) : '')); });
     fr.append(el('td')); tb.append(fr); tbl.append(tb);
     const other = C.rows.filter((r) => !str(r.wbs).includes('.') && r.kind !== 'Объект' && r.kind !== 'Этап');
     box.replaceChildren(tbl);
@@ -1846,7 +1935,7 @@
       await savePlan((rows, ctx) => {
         const o = rows.find((x) => x.id === obj.id); if (!o) throw userErr('Объект уже удалён. Обновите страницу.');
         const pr = rows.filter((x) => x.project === o.project);
-        if (pr.some((x) => parentWbs(x.wbs) === str(o.wbs) && x.code === disc.code)) return rows;
+        if (pr.some((x) => parentWbs(x.wbs) === str(o.wbs) && platformCode(x.code) === disc.code)) return rows;
         rows.push({ id: ctx.nextId++, project: o.project, wbs: nextWbs(pr, o.wbs), code: disc.code, name: disc.name, kind: 'Раздел', owner: '', dur: isNum(disc.dur) ? disc.dur : null, preds: '', client: 'Да', inPlan: 'Нет', comment: '' });
         return rows;
       });
@@ -1961,7 +2050,7 @@
       save.addEventListener('click', async () => {
         const code = fCode.value.trim().toUpperCase(), name = fName.value.trim();
         if (!code || !name) { err.textContent = 'Нужны шифр и наименование.'; return; }
-        if (discList().some((d) => d.code === code)) { err.textContent = `Шифр ${code} уже есть.`; return; }
+        if (discOf(code)) { err.textContent = `Шифр ${code} уже есть.`; return; }
         save.disabled = true; save.textContent = 'Добавляю…';
         try {
           // becomes a platform discipline (accounts.Discipline) with its Pult settings
@@ -2535,10 +2624,10 @@
   const APPROVER_ST = ['На согласовании', 'Согласование', 'На проверке', 'Есть вопрос'];
   const DEPTS = ['Кадры', 'Админ', 'Бухгалтерия', 'Прочее'];
   const DEPT_ROLE = { 'Кадры': 'Кадры', 'Админ': 'Админ', 'Бухгалтерия': 'Бухгалтер' };
-  const ALL_PAGES = ['work', 'home', 'kanban', 'tasks', 'comp', 'plan', 'gantt', 'team', 'kpi', 'money', 'contracts'];
+  const ALL_PAGES = ['work', 'home', 'kanban', 'tasks', 'comp', 'plan', 'team', 'kpi', 'money', 'contracts'];
   const ROLE_PAGES = {
     'Руководитель': ALL_PAGES,
-    'ГИП': ['work', 'kanban', 'tasks', 'comp', 'plan', 'gantt', 'team', 'kpi'],
+    'ГИП': ['work', 'kanban', 'tasks', 'comp', 'plan', 'team', 'kpi'],
     'Бухгалтер': ['work', 'kanban', 'money', 'contracts', 'kpi'],
     'Кадры': ['work', 'kanban', 'kpi'],
     'Админ': ['work', 'kanban', 'kpi'],
@@ -2859,6 +2948,7 @@
       // comments and attachments live on the platform's task page
       if (t.url) { const a = el('a', 'btn ghost', 'Файлы и комментарии ↗'); a.href = t.url; a.target = '_top'; foot.append(a); }
       if (isMgr()) { const ed = el('button', 'btn ghost', 'Редактировать все поля'); ed.type = 'button'; ed.addEventListener('click', () => { close(); openTask(t.id); }); foot.append(ed); }
+      if (t.canDelete) foot.append(deleteButton(t, close));
       const c = el('button', 'btn', 'Закрыть'); c.type = 'button'; c.addEventListener('click', close); foot.append(c); m.append(foot);
     });
   }
@@ -3130,6 +3220,8 @@
 
   // ---------- wiring
   function goTab(t) {
+    // «Канбан разделов» перенесён в «Задачи» (Проектные / Нестандартные)
+    if (t === 'kanban' && LINKS.kanban) { window.top.location.href = LINKS.kanban; return; }
     if (EMBED) { if (LINKS[t] && t !== S.tab) window.top.location.href = LINKS[t]; return; }
     S.tab = t; try { localStorage.setItem('gx-tab', t); } catch (e) { /* ignore */ } render(); window.scrollTo({ top: 0 }); }
   $$('.tab').forEach((b) => b.addEventListener('click', () => goTab(b.dataset.tab)));

@@ -72,7 +72,7 @@ class SectionPageTests(PultTestBase):
 
     def test_sections_live_under_their_menus(self):
         self.client.force_login(self.boss)
-        for name, path in (("section_gantt", "/tasks/gantt/"), ("section_plan", "/projects/schedule/"),
+        for name, path in (("section_work", "/tasks/my-work/"), ("section_plan", "/projects/schedule/"),
                            ("section_contracts", "/finance/contracts/"), ("section_kpi", "/accounts/users/kpi/"),
                            ("section_home", "/reports/summary/")):
             self.assertEqual(reverse(f"pult:{name}"), path)
@@ -82,7 +82,7 @@ class SectionPageTests(PultTestBase):
 
     def test_role_without_the_page_is_refused(self):
         self.client.force_login(self.worker)
-        self.assertEqual(self.client.get(reverse("pult:section_kanban")).status_code, 200)
+        self.assertEqual(self.client.get(reverse("pult:section_work")).status_code, 200)
         self.assertEqual(self.client.get(reverse("pult:section_contracts")).status_code, 403)
         self.client.force_login(self.client_user)
         self.assertEqual(self.client.get(reverse("pult:section_work")).status_code, 403)
@@ -95,13 +95,19 @@ class SectionPageTests(PultTestBase):
     def test_menu_shows_only_allowed_tabs(self):
         self.client.force_login(self.worker)
         board = self.client.get(reverse("tasks:board"))
-        self.assertContains(board, reverse("pult:section_kanban"))
-        self.assertNotContains(board, reverse("pult:section_gantt"))
+        self.assertContains(board, reverse("pult:section_work"))
+        self.assertNotContains(board, reverse("pult:section_tasks"))
+        self.assertNotContains(board, "/tasks/gantt/")
         self.assertNotContains(board, 'href="/pult/"')
 
     def test_old_address_redirects(self):
         self.client.force_login(self.boss)
         self.assertRedirects(self.client.get("/pult/"), reverse("pult:section_work"))
+
+    def test_gantt_tab_is_removed(self):
+        self.client.force_login(self.boss)
+        self.assertNotContains(self.client.get(reverse("tasks:board")), "/tasks/gantt/")
+        self.assertRedirects(self.client.get("/tasks/gantt/"), reverse("tasks:board"), fetch_redirect_response=False)
 
 
 class ActionTests(PultTestBase):
@@ -295,6 +301,29 @@ class PlanTests(PultTestBase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Discipline.objects.get(code="ГСН").pult_config.duration, 12)
 
+    def test_discipline_from_users_page_shows_in_composition(self):
+        self.client.force_login(self.boss)
+        self.client.post(reverse("accounts:discipline_create"), {"code": "ГСН", "name": "Газоснабжение"})
+        cfg = Discipline.objects.get(code="ГСН").pult_config
+        self.assertEqual(cfg.latin_code, "GSN")
+        data = self.client.get(reverse("pult:api_data")).json()
+        self.assertIn("ГСН", [d["code"] for d in data["disc"]])
+
+    def test_composition_section_becomes_discipline(self):
+        state = self.state(self.gip)
+        rows = [self.row(1, code="ИД", name="ИД. Сбор исходных данных")]
+        self.assertEqual(self.post(self.gip, self.plan_url(), {"rows": rows, "version": state["version"]}).status_code, 200)
+        d = Discipline.objects.get(code="ИД")
+        self.assertEqual(d.name, "Сбор исходных данных")
+        self.assertEqual(d.pult_config.latin_code, "ID")
+
+    def test_discipline_used_in_composition_cannot_be_deleted(self):
+        d = Discipline.objects.create(code="ТХ", name="Технология")
+        PlanRow.objects.create(id=3, project=self.project, wbs="1.1", code="ТХ", name="Технология", kind="Раздел")
+        self.client.force_login(self.boss)
+        self.client.post(reverse("accounts:discipline_delete", args=[d.pk]))
+        self.assertTrue(Discipline.objects.filter(pk=d.pk).exists())
+
 
 class FinanceTests(PultTestBase):
     def test_finance_is_hidden_from_designer(self):
@@ -425,3 +454,216 @@ class CipherRuleTests(PultTestBase):
 
     def test_designer_cannot_change_rule(self):
         self.assertEqual(self.save(self.worker).status_code, 403)
+
+
+class UnifiedBoardTests(PultTestBase):
+    """«Канбан разделов» «Задачи» doskasiga qo'shildi: bitta ustunlar ketma-ketligi."""
+
+    COLUMNS = ["draft", "new", "work", "appr", "smeta", "form", "print", "closed"]
+
+    def make_section_task(self, status="Черновик", section=7):
+        PlanRow.objects.get_or_create(id=section, defaults={
+            "project": self.project, "wbs": "1.1", "code": "AR", "name": "Архитектура", "kind": "Раздел", "owner": "Worker"})
+        task = Task.objects.create(title="AR — Архитектура", project=self.project, assignee=self.worker, creator=self.gip)
+        wf = task.workflow
+        wf.status, wf.flow, wf.stage, wf.section = status, "Проект", "Проектирование", section
+        save_workflow(task, wf)
+        return task, wf
+
+    def move(self, user, task, column):
+        self.client.force_login(user)
+        return self.client.post(reverse("tasks:board_move", args=[task.pk]), {"column": column})
+
+    def test_section_kanban_tab_is_gone_and_redirects(self):
+        self.client.force_login(self.boss)
+        board = self.client.get(reverse("tasks:board"))
+        self.assertNotContains(board, 'href="/tasks/sections/"')
+        self.assertRedirects(self.client.get("/tasks/sections/"), "/tasks/?kind=project", fetch_redirect_response=False)
+
+    def test_board_shows_stage_columns_in_order(self):
+        self.client.force_login(self.boss)
+        html = self.client.get(reverse("tasks:board")).content.decode()
+        positions = [html.index(f'data-kanban-column="{c}"') for c in self.COLUMNS]
+        self.assertEqual(positions, sorted(positions))
+
+    def test_project_and_nonstandard_filter(self):
+        task, _wf = self.make_section_task()
+        self.client.force_login(self.boss)
+        project = self.client.get(reverse("tasks:board") + "?kind=project").content.decode()
+        other = self.client.get(reverse("tasks:board") + "?kind=other").content.decode()
+        self.assertIn(str(task.pk), project)
+        self.assertNotIn(str(self.task.pk), project)
+        self.assertIn(str(self.task.pk), other)
+        self.assertNotIn(str(task.pk), other)
+
+    def test_card_moves_through_every_column(self):
+        task, wf = self.make_section_task()
+        expected = {"new": ("Новая", "Проектирование"), "work": ("В работе", "Проектирование"),
+                    "appr": ("Согласование", "Проектирование"), "smeta": ("В работе", "Смета"),
+                    "form": ("В работе", "Оформление"), "print": ("В работе", "Печать"),
+                    "closed": ("Принята", "Печать"), "draft": ("Черновик", "Проектирование")}
+        for column, (status, stage) in expected.items():
+            response = self.move(self.boss, task, column)
+            self.assertEqual(response.status_code, 200, response.content)
+            self.assertEqual(response.json()["column"], column)
+            wf.refresh_from_db()
+            self.assertEqual((wf.status, wf.stage), (status, stage), column)
+        task.refresh_from_db()
+        self.assertEqual(task.status, Task.Status.NEW)  # platforma holati ham sinxron
+
+    def test_stage_columns_need_a_section(self):
+        self.assertEqual(self.move(self.boss, self.task, "smeta").status_code, 400)
+
+    def test_gip_moves_designer_does_not(self):
+        self.assertEqual(self.move(self.gip, self.task, "work").status_code, 200)
+        self.assertEqual(self.move(self.worker, self.task, "closed").status_code, 403)
+        self.refresh()
+        self.assertEqual(self.wf.status, "В работе")
+
+    def test_board_delete_button(self):
+        self.client.force_login(self.boss)
+        self.assertContains(self.client.get(reverse("tasks:board")), reverse("tasks:delete", args=[self.task.pk]))
+        response = self.client.post(reverse("tasks:delete", args=[self.task.pk]), HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        self.assertEqual(response.json(), {"ok": True})
+        self.assertFalse(Task.objects.filter(pk=self.task.pk).exists())
+
+
+class DeleteTaskTests(PultTestBase):
+    def test_creator_deletes_and_composition_link_is_cleared(self):
+        PlanRow.objects.create(id=7, project=self.project, wbs="1.1", code="AR", kind="Раздел", task=self.wf.number)
+        response = self.post(self.gip, reverse("pult:api_delete", args=[self.wf.number]), {})
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Task.objects.filter(pk=self.task.pk).exists())
+        self.assertIsNone(PlanRow.objects.get(pk=7).task)
+
+    def test_assignee_cannot_delete(self):
+        self.assertEqual(self.post(self.worker, reverse("pult:api_delete", args=[self.wf.number]), {}).status_code, 403)
+        self.assertTrue(Task.objects.filter(pk=self.task.pk).exists())
+
+    def test_payload_says_who_can_delete(self):
+        for user, can in ((self.gip, True), (self.worker, False)):
+            self.client.force_login(user)
+            row = next(t for t in self.client.get(reverse("pult:api_data")).json()["tasks"] if t["id"] == self.wf.number)
+            self.assertEqual(row["canDelete"], can)
+
+
+class SectionTaskSyncTests(PultTestBase):
+    """Bitta bo'limga bitta vazifa: Состав'dan tushgan qoralama va «+ Задача» — bir obyekt."""
+
+    def setUp(self):
+        super().setUp()
+        PlanRow.objects.create(id=7, project=self.project, wbs="1.1", code="AR", name="Архитектура", kind="Раздел", owner="Worker")
+
+    def sync(self):
+        body = {"project": "P1", "taskNew": [{"id": 999, "assignee": "Worker", "task": "AR — Архитектура", "section": 7}],
+                "sec": [[7, {"task": 999}]]}
+        return self.post(self.gip, reverse("pult:api_sync"), body)
+
+    def create(self, **kw):
+        body = {"task": "Фасады", "assignee": "Worker", "project": "P1", "section": 7, "flow": "Проект", **kw}
+        return self.post(self.gip, reverse("pult:api_create"), body)
+
+    def test_new_task_fills_the_draft_instead_of_duplicating(self):
+        self.sync()
+        draft = TaskWorkflow.objects.get(section=7)
+        response = self.create(days=5)
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(response.json()["id"], draft.number)
+        self.assertEqual(TaskWorkflow.objects.filter(section=7).count(), 1)
+        draft.refresh_from_db()
+        self.assertEqual((draft.status, draft.days, draft.task.title), ("В работе", 5, "Фасады"))
+
+    def test_sync_does_not_duplicate_task_created_in_tasks(self):
+        number = self.create().json()["id"]
+        self.assertEqual(PlanRow.objects.get(pk=7).task, number)  # Состав'da ham ko'rinadi
+        self.sync()
+        self.assertEqual(TaskWorkflow.objects.filter(section=7).count(), 1)
+        self.assertEqual(PlanRow.objects.get(pk=7).task, number)
+
+    def test_task_in_progress_is_not_duplicated(self):
+        self.create(days=3)
+        response = self.create()
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(TaskWorkflow.objects.filter(section=7).count(), 1)
+
+    def test_section_of_another_employee_is_refused(self):
+        response = self.create(assignee="Other")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Worker", response.json()["error"])
+        self.assertFalse(TaskWorkflow.objects.filter(section=7).exists())
+
+    def test_project_task_needs_a_section(self):
+        self.assertEqual(self.create(section=None).status_code, 400)
+
+    def test_nonstandard_task_stays_out_of_composition(self):
+        response = self.post(self.gip, reverse("pult:api_create"), {"task": "Купить бумагу", "assignee": "Other", "project": "", "flow": "Нестандартная"})
+        self.assertEqual(response.status_code, 200)
+        wf = TaskWorkflow.objects.get(number=response.json()["id"])
+        self.assertEqual((wf.flow, wf.section), ("Нестандартная", None))
+        self.assertIsNone(PlanRow.objects.get(pk=7).task)
+
+
+class CompositionCleanupTests(PultTestBase):
+    """Состав'dan o'chirilgan / ijrochisi olingan bo'lim qoralamasi «Черновик»da qolmaydi."""
+
+    def save(self, rows):
+        self.client.force_login(self.gip)
+        version = self.client.get(reverse("pult:api_plan")).json()["version"]
+        response = self.post(self.gip, reverse("pult:api_plan"), {"rows": rows, "version": version})
+        self.assertEqual(response.status_code, 200, response.content)
+
+    def row(self, rid, **kw):
+        return {"id": rid, "project": "P1", "wbs": f"1.{rid}", "code": "AR", "name": "Архитектура", "kind": "Раздел", "owner": "Worker", **kw}
+
+    def draft(self, section):
+        body = {"project": "P1", "taskNew": [{"id": 900 + section, "assignee": "Worker", "task": "x", "section": section}]}
+        self.post(self.gip, reverse("pult:api_sync"), body)
+        return TaskWorkflow.objects.get(section=section)
+
+    def test_removed_section_drops_its_draft(self):
+        self.save([self.row(1), self.row(2)])
+        wf = self.draft(1)
+        self.save([self.row(2)])
+        self.assertFalse(Task.objects.filter(pk=wf.task_id).exists())
+
+    def test_unassigned_section_drops_its_draft(self):
+        self.save([self.row(1)])
+        wf = self.draft(1)
+        self.save([self.row(1, owner="")])
+        self.assertFalse(Task.objects.filter(pk=wf.task_id).exists())
+
+    def test_issued_task_is_kept(self):
+        self.save([self.row(1)])
+        wf = self.draft(1)
+        wf.status = "Новая"
+        wf.save()
+        self.save([])
+        self.assertTrue(Task.objects.filter(pk=wf.task_id).exists())
+
+
+class DisciplineSourceTests(PultTestBase):
+    """Fanlar bitta manbadan (DB): «АР» (kirill) va «AR» (lotin) — bitta fan."""
+
+    def test_cyrillic_section_code_maps_to_latin_discipline(self):
+        self.assertTrue(Discipline.objects.filter(code="AR").exists())
+        self.client.force_login(self.gip)
+        version = self.client.get(reverse("pult:api_plan")).json()["version"]
+        row = {"id": 1, "project": "P1", "wbs": "1.1", "code": "АР", "name": "Архитектура", "kind": "Раздел"}
+        self.post(self.gip, reverse("pult:api_plan"), {"rows": [row], "version": version})
+        self.assertEqual(PlanRow.objects.get(pk=1).code, "AR")
+        self.assertFalse(Discipline.objects.filter(code="АР").exists())
+
+    def test_users_page_rejects_cyrillic_duplicate(self):
+        self.client.force_login(self.boss)
+        self.client.post(reverse("accounts:discipline_create"), {"code": "АР", "name": "Архитектура"})
+        self.assertFalse(Discipline.objects.filter(code="АР").exists())
+
+    def test_latin_code_setting_links_other_spelling(self):
+        from .plan import canonical_code
+
+        cfg = Discipline.objects.get(code="KR").pult_config
+        cfg.latin_code = "KJ"
+        cfg.save()
+        self.assertEqual(canonical_code("КЖ"), "KR")
+        self.assertEqual(canonical_code("кр"), "KR")
+        self.assertEqual(canonical_code("ГСН"), "ГСН")

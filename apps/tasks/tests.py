@@ -136,8 +136,10 @@ class TaskFormCascadeTests(TestCase):
         return json.loads(content[start:end])
 
     def test_create_form_includes_cascade_data(self):
+        # «Новая задача» endi Pult oynasida; cascade ma'lumoti tahrirlash formasida qoladi
+        task = Task.objects.create(title="x", project=self.project, creator=self.manager)
         self.client.force_login(self.manager)
-        response = self.client.get(reverse("tasks:create"))
+        response = self.client.get(reverse("tasks:update", args=[task.pk]))
         data = self._cascade_data(response)
 
         sub_object_ids = {so["id"] for so in data["subObjects"]}
@@ -164,3 +166,45 @@ class TaskFormCascadeTests(TestCase):
         response = self.client.get(reverse("tasks:update", args=[task.pk]))
         data = self._cascade_data(response)
         self.assertTrue(any(s["id"] == str(self.section.pk) for s in data["sections"]))
+
+
+class TaskAssigneeFromCompositionTests(TestCase):
+    """«Новая задача»: ijrochi faqat loyiha tarkibiga biriktirilganlardan."""
+
+    def setUp(self):
+        from apps.pult.models import PlanRow
+
+        self.manager = User.objects.create_user(email="m3@example.com", password="pw12345!", full_name="Manager", role=User.Role.MANAGER)
+        self.member = User.objects.create_user(email="in@example.com", password="pw12345!", full_name="Ali Valiev", role=User.Role.DESIGNER)
+        self.outsider = User.objects.create_user(email="out@example.com", password="pw12345!", full_name="Outsider", role=User.Role.DESIGNER)
+        self.project = Project.objects.create(name="Composition project", created_by=self.manager)
+        PlanRow.objects.create(id=1, project=self.project, wbs="1.1", code="AR", name="AR", kind="Раздел", owner="Ali Valiev")
+
+    def _post(self, assignee):
+        self.client.force_login(self.manager)
+        return self.client.post(reverse("tasks:create"), {
+            "title": "Facade", "project": self.project.pk, "assignee": assignee.pk,
+            "status": Task.Status.NEW, "priority": Task.Priority.MEDIUM,
+        })
+
+    def test_form_lists_composition_members(self):
+        from .views import _task_form_cascade_json
+
+        data = json.loads(_task_form_cascade_json(self.manager))
+        self.assertEqual(data["projectMembers"][str(self.project.pk)], [str(self.member.pk)])
+
+    def test_new_task_opens_the_pult_modal(self):
+        self.client.force_login(self.manager)
+        target = reverse("pult:section_work") + "?new=1"
+        self.assertRedirects(self.client.get(reverse("tasks:create")), target, fetch_redirect_response=False)
+        self.assertContains(self.client.get(reverse("tasks:board")), f'href="{target}"')
+        self.assertContains(self.client.get(target), "?embed=1&amp;new=1#work")
+
+    def test_member_can_be_assigned(self):
+        self._post(self.member)
+        self.assertTrue(Task.objects.filter(title="Facade", assignee=self.member).exists())
+
+    def test_outsider_is_rejected(self):
+        response = self._post(self.outsider)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Task.objects.filter(title="Facade").exists())

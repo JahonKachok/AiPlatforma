@@ -4798,3 +4798,130 @@ msgstr "Неверный выбор."
 
 msgid "Value must not contain spaces."
 msgstr "Значение не должно содержать пробелов."
+
+msgid "This discipline is used in a project composition and cannot be deleted."
+msgstr "Эта дисциплина используется в составе проекта и не может быть удалена."
+
+msgid "Title"
+msgstr "Название"
+
+msgid "Write a comment..."
+msgstr "Напишите комментарий..."
+
+msgid "Only employees assigned in the project composition are shown."
+msgstr "Показаны только сотрудники, назначенные в составе проекта."
+
+msgid "No employees are assigned in this project composition yet. Add them in Projects → Project composition."
+msgstr "В составе этого проекта пока нет сотрудников. Назначьте их в разделе «Проекты → Состав проекта»."
+
+msgid "Nobody found."
+msgstr "Никого не найдено."
+
+msgid "This employee is not assigned in the project composition."
+msgstr "Этот сотрудник не назначен в составе проекта."
+
+msgctxt "board column"
+msgid "Draft"
+msgstr "Черновик"
+
+msgctxt "board column"
+msgid "New"
+msgstr "Новые"
+
+msgctxt "board column"
+msgid "In progress"
+msgstr "В работе"
+
+msgctxt "board column"
+msgid "Approval"
+msgstr "Согласование"
+
+msgctxt "board column"
+msgid "Estimate"
+msgstr "Смета"
+
+msgctxt "board column"
+msgid "Formatting"
+msgstr "Оформление"
+
+msgctxt "board column"
+msgid "Printing"
+msgstr "Печать"
+
+msgctxt "board column"
+msgid "Closed"
+msgstr "Закрыто"
+
+msgctxt "task kind"
+msgid "All"
+msgstr "Все"
+
+msgctxt "task kind"
+msgid "Project"
+msgstr "Проектные"
+
+msgctxt "task kind"
+msgid "Non-standard"
+msgstr "Нестандартные"
+
+msgctxt "task badge"
+msgid "Project"
+msgstr "Проектная"
+
+msgctxt "task badge"
+msgid "Non-standard"
+msgstr "Нестандартная"
+
+msgid "From the project composition, waiting for the brief"
+msgstr "Из состава проекта, ждут ТЗ"
+
+msgid "Brief issued, the assignee accepts it"
+msgstr "ТЗ выдано, исполнитель принимает"
+
+msgid "Design, questions and rework"
+msgstr "Проектирование, вопросы, доработки"
+
+msgid "With the chief engineer or the client"
+msgstr "У ГИПа или заказчика"
+
+msgid "Estimate stage"
+msgstr "Задание сметчику"
+
+msgid "Drawing formatting"
+msgstr "Оформление чертежей"
+
+msgid "Printing and handover"
+msgstr "Распечатка и выдача"
+
+msgid "Accepted in the last 30 days"
+msgstr "Принятые за 30 дней"
+
+msgid "Has a question"
+msgstr "Есть вопрос"
+
+msgid "Under review"
+msgstr "На проверке"
+
+msgid "Deadline proposed"
+msgstr "Предложен срок"
+
+msgid "Task type"
+msgstr "Вид задачи"
+
+msgid "Project composition section"
+msgstr "Раздел состава проекта"
+
+msgid "Delete this task? This cannot be undone."
+msgstr "Удалить задачу? Это нельзя отменить."
+
+msgid "Could not move the task."
+msgstr "Не удалось переместить задачу."
+
+msgid "Could not delete the task."
+msgstr "Не удалось удалить задачу."
+
+msgid "One board for all tasks: project composition sections and non-standard tasks move through the same stages. Drag a card to another column to change its stage."
+msgstr "Одна доска для всех задач: разделы состава проекта и нестандартные задачи проходят одни и те же этапы. Перетащите карточку в другую колонку, чтобы сменить этап."
+
+msgid "Discipline %(code)s already exists as %(existing)s."
+msgstr "Дисциплина %(code)s уже есть как %(existing)s."

@@ -8,11 +8,12 @@ from django.utils import timezone
 from apps.accounts.models import User
 from apps.projects.models import Project, ProjectMember
 from apps.projects.permissions import visible_projects_for
+from apps.tasks.permissions import can_manage_task
 
 from .finance import can_finance, finance_payload
 from .models import ProgressReport, PultSettings, TaskTemplate, TaskWorkflow
 from .nav import allowed_pages
-from .plan import ciphers_json, disciplines_json, plan_state, stages_json
+from .plan import ciphers_json, composition_members, disciplines_json, plan_state, stages_json
 from .services import (
     BOSS, GIP, WorkCalendar, can_approve, ensure_workflow, is_boss, kpi_config, pult_role, task_payload,
     today, visible_tasks,
@@ -91,12 +92,17 @@ def build_payload(user):
     projects = Project.objects.all() if is_boss(user) else visible_projects_for(user)
     visible_ids = set(projects.values_list("pk", flat=True))
     task_rows = []
+    boss = is_boss(user)
     for t in tasks:
         row = task_payload(t, workflows[t.pk], settings)
         row["canApprove"] = can_approve(user, t, workflows[t.pk], visible_ids)
+        # «Удалить» kartochkada: vazifa muallifi, loyihani tahrirlay oladigan (ГИП) yoki rahbar
+        row["canDelete"] = boss or can_manage_task(user, t)
         task_rows.append(row)
     plan = plan_state(user)
     finance = finance_payload(user)
+    members = composition_members(projects)
+    names = {str(uid): name for uid, name in User.objects.filter(is_active=True).values_list("pk", "full_name") if name}
     return {
         "viewer": _viewer(user),
         "access": _access(user),
@@ -108,7 +114,9 @@ def build_payload(user):
         "people": _people(),
         "projects": [
             {"name": p.name, "status": "Закрыт" if p.status in CLOSED_PROJECT else "Открыт",
-             "client": p.client_name or "", "full": p.description or p.name}
+             "client": p.client_name or "", "full": p.description or p.name,
+             # «Новая задача»da ijrochi faqat shu ro'yxatdan tanlanadi
+             "team": sorted(names[uid] for uid in members.get(str(p.pk), ()) if uid in names)}
             for p in projects.order_by("name")
         ],
         "templates": [

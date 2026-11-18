@@ -21,7 +21,48 @@
     errorEl.textContent = "";
   }
 
+  const compact = grid.dataset.compact === "1";
+
+  // Ixcham ko'rinish (loyiha sahifasi): fayllar soni va «bor/yo'q» holati
+  function refreshCount(card) {
+    if (!compact) return;
+    const n = card.querySelectorAll(".upload-file-state").length;
+    const badge = card.querySelector(".pd-src-count");
+    if (badge) {
+      badge.textContent = n;
+      badge.hidden = !n;
+    }
+    card.classList.toggle("has-files", n > 0);
+  }
+
+  function addCompactRow(card, documentId, fileName) {
+    const list = card.querySelector(".upload-file-list");
+    const row = document.createElement("div");
+    row.className = "upload-file-state pd-src-file";
+    row.dataset.documentId = documentId;
+    const link = document.createElement("a");
+    link.className = "upload-file-name";
+    link.textContent = fileName;
+    link.title = fileName;
+    if (grid.dataset.downloadUrlTemplate && documentId) {
+      link.href = grid.dataset.downloadUrlTemplate.replace(PLACEHOLDER_UUID, documentId);
+      link.target = "_blank";
+      link.rel = "noopener";
+    }
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "upload-delete-btn";
+    del.setAttribute("aria-label", grid.dataset.msgDelete || "Delete");
+    del.textContent = "✕";
+    del.addEventListener("click", function () { deleteFile(card, row); });
+    row.append(link, del);
+    list.appendChild(row);
+    refreshCount(card);
+    return row;
+  }
+
   function addFileRow(card, documentId, fileName) {
+    if (compact) return addCompactRow(card, documentId, fileName);
     const list = card.querySelector(".upload-file-list");
     const row = document.createElement("div");
     row.className = "upload-file-state flex items-center gap-3";
@@ -79,6 +120,7 @@
     const documentId = row.dataset.documentId;
     if (!documentId) {
       row.remove();
+      refreshCount(card);
       return;
     }
     const url = deleteUrlTemplate.replace(PLACEHOLDER_UUID, documentId);
@@ -87,12 +129,14 @@
       headers: { "X-CSRFToken": csrfToken },
     }).then(function () {
       row.remove();
+      refreshCount(card);
     });
   }
 
   grid.querySelectorAll(".upload-card").forEach(function (card) {
     const input = card.querySelector(".upload-file-input");
-    const dropLabel = card.querySelector(".upload-drop");
+    // eski ko'rinishda — alohida drop zona, ixchamda — butun qator
+    const dropLabel = card.querySelector(".upload-drop") || card;
 
     input.addEventListener("change", function () {
       if (input.files && input.files.length) uploadFiles(card, input.files);
@@ -103,7 +147,9 @@
       event.preventDefault();
       dropLabel.classList.add("upload-drop-active");
     });
-    dropLabel.addEventListener("dragleave", function () {
+    dropLabel.addEventListener("dragleave", function (event) {
+      // ichki elementlar ustidan o'tganda yoqilib-o'chib turmasin
+      if (event.relatedTarget && dropLabel.contains(event.relatedTarget)) return;
       dropLabel.classList.remove("upload-drop-active");
     });
     dropLabel.addEventListener("drop", function (event) {

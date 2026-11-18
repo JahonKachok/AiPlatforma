@@ -161,3 +161,130 @@ msgstr ""
 
 msgid "Value must not contain spaces."
 msgstr ""
+
+msgid "This discipline is used in a project composition and cannot be deleted."
+msgstr ""
+
+msgid "Title"
+msgstr ""
+
+msgid "Write a comment..."
+msgstr ""
+
+msgid "Only employees assigned in the project composition are shown."
+msgstr ""
+
+msgid "No employees are assigned in this project composition yet. Add them in Projects → Project composition."
+msgstr ""
+
+msgid "Nobody found."
+msgstr ""
+
+msgid "This employee is not assigned in the project composition."
+msgstr ""
+
+msgctxt "board column"
+msgid "Draft"
+msgstr ""
+
+msgctxt "board column"
+msgid "New"
+msgstr ""
+
+msgctxt "board column"
+msgid "In progress"
+msgstr ""
+
+msgctxt "board column"
+msgid "Approval"
+msgstr ""
+
+msgctxt "board column"
+msgid "Estimate"
+msgstr ""
+
+msgctxt "board column"
+msgid "Formatting"
+msgstr ""
+
+msgctxt "board column"
+msgid "Printing"
+msgstr ""
+
+msgctxt "board column"
+msgid "Closed"
+msgstr ""
+
+msgctxt "task kind"
+msgid "All"
+msgstr ""
+
+msgctxt "task kind"
+msgid "Project"
+msgstr ""
+
+msgctxt "task kind"
+msgid "Non-standard"
+msgstr ""
+
+msgctxt "task badge"
+msgid "Project"
+msgstr ""
+
+msgctxt "task badge"
+msgid "Non-standard"
+msgstr ""
+
+msgid "From the project composition, waiting for the brief"
+msgstr ""
+
+msgid "Brief issued, the assignee accepts it"
+msgstr ""
+
+msgid "Design, questions and rework"
+msgstr ""
+
+msgid "With the chief engineer or the client"
+msgstr ""
+
+msgid "Estimate stage"
+msgstr ""
+
+msgid "Drawing formatting"
+msgstr ""
+
+msgid "Printing and handover"
+msgstr ""
+
+msgid "Accepted in the last 30 days"
+msgstr ""
+
+msgid "Has a question"
+msgstr ""
+
+msgid "Under review"
+msgstr ""
+
+msgid "Deadline proposed"
+msgstr ""
+
+msgid "Task type"
+msgstr ""
+
+msgid "Project composition section"
+msgstr ""
+
+msgid "Delete this task? This cannot be undone."
+msgstr ""
+
+msgid "Could not move the task."
+msgstr ""
+
+msgid "Could not delete the task."
+msgstr ""
+
+msgid "One board for all tasks: project composition sections and non-standard tasks move through the same stages. Drag a card to another column to change its stage."
+msgstr ""
+
+msgid "Discipline %(code)s already exists as %(existing)s."
+msgstr ""

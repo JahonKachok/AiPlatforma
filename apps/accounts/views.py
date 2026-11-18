@@ -419,6 +419,10 @@ def discipline_create(request):
         if form.is_valid():
             form.save()
             messages.success(request, _("Discipline created."))
+        else:
+            for errors in form.errors.values():
+                for error in errors:
+                    messages.error(request, error)
     return redirect(reverse("accounts:user_list") + "#tab-disciplines")
 
 
@@ -426,6 +430,12 @@ def discipline_create(request):
 def discipline_delete(request, pk):
     discipline = get_object_or_404(Discipline, pk=pk)
     if request.method == "POST":
+        from apps.pult.models import PlanRow
+
+        if PlanRow.objects.filter(kind="Раздел", code__iexact=discipline.code).exists():
+            # Состав'da ishlatilayotgan fan o'chirilsa, keyingi saqlashda qayta paydo bo'lardi.
+            messages.error(request, _("This discipline is used in a project composition and cannot be deleted."))
+            return redirect(reverse("accounts:user_list") + "#tab-disciplines")
         try:
             discipline.delete()
             messages.success(request, _("Discipline deleted."))

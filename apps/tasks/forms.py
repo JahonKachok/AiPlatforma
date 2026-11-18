@@ -15,6 +15,17 @@ class TaskForm(StyledFormMixin, forms.ModelForm):
             "description": forms.Textarea(attrs={"rows": 3}),
             "deadline": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
         }
+        # Model maydonlarida verbose_name yo'q — yorliqlar shu yerda tarjima qilinadi.
+        labels = {
+            "title": _("Title"),
+            "description": _("Description"),
+            "project": _("Project"),
+            "section": _("Section"),
+            "assignee": _("Assignee"),
+            "status": _("Status"),
+            "priority": _("Priority"),
+            "deadline": _("Deadline"),
+        }
         help_texts = {
             "title": _("A short, clear title for the task."),
             "description": _("Details about the task: what needs to be done, what result is expected."),
@@ -47,6 +58,13 @@ class TaskForm(StyledFormMixin, forms.ModelForm):
             self.add_error("section", _("This section doesn't belong to the selected project."))
         if section and assignee and not assignee.disciplines.filter(pk=section.discipline_id).exists():
             self.add_error("assignee", _("The assignee doesn't have this section's discipline."))
+        if project and assignee and assignee.pk != self.instance.assignee_id:
+            from apps.pult.plan import composition_members
+
+            # Tarkibi to'ldirilgan loyihada — faqat unga biriktirilgan xodimlar
+            members = composition_members([project.pk]).get(str(project.pk))
+            if members and str(assignee.pk) not in members:
+                self.add_error("assignee", _("This employee is not assigned in the project composition."))
         return cleaned
 
 
@@ -54,7 +72,7 @@ class TaskCommentForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = TaskComment
         fields = ["content"]
-        widgets = {"content": forms.Textarea(attrs={"rows": 2, "placeholder": "Write a comment..."})}
+        widgets = {"content": forms.Textarea(attrs={"rows": 2, "placeholder": _("Write a comment...")})}
         help_texts = {"content": _("Write your comment or question about the task here.")}
 
 

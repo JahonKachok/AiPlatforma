@@ -1,4 +1,4 @@
-{% load static %}<!doctype html>
+{% load static core_extras %}<!doctype html>
 <html lang="{{ LANGUAGE_CODE }}"{% if dark_mode %} data-theme="dark"{% else %} data-theme="light"{% endif %}{% if request.GET.embed %} class="embed"{% endif %}>
 <head>
 <meta charset="utf-8">
@@ -7,17 +7,19 @@
 <title>GASTEC Пульт</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Oswald:wght@500;600;700&display=swap">
-<link rel="stylesheet" href="{% static 'pult/pult.css' %}?v=7">
+<link rel="stylesheet" href="{% static_v 'pult/pult.css' %}">
 <style>body { margin: 0; } img { max-width: 100%; } [hidden]:not([hidden=until-found i]) { display: none !important; }
 /* ?embed: the platform page already shows the title and the tabs (apps/pult/nav.py) */
-.embed .tabs, .embed .brand h1 { display: none; }</style>
+.embed .tabs, .embed .brand h1 { display: none; }
+/* ?embed: iframe already sits inside the platform's content column — use its full width on large screens */
+.embed .wrap { max-width: none; }</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 </head>
 <body data-api-data="{% url 'pult:api_data' %}" data-api-tasks="{% url 'pult:api_create' %}" data-api-report="{% url 'pult:api_report' %}" data-api-plan="{% url 'pult:api_plan' %}" data-api-sync="{% url 'pult:api_sync' %}" data-api-import="{% url 'pult:api_plan_import' %}" data-api-disc="{% url 'pult:api_discipline' %}" data-api-ciph="{% url 'pult:api_cipher' %}" data-api-ops="{% url 'pult:api_ops' %}">
 {% include "pult/_markup.html" %}
 {{ links|json_script:"pult-links" }}
-<script src="{% static 'pult/pult-i18n-data.js' %}?v=1"></script>
-<script src="{% static 'pult/pult-i18n.js' %}?v=1"></script>
-<script src="{% static 'pult/pult.js' %}?v=10"></script>
+<script src="{% static_v 'pult/pult-i18n-data.js' %}"></script>
+<script src="{% static_v 'pult/pult-i18n.js' %}"></script>
+<script src="{% static_v 'pult/pult.js' %}"></script>
 </body>
 </html>

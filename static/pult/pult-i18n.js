@@ -171,6 +171,7 @@
   wrapProp(HTMLInputElement.prototype, 'placeholder');
   wrapProp(HTMLTextAreaElement.prototype, 'placeholder');
   wrapProp(Element.prototype, 'ariaLabel');
+  wrapProp(HTMLOptGroupElement.prototype, 'label'); // ijrochi ro'yxatidagi guruh nomlari
 
   // Sahifa shabloni (_markup.html) va innerHTML bilan qo'shilgan qismlar.
   const translateTree = (root) => {

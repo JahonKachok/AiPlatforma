@@ -16,7 +16,6 @@
       <button class="tab" role="tab" data-tab="work" aria-selected="false">Моя работа</button>
       <button class="tab" role="tab" data-tab="home" aria-selected="true">Главная</button>
       <button class="tab" role="tab" data-tab="tasks" aria-selected="false">Задачи</button>
-      <button class="tab" role="tab" data-tab="kanban" aria-selected="false">Канбан</button>
       <button class="tab" role="tab" data-tab="comp" aria-selected="false">Состав проекта</button>
       <button class="tab" role="tab" data-tab="plan" aria-selected="false">График проекта</button>
       <button class="tab" role="tab" data-tab="gantt" aria-selected="false">Ганта задач</button>
@@ -58,7 +57,7 @@
         <label>Дней<input class="ctl num" id="q-days" type="number" min="0" step="1" placeholder="—"></label>
         <button type="button" class="btn primary" id="q-save">Поставить</button>
       </div>
-      <p class="note">Если срок пустой, задача получает статус «Новая» и ждёт, когда сотрудник назовёт срок. Подробная форма: кнопка «+ Задача» вверху.</p>
+      <p class="note">Без срока — статус «Новая». Полная форма — «+ Задача».</p>
     </div>
     <div class="card">
       <div class="card-h"><h2>Все задачи <span class="note" id="t-count"></span></h2>
@@ -68,7 +67,7 @@
         </div>
       </div>
       <div class="scroll"><table id="t-table"><thead><tr></tr></thead><tbody></tbody></table></div>
-      <p class="note">Нажмите на строку, чтобы изменить задачу, записать процент, принять работу или вернуть на доработку.</p>
+      <p class="note">Нажмите на строку, чтобы открыть задачу.</p>
     </div>
   </section>
 

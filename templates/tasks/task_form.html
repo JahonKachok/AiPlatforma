@@ -10,12 +10,17 @@
       <div class="{% if field.name == 'title' or field.name == 'description' %}sm:col-span-2{% endif %}">
         <label class="field-label inline-flex items-center" for="{{ field.id_for_label }}">{% include "partials/field_label_info.html" %}</label>
         {{ field }}
+        {% if field.name == 'assignee' %}
+          <p id="task-assignee-hint" class="mt-1 text-xs text-gray-500 dark:text-gray-400"
+             data-msg-members="{% trans 'Only employees assigned in the project composition are shown.' %}"
+             data-msg-empty="{% trans 'No employees are assigned in this project composition yet. Add them in Projects → Project composition.' %}"></p>
+        {% endif %}
         {% if field.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ field.errors|join:", " }}</p>{% endif %}
       </div>
       {% if field.name == 'project' %}
         <div>
           <label class="field-label" for="task-object-select">{% trans "Object" %}</label>
-          <select id="task-object-select" class="field-input">
+          <select id="task-object-select" class="field-input" data-placeholder="{% trans 'Select an object...' %}">
             <option value="">{% trans "Select an object..." %}</option>
           </select>
         </div>
@@ -36,5 +41,5 @@
 {% endblock %}
 {% block extra_scripts %}
   <script>window.TASK_FORM_CASCADE = {{ task_form_cascade_json|safe }};</script>
-  <script src="{% static 'js/task-form-cascade.js' %}"></script>
+  <script src="{% static 'js/task-form-cascade.js' %}?v=3"></script>
 {% endblock %}

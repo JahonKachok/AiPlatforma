@@ -5,7 +5,9 @@
 {% block content %}
 {% pult_tabs group %}
 {# Pult o'z CSS'i (global table/button/body uslublari) bilan keladi, shuning uchun u platforma dizaynini buzmasligi uchun iframe ichida ochiladi. ?embed — faqat shu bo'lim, Pult'ning o'z tablarisiz. #}
-<iframe src="{% url 'pult:app' %}?embed=1#{{ section }}" title="{{ label }}"
+{# ?new=1 — «Новая задача» oynasini darhol ochish (Задачи sahifasidagi tugmadan) #}
+<iframe src="{% url 'pult:app' %}?embed=1{% if request.GET.new %}&amp;new=1{% if request.GET.kind %}&amp;kind={{ request.GET.kind|urlencode }}{% endif %}{% endif %}#{{ section }}" title="{{ label }}"
         class="block w-full rounded-lg border border-gray-200 dark:border-gray-700"
         style="height: calc(100vh - 11rem); min-height: 32rem;"></iframe>
+{% if request.GET.new %}<script>history.replaceState(null, "", location.pathname);</script>{% endif %}
 {% endblock %}

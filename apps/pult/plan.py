@@ -14,10 +14,11 @@ from apps.projects.models import Project
 from apps.projects.permissions import ensure_project_member, visible_projects_for
 from apps.tasks.models import Task
 
-from .models import CipherRule, Contract, DisciplineConfig, Flow, PlanRow, PultSettings, StageConfig
+from .models import CipherRule, Contract, DisciplineConfig, Flow, PlanRow, PultSettings, StageConfig, TaskWorkflow
 from .models import WorkflowStatus as WS
 from .services import (
-    BOSS, GIP, PultError, ensure_workflow, get_task, log_status, pult_role, resolve_person, save_workflow,
+    BOSS, DESIGN_STAGE, GIP, PultError, ensure_workflow, get_task, log_status, open_section_task, pult_role,
+    resolve_person, save_workflow,
 )
 
 # JSON kaliti (pult.js PF) -> model maydoni
@@ -151,9 +152,13 @@ def save_plan(user, rows, version):
             raise PultError(f"Нет прав менять состав проекта «{project.name}».", 403)
 
     PlanRow.objects.filter(pk__in=[rid for rid, r in existing.items() if rid not in incoming and r.project_id in changed]).delete()
+    index = discipline_index()
     for rid, (project, values) in incoming.items():
         if project.pk not in changed:
             continue
+        if values["code"] and values["kind"] in ("Раздел", ""):
+            # «АР» va «AR» — bitta fan: kod ma'lumotnomadagi ko'rinishda saqlanadi
+            values["code"] = canonical_code(values["code"], index)
         row = existing.get(rid) or PlanRow(pk=rid)
         row.project = project
         for field, value in values.items():
@@ -161,13 +166,137 @@ def save_plan(user, rows, version):
         row.save()
     if changed:
         PultSettings.objects.filter(pk=s.pk).update(plan_version=s.plan_version + 1)
+        sync_disciplines(values for project, values in incoming.values() if project.pk in changed)
+        drop_orphan_drafts(changed)
     return len(changed)
+
+
+def drop_orphan_drafts(project_ids):
+    """Состав'dan o'chirilgan yoki ijrochisi olib tashlangan bo'limlarning
+    qoralamalari (ТЗ hali berilmagan) «Черновик» ustunida qolib ketmasin.
+    ТЗ berilgan vazifalarga tegilmaydi — ularni «Задачи и договоры» bekor qiladi."""
+    owners = {pk: owner.strip() for pk, owner in PlanRow.objects.filter(project_id__in=project_ids).values_list("pk", "owner")}
+    drafts = TaskWorkflow.objects.filter(
+        task__project_id__in=project_ids, flow=Flow.PROJECT, status=WS.DRAFT, section__isnull=False,
+        task__status=Task.Status.NEW,
+    ).select_related("task")
+    removed = 0
+    for wf in drafts:
+        if not owners.get(wf.section):
+            wf.task.delete()
+            removed += 1
+    return removed
+
+
+# ---------------------------------------------------------------- who is in a project's composition
+
+def composition_members(projects):
+    """Loyiha tarkibiga biriktirilgan xodimlar: {project_id(str): {user_id(str), …}}.
+
+    Ikki manba: Pult «Состав проекта» bo'limlarining ijrochilari (PlanRow.owner —
+    «Иванов И., Петров П.» ko'rinishida ismlar) va platforma ustasidagi
+    obyekt/fan ijrochilari (SubObjectDiscipline.assignee)."""
+    import re
+
+    from django.contrib.auth import get_user_model
+
+    from apps.projects.models import SubObjectDiscipline
+
+    by_name = {}
+    for uid, name in get_user_model().objects.filter(is_active=True).values_list("pk", "full_name"):
+        if name:
+            by_name.setdefault(name.strip(), []).append(str(uid))
+    out = {}
+    rows = PlanRow.objects.filter(project__in=projects).exclude(owner="").values_list("project_id", "owner")
+    for project_id, owner in rows:
+        for name in re.split(r"\s*[,;]\s*", owner):
+            for uid in by_name.get(name.strip(), []):
+                out.setdefault(str(project_id), set()).add(uid)
+    links = SubObjectDiscipline.objects.filter(
+        sub_object__project__in=projects, assignee__isnull=False, assignee__is_active=True,
+    ).values_list("sub_object__project_id", "assignee_id")
+    for project_id, uid in links:
+        out.setdefault(str(project_id), set()).add(str(uid))
+    return out
 
 
 # ---------------------------------------------------------------- reference data
 
 DEFAULT_STAGES = [("Проектирование", 70, None, "Специалист", 1), ("Смета", 10, 5, "Сметчик", 2),
                   ("Оформление", 15, 3, "Оформитель", 3), ("Печать", 5, 1, "Печать", 4)]
+
+
+# Kirill harflarini lotinga o'girish (АР → AR, КЖ → KJ). Fanlar ro'yxati kodda
+# saqlanmaydi — faqat DB'da (accounts.Discipline + DisciplineConfig.latin_code).
+_TRANSLIT = dict(zip("АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯЎҚҒҲ",
+                     ["A", "B", "V", "G", "D", "E", "E", "J", "Z", "I", "Y", "K", "L", "M", "N", "O", "P", "R", "S", "T",
+                      "U", "F", "X", "TS", "CH", "SH", "SH", "", "Y", "", "E", "YU", "YA", "O", "Q", "G", "H"]))
+
+
+def latin_code(code):
+    code = str(code or "").strip().upper()
+    out = "".join(_TRANSLIT.get(ch, ch) for ch in code)
+    return "".join(ch for ch in out if ch.isascii() and ch.isalnum())[:10]
+
+
+def discipline_index():
+    """Har qanday yozilish (aniq kod, lotin ko'rinishi, sozlamadagi lotin kodi) ->
+    ma'lumotnomadagi fan kodi. «АР» (kirill) va «AR» (lotin) bitta fanga tushadi;
+    КЖ ni KR ga bog'lash uchun KR sozlamasida lotin kodini «KJ» qilib qo'yish kifoya."""
+    index = {}
+    disciplines = list(Discipline.objects.select_related("pult_config").order_by("code"))
+    for d in disciplines:
+        index.setdefault(("=", d.code.upper()), d.code)
+    for d in disciplines:
+        cfg = getattr(d, "pult_config", None)
+        for key in (latin_code(d.code), latin_code(cfg.latin_code) if cfg else ""):
+            if key:
+                index.setdefault(key, d.code)
+    return index
+
+
+def canonical_code(code, index=None):
+    code = str(code or "").strip().upper()
+    if not code:
+        return code
+    index = discipline_index() if index is None else index
+    return index.get(("=", code)) or index.get(latin_code(code)) or code
+
+
+def ensure_discipline_config(discipline):
+    """Har bir fan (qayerda qo'shilmasin: «Пользователи», admin yoki Состав) Pultda
+    ustun, tartib va shifr kodi bilan chiqishi uchun sozlama yozuvi."""
+    order = (DisciplineConfig.objects.aggregate(m=Max("order"))["m"] or 0) + 1
+    cfg, _ = DisciplineConfig.objects.get_or_create(
+        discipline=discipline, defaults={"order": order, "latin_code": latin_code(discipline.code)},
+    )
+    return cfg
+
+
+def _section_name(code, name):
+    name = str(name or "").strip()
+    for sep in (".", " —", " -", ":"):
+        if name.upper().startswith(code + sep):
+            name = name[len(code) + len(sep):].strip()
+            break
+    return (name or code)[:100]
+
+
+def sync_disciplines(row_values):
+    """Состав'da paydo bo'lgan bo'lim kodlari «Пользователи → Дисциплины» ro'yxatiga ham
+    qo'shiladi — ikkala joyda bitta ma'lumotnoma."""
+    found = {}
+    for v in row_values:
+        code = str(v.get("code") or "").strip().upper()
+        if v.get("kind") == "Раздел" and code and len(code) <= 20:
+            found.setdefault(code, _section_name(code, v.get("name")))
+    if not found:
+        return
+    index = discipline_index()
+    for code, name in found.items():
+        if ("=", code) not in index and latin_code(code) not in index:
+            Discipline.objects.create(code=code, name=name)  # sozlamani signal yaratadi
+            index = discipline_index()
 
 
 def disciplines_json():
@@ -210,15 +339,19 @@ def add_discipline(user, data):
     name = str(data.get("name") or "").strip()[:100]
     if not code or not name:
         raise PultError("Нужны шифр и наименование.")
-    if Discipline.objects.filter(code=code).exists():
-        raise PultError(f"Шифр {code} уже есть.")
+    existing = canonical_code(code)
+    if Discipline.objects.filter(code__iexact=existing).exists():
+        raise PultError(f"Шифр {code} уже есть" + (f" (как {existing})." if existing != code else "."))
     order = (DisciplineConfig.objects.aggregate(m=Max("order"))["m"] or 0) + 1
     discipline = Discipline.objects.create(code=code, name=name)
     try:
         duration = max(1, int(data.get("dur") or 10))
     except (TypeError, ValueError):
         duration = 10
-    DisciplineConfig.objects.create(discipline=discipline, duration=duration, links=str(data.get("links") or "")[:255], order=order)
+    # signal allaqachon sozlama yaratgan bo'lishi mumkin — ustidan yozamiz
+    DisciplineConfig.objects.update_or_create(discipline=discipline, defaults={
+        "duration": duration, "links": str(data.get("links") or "")[:255], "order": order,
+    })
     return discipline
 
 
@@ -337,12 +470,17 @@ def apply_sync(user, data, finance_allowed):
         if section not in plan:
             raise PultError(f"Раздел {section} не найден в составе проекта.")
         assignee = resolve_person(item.get("assignee"))
+        existing = open_section_task(project, section, DESIGN_STAGE)
+        if existing is not None:
+            # bo'limga «Задачи»dan vazifa allaqachon qo'yilgan — dublikat yaratilmaydi
+            task_map[item.get("id")] = existing.number
+            continue
         task = Task.objects.create(
             title=str(item.get("task") or "").strip()[:255] or plan[section].name, project=project,
             assignee=assignee, creator=user, description=str(item.get("comment") or "") or None,
         )
         wf = ensure_workflow(task)
-        wf.status, wf.flow, wf.stage, wf.section = WS.DRAFT, Flow.PROJECT, "Проектирование", section
+        wf.status, wf.flow, wf.stage, wf.section = WS.DRAFT, Flow.PROJECT, DESIGN_STAGE, section
         wf.days = int(item["days"]) if str(item.get("days") or "").isdigit() else None
         wf.amount = float(item["amount"]) if item.get("amount") not in (None, "") else None
         save_workflow(task, wf)

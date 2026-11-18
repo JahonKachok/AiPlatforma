@@ -3,6 +3,26 @@ from django.utils import timezone
 
 register = template.Library()
 
+
+@register.simple_tag
+def static_v(path):
+    """{% static %} + fayl o'zgarish vaqti: yangi JS/CSS chiqqanda brauzer
+    eski nusxani keshdan olmaydi (Cmd+Shift+R kerak bo'lmaydi)."""
+    import os
+
+    from django.contrib.staticfiles import finders
+    from django.templatetags.static import static
+
+    url = static(path)
+    found = finders.find(path)
+    if not found:
+        return url
+    try:
+        version = int(os.path.getmtime(found))
+    except OSError:
+        return url
+    return f"{url}{'&' if '?' in url else '?'}v={version}"
+
 _AVATAR_PALETTE = [
     "#f87171", "#fb923c", "#fbbf24", "#4ade80",
     "#22d3ee", "#60a5fa", "#a78bfa", "#f472b6",

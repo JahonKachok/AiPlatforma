@@ -2,16 +2,17 @@
 {% load i18n static core_extras task_extras pult_nav %}
 {% block title %}{% trans "Tasks" %}{% endblock %}
 {% block page_title %}{% trans "Tasks" %}{% endblock %}
-{% block page_help %}{% trans "Manage tasks on a kanban board split into status columns, assign them to staff, and track deadlines." as help_text %}{% with text=help_text %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/kanban.css' %}">{% endblock %}
+{% block page_help %}{% trans "One board for all tasks: project composition sections and non-standard tasks move through the same stages. Drag a card to another column to change its stage." as help_text %}{% with text=help_text %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static_v 'css/kanban.css' %}">{% endblock %}
 {% block content %}
 {% pult_tabs "tasks" %}
-{% include "partials/stat_cards.html" %}
+<div data-board-stats>{% include "partials/stat_cards.html" %}</div>
 <form method="get" class="hidden">{% csrf_token %}</form>
 
 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
   <form method="get" class="flex flex-wrap items-center gap-2">
     <input type="hidden" name="view" value="{{ view }}">
+    <input type="hidden" name="kind" value="{{ kind }}">
     <select name="project" onchange="this.form.submit()" class="field-input w-auto">
       <option value="">{% trans "All projects" %}</option>
       {% for project in projects %}
@@ -39,11 +40,19 @@
       {% endfor %}
     </select>
   </form>
-  <div class="flex items-center gap-2">
-    <a href="?view=kanban&project={{ project_id }}&object={{ object_id }}&subobject={{ subobject_id }}&assignee={{ assignee_id }}" class="btn {% if view == 'kanban' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">{% trans "Kanban" %}</a>
-    <a href="?view=list&project={{ project_id }}&object={{ object_id }}&subobject={{ subobject_id }}&assignee={{ assignee_id }}" class="btn {% if view == 'list' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">{% trans "List" %}</a>
-    <a href="?view=calendar&project={{ project_id }}&object={{ object_id }}&subobject={{ subobject_id }}&assignee={{ assignee_id }}" class="btn {% if view == 'calendar' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">{% trans "Calendar" %}</a>
-    <a href="{% url 'tasks:create' %}" class="btn btn-primary btn-md">{% trans "New task" %}</a>
+  <div class="flex flex-wrap items-center gap-2">
+    {# «Проектные» (Состав bo'limlari) / «Нестандартные» — avvalgi «Канбан разделов» shu yerda #}
+    <div class="kb-seg" role="group" aria-label="{% trans 'Task type' %}">
+      {% for value, label in kinds %}
+        <a href="?view={{ view }}&kind={{ value }}&project={{ project_id }}&object={{ object_id }}&subobject={{ subobject_id }}&assignee={{ assignee_id }}"
+           class="kb-seg-btn{% if kind == value %} is-active{% endif %}"{% if kind == value %} aria-current="true"{% endif %}>{{ label }}</a>
+      {% endfor %}
+    </div>
+    <a href="?view=kanban&kind={{ kind }}&project={{ project_id }}&object={{ object_id }}&subobject={{ subobject_id }}&assignee={{ assignee_id }}" class="btn {% if view == 'kanban' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">{% trans "Kanban" %}</a>
+    <a href="?view=list&kind={{ kind }}&project={{ project_id }}&object={{ object_id }}&subobject={{ subobject_id }}&assignee={{ assignee_id }}" class="btn {% if view == 'list' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">{% trans "List" %}</a>
+    <a href="?view=calendar&kind={{ kind }}&project={{ project_id }}&object={{ object_id }}&subobject={{ subobject_id }}&assignee={{ assignee_id }}" class="btn {% if view == 'calendar' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">{% trans "Calendar" %}</a>
+    {# «Моя работа»dagi bilan bitta oyna (Pult «+ Задача»): turi — Проектная / Нестандартная #}
+    <a href="{% url 'pult:section_work' %}?new=1{% if kind %}&amp;kind={{ kind }}{% endif %}" class="btn btn-primary btn-md">{% trans "New task" %}</a>
   </div>
 </div>
 
@@ -52,24 +61,27 @@
     <table class="w-full text-left text-sm">
       <thead class="border-b border-gray-200 text-gray-500 dark:border-gray-700 dark:text-gray-400">
         <tr>
-          <th class="px-4 py-2">{% trans "Task" %}</th><th class="px-4 py-2">{% trans "Project" %}</th>
-          <th class="px-4 py-2">{% trans "Assignee" %}</th><th class="px-4 py-2">{% trans "Status" %}</th>
+          <th class="px-4 py-2">№</th><th class="px-4 py-2">{% trans "Task" %}</th><th class="px-4 py-2">{% trans "Project" %}</th>
+          <th class="px-4 py-2">{% trans "Assignee" %}</th><th class="px-4 py-2">{% trans "Stage" %}</th>
           <th class="px-4 py-2">{% trans "Priority" %}</th><th class="px-4 py-2">{% trans "Deadline" %}</th>
         </tr>
       </thead>
       <tbody>
-        {% for task in tasks %}
+        {% for row in rows %}
+          {% with task=row.task %}
           <tr class="cursor-pointer border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700"
               onclick="window.location='{% url 'tasks:detail' task.pk %}'">
-            <td class="px-4 py-2">{{ task.title }}</td>
+            <td class="px-4 py-2 text-gray-500">{{ row.number }}</td>
+            <td class="px-4 py-2">{{ task.title }}{% if row.code %} <span class="kb-badge kb-badge-project">{{ row.code }}</span>{% elif not row.project_kind %} <span class="kb-badge">{% trans "Non-standard" context "task badge" %}</span>{% endif %}</td>
             <td class="px-4 py-2">{{ task.project.name }}</td>
             <td class="px-4 py-2">{{ task.assignee|default:"—" }}</td>
-            <td class="px-4 py-2"><span class="{{ task.status|task_status_badge }}">{{ task.get_status_display }}</span></td>
+            <td class="px-4 py-2">{{ row.column }}</td>
             <td class="px-4 py-2"><span class="{{ task.priority|task_priority_badge }}">{{ task.get_priority_display }}</span></td>
             <td class="px-4 py-2 {% if task.is_overdue %}text-red-500{% endif %}">{{ task.deadline|default:"—" }}</td>
           </tr>
+          {% endwith %}
         {% empty %}
-          <tr><td colspan="6" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">{% trans "No tasks found." %}</td></tr>
+          <tr><td colspan="7" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">{% trans "No tasks found." %}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -78,9 +90,9 @@
 {% elif view == "calendar" %}
   <div class="card p-4">
     <div class="mb-4 flex items-center justify-between">
-      <a href="?view=calendar&year={{ prev_year }}&month={{ prev_month }}&project={{ project_id }}&object={{ object_id }}&subobject={{ subobject_id }}&assignee={{ assignee_id }}" class="btn btn-ghost btn-sm">←</a>
+      <a href="?view=calendar&kind={{ kind }}&year={{ prev_year }}&month={{ prev_month }}&project={{ project_id }}&object={{ object_id }}&subobject={{ subobject_id }}&assignee={{ assignee_id }}" class="btn btn-ghost btn-sm">←</a>
       <h2 class="font-semibold">{{ current_month|date:"F Y" }}</h2>
-      <a href="?view=calendar&year={{ next_year }}&month={{ next_month }}&project={{ project_id }}&object={{ object_id }}&subobject={{ subobject_id }}&assignee={{ assignee_id }}" class="btn btn-ghost btn-sm">→</a>
+      <a href="?view=calendar&kind={{ kind }}&year={{ next_year }}&month={{ next_month }}&project={{ project_id }}&object={{ object_id }}&subobject={{ subobject_id }}&assignee={{ assignee_id }}" class="btn btn-ghost btn-sm">→</a>
     </div>
     <div class="ap-cal-scroll">
       <div class="grid grid-cols-7 gap-1 text-xs">
@@ -97,33 +109,51 @@
   </div>
 
 {% else %}
-  <div data-kanban-board class="kb-board" data-msg-comment="{% trans 'Comment (required):' %}">
-    {% for value, label, column_tasks in columns %}
+  <div data-kanban-board class="kb-board kb-board--stages"
+       data-msg-delete="{% trans 'Delete this task? This cannot be undone.' %}"
+       data-msg-error="{% trans 'Could not move the task.' %}"
+       data-msg-delete-error="{% trans 'Could not delete the task.' %}">
+    {% for value, label, hint, cards in columns %}
       <div data-kanban-column="{{ value }}" class="kb-column">
-        <h3 class="kb-col-header">
+        <h3 class="kb-col-header" title="{{ hint }}">
           <span class="kb-col-dot"></span>
           {{ label }}
-          <span class="kb-col-count" data-kanban-count>{{ column_tasks|length }}</span>
+          <span class="kb-col-count" data-kanban-count>{{ cards|length }}</span>
         </h3>
+        <p class="kb-col-hint">{{ hint }}</p>
         <div data-kanban-cards class="kb-cards">
-          {% for task in column_tasks %}
-            <div data-task-card="{{ task.pk }}" data-status-url="{% url 'tasks:update_status' task.pk %}"
+          {% for c in cards %}
+            {% with task=c.task %}
+            <div data-task-card="{{ task.pk }}" data-move-url="{% url 'tasks:board_move' task.pk %}"
                  data-detail-url="{% url 'tasks:detail' task.pk %}" data-priority="{{ task.priority }}"
-                 data-allowed-statuses="{{ task_allowed_targets|get_item:task.pk|join:',' }}"
-                 draggable="true" class="kb-card">
+                 {% if c.can_move %}draggable="true"{% endif %} tabindex="0"
+                 class="kb-card{% if not c.can_move %} kb-card-locked{% endif %}">
+              <div class="kb-card-top">
+                <span class="kb-num">№{{ c.number }}</span>
+                {% if c.code %}<span class="kb-badge kb-badge-project" title="{% trans 'Project composition section' %}">{{ c.code }}</span>
+                {% elif c.project_kind %}<span class="kb-badge kb-badge-project">{% trans "Project" context "task badge" %}</span>
+                {% else %}<span class="kb-badge">{% trans "Non-standard" context "task badge" %}</span>{% endif %}
+                {% if c.can_delete %}
+                  <button type="button" class="kb-del" data-delete-url="{% url 'tasks:delete' task.pk %}"
+                          title="{% trans 'Delete' %}" aria-label="{% trans 'Delete' %}: {{ task.title }}">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>
+                  </button>
+                {% endif %}
+              </div>
               <p class="kb-card-title">{{ task.title }}</p>
               <span class="kb-card-project">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
                 <span>{{ task.project.name }}</span>
               </span>
+              {% if c.note %}<p class="kb-card-note">{{ c.note }}</p>{% endif %}
               <div class="kb-card-footer">
-                <div class="flex items-center gap-1.5">
+                <div class="flex min-w-0 items-center gap-1.5">
                   {% if task.assignee %}
                     <span class="kb-avatar" title="{{ task.assignee.full_name }}">{{ task.assignee.full_name|slice:":1" }}</span>
+                    <span class="kb-assignee">{{ task.assignee.full_name }}</span>
                   {% else %}
                     <span class="kb-avatar kb-avatar-empty" title="{% trans 'Unassigned' %}">?</span>
                   {% endif %}
-                  <span class="kb-priority-label">{{ task.get_priority_display }}</span>
                 </div>
                 {% if task.deadline %}
                   <span class="kb-deadline {% if task.is_overdue %}kb-overdue{% endif %}">
@@ -133,15 +163,16 @@
                 {% endif %}
               </div>
             </div>
-          {% empty %}
-            <div class="kb-empty" data-kanban-empty>{% trans "No tasks" %}</div>
+            {% endwith %}
           {% endfor %}
+          <div class="kb-empty" data-kanban-empty{% if cards %} style="display:none"{% endif %}>{% trans "No tasks" %}</div>
         </div>
       </div>
     {% endfor %}
   </div>
+  <div class="kb-toast" data-board-toast role="status" aria-live="polite" hidden></div>
 {% endif %}
 {% endblock %}
 {% block extra_scripts %}
-<script src="{% static 'js/kanban.js' %}"></script>
+<script src="{% static_v 'js/task-board.js' %}"></script>
 {% endblock %}

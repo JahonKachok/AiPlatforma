@@ -6,6 +6,7 @@ from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.views.decorators.cache import never_cache
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_GET, require_POST
 
@@ -31,6 +32,8 @@ def pult_app(request):
     # Iframe ichidan boshqa bo'limga o'tish (masalan «Все задачи» tugmasi)
     # butun sahifani o'sha bo'lim menyusiga olib boradi.
     links = {s: reverse(f"pult:{section_url_name(s)}") for s in SECTIONS}
+    # «Канбан» endi «Задачи» doskasida
+    links["kanban"] = reverse("tasks:board") + "?kind=project"
     return render(request, "pult/app.html", {"links": links})
 
 
@@ -54,6 +57,7 @@ def api(view):
     return wrapper
 
 
+@never_cache
 @require_GET
 @api
 def api_data(request, body):
@@ -81,6 +85,13 @@ def api_action(request, body, number):
     params["expect_status"] = body.get("expect_status")
     _task, wf = services.run_action(request.user, number, str(body.get("action") or ""), params)
     return {"id": number, "status": wf.status}
+
+
+@require_POST
+@api
+def api_delete(request, body, number):
+    services.delete_task(request.user, number)
+    return {"id": number}
 
 
 def api_plan(request, *args, **kwargs):

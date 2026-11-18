@@ -420,3 +420,45 @@
   .pd-card, .pd-mini-card, .pd-bar > i, .pd-ring-bar { transition: none; }
   .pd-card-hover:hover, .pd-mini-card:hover { transform: none; }
 }
+
+/* ---------- Исходные файлы: ixcham ro'yxat (har bir tur — bitta qator) ---------- */
+.pd-src-hint { margin: -0.25rem 0 0.75rem; font-size: 0.75rem; color: var(--pd-faint); }
+.pd-src-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 0.5rem; }
+.pd-src {
+  min-width: 0; padding: 0.5rem 0.5rem 0.5rem 0.75rem; border: 1px solid var(--pd-border); border-radius: 0.5rem;
+  background: var(--pd-bg-soft); transition: border-color .15s, background-color .15s;
+}
+.pd-src:hover { border-color: var(--pd-border-strong); }
+.pd-src.has-files { border-left: 3px solid var(--pd-ok); padding-left: calc(0.75rem - 2px); }
+.pd-src.upload-drop-active { border-color: var(--pd-accent); border-style: dashed; background: var(--pd-accent-soft); }
+.pd-src-head { display: flex; align-items: center; gap: 0.5rem; min-height: 1.75rem; }
+.pd-src-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.8125rem; font-weight: 500; color: var(--pd-text); }
+.pd-src-count {
+  flex: none; min-width: 1.25rem; padding: 0 0.375rem; border-radius: 999px; text-align: center;
+  font-size: 0.6875rem; font-weight: 600; line-height: 1.25rem; font-variant-numeric: tabular-nums;
+  color: var(--pd-ok); background: var(--pd-ok-soft);
+}
+.pd-src-count[hidden] { display: none; }
+.pd-src-add {
+  flex: none; display: inline-flex; align-items: center; gap: 0.25rem; height: 1.75rem; padding: 0 0.5rem;
+  border: 1px solid var(--pd-border-strong); border-radius: 0.375rem; cursor: pointer;
+  font-size: 0.75rem; font-weight: 500; color: var(--pd-muted); background: var(--pd-bg);
+  transition: color .15s, border-color .15s, background-color .15s;
+}
+.pd-src-add svg { width: 0.75rem; height: 0.75rem; }
+.pd-src-add:hover, .pd-src-add:focus-within { color: var(--pd-accent); border-color: var(--pd-accent); background: var(--pd-accent-soft); }
+.pd-src-files { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.375rem; }
+.pd-src-files:empty { display: none; }
+.pd-src-file {
+  display: inline-flex; align-items: center; gap: 0.25rem; max-width: 100%; padding: 0.125rem 0.125rem 0.125rem 0.5rem;
+  border: 1px solid var(--pd-border); border-radius: 0.375rem; background: var(--pd-bg); font-size: 0.75rem;
+}
+.pd-src-file a { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--pd-accent); text-decoration: none; }
+.pd-src-file a:hover { text-decoration: underline; }
+.pd-src-file button {
+  flex: none; width: 1.25rem; height: 1.25rem; border: 0; border-radius: 0.25rem; background: none; cursor: pointer;
+  font-size: 0.625rem; line-height: 1; color: var(--pd-faint);
+}
+.pd-src-file button:hover { color: var(--pd-crit); background: var(--pd-crit-soft); }
+.pd-src-err { margin: 0.25rem 0 0; font-size: 0.75rem; color: var(--pd-crit); }
+@media (prefers-reduced-motion: reduce) { .pd-src, .pd-src-add { transition: none; } }

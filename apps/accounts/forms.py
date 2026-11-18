@@ -285,3 +285,19 @@ class DisciplineForm(StyledFormMixin, forms.ModelForm):
             "code": _("A short unique code, e.g. AR, KR."),
             "name": _("The discipline's full name."),
         }
+
+    def clean_code(self):
+        """«АР» (kirill) va «AR» (lotin) — bitta fan: ikkinchisi dublikat sifatida rad etiladi,
+        aks holda Состав matritsasida ikki ustun paydo bo'lardi."""
+        from apps.pult.plan import canonical_code
+
+        code = (self.cleaned_data.get("code") or "").strip().upper()
+        existing = canonical_code(code)
+        clash = Discipline.objects.filter(code__iexact=existing)
+        if self.instance.pk:
+            clash = clash.exclude(pk=self.instance.pk)
+        if clash.exists():
+            raise forms.ValidationError(
+                _("Discipline %(code)s already exists as %(existing)s.") % {"code": code, "existing": existing}
+            )
+        return code

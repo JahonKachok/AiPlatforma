@@ -72,22 +72,38 @@
     sectionSelect.value = stillPresent ? current : "";
   }
 
+  // Ijrochi ro'yxati: faqat loyiha tarkibiga biriktirilganlar, bo'lim tanlansa —
+  // shu bo'lim fani bo'yicha. Avval tanlangan odam (tahrirlashda) doim qoladi.
+  var hint = document.getElementById("task-assignee-hint");
+  var projectMembers = data.projectMembers || {};
+  var currentDisciplineId = null;
+
+  function setHint(key) {
+    if (!hint) return;
+    hint.textContent = key ? hint.dataset[key] || "" : "";
+  }
+
   function filterAssigneeOptions(disciplineId) {
+    if (disciplineId !== undefined) currentDisciplineId = disciplineId;
     var current = assigneeSelect.value;
-    if (!disciplineId) {
-      allAssigneeOptions.forEach(function (opt) { assigneeSelect.appendChild(opt); });
-      assigneeSelect.value = current;
-      return;
+    var members = {};
+    (projectMembers[projectSelect.value] || []).forEach(function (id) { members[id] = true; });
+    var byDiscipline = null;
+    if (currentDisciplineId) {
+      byDiscipline = {};
+      (data.disciplineUsers[currentDisciplineId] || []).forEach(function (u) { byDiscipline[u.id] = true; });
     }
-    var allowedIds = {};
-    (data.disciplineUsers[disciplineId] || []).forEach(function (u) { allowedIds[u.id] = true; });
     assigneeSelect.innerHTML = "";
     allAssigneeOptions.forEach(function (opt) {
-      if (!opt.value || allowedIds[opt.value] || opt.value === current) {
-        assigneeSelect.appendChild(opt);
-      }
+      if (!opt.value) { assigneeSelect.appendChild(opt); return; }
+      var fits = members[opt.value] && (!byDiscipline || byDiscipline[opt.value]);
+      // tanlangan odam (masalan, tahrirlanayotgan vazifaning ijrochisi) yo'qolib qolmasin
+      if (fits || opt.value === current) assigneeSelect.appendChild(opt);
     });
     assigneeSelect.value = current;
+    if (!projectSelect.value) setHint(null);
+    else if (!Object.keys(members).length) setHint("msgEmpty");
+    else setHint("msgMembers");
   }
 
   // --- initial state (handles the edit form, which loads with values already set) ---
@@ -104,6 +120,8 @@
 
   // --- cascading behavior ---
   projectSelect.addEventListener("change", function () {
+    // boshqa loyiha tarkibida yo'q ijrochi tanlovdan olib tashlanadi
+    if ((projectMembers[projectSelect.value] || []).indexOf(assigneeSelect.value) === -1) assigneeSelect.value = "";
     populateObjectSelect(projectSelect.value, null);
     populatePodSelect(null, null);
     filterSectionOptions(null);

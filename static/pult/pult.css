@@ -116,6 +116,8 @@ tr.click { cursor: pointer; } tr.click:hover td { background: var(--panel-2); }
 .modal h3 { margin: 0; font-size: 18px; }
 .form { display: grid; gap: var(--s3); grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .form .full { grid-column: 1 / -1; }
+.pick-person { display: grid; gap: var(--s1); min-width: 0; }
+.pick-person .note { font-size: 11px; }
 @media (max-width: 560px) { .form { grid-template-columns: 1fr; } }
 textarea.ctl { min-height: 4.5rem; resize: vertical; }
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }

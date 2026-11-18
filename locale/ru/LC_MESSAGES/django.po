@@ -4723,3 +4723,78 @@ msgstr "Создать проект"
 #: templates/projects/project_form.html
 msgid "Responsible (GIP)"
 msgstr "Ответственный (ГИП)"
+
+msgid "Integrations: tokens and keys"
+msgstr "Интеграции: токены и ключи"
+
+msgid "Configure"
+msgstr "Настроить"
+
+msgid "Values entered here override the .env file. Secret values are stored encrypted and are never shown in full. Leave a secret field empty to keep the current value."
+msgstr "Значения, введённые здесь, имеют приоритет над файлом .env. Секретные значения хранятся в зашифрованном виде и никогда не показываются полностью. Оставьте секретное поле пустым, чтобы сохранить текущее значение."
+
+msgid "Admin panel"
+msgstr "Админ-панель"
+
+msgid "Not set"
+msgstr "Не задано"
+
+msgid "Current:"
+msgstr "Текущее:"
+
+msgid "Enter value"
+msgstr "Введите значение"
+
+msgid "Clear (use the .env value)"
+msgstr "Очистить (использовать значение из .env)"
+
+msgid "Settings saved."
+msgstr "Настройки сохранены."
+
+msgid "Bot token"
+msgstr "Токен бота"
+
+msgid "From @BotFather. The bot restarts with the new token within a minute."
+msgstr "Выдаётся @BotFather. Бот перезапустится с новым токеном в течение минуты."
+
+msgid "Bot username"
+msgstr "Имя бота (username)"
+
+msgid "Without @, e.g. gastec_bot"
+msgstr "Без @, например gastec_bot"
+
+msgid "Gemini API key"
+msgstr "API-ключ Gemini"
+
+msgid "Claude (Anthropic) API key"
+msgstr "API-ключ Claude (Anthropic)"
+
+msgid "AI provider"
+msgstr "AI-провайдер"
+
+msgid "Automatic: Gemini if its key is set, otherwise Claude."
+msgstr "Автоматически: Gemini, если задан его ключ, иначе Claude."
+
+msgid "Automatic"
+msgstr "Автоматически"
+
+msgid "Gemini model"
+msgstr "Модель Gemini"
+
+msgid "Gemini fallback model"
+msgstr "Резервная модель Gemini"
+
+msgid "Claude model"
+msgstr "Модель Claude"
+
+msgid "Invalid bot token format (expected 123456:ABC...)."
+msgstr "Неверный формат токена бота (ожидается 123456:ABC...)."
+
+msgid "Invalid bot username."
+msgstr "Неверное имя бота."
+
+msgid "Invalid choice."
+msgstr "Неверный выбор."
+
+msgid "Value must not contain spaces."
+msgstr "Значение не должно содержать пробелов."

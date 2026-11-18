@@ -278,3 +278,68 @@ class WwwRedirectTests(TestCase):
         with self.settings(ALLOWED_HOSTS=["example.com"]):
             response = self.client.get("/", HTTP_HOST="www.evil.example")
         self.assertEqual(response.status_code, 400)
+
+
+class IntegrationSettingsTests(TestCase):
+    """Admin paneldan kiritiladigan tokenlar: shifrlangan saqlanadi, .env dan
+    ustun turadi, to'liq ko'rsatilmaydi va faqat adminga ochiq."""
+
+    TOKEN = "123456789:AAH" + "x" * 32
+
+    def setUp(self):
+        from . import runtime_config
+        self.rc = runtime_config
+        self.admin = User.objects.create_user(
+            email="intadmin@example.com", password="pw12345!", full_name="A", role=User.Role.ADMIN,
+        )
+        self.client.force_login(self.admin)
+        self.rc.invalidate()
+
+    def tearDown(self):
+        # Jarayon ichidagi kesh test tranzaksiyasi bilan birga bekor bo'lmaydi.
+        self.rc.invalidate()
+
+    def test_manager_is_forbidden(self):
+        manager = User.objects.create_user(
+            email="intmanager@example.com", password="pw12345!", full_name="M", role=User.Role.MANAGER,
+        )
+        self.client.force_login(manager)
+        self.assertEqual(self.client.get(reverse("core:integration_settings")).status_code, 403)
+
+    def test_saved_token_is_encrypted_and_overrides_env(self):
+        from django.test import override_settings
+
+        from .models import IntegrationSetting
+
+        with override_settings(TELEGRAM_BOT_TOKEN="1:env"):
+            self.client.post(reverse("core:integration_settings"), {"TELEGRAM_BOT_TOKEN": self.TOKEN})
+            row = IntegrationSetting.objects.get(key="TELEGRAM_BOT_TOKEN")
+            self.assertNotIn(self.TOKEN, row.value_encrypted)
+            self.assertEqual(self.rc.get_config("TELEGRAM_BOT_TOKEN"), self.TOKEN)
+
+            # Sahifada to'liq qiymat chiqmaydi.
+            page = self.client.get(reverse("core:integration_settings")).content.decode()
+            self.assertNotIn(self.TOKEN, page)
+
+            # Bo'sh yuborilsa — qiymat saqlanib qoladi.
+            self.client.post(reverse("core:integration_settings"), {"TELEGRAM_BOT_TOKEN": ""})
+            self.assertEqual(self.rc.get_config("TELEGRAM_BOT_TOKEN"), self.TOKEN)
+
+            # Tozalash — .env qiymatiga qaytadi.
+            self.client.post(reverse("core:integration_settings"), {"clear_TELEGRAM_BOT_TOKEN": "1"})
+            self.assertEqual(self.rc.get_config("TELEGRAM_BOT_TOKEN"), "1:env")
+
+    def test_invalid_token_is_rejected(self):
+        response = self.client.post(reverse("core:integration_settings"), {"TELEGRAM_BOT_TOKEN": "bad"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.rc.db_values(refresh=True), {})
+
+    def test_ai_provider_uses_db_key(self):
+        from django.test import override_settings
+
+        from apps.ai_agents.services import get_provider
+
+        with override_settings(GEMINI_API_KEY="", ANTHROPIC_API_KEY="", AI_PROVIDER=""):
+            self.assertIsNone(get_provider())
+            self.rc.set_config("ANTHROPIC_API_KEY", "sk-ant-test", user=self.admin)
+            self.assertEqual(get_provider(), "anthropic")

@@ -1,0 +1,44 @@
+{% load i18n %}
+<div class="card p-6">
+  <h2 class="mb-4 font-semibold">{{ title }}</h2>
+  <div class="space-y-5">
+    {% for item in fields %}
+      {% with f=item.field %}
+      <div>
+        <div class="mb-1 flex items-center justify-between gap-2">
+          <label class="field-label" for="id_{{ f.key }}">{{ f.label }}</label>
+          {% if item.source == "db" %}
+            <span class="badge badge-success">{% trans "Admin panel" %}</span>
+          {% elif item.source == "env" %}
+            <span class="badge badge-default">.env</span>
+          {% else %}
+            <span class="badge badge-warning">{% trans "Not set" %}</span>
+          {% endif %}
+        </div>
+        {% if f.choices %}
+          <select name="{{ f.key }}" id="id_{{ f.key }}" class="field-input">
+            {% for value, label in f.choices %}
+              <option value="{{ value }}"{% if value == item.posted %} selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        {% elif f.secret %}
+          <input type="password" name="{{ f.key }}" id="id_{{ f.key }}" class="field-input"
+                 autocomplete="new-password" spellcheck="false"
+                 placeholder="{% if item.display %}{% trans "Current:" %} {{ item.display }}{% else %}{% trans "Enter value" %}{% endif %}">
+        {% else %}
+          <input type="text" name="{{ f.key }}" id="id_{{ f.key }}" class="field-input" value="{{ item.posted }}"
+                 spellcheck="false" placeholder="{% if item.source == 'env' %}{{ item.display }}{% endif %}">
+        {% endif %}
+        {% if item.error %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ item.error }}</p>{% endif %}
+        {% if f.help_text %}<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ f.help_text }}</p>{% endif %}
+        {% if item.source == "db" %}
+          <label class="mt-2 inline-flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
+            <input type="checkbox" name="clear_{{ f.key }}" value="1" class="h-4 w-4 rounded border-gray-300 dark:border-gray-600">
+            {% trans "Clear (use the .env value)" %}
+          </label>
+        {% endif %}
+      </div>
+      {% endwith %}
+    {% endfor %}
+  </div>
+</div>

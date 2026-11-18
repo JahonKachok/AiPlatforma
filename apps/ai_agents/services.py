@@ -8,20 +8,20 @@ qilmay o'tkazib yuboriladi — platforma AI'siz ham ishlayveradi.
 """
 import logging
 
-from django.conf import settings
+from apps.core.runtime_config import get_config
 
 logger = logging.getLogger(__name__)
 
 
 def get_provider() -> str | None:
     """Ishlatiladigan provayderni qaytaradi: "gemini", "anthropic" yoki None."""
-    forced = settings.AI_PROVIDER
-    if forced:
-        key = settings.GEMINI_API_KEY if forced == "gemini" else settings.ANTHROPIC_API_KEY
+    forced = get_config("AI_PROVIDER")
+    if forced in ("gemini", "anthropic"):
+        key = get_config("GEMINI_API_KEY") if forced == "gemini" else get_config("ANTHROPIC_API_KEY")
         return forced if key else None
-    if settings.GEMINI_API_KEY:
+    if get_config("GEMINI_API_KEY"):
         return "gemini"
-    if settings.ANTHROPIC_API_KEY:
+    if get_config("ANTHROPIC_API_KEY"):
         return "anthropic"
     return None
 
@@ -70,7 +70,7 @@ def ask_ai(system: str, prompt: str, max_tokens: int = 4000, agent: str = "",
     from .models import AILog
 
     provider = get_provider()
-    model = settings.GEMINI_MODEL if provider == "gemini" else settings.AI_MODEL
+    model = get_config("GEMINI_MODEL") if provider == "gemini" else get_config("AI_MODEL")
     start = time.monotonic()
     status, text, error = AILog.Status.SUCCESS, "", ""
     try:
@@ -82,10 +82,10 @@ def ask_ai(system: str, prompt: str, max_tokens: int = 4000, agent: str = "",
                 # so'rov yo'qolmasin, Claude zaxira provayder bo'lib javob beradi.
                 # Eslatma: zaxira yo'lda vositalar (amallar) ishlamaydi, faqat
                 # javob; audio esa Claude'ga uzatilmaydi — xato qaytariladi.
-                if not settings.ANTHROPIC_API_KEY or audio is not None:
+                if not get_config("ANTHROPIC_API_KEY") or audio is not None:
                     raise
                 logger.warning("Gemini ishlamadi (%s) — Claude zaxira sifatida ishlatilmoqda", exc)
-                provider, model = "anthropic", settings.AI_MODEL
+                provider, model = "anthropic", get_config("AI_MODEL")
                 text = ask_claude(system, prompt, max_tokens, effort)
         else:
             text = ask_claude(system, prompt, max_tokens, effort)
@@ -112,40 +112,43 @@ def ask_ai(system: str, prompt: str, max_tokens: int = 4000, agent: str = "",
     return text
 
 
-_anthropic_client = None
-_gemini_client = None
+# Klientlar kalit bo'yicha keshlanadi: har so'rovda TLS ulanishini qayta
+# ochmaslik uchun, lekin admin paneldan kalit almashtirilsa — yangi klient.
+_anthropic_client = (None, None)  # (api_key, client)
+_gemini_client = (None, None)
 
 
 def _get_anthropic_client():
-    """Klient bir marta yaratiladi: har so'rovda TLS ulanishini qayta
-    ochmaslik uchun. Timeout + 1 retry — Telegram handleri osilib qolmasin."""
+    """Timeout + 1 retry — Telegram handleri osilib qolmasin."""
     global _anthropic_client
-    if _anthropic_client is None:
+    api_key = get_config("ANTHROPIC_API_KEY")
+    if _anthropic_client[0] != api_key:
         import anthropic
-        _anthropic_client = anthropic.Anthropic(
-            api_key=settings.ANTHROPIC_API_KEY, timeout=60.0, max_retries=1,
-        )
-    return _anthropic_client
+        _anthropic_client = (api_key, anthropic.Anthropic(
+            api_key=api_key, timeout=60.0, max_retries=1,
+        ))
+    return _anthropic_client[1]
 
 
 def _get_gemini_client():
     global _gemini_client
-    if _gemini_client is None:
+    api_key = get_config("GEMINI_API_KEY")
+    if _gemini_client[0] != api_key:
         from google import genai
         from google.genai import types
-        _gemini_client = genai.Client(
-            api_key=settings.GEMINI_API_KEY,
+        _gemini_client = (api_key, genai.Client(
+            api_key=api_key,
             # 30s: asosiy model band bo'lib sekinlashsa, kutib o'tirmasdan
             # timeout orqali zaxira modelga o'tamiz (_ask_gemini_resilient).
             http_options=types.HttpOptions(timeout=30_000),  # ms
-        )
-    return _gemini_client
+        ))
+    return _gemini_client[1]
 
 
 def ask_claude(system: str, prompt: str, max_tokens: int = 4000, effort: str = "low") -> str:
     """Claude'ga bitta so'rov yuborib, javob matnini qaytaradi."""
     response = _get_anthropic_client().messages.create(
-        model=settings.AI_MODEL,
+        model=get_config("AI_MODEL"),
         max_tokens=max_tokens,
         thinking={"type": "adaptive"},
         output_config={"effort": effort},
@@ -182,7 +185,7 @@ def ask_gemini(system: str, prompt: str, max_tokens: int = 4000, model: str = ""
 
     thinking = types.ThinkingConfig(thinking_budget=512) if effort == "low" else None
     response = _get_gemini_client().models.generate_content(
-        model=model or settings.GEMINI_MODEL,
+        model=model or get_config("GEMINI_MODEL"),
         contents=contents,
         config=types.GenerateContentConfig(
             system_instruction=system,
@@ -213,14 +216,14 @@ def _ask_gemini_resilient(system: str, prompt: str, max_tokens: int,
     javob bergani ko'rinishi uchun."""
     import time
 
-    primary = settings.GEMINI_MODEL
+    primary = get_config("GEMINI_MODEL")
     try:
         return ask_gemini(system, prompt, max_tokens, model=primary,
                           tools=tools, effort=effort, audio=audio), primary
     except Exception as exc:
         if not _is_overloaded(exc):
             raise
-        fallback = settings.GEMINI_FALLBACK_MODEL
+        fallback = get_config("GEMINI_FALLBACK_MODEL")
         if fallback and fallback != primary:
             logger.warning("Gemini %s band (%s) — zaxira model %s ishlatilmoqda",
                            primary, exc, fallback)

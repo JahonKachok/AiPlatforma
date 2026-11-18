@@ -10,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import User
 
+from . import runtime_config
 from .permissions import role_required
 
 # Backup — butun bazaning nusxasi: parol xeshlari, TOTP sirlari, barcha
@@ -88,3 +89,80 @@ def backup_delete(request, filename):
         path.unlink()
         messages.success(request, _("Backup deleted."))
     return redirect("core:backup_list")
+
+
+# ---------------------------------------------------------------------------
+# Integratsiya sozlamalari (Telegram bot tokeni, AI kalitlari)
+# ---------------------------------------------------------------------------
+
+_TELEGRAM_TOKEN_RE = re.compile(r"^\d{5,}:[A-Za-z0-9_-]{30,}$")
+
+
+def _validate_integration(key, value):
+    if not value:
+        return None
+    if key == "TELEGRAM_BOT_TOKEN" and not _TELEGRAM_TOKEN_RE.match(value):
+        return _("Invalid bot token format (expected 123456:ABC...).")
+    if key == "TELEGRAM_BOT_USERNAME" and not re.match(r"^@?[A-Za-z0-9_]{5,32}$", value):
+        return _("Invalid bot username.")
+    field = runtime_config.FIELDS_BY_KEY[key]
+    if field.choices and value not in {c[0] for c in field.choices}:
+        return _("Invalid choice.")
+    if any(ch.isspace() for ch in value):
+        return _("Value must not contain spaces.")
+    return None
+
+
+@role_required(*MANAGE_ROLES)
+def integration_settings(request):
+    """Tokenlar sahifasi. Maxfiy maydonlar hech qachon to'liq ko'rsatilmaydi:
+    bo'sh qoldirilsa — eski qiymat saqlanadi, "Tozalash" belgilansa —
+    bazadagi qiymat o'chadi va .env dagisi ishlatiladi."""
+    db_values = runtime_config.db_values(refresh=True)
+    errors = {}
+
+    if request.method == "POST":
+        changes = {}
+        for field in runtime_config.FIELDS:
+            key = field.key
+            if request.POST.get(f"clear_{key}"):
+                if key in db_values:
+                    changes[key] = ""
+                continue
+            value = request.POST.get(key, "").strip()
+            if key == "TELEGRAM_BOT_USERNAME":
+                value = value.lstrip("@")
+            if field.secret and not value:
+                continue  # bo'sh — o'zgarishsiz
+            if value == db_values.get(key, ""):
+                continue
+            error = _validate_integration(key, value)
+            if error:
+                errors[key] = error
+            else:
+                changes[key] = value
+        if not errors:
+            for key, value in changes.items():
+                runtime_config.set_config(key, value, user=request.user)
+            if changes:
+                messages.success(request, _("Settings saved."))
+            return redirect("core:integration_settings")
+
+    groups = {"telegram": [], "ai": []}
+    for field in runtime_config.FIELDS:
+        db_value = db_values.get(field.key, "")
+        env_value = runtime_config.env_value(field.key)
+        effective = db_value or env_value
+        groups[field.group].append({
+            "field": field,
+            "db_value": "" if field.secret else db_value,
+            "source": "db" if db_value else ("env" if env_value else ""),
+            "display": runtime_config.mask(effective) if field.secret else effective,
+            "posted": "" if field.secret else request.POST.get(
+                field.key, db_value or (env_value if field.choices else "")),
+            "error": errors.get(field.key),
+        })
+    return render(request, "core/integration_settings.html", {
+        "telegram_fields": groups["telegram"],
+        "ai_fields": groups["ai"],
+    })

@@ -86,3 +86,78 @@ msgstr "Create project"
 #: templates/projects/project_form.html
 msgid "Responsible (GIP)"
 msgstr "Responsible (GIP)"
+
+msgid "Integrations: tokens and keys"
+msgstr ""
+
+msgid "Configure"
+msgstr ""
+
+msgid "Values entered here override the .env file. Secret values are stored encrypted and are never shown in full. Leave a secret field empty to keep the current value."
+msgstr ""
+
+msgid "Admin panel"
+msgstr ""
+
+msgid "Not set"
+msgstr ""
+
+msgid "Current:"
+msgstr ""
+
+msgid "Enter value"
+msgstr ""
+
+msgid "Clear (use the .env value)"
+msgstr ""
+
+msgid "Settings saved."
+msgstr ""
+
+msgid "Bot token"
+msgstr ""
+
+msgid "From @BotFather. The bot restarts with the new token within a minute."
+msgstr ""
+
+msgid "Bot username"
+msgstr ""
+
+msgid "Without @, e.g. gastec_bot"
+msgstr ""
+
+msgid "Gemini API key"
+msgstr ""
+
+msgid "Claude (Anthropic) API key"
+msgstr ""
+
+msgid "AI provider"
+msgstr ""
+
+msgid "Automatic: Gemini if its key is set, otherwise Claude."
+msgstr ""
+
+msgid "Automatic"
+msgstr ""
+
+msgid "Gemini model"
+msgstr ""
+
+msgid "Gemini fallback model"
+msgstr ""
+
+msgid "Claude model"
+msgstr ""
+
+msgid "Invalid bot token format (expected 123456:ABC...)."
+msgstr ""
+
+msgid "Invalid bot username."
+msgstr ""
+
+msgid "Invalid choice."
+msgstr ""
+
+msgid "Value must not contain spaces."
+msgstr ""

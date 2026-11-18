@@ -4724,3 +4724,78 @@ msgstr "Loyiha yaratish"
 #: templates/projects/project_form.html
 msgid "Responsible (GIP)"
 msgstr "Mas'ul (GIP)"
+
+msgid "Integrations: tokens and keys"
+msgstr "Integratsiyalar: tokenlar va kalitlar"
+
+msgid "Configure"
+msgstr "Sozlash"
+
+msgid "Values entered here override the .env file. Secret values are stored encrypted and are never shown in full. Leave a secret field empty to keep the current value."
+msgstr "Bu yerda kiritilgan qiymatlar .env faylidagidan ustun turadi. Maxfiy qiymatlar shifrlangan holda saqlanadi va hech qachon to'liq ko'rsatilmaydi. Joriy qiymatni saqlab qolish uchun maxfiy maydonni bo'sh qoldiring."
+
+msgid "Admin panel"
+msgstr "Admin panel"
+
+msgid "Not set"
+msgstr "Kiritilmagan"
+
+msgid "Current:"
+msgstr "Joriy:"
+
+msgid "Enter value"
+msgstr "Qiymatni kiriting"
+
+msgid "Clear (use the .env value)"
+msgstr "Tozalash (.env qiymati ishlatiladi)"
+
+msgid "Settings saved."
+msgstr "Sozlamalar saqlandi."
+
+msgid "Bot token"
+msgstr "Bot tokeni"
+
+msgid "From @BotFather. The bot restarts with the new token within a minute."
+msgstr "@BotFather'dan olinadi. Bot bir daqiqa ichida yangi token bilan qayta ishga tushadi."
+
+msgid "Bot username"
+msgstr "Bot nomi (username)"
+
+msgid "Without @, e.g. gastec_bot"
+msgstr "@ belgisisiz, masalan gastec_bot"
+
+msgid "Gemini API key"
+msgstr "Gemini API kaliti"
+
+msgid "Claude (Anthropic) API key"
+msgstr "Claude (Anthropic) API kaliti"
+
+msgid "AI provider"
+msgstr "AI provayder"
+
+msgid "Automatic: Gemini if its key is set, otherwise Claude."
+msgstr "Avtomatik: Gemini kaliti bo'lsa Gemini, aks holda Claude."
+
+msgid "Automatic"
+msgstr "Avtomatik"
+
+msgid "Gemini model"
+msgstr "Gemini modeli"
+
+msgid "Gemini fallback model"
+msgstr "Gemini zaxira modeli"
+
+msgid "Claude model"
+msgstr "Claude modeli"
+
+msgid "Invalid bot token format (expected 123456:ABC...)."
+msgstr "Bot tokeni formati noto'g'ri (kutilgan: 123456:ABC...)."
+
+msgid "Invalid bot username."
+msgstr "Bot nomi noto'g'ri."
+
+msgid "Invalid choice."
+msgstr "Noto'g'ri tanlov."
+
+msgid "Value must not contain spaces."
+msgstr "Qiymatda bo'sh joy bo'lmasligi kerak."

@@ -2,12 +2,13 @@ import base64
 import io
 
 import qrcode
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_POST
+
+from apps.core.runtime_config import get_config
 
 from .models import TelegramLinkToken
 
@@ -17,7 +18,7 @@ from .models import TelegramLinkToken
 def link_telegram(request):
     token = TelegramLinkToken.issue(request.user)
     # t.me havolasida @ bo'lmasligi kerak — .env da @ bilan yozilgan bo'lsa olib tashlaymiz
-    bot_username = (settings.TELEGRAM_BOT_USERNAME or "your_bot").lstrip("@")
+    bot_username = (get_config("TELEGRAM_BOT_USERNAME") or "your_bot").lstrip("@")
     # Oraliq sahifa avval tg:// (ilovani to'g'ridan-to'g'ri ochadi, t.me
     # bloklangan tarmoqlarda ham ishlaydi), keyin t.me variantini taklif
     # qiladi. Bot /start link_<token> orqali hisobni rolini aniqlagan holda

@@ -1,15 +1,16 @@
 import logging
 
-from django.conf import settings
+from apps.core.runtime_config import get_config
 
 logger = logging.getLogger(__name__)
 
 
 def _bot():
-    if not settings.TELEGRAM_BOT_TOKEN:
+    token = get_config("TELEGRAM_BOT_TOKEN")
+    if not token:
         return None
     from telegram import Bot
-    return Bot(token=settings.TELEGRAM_BOT_TOKEN)
+    return Bot(token=token)
 
 
 def send_message(chat_id, text, parse_mode="HTML"):

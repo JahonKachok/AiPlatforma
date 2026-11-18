@@ -13,10 +13,49 @@ from apps.telegram_bot.texts import LANGUAGE_LABELS, all_menu_labels, menu_key_f
 class Command(BaseCommand):
     help = "Runs the Telegram bot in long-polling mode (separate long-running process)."
 
+    # Token admin paneldan (core:integration_settings) yoki .env dan olinadi.
+    # Bot shu oraliqda tokenni tekshiradi: o'zgarsa — yangi token bilan qayta
+    # ishga tushadi, jarayonni qo'lda qayta yoqish shart emas.
+    TOKEN_POLL_SECONDS = 30
+
     def handle(self, *args, **options):
-        if not settings.TELEGRAM_BOT_TOKEN:
-            self.stderr.write(self.style.ERROR("TELEGRAM_BOT_TOKEN is not configured."))
-            return
+        import time
+
+        from telegram.error import InvalidToken
+
+        from apps.core.runtime_config import get_config
+
+        reported = None
+        while True:
+            token = get_config("TELEGRAM_BOT_TOKEN")
+            if not token or token == reported:
+                if reported is None:
+                    self.stderr.write(self.style.WARNING(
+                        "TELEGRAM_BOT_TOKEN is not configured — waiting for it "
+                        "(admin panel → Integrations, or .env)."
+                    ))
+                    reported = token
+                time.sleep(self.TOKEN_POLL_SECONDS)
+                continue
+            reported = None
+            try:
+                restart = self._run_bot(token)
+            except InvalidToken:
+                self.stderr.write(self.style.ERROR(
+                    "Telegram rejected the bot token — waiting for a new one."
+                ))
+                reported = token
+                continue
+            if not restart:
+                return
+            self.stdout.write(self.style.WARNING("Bot token changed — restarting..."))
+
+    def _run_bot(self, token):
+        """Botni ishga tushiradi. True — token o'zgargani uchun to'xtatildi
+        (qayta ishga tushirish kerak), False — oddiy to'xtatish (Ctrl+C)."""
+        from apps.core.runtime_config import get_config
+
+        restart = {"requested": False}
 
         from django.core.exceptions import ValidationError
         from django.core.files.base import ContentFile
@@ -584,8 +623,24 @@ class Command(BaseCommand):
                     language_code=language_code,
                 )
 
+        async def watch_token(app):
+            while True:
+                await asyncio.sleep(self.TOKEN_POLL_SECONDS)
+                try:
+                    current = await sync_to_async(get_config)("TELEGRAM_BOT_TOKEN")
+                except Exception:
+                    continue
+                if current != token:
+                    restart["requested"] = True
+                    app.stop_running()
+                    return
+
+        async def post_init_with_watch(app):
+            await post_init(app)
+            app.create_task(watch_token(app))
+
         application = (
-            Application.builder().token(settings.TELEGRAM_BOT_TOKEN).post_init(post_init).build()
+            Application.builder().token(token).post_init(post_init_with_watch).build()
         )
         # group=-1: barcha xabar/buyruqlarni asosiy handlerlardan oldin jurnalga
         # yozadi, ularning ishlashiga xalaqit bermaydi.
@@ -612,3 +667,4 @@ class Command(BaseCommand):
         # application.run_polling() relies on internally — create one explicitly.
         asyncio.set_event_loop(asyncio.new_event_loop())
         application.run_polling()
+        return restart["requested"]

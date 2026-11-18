@@ -62,6 +62,10 @@
           <p class="text-sm font-medium">{% trans "Backups" %}</p>
           <a href="{% url 'core:backup_list' %}" class="btn btn-ghost btn-sm">{% trans "View" %}</a>
         </div>
+        <div class="flex items-center justify-between border-t border-gray-100 py-2 dark:border-gray-700">
+          <p class="text-sm font-medium">{% trans "Integrations: tokens and keys" %}</p>
+          <a href="{% url 'core:integration_settings' %}" class="btn btn-ghost btn-sm">{% trans "Configure" %}</a>
+        </div>
       {% endif %}
     </div>
 

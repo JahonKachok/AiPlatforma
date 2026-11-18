@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Integrations: tokens and keys" %}{% endblock %}
+{% block page_title %}{% trans "Integrations: tokens and keys" %}{% endblock %}
+{% block content %}
+<p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+  {% trans "Values entered here override the .env file. Secret values are stored encrypted and are never shown in full. Leave a secret field empty to keep the current value." %}
+</p>
+<form method="post" class="space-y-6" autocomplete="off">
+  {% csrf_token %}
+  {% include "core/_integration_group.html" with title="Telegram" fields=telegram_fields %}
+  {% trans "AI agents" as ai_title %}
+  {% include "core/_integration_group.html" with title=ai_title fields=ai_fields %}
+  <button type="submit" class="btn btn-primary btn-md">{% trans "Save" %}</button>
+</form>
+{% endblock %}

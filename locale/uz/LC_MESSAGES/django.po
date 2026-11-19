@@ -4926,3 +4926,9 @@ msgstr "Barcha vazifalar uchun bitta doska: loyiha tarkibi bo'limlari va nostand
 
 msgid "Discipline %(code)s already exists as %(existing)s."
 msgstr "%(code)s fani allaqachon %(existing)s sifatida mavjud."
+
+msgid "Discipline updated."
+msgstr "Soha yangilandi."
+
+msgid "This discipline is used in a project composition, its code cannot be changed."
+msgstr "Soha loyiha tarkibida ishlatilmoqda, uning kodini o'zgartirib bo'lmaydi."

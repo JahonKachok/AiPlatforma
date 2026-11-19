@@ -6,41 +6,42 @@
 {% block extra_head %}<link rel="stylesheet" href="{% static_v 'css/kanban.css' %}">{% endblock %}
 {% block content %}
 {% pult_tabs "tasks" %}
-<div data-board-stats>{% include "partials/stat_cards.html" %}</div>
+<div data-board-stats>{% include "partials/stat_cards.html" with compact=1 %}</div>
 <form method="get" class="hidden">{% csrf_token %}</form>
 
-<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-  <form method="get" class="flex flex-wrap items-center gap-2">
+{# Asboblar paneli: barcha boshqaruvlar bir xil balandlik/rang (kb-tool*) — kanban.css #}
+<div class="kb-toolbar">
+  <form method="get" class="kb-toolbar-group">
     <input type="hidden" name="view" value="{{ view }}">
     <input type="hidden" name="kind" value="{{ kind }}">
-    <select name="project" onchange="this.form.submit()" class="field-input w-auto">
+    <select name="project" onchange="this.form.submit()" class="kb-tool-select">
       <option value="">{% trans "All projects" %}</option>
       {% for project in projects %}
         <option value="{{ project.pk }}" {% if project_id == project.pk|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
       {% endfor %}
     </select>
     {% if project_id %}
-    <select name="object" onchange="this.form.submit()" class="field-input w-auto">
+    <select name="object" onchange="this.form.submit()" class="kb-tool-select">
       <option value="">{% trans "All objects" %}</option>
       {% for obj in objects %}
         <option value="{{ obj.pk }}" {% if object_id == obj.pk|stringformat:"s" %}selected{% endif %}>{{ obj.name }}</option>
       {% endfor %}
     </select>
-    <select name="subobject" onchange="this.form.submit()" class="field-input w-auto">
+    <select name="subobject" onchange="this.form.submit()" class="kb-tool-select">
       <option value="">{% trans "All sub-objects" %}</option>
       {% for sub in subobjects %}
         <option value="{{ sub.pk }}" {% if subobject_id == sub.pk|stringformat:"s" %}selected{% endif %}>{{ sub.discipline.code }} — {{ sub.name }}</option>
       {% endfor %}
     </select>
     {% endif %}
-    <select name="assignee" onchange="this.form.submit()" class="field-input w-auto">
+    <select name="assignee" onchange="this.form.submit()" class="kb-tool-select">
       <option value="">{% trans "All assignees" %}</option>
       {% for a in assignees %}
         <option value="{{ a.pk }}" {% if assignee_id == a.pk|stringformat:"s" %}selected{% endif %}>{{ a.full_name }}</option>
       {% endfor %}
     </select>
   </form>
-  <div class="flex flex-wrap items-center gap-2">
+  <div class="kb-toolbar-group">
     {# «Проектные» (Состав bo'limlari) / «Нестандартные» — avvalgi «Канбан разделов» shu yerda #}
     <div class="kb-seg" role="group" aria-label="{% trans 'Task type' %}">
       {% for value, label in kinds %}
@@ -48,11 +49,14 @@
            class="kb-seg-btn{% if kind == value %} is-active{% endif %}"{% if kind == value %} aria-current="true"{% endif %}>{{ label }}</a>
       {% endfor %}
     </div>
-    <a href="?view=kanban&kind={{ kind }}&project={{ project_id }}&object={{ object_id }}&subobject={{ subobject_id }}&assignee={{ assignee_id }}" class="btn {% if view == 'kanban' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">{% trans "Kanban" %}</a>
-    <a href="?view=list&kind={{ kind }}&project={{ project_id }}&object={{ object_id }}&subobject={{ subobject_id }}&assignee={{ assignee_id }}" class="btn {% if view == 'list' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">{% trans "List" %}</a>
-    <a href="?view=calendar&kind={{ kind }}&project={{ project_id }}&object={{ object_id }}&subobject={{ subobject_id }}&assignee={{ assignee_id }}" class="btn {% if view == 'calendar' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">{% trans "Calendar" %}</a>
+    <div class="kb-seg" role="group" aria-label="{% trans 'View' %}">
+      {% for value, label in view_choices %}
+        <a href="?view={{ value }}&kind={{ kind }}&project={{ project_id }}&object={{ object_id }}&subobject={{ subobject_id }}&assignee={{ assignee_id }}"
+           class="kb-seg-btn{% if view == value %} is-active{% endif %}"{% if view == value %} aria-current="true"{% endif %}>{{ label }}</a>
+      {% endfor %}
+    </div>
     {# «Моя работа»dagi bilan bitta oyna (Pult «+ Задача»): turi — Проектная / Нестандартная #}
-    <a href="{% url 'pult:section_work' %}?new=1{% if kind %}&amp;kind={{ kind }}{% endif %}" class="btn btn-primary btn-md">{% trans "New task" %}</a>
+    <a href="{% url 'pult:section_work' %}?new=1{% if kind %}&amp;kind={{ kind }}{% endif %}" class="kb-tool-primary">+ {% trans "New task" %}</a>
   </div>
 </div>
 

@@ -18,5 +18,6 @@ urlpatterns = [
     path("users/new/", views.user_create, name="user_create"),
     path("users/<uuid:pk>/edit/", views.user_update, name="user_update"),
     path("disciplines/new/", views.discipline_create, name="discipline_create"),
+    path("disciplines/<uuid:pk>/edit/", views.discipline_update, name="discipline_update"),
     path("disciplines/<uuid:pk>/delete/", views.discipline_delete, name="discipline_delete"),
 ]

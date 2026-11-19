@@ -86,6 +86,7 @@ BOARD_HINTS = {
 }
 TASK_KINDS = (("", pgettext_lazy("task kind", "All")), ("project", pgettext_lazy("task kind", "Project")),
               ("other", pgettext_lazy("task kind", "Non-standard")))
+TASK_VIEWS = (("kanban", _("Kanban")), ("list", _("List")), ("calendar", _("Calendar")))
 # Ustun ichidagi oraliq holatlar kartochkada alohida yoziladi
 SUBSTATUS = {
     "Есть вопрос": _("Has a question"), "На проверке": _("Under review"),
@@ -172,6 +173,7 @@ def task_board(request):
         "view": view,
         "kind": kind,
         "kinds": TASK_KINDS,
+        "view_choices": TASK_VIEWS,
         "project_id": project_id or "",
         "object_id": object_id or "",
         "subobject_id": subobject_id or "",
@@ -311,7 +313,7 @@ def task_detail(request, pk):
     # of the plain one-click status buttons.
     next_statuses = [
         (value, label) for value, label in Task.Status.choices
-        if value not in (Task.Status.REVISION, Task.Status.REVIEW)
+        if value not in (Task.Status.REVISION, Task.Status.REVIEW, task.status)
         and can_change_task_status(request.user, task, value)
     ]
     can_send_for_review = can_change_task_status(request.user, task, Task.Status.REVIEW)

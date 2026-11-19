@@ -427,6 +427,32 @@ def discipline_create(request):
 
 
 @role_required(*MANAGE_ROLES)
+def discipline_update(request, pk):
+    discipline = get_object_or_404(Discipline, pk=pk)
+    if request.method == "POST":
+        from apps.pult.models import PlanRow
+
+        old_code = discipline.code
+        form = DisciplineForm(request.POST, instance=discipline)
+        if form.is_valid():
+            new_code = form.cleaned_data["code"]
+            if (
+                new_code.upper() != old_code.upper()
+                and PlanRow.objects.filter(kind="Раздел", code__iexact=old_code).exists()
+            ):
+                # Состав matritsasi fanni kodi bo'yicha bog'laydi — kod o'zgarsa, aloqa uziladi.
+                messages.error(request, _("This discipline is used in a project composition, its code cannot be changed."))
+            else:
+                form.save()
+                messages.success(request, _("Discipline updated."))
+        else:
+            for errors in form.errors.values():
+                for error in errors:
+                    messages.error(request, error)
+    return redirect(reverse("accounts:user_list") + "#tab-disciplines")
+
+
+@role_required(*MANAGE_ROLES)
 def discipline_delete(request, pk):
     discipline = get_object_or_404(Discipline, pk=pk)
     if request.method == "POST":

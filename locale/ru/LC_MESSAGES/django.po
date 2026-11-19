@@ -4925,3 +4925,9 @@ msgstr "Одна доска для всех задач: разделы сост�
 
 msgid "Discipline %(code)s already exists as %(existing)s."
 msgstr "Дисциплина %(code)s уже есть как %(existing)s."
+
+msgid "Discipline updated."
+msgstr "Направление обновлено."
+
+msgid "This discipline is used in a project composition, its code cannot be changed."
+msgstr "Направление используется в составе проекта, его код нельзя изменить."

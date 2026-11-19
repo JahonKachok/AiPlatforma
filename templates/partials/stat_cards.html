@@ -4,14 +4,15 @@ Reusable stat-card row. Expects `stat_cards`: a list of dicts with
   value  — the figure
   color  — optional value color classes (defaults to plain text)
   sub    — optional small line under the value
+Pass `compact=1` for a low single-line row (label left, figure right).
 {% endcomment %}
 {% if stat_cards %}
-<div class="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+<div class="{% if compact %}ap-stats-compact{% else %}mb-6 grid grid-cols-2 gap-4 md:grid-cols-4{% endif %}">
   {% for s in stat_cards %}
     <div class="card p-4">
       <p class="ap-stat-label">{{ s.label }}</p>
       <p class="ap-stat-value {{ s.color|default:'' }}">{{ s.value }}</p>
-      {% if s.sub %}<p class="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{{ s.sub }}</p>{% endif %}
+      {% if s.sub and not compact %}<p class="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{{ s.sub }}</p>{% endif %}
     </div>
   {% endfor %}
 </div>

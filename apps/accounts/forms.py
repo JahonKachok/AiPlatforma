@@ -286,6 +286,12 @@ class DisciplineForm(StyledFormMixin, forms.ModelForm):
             "name": _("The discipline's full name."),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Forma bitta qatorda, label'siz chiqadi — maydon nomi placeholder'da ko'rinadi.
+        for field in self.fields.values():
+            field.widget.attrs.setdefault("placeholder", field.label)
+
     def clean_code(self):
         """«АР» (kirill) va «AR» (lotin) — bitta fan: ikkinchisi dublikat sifatida rad etiladi,
         aks holda Состав matritsasida ikki ustun paydo bo'lardi."""

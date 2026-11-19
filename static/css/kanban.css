@@ -268,16 +268,36 @@
 .kb-card.kb-card-locked { cursor: pointer; }
 .kb-card:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
 
-.kb-seg { display: inline-flex; border: 1px solid #e2e8f0; border-radius: 0.5rem; overflow: hidden; }
+/* Vazifalar asboblar paneli: select, segment va tugma — bir xil balandlik, chegara va
+   bitta urg'u rangi (faol segment = «Новая задача» rangi). */
+.kb-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 1rem; }
+.kb-toolbar-group { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.kb-tool-select, .kb-seg, .kb-tool-primary { height: 2.125rem; border-radius: 0.5rem; font-size: 0.8125rem; }
+.kb-tool-select {
+  max-width: 14rem; padding: 0 1.75rem 0 0.75rem; border: 1px solid #e2e8f0; background-color: #ffffff;
+  color: #334155; font-weight: 500; cursor: pointer; text-overflow: ellipsis;
+}
+.kb-tool-select:hover { border-color: #cbd5e1; }
+.kb-tool-select:focus { outline: none; border-color: var(--ap-primary-2); box-shadow: 0 0 0 3px var(--ap-ring); }
+.dark .kb-tool-select { background-color: #1f2937; border-color: #374151; color: #d1d5db; color-scheme: dark; }
+.dark .kb-tool-select:hover { border-color: #4b5563; }
+
+.kb-seg { display: inline-flex; border: 1px solid #e2e8f0; overflow: hidden; }
 .dark .kb-seg { border-color: #374151; }
-.kb-seg-btn { padding: 0.3125rem 0.75rem; font-size: 0.8125rem; font-weight: 500; color: #475569; background: #ffffff; }
+.kb-seg-btn { display: inline-flex; align-items: center; padding: 0 0.75rem; font-weight: 500; color: #475569; background: #ffffff; white-space: nowrap; }
 .kb-seg-btn + .kb-seg-btn { border-left: 1px solid #e2e8f0; }
 .kb-seg-btn:hover { background: #f8fafc; }
-.kb-seg-btn.is-active { background: #2563eb; color: #ffffff; }
 .dark .kb-seg-btn { background: #1f2937; color: #d1d5db; }
 .dark .kb-seg-btn + .kb-seg-btn { border-left-color: #374151; }
 .dark .kb-seg-btn:hover { background: #111827; }
-.dark .kb-seg-btn.is-active { background: #2563eb; color: #ffffff; }
+.kb-seg-btn.is-active, .dark .kb-seg-btn.is-active { background: var(--ap-primary-2); color: #ffffff; }
+
+.kb-tool-primary {
+  display: inline-flex; align-items: center; padding: 0 0.875rem; font-weight: 600; white-space: nowrap;
+  background: var(--ap-primary-2); color: #ffffff; border: 1px solid var(--ap-primary-2);
+}
+.kb-tool-primary:hover { filter: brightness(1.1); }
+.kb-tool-primary:focus-visible, .kb-seg-btn:focus-visible { outline: 2px solid var(--ap-primary-2); outline-offset: 2px; }
 
 .kb-toast {
   position: fixed;

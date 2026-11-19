@@ -68,10 +68,17 @@
   {% if can_manage %}
   <div class="card mb-6 p-4">
     <h2 class="mb-3 font-semibold">{% trans "New discipline" %}</h2>
-    <form method="post" action="{% url 'accounts:discipline_create' %}" class="flex flex-wrap gap-2">
+    <form method="post" action="{% url 'accounts:discipline_create' %}" class="ap-inline-form">
       {% csrf_token %}
-      {% for field in discipline_form %}{% include "partials/field_with_info.html" %}{% endfor %}
-      <button type="submit" class="btn btn-primary btn-sm">{% trans "Create" %}</button>
+      {% for field in discipline_form %}
+        <div class="{% if forloop.first %}ap-if-code{% else %}ap-if-grow{% endif %}">
+          <label for="{{ field.id_for_label }}" class="ap-sr-only">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<p class="ap-if-hint">{% if field.field.required %}<span class="ap-req">*</span> {% endif %}{{ field.help_text }}</p>{% endif %}
+          {% for error in field.errors %}<p class="mt-1 text-xs text-red-500">{{ error }}</p>{% endfor %}
+        </div>
+      {% endfor %}
+      <div class="ap-if-actions"><button type="submit" class="btn btn-primary btn-sm">{% trans "Create" %}</button></div>
     </form>
   </div>
   {% endif %}
@@ -83,11 +90,12 @@
       </thead>
       <tbody>
         {% for discipline in disciplines %}
-          <tr class="border-t border-gray-100 dark:border-gray-700">
+          <tr class="border-t border-gray-100 dark:border-gray-700" data-discipline-view="{{ discipline.pk }}">
             <td class="py-1"><span class="badge badge-info">{{ discipline.code }}</span></td>
             <td>{{ discipline.name }}</td>
-            <td class="text-right">
+            <td class="whitespace-nowrap text-right">
               {% if can_manage %}
+              <button type="button" style="margin-right:.75rem" class="text-xs text-blue-600 hover:underline dark:text-blue-400" data-discipline-edit="{{ discipline.pk }}">{% trans "Edit" %}</button>
               <form method="post" action="{% url 'accounts:discipline_delete' discipline.pk %}" class="inline" onsubmit="return confirm('{% trans "Delete this discipline?" %}');">
                 {% csrf_token %}
                 <button type="submit" class="text-xs text-red-500 hover:underline">{% trans "Delete" %}</button>
@@ -95,6 +103,21 @@
               {% endif %}
             </td>
           </tr>
+          {% if can_manage %}
+          <tr class="hidden border-t border-gray-100 dark:border-gray-700" data-discipline-form="{{ discipline.pk }}">
+            <td colspan="3" class="py-2">
+              <form method="post" action="{% url 'accounts:discipline_update' discipline.pk %}" class="ap-inline-form is-centered">
+                {% csrf_token %}
+                <input type="text" name="code" value="{{ discipline.code }}" maxlength="20" required class="field-input ap-if-code" placeholder="{% trans 'Code' %}" aria-label="{% trans 'Code' %}">
+                <input type="text" name="name" value="{{ discipline.name }}" maxlength="100" required class="field-input ap-if-grow" placeholder="{% trans 'Name' %}" aria-label="{% trans 'Name' %}">
+                <div class="ap-if-actions">
+                  <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
+                  <button type="button" class="btn btn-secondary btn-sm" data-discipline-cancel="{{ discipline.pk }}">{% trans "Cancel" %}</button>
+                </div>
+              </form>
+            </td>
+          </tr>
+          {% endif %}
         {% empty %}
           <tr><td colspan="3" class="py-3 text-center text-gray-500 dark:text-gray-400">{% trans "No disciplines yet." %}</td></tr>
         {% endfor %}
@@ -102,4 +125,20 @@
     </table>
   </div>
 </div>
+<script>
+  // Fanlar jadvali: "Изменить" qatorni joyida tahrirlash formasiga almashtiradi.
+  document.addEventListener("click", function (e) {
+    var edit = e.target.closest("[data-discipline-edit]");
+    var cancel = e.target.closest("[data-discipline-cancel]");
+    var btn = edit || cancel;
+    if (!btn) return;
+    var id = btn.getAttribute(edit ? "data-discipline-edit" : "data-discipline-cancel");
+    var view = document.querySelector('[data-discipline-view="' + id + '"]');
+    var form = document.querySelector('[data-discipline-form="' + id + '"]');
+    view.classList.toggle("hidden", !!edit);
+    form.classList.toggle("hidden", !edit);
+    if (edit) form.querySelector('input[name="name"]').focus();
+    else form.querySelector("form").reset();
+  });
+</script>
 {% endblock %}

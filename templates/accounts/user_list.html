@@ -24,6 +24,7 @@
 
 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
   <form method="get" class="flex flex-wrap items-center gap-2">
+    <input type="hidden" name="view" value="{{ view }}">
     <input type="text" name="search" value="{{ search }}" placeholder="{% trans 'Search...' %}" class="field-input w-56">
     <select name="role" onchange="this.form.submit()" class="field-input w-auto">
       <option value="">{% trans "All roles" %}</option>
@@ -33,9 +34,58 @@
     </select>
     <button type="submit" class="btn btn-secondary btn-sm">{% trans "Filter" %}</button>
   </form>
-  {% if can_manage %}<a href="{% url 'accounts:user_create' %}" class="btn btn-primary btn-md">{% trans "Add" %}</a>{% endif %}
+  <div class="flex flex-wrap items-center gap-2">
+    {# Ko'rinish: kartochkalar / jadval — filtrlar saqlanadi #}
+    <div class="ap-seg" role="group" aria-label="{% trans 'View' %}">
+      <a href="?view=cards&search={{ search|urlencode }}&role={{ role }}" class="ap-seg-btn{% if view == 'cards' %} is-active{% endif %}"{% if view == 'cards' %} aria-current="true"{% endif %}>{% trans "Cards" %}</a>
+      <a href="?view=table&search={{ search|urlencode }}&role={{ role }}" class="ap-seg-btn{% if view == 'table' %} is-active{% endif %}"{% if view == 'table' %} aria-current="true"{% endif %}>{% trans "Table" %}</a>
+    </div>
+    {% if can_manage %}<a href="{% url 'accounts:user_create' %}" class="btn btn-primary btn-md">{% trans "Add" %}</a>{% endif %}
+  </div>
 </div>
 
+{% if view == "table" %}
+<div class="card overflow-x-auto">
+  <table class="ap-user-table">
+    <thead>
+      <tr>
+        <th>{% trans "Employee" %}</th><th>{% trans "Role" %}</th><th>{% trans "Department" %}</th>
+        <th>{% trans "Email" %}</th><th>{% trans "Phone" %}</th><th>{% trans "Disciplines" %}</th>
+        <th>{% trans "Status" %}</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+        <tr>
+          <td>
+            <span class="ap-user-cell">
+              {% if u.avatar %}<img src="{{ u.avatar.url }}" alt="" class="ap-avatar-img ap-user-avatar">{% else %}<span class="ap-user-avatar" style="background-color: {{ u.full_name|avatar_color }};">{{ u.full_name|initials }}</span>{% endif %}
+              <span class="font-medium">{{ u.full_name }}</span>
+            </span>
+          </td>
+          <td>{{ u.get_role_display }}</td>
+          <td>{{ u.department|default:"—" }}</td>
+          <td>{{ u.email }}</td>
+          <td>{{ u.phone|default:"—" }}</td>
+          <td>
+            {% for d in u.disciplines.all %}<span class="badge badge-info">{{ d.code }}</span> {% endfor %}
+            {% if u.discipline_other %}<span class="badge badge-default">{{ u.discipline_other }}</span>{% endif %}
+            {% if not u.disciplines.all and not u.discipline_other %}—{% endif %}
+          </td>
+          <td>{% if u.is_active %}<span class="badge badge-success">{% trans "Active" %}</span>{% else %}<span class="badge badge-default">{% trans "Inactive" %}</span>{% endif %}</td>
+          <td class="whitespace-nowrap text-right">
+            {% if can_manage and u.role != "admin" and not u.is_superuser or is_admin %}
+              <a href="{% url 'accounts:user_update' u.pk %}" class="text-xs text-blue-600 hover:underline">{% trans "Edit" %}</a>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="8" class="py-3 text-center text-gray-500 dark:text-gray-400">{% trans "No users found." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
   {% for u in users %}
     <div class="card p-4">
@@ -62,6 +112,7 @@
     <p class="col-span-full text-center text-sm text-gray-500 dark:text-gray-400">{% trans "No users found." %}</p>
   {% endfor %}
 </div>
+{% endif %}
 </div>
 
 <div data-tab-panel="disciplines" class="hidden">

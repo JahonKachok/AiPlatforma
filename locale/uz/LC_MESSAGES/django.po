@@ -4932,3 +4932,12 @@ msgstr "Soha yangilandi."
 
 msgid "This discipline is used in a project composition, its code cannot be changed."
 msgstr "Soha loyiha tarkibida ishlatilmoqda, uning kodini o'zgartirib bo'lmaydi."
+
+msgid "Cards"
+msgstr "Kartochkalar"
+
+msgid "Table"
+msgstr "Jadval"
+
+msgid "Department"
+msgstr "Bo'lim"

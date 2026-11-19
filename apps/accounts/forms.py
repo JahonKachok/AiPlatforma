@@ -281,6 +281,8 @@ class DisciplineForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = Discipline
         fields = ["code", "name"]
+        # Model maydonlarida verbose_name yo'q — label/placeholder tarjima bo'lishi uchun shu yerda.
+        labels = {"code": _("Code"), "name": _("Name")}
         help_texts = {
             "code": _("A short unique code, e.g. AR, KR."),
             "name": _("The discipline's full name."),

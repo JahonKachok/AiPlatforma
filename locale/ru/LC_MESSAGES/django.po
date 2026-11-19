@@ -4931,3 +4931,12 @@ msgstr "Направление обновлено."
 
 msgid "This discipline is used in a project composition, its code cannot be changed."
 msgstr "Направление используется в составе проекта, его код нельзя изменить."
+
+msgid "Cards"
+msgstr "Карточки"
+
+msgid "Table"
+msgstr "Таблица"
+
+msgid "Department"
+msgstr "Отдел"

@@ -574,3 +574,27 @@ aside nav a[class*="bg-blue-50"]::before {
 .td-file { display: inline-flex; align-items: center; gap: 0.25rem; }
 .td-upload { display: inline-flex; align-items: center; gap: 0.5rem; margin-left: auto; }
 .td-upload input[type="file"] { width: auto; max-width: 16rem; padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+
+/* ============ Umumiy segmentli almashtirgich (masalan, Карточки / Таблица) ============ */
+.ap-seg { display: inline-flex; height: 2.125rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; overflow: hidden; }
+.dark .ap-seg { border-color: #374151; }
+.ap-seg-btn { display: inline-flex; align-items: center; padding: 0 0.75rem; font-size: 0.8125rem; font-weight: 500; color: #475569; background: #ffffff; white-space: nowrap; }
+.ap-seg-btn + .ap-seg-btn { border-left: 1px solid #e2e8f0; }
+.ap-seg-btn:hover { background: #f8fafc; }
+.dark .ap-seg-btn { background: #1f2937; color: #d1d5db; }
+.dark .ap-seg-btn + .ap-seg-btn { border-left-color: #374151; }
+.dark .ap-seg-btn:hover { background: #111827; }
+.ap-seg-btn.is-active, .dark .ap-seg-btn.is-active { background: var(--ap-primary-2); color: #ffffff; }
+.ap-seg-btn:focus-visible { outline: 2px solid var(--ap-primary-2); outline-offset: 2px; }
+
+/* Foydalanuvchilar jadvali */
+.ap-user-table { width: 100%; font-size: 0.8125rem; text-align: left; border-collapse: collapse; }
+.ap-user-table th { padding: 0.5rem 0.75rem; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #64748b; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
+.ap-user-table td { padding: 0.4375rem 0.75rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+.ap-user-table tbody tr:last-child td { border-bottom: 0; }
+.ap-user-table tbody tr:hover { background: #f8fafc; }
+.dark .ap-user-table th { color: #9ca3af; border-color: #374151; }
+.dark .ap-user-table td { border-color: #374151; }
+.dark .ap-user-table tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
+.ap-user-cell { display: inline-flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
+.ap-user-avatar { display: inline-flex; width: 1.75rem; height: 1.75rem; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 9999px; font-size: 0.6875rem; font-weight: 600; color: #fff; object-fit: cover; }

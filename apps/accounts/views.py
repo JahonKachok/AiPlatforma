@@ -349,6 +349,7 @@ def user_list(request):
         "users": users,
         "role": role or "",
         "search": search or "",
+        "view": "table" if request.GET.get("view") == "table" else "cards",
         "roles": User.Role.choices,
         "can_manage": can_manage,
         "is_admin": is_admin(request.user),

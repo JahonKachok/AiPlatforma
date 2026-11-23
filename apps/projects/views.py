@@ -1,4 +1,5 @@
 import io
+import logging
 import zipfile
 from datetime import date, timedelta
 
@@ -10,6 +11,7 @@ from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import Discipline, User
@@ -27,10 +29,15 @@ from .forms import (
     SectionForm, SubObjectDisciplineForm, SubObjectForm,
 )
 from .models import Project, ProjectMember, SubObject, SubObjectDiscipline
-from .permissions import can_create_project, can_edit_project, visible_projects_for
+from .permissions import can_confirm_project, can_create_project, can_edit_project, visible_projects_for
 from .queries import attach_card_fields, card_queryset
 from .services import ensure_discipline_task
 from .uz_regions import REGION_CENTERS
+
+logger = logging.getLogger(__name__)
+
+# Loyihalar ro'yxatidagi «holat» filtri uchun soxta qiymat: tasdiq kutayotganlar.
+PENDING_STATUS = "pending"
 
 _PROJECT_DOC_LABEL = _("90_Проектная документация")
 
@@ -128,7 +135,10 @@ def project_list(request):
     projects = visible
 
     status = request.GET.get("status")
-    if status:
+    if status == PENDING_STATUS:
+        # soxta holat: rahbar tasdiqlamagan loyihalar
+        projects = projects.filter(confirmed_at__isnull=True)
+    elif status:
         projects = projects.filter(status=status)
     # "Kategoriya" — loyihaning bosqichi (Konsepsiya, Ishchi hujjatlar, ...).
     # Modelda mavjud yagona kategoriya o'qi shu, yangi maydon o'ylab
@@ -159,6 +169,7 @@ def project_list(request):
     completed = visible.filter(status=Project.Status.COMPLETED).count()
     overdue = visible.filter(status=Project.Status.ACTIVE, deadline__lt=today).count()
     recent = visible.filter(created_at__date__gte=today - timedelta(days=30)).count()
+    pending = visible.filter(confirmed_at__isnull=True).count()
 
     kpi_cards = [
         {"key": "total", "tone": "blue", "label": _("Total projects"), "value": total,
@@ -170,6 +181,9 @@ def project_list(request):
         {"key": "overdue", "tone": "amber", "label": _("Deadline passed"), "value": overdue,
          "hint": _("%(n)s%% of active") % {"n": _pct(overdue, active)}},
     ]
+    if pending:
+        kpi_cards.append({"key": "pending", "tone": "amber", "label": _("Awaiting confirmation"), "value": pending,
+                          "hint": _("Only a manager can confirm the project."), "href": f"?status={PENDING_STATUS}"})
 
     return render(request, "projects/project_list.html", {
         "page_obj": page_obj,
@@ -177,7 +191,7 @@ def project_list(request):
         "stage": stage or "",
         "search": search or "",
         "view_mode": view_mode,
-        "statuses": Project.Status.choices,
+        "statuses": [*Project.Status.choices, (PENDING_STATUS, _("Awaiting confirmation"))],
         "stages": Project.Stage.choices,
         "can_create": can_create_project(request.user),
         "kpi_cards": kpi_cards,
@@ -333,6 +347,7 @@ def project_detail(request, pk):
         "income": income,
         "expense": expense,
         "can_edit": can_edit_project(request.user, project),
+        "can_confirm": can_confirm_project(request.user),
         "can_view_finance": can_view_finance,
         "orphan_sections": orphan_sections,
         "top_objects": top_objects,
@@ -791,10 +806,54 @@ def project_wizard_confirm(request, pk):
         raise PermissionDenied
     doc_type_keys = [key for key, _label in get_wizard_doc_types()]
     documents = Document.objects.filter(project=project, doc_type__in=doc_type_keys)
+    can_confirm = can_confirm_project(request.user)
     if request.method == "POST":
-        AuditLog.log(obj=project, action="wizard_completed", user=request.user)
-        messages.success(request, _("Project saved."))
+        link = reverse("projects:wizard_confirm", args=[project.pk])
+        if can_confirm:
+            if project.awaiting_confirmation:
+                project.confirmed_at, project.confirmed_by = timezone.now(), request.user
+                project.save(update_fields=["confirmed_at", "confirmed_by", "updated_at"])
+                AuditLog.log(obj=project, action="wizard_completed", user=request.user)
+                author = project.created_by
+                if author and author.pk != request.user.pk and author.is_active:
+                    _safe_notify(
+                        author, NotificationType.APPROVAL, _("Project confirmed"),
+                        _('%(manager)s confirmed the project "%(project)s".') % {
+                            "manager": request.user.full_name or request.user.email, "project": project.name,
+                        },
+                        link=reverse("projects:detail", args=[project.pk]),
+                    )
+                messages.success(request, _("Project confirmed."))
+            else:
+                messages.success(request, _("Project saved."))
+            return redirect("projects:detail", pk=pk)
+        # Rahbar bo'lmagan: tasdiq so'rovi barcha rahbarlarga yuboriladi.
+        if not project.awaiting_confirmation:
+            return redirect("projects:detail", pk=pk)
+        project.confirm_requested_at = timezone.now()
+        project.save(update_fields=["confirm_requested_at", "updated_at"])
+        AuditLog.log(obj=project, action="confirmation_requested", user=request.user)
+        managers = User.objects.filter(is_active=True).filter(
+            Q(is_superuser=True) | Q(role__in=[User.Role.ADMIN, User.Role.MANAGER]),
+        ).exclude(pk=request.user.pk)
+        for manager in managers:
+            _safe_notify(
+                manager, NotificationType.APPROVAL, _("Project awaits confirmation"),
+                _('%(user)s asks you to confirm the project "%(project)s".') % {
+                    "user": request.user.full_name or request.user.email, "project": project.name,
+                },
+                link=link,
+            )
+        messages.success(request, _("Sent to the manager for confirmation."))
         return redirect("projects:detail", pk=pk)
     return render(request, "projects/project_wizard_confirm.html", {
-        "project": project, "documents": documents,
+        "project": project, "documents": documents, "can_confirm": can_confirm,
     })
+
+
+def _safe_notify(user, ntype, title, message, link=None):
+    """Xabar yuborilmasa ham (Celery/Telegram ishlamay qolsa) asosiy amal buzilmasin."""
+    try:
+        notify_user(user, ntype, title, message, link=link)
+    except Exception:  # noqa: BLE001
+        logger.exception("Notification to %s failed", user.pk)

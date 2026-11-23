@@ -100,6 +100,14 @@ class Project(models.Model):
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="created_projects"
     )
+    # Yangi loyiha wizard'i oxirida rahbar tasdiqlaydi (permissions.can_confirm_project).
+    # Bo'sh bo'lsa — loyiha «Ожидает подтверждения».
+    confirmed_at = models.DateTimeField(blank=True, null=True, verbose_name=_("Confirmed at"))
+    confirmed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, blank=True, null=True,
+        related_name="confirmed_projects", verbose_name=_("Confirmed by"),
+    )
+    confirm_requested_at = models.DateTimeField(blank=True, null=True, verbose_name=_("Confirmation requested at"))
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -108,6 +116,10 @@ class Project(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def awaiting_confirmation(self):
+        return self.confirmed_at is None
 
     @property
     def paid_percentage(self):

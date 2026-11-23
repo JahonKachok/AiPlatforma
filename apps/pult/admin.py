@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from .models import (
-    CalendarDay, CipherRule, Contract, DisciplineConfig, OperationInfo, PersonSettings, PlanRow, ProgressReport,
+    CalendarDay, CipherRule, CompositionTemplate, Contract, DisciplineConfig, OperationInfo, PersonSettings, PlanRow, ProgressReport,
     PultSettings, StageConfig, TaskTemplate, TaskWorkflow,
 )
 
@@ -86,3 +86,9 @@ class TaskTemplateAdmin(admin.ModelAdmin):
 class PultSettingsAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         return not PultSettings.objects.exists()
+
+
+@admin.register(CompositionTemplate)
+class CompositionTemplateAdmin(admin.ModelAdmin):
+    list_display = ("name", "order", "updated_at")
+    list_editable = ("order",)

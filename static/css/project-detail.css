@@ -461,4 +461,22 @@
 }
 .pd-src-file button:hover { color: var(--pd-crit); background: var(--pd-crit-soft); }
 .pd-src-err { margin: 0.25rem 0 0; font-size: 0.75rem; color: var(--pd-crit); }
+/* ro'yxat varianti (yangi loyiha → «Документы»): bitta ustun, qatorlar bitta ramkada */
+.pd-src-grid.pd-src-list { grid-template-columns: minmax(0, 1fr); gap: 0; border: 1px solid var(--pd-border); border-radius: 0.5rem; overflow: hidden; }
+.pd-src-list .pd-src { border: 0; border-top: 1px solid var(--pd-border); border-radius: 0; background: transparent; padding: 0.375rem 0.5rem 0.375rem 0.75rem; }
+.pd-src-list .pd-src:first-child { border-top: 0; }
+.pd-src-list .pd-src:hover { background: var(--pd-bg-soft); }
+.pd-src-list .pd-src.has-files { border-left: 3px solid var(--pd-ok); padding-left: calc(0.75rem - 3px); }
+.pd-src-list .pd-src.upload-drop-active { outline: 2px dashed var(--pd-accent); outline-offset: -2px; background: var(--pd-accent-soft); }
+.pd-src-list .pd-src-name { font-size: 0.875rem; }
 @media (prefers-reduced-motion: reduce) { .pd-src, .pd-src-add { transition: none; } }
+
+/* ---------- «Объекты и подобъекты»: ixcham qo'shish formalari (nomli maydonlar) ---------- */
+.pd-mini-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr)); gap: 0.625rem 0.75rem; align-items: end;
+  padding: 0.75rem; border: 1px solid var(--pd-border); border-radius: 0.5rem; background: var(--pd-bg-soft); }
+.pd-mini-field { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
+.pd-mini-field > label { display: flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; font-weight: 500; color: var(--pd-muted); }
+.pd-mini-field .field-input { width: 100%; }
+.pd-mini-field.pd-wide { grid-column: 1 / -1; }
+.pd-mini-err { margin: 0; font-size: 0.75rem; color: var(--pd-crit); }
+.pd-mini-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; }

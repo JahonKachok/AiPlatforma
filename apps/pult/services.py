@@ -607,7 +607,7 @@ def internal_project(user):
     if s.internal_project_id is None:
         s.internal_project = Project.objects.create(
             # Pultda kompaniyaning o'z «loyihasi» shu nom bilan yuritilgan (moliya, ichki vazifalar).
-            name="GASTEC", created_by=user, description="Внутренние задачи и деньги компании (создан Пультом).",
+            name="GASTEC", created_by=user, description="Внутренние задачи и деньги компании (создан Пультом).", confirmed_at=timezone.now(),
         )
         s.save(update_fields=["internal_project"])
     return s.internal_project

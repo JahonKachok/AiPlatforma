@@ -27,6 +27,11 @@ def can_edit_project(user, project):
     ).exists()
 
 
+def can_confirm_project(user):
+    """Yangi loyiha wizard'ini yakunlash («Подтверждение») — faqat rahbar."""
+    return user.is_superuser or user.role in (User.Role.ADMIN, User.Role.MANAGER)
+
+
 def can_create_project(user):
     return user.is_superuser or user.role in (User.Role.ADMIN, User.Role.MANAGER, User.Role.GIP)
 

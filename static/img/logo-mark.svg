@@ -1,9 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="GASTEC">
-  <!-- GASTEC belgisi: to'q ko'k plitka ichida «G» — yoy (loyiha sikli),
-       yashil ko'ndalang chiziq (muhandislik tarmog'i) va tugun nuqtasi.
-       Sidebar, login va favicon uchun; kichik o'lchamda ham o'qiladi. -->
-  <rect x="2" y="2" width="60" height="60" rx="14" fill="#0B3C5D"/>
-  <path d="M43.3 20.7 A16 16 0 1 0 48 32" fill="none" stroke="#FFFFFF" stroke-width="6.5" stroke-linecap="round"/>
-  <path d="M48 32 H34" fill="none" stroke="#72C07D" stroke-width="6.5" stroke-linecap="round"/>
-  <circle cx="43.3" cy="20.7" r="4.2" fill="#72C07D"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-364 -230 2363 2363" role="img" aria-label="GASTEC">
+  <!-- GASTEC PROJECT belgisi (logos/logo.svg dan): «G T» + alanga, oq plitkada —
+       qorong'i va yorug' fonda ham ko'rinadi. Sidebar, login va favicon uchun. -->
+  <defs><radialGradient id="mk-flame" cx="1223.81" cy="329.76" fx="1634.85" fy="329.76" r="415.19" gradientUnits="userSpaceOnUse"><stop offset="0.02" stop-color="#e6332a"/><stop offset="0.24" stop-color="#e73e24"/><stop offset="0.62" stop-color="#e94a1d"/><stop offset="1" stop-color="#e94e1b"/></radialGradient></defs>
+  <rect x="-364" y="-230" width="2363" height="2363" rx="520" fill="#ffffff"/>
+  <path fill="#111110" d="M1633.67,996.2v228.35H1335v226.3c-1.35,123.7,0,443.56,0,452.62,0,0-109.76-.46-226.3-.59-85.23-.08-174.07,0-226.31.59H452.61q-185.55-2-318-134.57T0,1450.85v-681Q2,584.37,134.56,451.82T452.61,317.28l358.74,2.53V546.14l-358.74-2.56q-93.81,0-160,66.26t-66.26,160v681q0,93.81,66.26,160.05t160,66.26h429.8q93.74,0,160.05-66.26t66.26-160.05v-226.3H810.62V996.2Z"/>
+  <path fill="url(#mk-flame)" d="M1497.91,427.05c-11.87-15.6-23.22-29.65-36.63-43.17-33.54-31.21-72.23-53.58-104.73-86.35-75.33-75.94-90.81-201.3-43.86-297.53-47,12-90.28,39-126.4,68.66-131,108.19-182.63,299.09-120.72,462.94,2.06,5.2,4.13,10.41,4.13,17.17,0,11.44-7.74,21.85-18.06,26-11.35,5.2-23.73,2.08-33-6.25a43.22,43.22,0,0,1-7.74-8.84c-56.75-74.38-66-181-27.34-266.32C898.93,364.11,853,483.75,860.24,596.62c2.06,26,5.16,52,13.93,78,7.22,31.21,20.63,62.42,37.14,90,53.66,90,148.07,154.48,249.7,167.49,108.35,14,224.43-6.25,307.49-83.23,92.86-86.35,126.4-224.71,77.39-343.3l-6.71-13.53c-10.32-23.93-24.25-45.25-41.27-65M1340.55,754.23c-14.44,12.49-37.66,26-55.72,31.21-56.75,20.81-113.5-8.32-148.06-42.65,61.39-14.57,97.5-60.34,107.82-106.63,8.77-41.62-7.22-75.95-13.93-116-6.19-38.49-5.16-71.26,9.29-107.15,8.77,19.76,19.09,39.53,31,55.13,39.21,52,100.61,74.91,113.51,145.65a80.83,80.83,0,0,1,3.09,22.37c1.55,42.65-16.51,89.46-47.46,118.07Z"/>
 </svg>

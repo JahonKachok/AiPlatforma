@@ -5,7 +5,7 @@
 {% block page_title %}{% endblock %}
 {% block page_subtitle %}{% endblock %}
 {% block extra_head %}
-  <link rel="stylesheet" href="{% static 'css/project-detail.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'css/project-detail.css' %}?v=4">
   {# base.html always emits the h1/subtitle strip; this page supplies its own. #}
   <style>main > div.mb-4:first-child { display: none; }</style>
   {% if project.latitude is not None and project.longitude is not None %}
@@ -43,6 +43,7 @@
           <h1 class="pd-head-name">{{ project.name }}</h1>
           <span class="{{ project.status|project_status_badge }}">{{ project.get_status_display }}</span>
           <span class="{{ project.stage|project_stage_badge }}">{{ project.get_stage_display }}</span>
+          {% if project.awaiting_confirmation %}<span class="badge badge-warning" title="{% trans 'Only a manager can confirm the project.' %}">{% trans "Awaiting confirmation" %}</span>{% endif %}
         </div>
         {% if project.description %}
           <p class="pd-head-desc">{{ project.description }}</p>
@@ -50,6 +51,9 @@
       </div>
 
       <div class="pd-head-actions">
+        {% if project.awaiting_confirmation and can_confirm %}
+          <a href="{% url 'projects:wizard_confirm' project.pk %}" class="btn btn-primary btn-sm">{% trans "Confirm project" %}</a>
+        {% endif %}
         {% if can_edit %}
           <a href="{% url 'projects:update' project.pk %}" class="btn btn-secondary btn-sm">{% trans "Edit" %}</a>
         {% endif %}
@@ -475,10 +479,10 @@
       {% if can_edit %}
       <details class="mt-3">
         <summary class="cursor-pointer list-none text-sm text-blue-600 hover:underline dark:text-blue-400">{% trans "+ Add object" %}</summary>
-        <form method="post" action="{% url 'projects:add_subobject' project.pk %}" class="mt-2 flex flex-wrap gap-2">
+        <form method="post" action="{% url 'projects:add_subobject' project.pk %}" class="pd-mini-form mt-2">
           {% csrf_token %}
-          {% for field in sub_object_form %}{% include "partials/field_with_info.html" %}{% endfor %}
-          <button type="submit" class="btn btn-secondary btn-sm">{% trans "Add" %}</button>
+          {% for field in sub_object_form %}{% include "projects/_mini_field.html" %}{% endfor %}
+          <div class="pd-mini-actions"><button type="submit" class="btn btn-primary btn-sm">{% trans "Add" %}</button></div>
         </form>
       </details>
       {% endif %}
@@ -512,11 +516,14 @@
         {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "None." %}</li>{% endfor %}
       </ul>
       {% if can_edit %}
-      <form method="post" action="{% url 'projects:add_section' project.pk %}" class="flex flex-wrap gap-2">
-        {% csrf_token %}
-        {% for field in section_form %}{% include "partials/field_with_info.html" %}{% endfor %}
-        <button type="submit" class="btn btn-secondary btn-sm">{% trans "Add" %}</button>
-      </form>
+      <details>
+        <summary class="cursor-pointer list-none text-sm text-blue-600 hover:underline dark:text-blue-400">{% trans "+ Add sub-object" %}</summary>
+        <form method="post" action="{% url 'projects:add_section' project.pk %}" class="pd-mini-form mt-2">
+          {% csrf_token %}
+          {% for field in section_form %}{% include "projects/_mini_field.html" %}{% endfor %}
+          <div class="pd-mini-actions"><button type="submit" class="btn btn-primary btn-sm">{% trans "Add" %}</button></div>
+        </form>
+      </details>
       {% endif %}
     </div>
   </div>

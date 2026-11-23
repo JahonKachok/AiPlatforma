@@ -4,7 +4,7 @@
 {% block page_title %}{% trans "Projects" %}{% endblock %}
 {% block page_help %}{% trans "Manage all construction projects: follow their stages, budgets, and deadlines, and create new ones." as help_text %}{% with text=help_text %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
 {% block extra_head %}
-  <link rel="stylesheet" href="{% static 'css/projects.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'css/projects.css' %}?v=6">
 {% endblock %}
 {% block content %}
 {% pult_tabs "projects" %}
@@ -23,10 +23,17 @@
   <div class="prj-topbar">
     <dl class="prj-stats">
       {% for kpi in kpi_cards %}
+        {% if kpi.href %}
+        <a class="prj-stat prj-stat-link" href="{{ kpi.href }}" data-tone="{{ kpi.tone }}" title="{{ kpi.hint }}">
+          <dt>{{ kpi.label }}</dt>
+          <dd>{{ kpi.value }}</dd>
+        </a>
+        {% else %}
         <div class="prj-stat" data-tone="{{ kpi.tone }}" title="{{ kpi.hint }}">
           <dt>{{ kpi.label }}</dt>
           <dd>{{ kpi.value }}</dd>
         </div>
+        {% endif %}
       {% endfor %}
     </dl>
     <div class="prj-topbar-actions">
@@ -114,8 +121,8 @@
                 </div>
               {% endif %}
 
-              <span class="prj-badge {% if project.is_overdue %}is-overdue{% endif %}" data-status="{{ project.status }}">
-                {% if project.is_overdue %}{% trans "Overdue" %}{% else %}{{ project.get_status_display }}{% endif %}
+              <span class="prj-badge {% if project.is_overdue %}is-overdue{% endif %}" data-status="{% if project.awaiting_confirmation %}on_hold{% else %}{{ project.status }}{% endif %}">
+                {% if project.awaiting_confirmation %}{% trans "Awaiting confirmation" %}{% elif project.is_overdue %}{% trans "Overdue" %}{% else %}{{ project.get_status_display }}{% endif %}
               </span>
             </div>
 
@@ -232,6 +239,7 @@
             <p class="prj-row-title">{{ project.name }}</p>
             <div class="prj-row-meta">
               <span class="prj-chip" data-status="{{ project.status }}">{{ project.get_status_display }}</span>
+              {% if project.awaiting_confirmation %}<span class="prj-chip" data-status="on_hold">{% trans "Awaiting confirmation" %}</span>{% endif %}
               <span>{{ project.get_stage_display }}</span>
               {% if project.client_name %}<span>· {{ project.client_name }}</span>{% endif %}
               {% if project.deadline %}

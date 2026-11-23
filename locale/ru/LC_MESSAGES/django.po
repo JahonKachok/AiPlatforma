@@ -4940,3 +4940,282 @@ msgstr "Таблица"
 
 msgid "Department"
 msgstr "Отдел"
+
+msgid "Only a manager can confirm the project. Send it to the manager — they will get a notification."
+msgstr "Подтвердить проект может только руководитель. Отправьте его руководителю — он получит уведомление."
+
+msgid "Go to project"
+msgstr "Перейти к проекту"
+
+msgid "Confirmed at"
+msgstr "Подтверждён"
+
+msgid "Confirmed by"
+msgstr "Кем подтверждён"
+
+msgid "Confirmation requested at"
+msgstr "Запрос на подтверждение"
+
+msgid "Project confirmed"
+msgstr "Проект подтверждён"
+
+msgid "Project confirmed."
+msgstr "Проект подтверждён."
+
+msgid "%(manager)s confirmed the project \"%(project)s\"."
+msgstr "%(manager)s подтвердил(а) проект «%(project)s»."
+
+msgid "Project awaits confirmation"
+msgstr "Проект ожидает подтверждения"
+
+msgid "%(user)s asks you to confirm the project \"%(project)s\"."
+msgstr "%(user)s просит подтвердить проект «%(project)s»."
+
+msgid "Sent to the manager for confirmation."
+msgstr "Отправлено руководителю на подтверждение."
+
+msgid "Already sent"
+msgstr "Уже отправлено"
+
+msgid "Confirm project"
+msgstr "Подтвердить проект"
+
+msgid "Send again"
+msgstr "Отправить ещё раз"
+
+msgid "Send to the manager"
+msgstr "Отправить руководителю"
+
+msgid "Awaiting confirmation"
+msgstr "Ожидает подтверждения"
+
+msgid "Only a manager can confirm the project."
+msgstr "Подтвердить проект может только руководитель."
+
+msgid "+ Add sub-object"
+msgstr "+ Добавить подобъект"
+
+msgid "Brief issued"
+msgstr "ТЗ выдано"
+
+msgid "Term proposed"
+msgstr "Срок на согласовании"
+
+msgid "On approval"
+msgstr "Согласование"
+
+msgid "On review"
+msgstr "На проверке"
+
+msgid "Accepted"
+msgstr "Принята"
+
+#, python-format
+msgid "Accept · %(n)s d."
+msgstr "Принять · %(n)s дн."
+
+msgid "I need a different term"
+msgstr "Мне нужен другой срок"
+
+msgid "The GIP will confirm the term; it counts from that day."
+msgstr "ГИП подтвердит срок; отсчёт начнётся с этого дня."
+
+msgid "Accept and name the term"
+msgstr "Принять и назвать срок"
+
+msgid "Submit the work"
+msgstr "Сдать работу"
+
+msgid "Source files (DWG etc.) handed over"
+msgstr "Исходники (DWG и пр.) переданы"
+
+msgid "What needs approval"
+msgstr "Что согласовать"
+
+msgid "While approval is going on, the term is paused and does not count against you."
+msgstr "Пока идёт согласование, срок стоит на паузе и не идёт вам в минус."
+
+msgid "Ask a question"
+msgstr "Есть вопрос"
+
+msgid "Question"
+msgstr "Вопрос"
+
+msgid "Issue the brief"
+msgstr "Выдать ТЗ"
+
+msgid "Brief: file link or task text"
+msgstr "ТЗ: ссылка на файл или текст задания"
+
+msgid "Term, days (empty: the assignee names it)"
+msgstr "Срок, дней (пусто — исполнитель назовёт сам)"
+
+msgid "The assignee will see the task in «My work» and accept it."
+msgstr "Исполнитель увидит задачу в «Моей работе» и примет её."
+
+#, python-format
+msgid "Confirm the term · %(n)s d."
+msgstr "Утвердить срок · %(n)s дн."
+
+msgid "Set another term"
+msgstr "Другой срок"
+
+msgid "Do not confirm"
+msgstr "Не утверждать"
+
+msgid "Why (the assignee will see it)"
+msgstr "Почему (исполнитель увидит)"
+
+msgid "Has remarks"
+msgstr "Есть замечания"
+
+msgid "Remarks (the assignee will see them)"
+msgstr "Замечания (исполнитель увидит)"
+
+msgid "Take it to the client for approval"
+msgstr "Беру на согласование с заказчиком"
+
+msgid "Answer"
+msgstr "Ответить"
+
+msgid "Accept the work"
+msgstr "Принять работу"
+
+msgid "What to fix (the assignee will see it)"
+msgstr "Что исправить (исполнитель увидит)"
+
+msgid "A revision counts in the assignee's KPI."
+msgstr "Доработка учитывается в KPI исполнителя."
+
+msgid "Waiting for the brief from the GIP. This is a plan: work has not started yet."
+msgstr "Ждёт ТЗ от ГИПа. Это план: работа ещё не началась."
+
+#, python-format
+msgid "The brief is issued. Accept the task: the term is %(n)s d. from acceptance."
+msgstr "ТЗ выдано. Примите задачу: срок %(n)s дн. с момента принятия."
+
+msgid "The brief is issued. Accept the task and name your term."
+msgstr "ТЗ выдано. Примите задачу и назовите свой срок."
+
+#, python-format
+msgid "Term of %(n)s d. proposed. Waiting for the GIP to confirm."
+msgstr "Предложен срок %(n)s дн. Ждёт подтверждения ГИПа."
+
+msgid "On approval with the client (handled by the GIP). The term is paused."
+msgstr "На согласовании у заказчика (ведёт ГИП). Срок на паузе."
+
+msgid "On approval with the GIP. The term is paused."
+msgstr "На согласовании у ГИПа. Срок на паузе."
+
+msgid "The question went to the GIP. Keep working, the answer will appear here."
+msgstr "Вопрос отправлен ГИПу. Работайте дальше, ответ придёт сюда."
+
+msgid "The work is submitted. Waiting for the GIP to accept it."
+msgstr "Работа сдана. Ждёт приёмки ГИПом."
+
+msgid "Sent back for revision. Fix it and submit again."
+msgstr "Вернули на доработку. Исправьте и сдайте снова."
+
+msgid "In progress."
+msgstr "В работе."
+
+#, python-format
+msgid "Overdue by %(n)s d. Submit as soon as possible."
+msgstr "Просрочено на %(n)s дн. Сдайте как можно скорее."
+
+msgid "Due today."
+msgstr "Сдать сегодня."
+
+#, python-format
+msgid "%(n)s d. left. Report the percentage every day."
+msgstr "До сдачи %(n)s дн. Каждый день отмечайте процент."
+
+msgid "Accepted."
+msgstr "Принято."
+
+msgid "report"
+msgstr "отчёт"
+
+msgid "Alarm 70%"
+msgstr "Тревога 70%"
+
+msgid "Behind schedule"
+msgstr "Отстаёт"
+
+msgid "Report sent."
+msgstr "Отчёт отправлен."
+
+#, python-format
+msgid "Saved: %(status)s."
+msgstr "Сохранено: %(status)s."
+
+#, python-format
+msgid "overdue by %(n)s d."
+msgstr "просрочено на %(n)s дн."
+
+msgid "due today"
+msgstr "сдать сегодня"
+
+#, python-format
+msgid "%(n)s d. left"
+msgstr "осталось %(n)s дн."
+
+msgid "done"
+msgstr "сделано"
+
+msgid "time"
+msgstr "время"
+
+msgid "Brief"
+msgstr "ТЗ"
+
+msgid "Today's report"
+msgstr "Отчёт за сегодня"
+
+msgid "sent"
+msgstr "отправлен"
+
+msgid "not sent"
+msgstr "не отправлен"
+
+msgid "Done, %"
+msgstr "Выполнено, %"
+
+msgid "Comment to the report (optional)"
+msgstr "Комментарий к отчёту (необязательно)"
+
+msgid "Update report"
+msgstr "Обновить отчёт"
+
+msgid "Send report"
+msgstr "Отправить отчёт"
+
+msgid "Even if the percentage has not changed, send it: this is the daily report."
+msgstr "Даже если процент не изменился — отправьте: это и есть ежедневный отчёт."
+
+msgid "Composition section"
+msgstr "Раздел состава"
+
+msgid "Accepts the work"
+msgstr "Принимает работу"
+
+msgid "Term"
+msgstr "Срок"
+
+msgid "d."
+msgstr "дн."
+
+msgid "Due by plan"
+msgstr "Сдать по плану"
+
+msgid "Actual finish"
+msgstr "Факт. окончание"
+
+msgid "Source files"
+msgstr "Исходники"
+
+msgid "handed over"
+msgstr "переданы"
+
+msgid "KPI points"
+msgstr "Баллы KPI"

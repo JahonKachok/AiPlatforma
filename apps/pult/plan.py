@@ -4,6 +4,7 @@ Sroklar, bog'lanishlar va kritik yo'l brauzerda hisoblanadi (pult.js:
 schedule); server qatorlarni saqlaydi, kim qaysi loyihani o'zgartira olishini
 tekshiradi va bir vaqtda ikki kishi yozib yubormasligini kuzatadi.
 """
+import re
 from datetime import date
 
 from django.db import transaction
@@ -14,7 +15,7 @@ from apps.projects.models import Project
 from apps.projects.permissions import ensure_project_member, visible_projects_for
 from apps.tasks.models import Task
 
-from .models import CipherRule, Contract, DisciplineConfig, Flow, PlanRow, PultSettings, StageConfig, TaskWorkflow
+from .models import CipherRule, CompositionTemplate, Contract, DisciplineConfig, Flow, PlanRow, PultSettings, StageConfig, TaskWorkflow
 from .models import WorkflowStatus as WS
 from .services import (
     BOSS, DESIGN_STAGE, GIP, PultError, ensure_workflow, get_task, log_status, open_section_task, pult_role,
@@ -168,7 +169,69 @@ def save_plan(user, rows, version):
         PultSettings.objects.filter(pk=s.pk).update(plan_version=s.plan_version + 1)
         sync_disciplines(values for project, values in incoming.values() if project.pk in changed)
         drop_orphan_drafts(changed)
+        sync_objects_to_platform(changed)
     return len(changed)
+
+
+def sync_objects_to_platform(project_ids):
+    """Состав'dagi «Объект» qatorlari loyiha sahifasidagi «Объекты»da (SubObject) ham bo'lsin.
+
+    Teskari yo'nalish — import_platform_objects. Bog'lanish ``source_key`` orqali:
+    «so:<SubObject id>» (obyekt) va «sod:<SubObjectDiscipline id>» (obyekt ichidagi fan).
+    Состав'dan o'chirilgan obyekt platformada qoladi — u yerda fayl/vazifalar bo'lishi mumkin."""
+    from apps.accounts.models import User
+    from apps.projects.models import SubObject, SubObjectDiscipline
+
+    rows = list(PlanRow.objects.filter(project_id__in=project_ids).order_by("project_id", "id"))
+    if not any(r.kind == "Объект" for r in rows):
+        return
+    subs = {str(s.pk): s for s in SubObject.objects.filter(project_id__in=project_ids)}
+    links = {str(x.pk): x for x in SubObjectDiscipline.objects.filter(sub_object__project_id__in=project_ids)}
+    disciplines = {d.code.upper(): d for d in Discipline.objects.all()}
+    people = {}
+    for pk, name in User.objects.filter(is_active=True).values_list("pk", "full_name"):
+        people.setdefault((name or "").strip().lower(), []).append(pk)
+
+    def key_id(row, prefix):
+        return row.source_key[len(prefix):] if row.source_key.startswith(prefix) else None
+
+    for obj in (r for r in rows if r.kind == "Объект"):
+        sub = subs.get(key_id(obj, "so:") or "")
+        name = (obj.name or obj.code or "Объект").strip()[:255]
+        if sub is None:
+            top = obj.wbs.split(".")[0]
+            sub = SubObject.objects.create(
+                project_id=obj.project_id, name=name, start_date=obj.calc_start, deadline=obj.calc_finish,
+                position=int(top) if top.isdigit() else 0,
+            )
+            subs[str(sub.pk)] = sub
+            obj.source_key = f"so:{sub.pk}"
+            obj.save(update_fields=["source_key"])
+        elif sub.parent_id is None:
+            # «Obyekt · Pod» ko'rinishida import qilingan pod-obyektlar nomiga tegilmaydi
+            changes = {f: v for f, v in (("name", name), ("start_date", obj.calc_start), ("deadline", obj.calc_finish))
+                       if v and getattr(sub, f) != v}
+            if changes:
+                for f, v in changes.items():
+                    setattr(sub, f, v)
+                sub.save(update_fields=list(changes))
+        # obyekt ichidagi bo'limlar → obyektning fanlari
+        prefix = obj.wbs + "."
+        for sec in (r for r in rows if r.project_id == obj.project_id and r.kind in ("Раздел", "") and r.wbs.startswith(prefix)):
+            if key_id(sec, "sod:") in links:
+                continue
+            discipline = disciplines.get((sec.code or "").strip().upper())
+            if discipline is None:
+                continue
+            owner = (sec.owner or "").split(",")[0].strip().lower()
+            match = people.get(owner, [])
+            link, _created = SubObjectDiscipline.objects.get_or_create(
+                sub_object=sub, discipline=discipline,
+                defaults={"deadline": sec.calc_finish, "assignee_id": match[0] if len(match) == 1 else None},
+            )
+            links[str(link.pk)] = link
+            sec.source_key = f"sod:{link.pk}"
+            sec.save(update_fields=["source_key"])
 
 
 def drop_orphan_drafts(project_ids):
@@ -371,6 +434,100 @@ def save_cipher(user, data):
         "prefix": prefix[:20], "client": client[:20], "code": code[:20], "stage": "", "digits": digits,
         "common": (str(data.get("common") or "").strip().upper() or "ZZ01")[:10],
     })
+
+
+# ---------------------------------------------------------------- «Типовой состав» templates
+
+TEMPLATE_KINDS = ("Раздел", "Этап", "Веха", "Объект")
+_WBS_RE = re.compile(r"^\d+(\.\d+)*$")
+# «2.1», «2.1НН+5», «3.2 ОН-10» — shablon ichidagi WBS + bog'lanish turi + lag
+_TPL_LINK_RE = re.compile(r"^(\d+(?:\.\d+)*)([А-ЯЁA-Z]{2})?([+\-−–]\d+)?$", re.IGNORECASE)
+_LINK_TYPES = {"ОН": "ОН", "НН": "НН", "ОО": "ОО", "НО": "НО", "FS": "ОН", "SS": "НН", "FF": "ОО", "SF": "НО"}
+
+
+def comp_templates_json():
+    return [{"id": t.pk, "name": t.name, "items": t.items} for t in CompositionTemplate.objects.all()]
+
+
+def _clean_template_items(raw):
+    if not isinstance(raw, list) or not raw:
+        raise PultError("В шаблоне нет ни одной строки.")
+    if len(raw) > 300:
+        raise PultError("Слишком много строк в шаблоне (максимум 300).")
+    items, seen = [], set()
+    for i, it in enumerate(raw, 1):
+        it = it if isinstance(it, dict) else {}
+        wbs = str(it.get("wbs") or "").strip().rstrip(".")
+        name = str(it.get("name") or "").strip()[:500]
+        kind = str(it.get("kind") or "Раздел").strip()
+        if not _WBS_RE.match(wbs):
+            raise PultError(f"Строка {i}: WBS — номер вида 3 или 3.2.")
+        if wbs in seen:
+            raise PultError(f"WBS {wbs} повторяется.")
+        if not name:
+            raise PultError(f"Строка {i} (WBS {wbs}): напишите наименование.")
+        if kind not in TEMPLATE_KINDS:
+            raise PultError(f"Строка {i}: неизвестный тип «{kind}».")
+        dur = None
+        if kind == "Веха":
+            dur = 0
+        elif kind == "Раздел":
+            try:
+                dur = int(float(it.get("dur")))
+            except (TypeError, ValueError):
+                dur = 0
+            if dur < 1:
+                raise PultError(f"WBS {wbs}: длительность раздела — от 1 рабочего дня.")
+        seen.add(wbs)
+        items.append({"wbs": wbs, "code": str(it.get("code") or "").strip().upper()[:50], "name": name,
+                      "kind": kind, "dur": dur, "preds": str(it.get("preds") or "")})
+    for it in items:
+        links = []
+        for tok in (t.strip() for t in re.split(r"[;,]", it["preds"])):
+            if not tok:
+                continue
+            m = _TPL_LINK_RE.match(tok.replace(" ", ""))
+            ty = _LINK_TYPES.get((m.group(2) or "ОН").upper()) if m else None
+            if not m or not ty:
+                raise PultError(f"WBS {it['wbs']}: не понял связь «{tok}». Пример: 2.1; 3.1НН+5")
+            if m.group(1) not in seen:
+                raise PultError(f"WBS {it['wbs']}: в шаблоне нет строки с WBS {m.group(1)}.")
+            if m.group(1) == it["wbs"]:
+                raise PultError(f"WBS {it['wbs']} не может зависеть сам от себя.")
+            lag = int((m.group(3) or "0").replace("−", "-").replace("–", "-"))
+            links.append(m.group(1) + (ty if ty != "ОН" or lag else "") + (f"{lag:+d}" if lag else ""))
+        it["preds"] = "; ".join(links)
+    items.sort(key=lambda x: [int(p) for p in x["wbs"].split(".")])
+    return items
+
+
+@transaction.atomic
+def save_comp_template(user, data):
+    """Shablonni yaratish (id yo'q), o'zgartirish yoki o'chirish (``delete: true``)."""
+    if pult_role(user) not in (BOSS, GIP):
+        raise PultError("Менять типовой состав может ГИП или руководитель.", 403)
+    tpl = None
+    if data.get("id") not in (None, ""):
+        tpl = CompositionTemplate.objects.select_for_update().filter(pk=data.get("id")).first()
+        if tpl is None:
+            raise PultError("Шаблон не найден, обновите страницу.", 404)
+    if data.get("delete"):
+        if tpl is None:
+            raise PultError("Шаблон не найден.", 404)
+        tpl.delete()
+        return None
+    name = str(data.get("name") or "").strip()[:200]
+    if not name:
+        raise PultError("Напишите название шаблона.")
+    if CompositionTemplate.objects.filter(name__iexact=name).exclude(pk=tpl.pk if tpl else None).exists():
+        raise PultError(f"Шаблон «{name}» уже есть.")
+    items = _clean_template_items(data.get("items"))
+    if tpl is None:
+        order = (CompositionTemplate.objects.aggregate(m=Max("order"))["m"] or 0) + 1
+        tpl = CompositionTemplate(order=order)
+    tpl.name, tpl.items = name, items
+    tpl.save()
+    return tpl
 
 
 # ---------------------------------------------------------------- import from the platform's objects

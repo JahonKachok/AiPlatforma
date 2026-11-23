@@ -3,7 +3,7 @@
   // ---------- constants
   // Data comes from the platform (apps/pult) instead of Google Sheets.
   const DS = document.body.dataset;
-  const API = { data: DS.apiData, tasks: DS.apiTasks, report: DS.apiReport, plan: DS.apiPlan, planImport: DS.apiImport, sync: DS.apiSync, disc: DS.apiDisc, ciph: DS.apiCiph, ops: DS.apiOps };
+  const API = { data: DS.apiData, tasks: DS.apiTasks, report: DS.apiReport, plan: DS.apiPlan, planImport: DS.apiImport, sync: DS.apiSync, disc: DS.apiDisc, ciph: DS.apiCiph, ops: DS.apiOps, tpl: DS.apiTpl };
   const CSRF = document.querySelector('meta[name="csrf-token"]').content;
   // ?embed=1#<tab>: the platform shows one Pult page inside its own menu (apps/pult/nav.py).
   // The tab is fixed by the URL; going to another tab opens that page's platform URL.
@@ -88,7 +88,7 @@
     const P = S.payload; if (!P) { S.d = { cal: makeCal(null) }; return; }
     const d = { tasks: P.tasks, progress: P.progress, people: P.people, projects: P.projects, templates: P.templates, kpi: P.kpi, access: P.access, features: P.features || {} };
     d.cal = makeCal(P.calendar);
-    d.disc = P.disc || []; d.stages = P.stages || []; d.ciph = new Map((P.ciphers || []).map((r) => [r.project, r]));
+    d.disc = P.disc || []; d.stages = P.stages || []; d.ciph = new Map((P.ciphers || []).map((r) => [r.project, r])); d.compTpl = P.compTemplates || [];
     if (d.features.finance) Object.assign(d, { ops: P.ops, contracts: P.contracts, home: P.home, months: P.months, rate: P.rate, lists: P.lists });
     // schedule() reads stages and disciplines through S.d, so publish them first
     S.d = d;
@@ -1349,10 +1349,17 @@
         payNote.textContent = !fOwner.value.trim() ? 'Без исполнителя задача и договор не создаются.' : auto === 'Оклад' ? 'Раздел в окладе: задача ставится, договор не создаётся, в финансах не считается.' : 'Раздел по договору: задача ставится, стоимость входит в договор с исполнителем и в долг исполнителям в финансах.';
       };
       fOwner.addEventListener('input', fillCon); fPay.addEventListener('change', fillCon);
-      const lDur = field('Длительность, раб. дн.', fDur); const lPct = field('Выполнено, % (если нет задач)', fPctIn);
-      form.append(field('Наименование', fName, 'full'), field('Шифр документа (оставьте пустым — присвоится сам)', fDoc, 'full'), field('Дисциплина (АР, КЖ…)', fCode), field('WBS (номер в структуре)', fWbs), field('Тип', fKind), lDur, field('Исполнитель', fOwner), field('Показывать заказчику', fClient), field('В графике', fIn));
+      const lDur = field('Длительность, раб. дн.', fDur, 's3'); const lPct = field('Выполнено, % (если нет задач)', fPctIn, 's3');
+      form.classList.add('pm-form');
+      // framed group: a titled box with a 12-column grid; children carry span classes s3/s4/s6/s8/s12
+      const box = (title, ...kids) => { const b = el('section', 'pm-box'); b.append(el('h4', null, title), ...kids); return b; };
+      fDoc.title = 'Оставьте пустым — присвоится сам';
+      form.append(box('Основное',
+        field('Наименование', fName, 's8'), field('Шифр документа', fDoc, 's4'),
+        field('Дисциплина (АР, КЖ…)', fCode, 's3'), field('WBS (номер в структуре)', fWbs, 's3'), field('Тип', fKind, 's3'), lDur,
+        field('Исполнитель', fOwner, 's4'), field('Показывать заказчику', fClient, 's4'), field('В графике', fIn, 's4')));
       // links
-      const lk = el('div', 'full pl-links'); lk.append(field('Связи (предшественники)', fPreds));
+      const lk = el('div', 's12 pl-links'); lk.append(field('Связи (предшественники)', fPreds));
       const pk = el('div', 'picker');
       const others = same.filter((x) => x.id !== r?.id);
       const pSel = select('pm-psel', [new Option('— выберите раздел —', ''), ...others.map((x) => new Option(`${x.id} · ${x.wbs || ''} ${x.code ? x.code + ' ' : ''}${x.name || ''}`.replace(/\s+/g, ' '), x.id))]);
@@ -1361,12 +1368,14 @@
       const pAdd = el('button', 'btn', 'Добавить связь'); pAdd.type = 'button';
       pAdd.addEventListener('click', () => { if (!pSel.value) { err.textContent = 'Выберите раздел, от которого зависит этот.'; return; } const s = fmtLink({ id: Number(pSel.value), type: pType.value, lag: Number(pLag.value) || 0 }); fPreds.value = [fPreds.value.trim().replace(/;$/, ''), s].filter(Boolean).join('; '); pSel.value = ''; pLag.value = '0'; err.textContent = ''; });
       pk.append(field('Зависит от', pSel), field('Тип связи', pType), field('Лаг, дн.', pLag), pAdd);
-      lk.append(pk, el('p', 'note', 'ОН — начать после окончания; НН — начать после начала (параллельно со сдвигом); ОО — закончить не раньше окончания; НО — закончить не раньше начала. Лаг в рабочих днях, можно с минусом: «5ОН-3» значит начать за 3 дня до окончания раздела 5.'));
-      form.append(lk);
-      form.append(field('Оплата раздела', fPay), field('Стоимость', fPrice), field('Валюта', fCur), field('Договор', fCon), payNote);
+      const help = el('details', 'pm-help'); help.append(el('summary', null, 'Как задавать связи?'), el('p', 'note', 'ОН — начать после окончания; НН — начать после начала (параллельно со сдвигом); ОО — закончить не раньше окончания; НО — закончить не раньше начала. Лаг в рабочих днях, можно с минусом: «5ОН-3» значит начать за 3 дня до окончания раздела 5.'));
+      lk.append(pk, help);
+      form.append(box('Связи', lk));
+      payNote.className = 'note s12';
+      form.append(box('Оплата', field('Оплата раздела', fPay, 's6'), field('Договор', fCon, 's6'), field('Стоимость', fPrice, 's6'), field('Валюта', fCur, 's6'), payNote));
       fillCon();
-      form.append(field('Начать не раньше', fSnet), field('Факт. начало', fAs), field('Факт. окончание', fAf), lPct, field('Комментарий', fComment, 'full'), dl);
-      const kindNote = el('p', 'note full'); form.append(kindNote);
+      const kindNote = el('p', 'note s12');
+      form.append(box('Сроки и выполнение', field('Начать не раньше', fSnet, 's3'), field('Факт. начало', fAs, 's3'), field('Факт. окончание', fAf, 's3'), lPct, kindNote, field('Комментарий', fComment, 's12')), dl);
       const syncKind = () => {
         const k = fKind.value === 'Объект' ? 'Этап' : fKind.value; fDur.disabled = k !== 'Раздел'; if (k === 'Веха') fDur.value = 0; if (k === 'Раздел' && (fDur.value === '' || fDur.value === '0')) fDur.value = 10;
         lPct.hidden = k === 'Этап' || (r && r.pSrc === 'tasks');
@@ -1449,33 +1458,7 @@
     });
   }
 
-  // ---------- typical composition template (key, WBS, шифр, наименование, тип, дней, связи по ключам)
-  const TEMPLATE = [
-    ['s', '1', '', 'Старт проекта (договор, аванс)', 'Веха', 0, ''],
-    ['e1', '2', '', 'Исходные данные и изыскания', 'Этап', null, ''],
-    ['ид', '2.1', 'ИД', 'Сбор исходных данных, техническое задание', 'Раздел', 10, 's'],
-    ['ии', '2.2', 'ИИ', 'Инженерные изыскания (геодезия, геология)', 'Раздел', 20, 'ид НН+5'],
-    ['e2', '3', '', 'Основные проектные решения', 'Этап', null, ''],
-    ['тх', '3.1', 'ТХ', 'Технологические решения', 'Раздел', 25, 'ид'],
-    ['гп', '3.2', 'ГП', 'Генеральный план', 'Раздел', 15, 'ии ОН-5; тх НН+5'],
-    ['ар', '3.3', 'АР', 'Архитектурные решения', 'Раздел', 25, 'тх НН+10'],
-    ['кж', '3.4', 'КЖ', 'Конструкции железобетонные', 'Раздел', 30, 'ар НН+10; ии'],
-    ['км', '3.5', 'КМ', 'Конструкции металлические', 'Раздел', 25, 'ар НН+10'],
-    ['e3', '4', '', 'Инженерные системы', 'Этап', null, ''],
-    ['эс', '4.1', 'ЭС', 'Электроснабжение и силовое электрооборудование', 'Раздел', 25, 'тх НН+10'],
-    ['эо', '4.2', 'ЭО', 'Электроосвещение', 'Раздел', 15, 'ар НН+10'],
-    ['ов', '4.3', 'ОВ', 'Отопление, вентиляция и кондиционирование', 'Раздел', 20, 'ар НН+10; тх НН+10'],
-    ['вк', '4.4', 'ВК', 'Водоснабжение и канализация', 'Раздел', 20, 'ар НН+10'],
-    ['атх', '4.5', 'АТХ', 'Автоматизация технологических процессов', 'Раздел', 25, 'тх ОН-10; эс НН+5'],
-    ['сс', '4.6', 'СС', 'Сети связи', 'Раздел', 15, 'ар НН+10'],
-    ['e4', '5', '', 'Сводные разделы и выдача', 'Этап', null, ''],
-    ['пос', '5.1', 'ПОС', 'Проект организации строительства', 'Раздел', 15, 'гп; кж ОН-10'],
-    ['оос', '5.2', 'ООС', 'Охрана окружающей среды, пожарная безопасность', 'Раздел', 15, 'тх; гп'],
-    ['сд', '5.3', 'СД', 'Сметная документация', 'Раздел', 20, 'кж ОН-10; км ОН-10; эс ОН-10; ов ОН-10; вк ОН-10; атх ОН-10'],
-    ['вд', '5.4', '', 'Выдача проекта заказчику', 'Веха', 0, 'сд; пос; оос; эо; сс'],
-    ['эк', '5.5', 'ЭК', 'Экспертиза и снятие замечаний', 'Раздел', 30, 'вд'],
-    ['ут', '5.6', '', 'Проект утверждён', 'Веха', 0, 'эк'],
-  ];
+  // ---------- «Типовой состав»: shablonlar bazada (apps/pult/plan.py: save_comp_template), qarang openTemplate / openTemplateEditor
   // Fanlar faqat ma'lumotnomadan (DB: «Пользователи → Дисциплины»), kodda ro'yxat yo'q.
   // «АР» (kirill) va «AR» (lotin) — bitta fan: kod lotinga o'giriladi va fan kodi yoki
   // uning lotin kodi (sozlama «lat») bilan solishtiriladi. Server ham xuddi shunday qiladi (plan.canonical_code).
@@ -1496,45 +1479,70 @@
     if (!code) return code;
     const d = discOf(code); return d ? d.code : code;
   }
-  function openTemplate(proj) {
+  // template rows: { wbs, code, name, kind, dur, preds }, preds point to WBS inside the template: «2.1НН+5; 3.1»
+  const tplLinks = (preds) => str(preds).split(/[;,]/).map((x) => x.replace(/\s+/g, '')).filter(Boolean).map((tok) => { const m = tok.match(/^(\d+(?:\.\d+)*)(.*)$/); return m ? { wbs: m[1], rest: m[2] } : null; }).filter(Boolean);
+  const isUnder = (w, parent) => str(w).startsWith(str(parent) + '.');
+  function openTemplate(proj, tplId) {
     if (!S.mcp) return toast('Сервер недоступен.');
     if (!proj) return toast('Выберите проект.');
+    const all = S.d.compTpl || [];
+    let tpl = all.find((t) => t.id === tplId) || all[0] || null;
     modal(`Типовой состав · ${proj}`, (m, close) => {
       const T0 = S.d.cal.next(todayN());
       const fStart = input('tp-start', 'date', dIso(T0));
-      const form = el('div', 'form'); form.append(field('Дата начала проекта', fStart), el('p', 'note', 'Отметьте разделы, которые есть в этом проекте. Длительности и связи типовые — после создания поправьте их под объект.'));
-      const list = el('div', 'tp-list full'); const boxes = new Map();
-      TEMPLATE.forEach(([key, wbs, code, name, kind, dur, preds]) => {
-        const l = el('label', 'tp-item' + (kind === 'Этап' ? ' tp-phase' : '')); l.style.paddingLeft = (wbs.split('.').length - 1) * 18 + 'px';
-        const c = el('input'); c.type = 'checkbox'; c.checked = true; c.id = 'tp-' + key; boxes.set(key, c);
-        const txt = `${code ? code + ' — ' : ''}${name}` + (kind === 'Раздел' ? ` · ${dur} дн.` : kind === 'Веха' ? ' · веха' : '');
-        l.append(c, el('span', null, txt));
-        if (preds) l.append(el('span', 'note mono', ' после: ' + preds.split(';').map((s) => { const [k, rest = ''] = s.trim().split(/\s+/); const t = TEMPLATE.find((x) => x[0] === k); return (t && (t[2] || t[3].split(' ')[0])) + rest; }).join(', ')));
-        if (kind === 'Этап') c.addEventListener('change', () => TEMPLATE.filter((t) => t[1].startsWith(wbs + '.')).forEach((t) => { boxes.get(t[0]).checked = c.checked; }));
-        list.append(l);
-      });
+      const fTpl = select('tp-tpl', all.map((t) => new Option(t.name, t.id)), tpl ? tpl.id : null);
+      const edit = el('button', 'btn sm', 'Изменить шаблоны'); edit.type = 'button';
+      edit.addEventListener('click', () => { close(); openTemplateEditor(proj, tpl ? tpl.id : null); });
+      const head = el('div', 'tp-head');
+      head.append(field('Дата начала проекта', fStart), field('Шаблон', fTpl), edit);
+      const form = el('div', 'form'); head.classList.add('full');
+      form.append(head, el('p', 'note full', 'Отметьте разделы, которые есть в этом проекте. Длительности и связи типовые — после создания поправьте их под объект.'));
+      const list = el('div', 'tp-list full'); let boxes = new Map();
+      const draw = () => {
+        boxes = new Map(); list.replaceChildren();
+        if (!tpl || !tpl.items.length) { list.append(el('p', 'note', 'Шаблонов пока нет. Нажмите «Изменить шаблоны», чтобы создать.')); return; }
+        const items = tpl.items; const byWbs = new Map(items.map((t) => [t.wbs, t]));
+        items.forEach((t) => {
+          const parent = items.some((x) => isUnder(x.wbs, t.wbs));
+          const l = el('label', 'tp-item' + (parent ? ' tp-phase' : '')); l.style.paddingLeft = (t.wbs.split('.').length - 1) * 18 + 'px';
+          const c = el('input'); c.type = 'checkbox'; c.checked = true; boxes.set(t.wbs, c);
+          const txt = `${t.code ? t.code + ' — ' : ''}${t.name}` + (t.kind === 'Раздел' ? ` · ${t.dur} дн.` : t.kind === 'Веха' ? ' · веха' : '');
+          l.append(c, el('span', null, txt));
+          const ln = tplLinks(t.preds);
+          if (ln.length) l.append(el('span', 'note mono', ' после: ' + ln.map((x) => { const p = byWbs.get(x.wbs); return (p ? (p.code || p.name.split(' ')[0]) : x.wbs) + x.rest; }).join(', ')));
+          if (parent) c.addEventListener('change', () => items.filter((x) => isUnder(x.wbs, t.wbs)).forEach((x) => { boxes.get(x.wbs).checked = c.checked; }));
+          list.append(l);
+        });
+      };
+      fTpl.addEventListener('change', () => { tpl = all.find((t) => String(t.id) === fTpl.value) || null; draw(); });
+      draw();
       form.append(list); m.append(form);
       const foot = el('div', 'modal-foot'); const err = el('span', 'err'); const cancel = el('button', 'btn ghost', 'Отмена'); cancel.type = 'button'; cancel.addEventListener('click', close);
       const go = el('button', 'btn primary', 'Создать состав'); go.type = 'button'; foot.append(err, cancel, go); m.append(foot);
       go.addEventListener('click', async () => {
         const start = fStart.value; if (!start) { err.textContent = 'Укажите дату начала.'; return; }
-        const chosen = TEMPLATE.filter((t) => boxes.get(t[0]).checked);
-        // a phase stays only if some of its sections stay
-        const keep = chosen.filter((t) => t[4] !== 'Этап' || chosen.some((c) => c[1].startsWith(t[1] + '.')));
+        if (!tpl) { err.textContent = 'Выберите шаблон.'; return; }
+        const chosen = tpl.items.filter((t) => boxes.get(t.wbs)?.checked);
+        // a parent row (phase/object) stays only if some of its rows stay
+        const keep = chosen.filter((t) => !tpl.items.some((x) => isUnder(x.wbs, t.wbs)) || chosen.some((c) => isUnder(c.wbs, t.wbs)));
         if (!keep.length) { err.textContent = 'Отметьте хотя бы один раздел.'; return; }
         go.disabled = true; go.textContent = 'Создаю…';
         try {
           await savePlan((rows, ctx) => {
             const off = d3.max(rows.filter((x) => x.project === proj), (x) => Number(str(x.wbs).split('.')[0]) || 0) || 0;
-            const tops = [...new Set(keep.map((t) => t[1].split('.')[0]))]; const topMap = new Map(tops.map((t, i) => [t, String(off + i + 1)]));
-            const subMap = new Map(); // renumber sections inside each phase without gaps
-            const idOf = new Map(keep.map((t) => [t[0], ctx.nextId++]));
-            const hasStart = idOf.has('s');
-            keep.forEach(([key, wbs, code, name, kind, dur, preds]) => {
-              const segs = wbs.split('.'); let w = topMap.get(segs[0]);
-              if (segs.length > 1) { const n = (subMap.get(w) || 0) + 1; subMap.set(w, n); w = w + '.' + n; }
-              const links = preds ? preds.split(';').map((s) => s.trim()).filter(Boolean).map((tok) => { const [k, rest = ''] = tok.split(/\s+/); return idOf.has(k) ? idOf.get(k) + rest : null; }).filter(Boolean).join('; ') : '';
-              rows.push({ id: idOf.get(key), project: proj, wbs: w, code: platformCode(code), name, kind, owner: '', dur: kind === 'Этап' ? null : dur, preds: links, snet: key === 's' || (!hasStart && !links && kind !== 'Этап') ? start : null, client: 'Да', pct: null, comment: '', inPlan: 'Да' });
+            const tops = [...new Set(keep.map((t) => t.wbs.split('.')[0]))]; const topMap = new Map(tops.map((t, i) => [t, String(off + i + 1)]));
+            // renumber without gaps inside each parent
+            const newWbs = new Map(); const cnt = new Map();
+            keep.forEach((t) => {
+              const segs = t.wbs.split('.'); if (segs.length === 1) { newWbs.set(t.wbs, topMap.get(segs[0])); return; }
+              const pw = segs.slice(0, -1).join('.'); const np = newWbs.get(pw) || [topMap.get(segs[0]), ...segs.slice(1, -1)].join('.');
+              const n = (cnt.get(np) || 0) + 1; cnt.set(np, n); newWbs.set(t.wbs, np + '.' + n);
+            });
+            const idOf = new Map(keep.map((t) => [t.wbs, ctx.nextId++]));
+            keep.forEach((t) => {
+              const summary = keep.some((x) => isUnder(x.wbs, t.wbs));
+              const links = tplLinks(t.preds).filter((x) => idOf.has(x.wbs)).map((x) => idOf.get(x.wbs) + x.rest).join('; ');
+              rows.push({ id: idOf.get(t.wbs), project: proj, wbs: newWbs.get(t.wbs), code: platformCode(t.code), name: t.name, kind: t.kind, owner: '', dur: summary || t.kind === 'Этап' || t.kind === 'Объект' ? null : t.dur, preds: links, snet: !links && !summary ? start : null, client: 'Да', pct: null, comment: '', inPlan: 'Да' });
             });
             return rows;
           });
@@ -1543,6 +1551,75 @@
       });
     });
   }
+
+  // ---------- editing the templates themselves (ГИП / руководитель)
+  function openTemplateEditor(proj, tplId) {
+    if (!S.mcp) return toast('Сервер недоступен.');
+    if (!isMgr()) return toast('Менять типовой состав может ГИП или руководитель.');
+    const all = S.d.compTpl || [];
+    const cur = all.find((t) => t.id === tplId) || all[0] || null;
+    modal('Шаблоны типового состава', (m, close) => {
+      m.classList.add('modal-wide');
+      let tid = cur ? cur.id : null; // null = new template
+      const fPick = select('te-pick', [...all.map((t) => new Option(t.name, t.id)), new Option('＋ Новый шаблон', '')], tid ?? '');
+      const fName = input('te-name', 'text', cur ? cur.name : '', { placeholder: 'Например: Жилой дом', autocomplete: 'off' });
+      const copy = el('button', 'btn sm', 'Копия'); copy.type = 'button'; copy.title = 'Создать новый шаблон из этого';
+      const top = el('div', 'te-top'); top.append(field('Шаблон', fPick), field('Название', fName), copy);
+      const dl = el('datalist'); dl.id = 'te-disc'; (S.d.disc || []).forEach((d) => dl.append(new Option(d.code, d.name || '')));
+      const table = el('table', 'te-table'); const thead = el('thead'); const hr = el('tr');
+      ['WBS', 'Шифр', 'Наименование', 'Тип', 'Дней', 'Связи (WBS)', ''].forEach((h) => hr.append(el('th', null, h)));
+      thead.append(hr); const tb = el('tbody'); table.append(thead, tb);
+      const wrap = el('div', 'te-wrap'); wrap.append(table);
+      const addRow = (it = {}) => {
+        const tr = el('tr');
+        const w = input('', 'text', it.wbs || '', { autocomplete: 'off', 'aria-label': 'WBS' }); w.removeAttribute('id'); w.classList.add('mono');
+        const c = input('', 'text', it.code || '', { list: 'te-disc', autocomplete: 'off', 'aria-label': 'Шифр' }); c.removeAttribute('id');
+        const n = input('', 'text', it.name || '', { autocomplete: 'off', 'aria-label': 'Наименование' }); n.removeAttribute('id');
+        const k = select('', ['Раздел', 'Этап', 'Веха', 'Объект'], it.kind || 'Раздел'); k.removeAttribute('id'); k.setAttribute('aria-label', 'Тип');
+        const d = input('', 'number', it.dur ?? 10, { min: 0, step: 1, 'aria-label': 'Дней' }); d.removeAttribute('id');
+        const p = input('', 'text', it.preds || '', { autocomplete: 'off', placeholder: '2.1; 3.1НН+5', 'aria-label': 'Связи' }); p.removeAttribute('id'); p.classList.add('mono');
+        const syncK = () => { const sec = k.value === 'Раздел'; d.disabled = !sec; if (!sec) d.value = ''; else if (!d.value) d.value = 10; };
+        k.addEventListener('change', syncK); syncK();
+        const del = el('button', 'btn ghost sm', '✕'); del.type = 'button'; del.title = 'Удалить строку'; del.addEventListener('click', () => tr.remove());
+        tr._get = () => ({ wbs: w.value.trim(), code: c.value.trim(), name: n.value.trim(), kind: k.value, dur: d.value === '' ? null : Number(d.value), preds: p.value.trim() });
+        [w, c, n, k, d, p, del].forEach((x) => { const td = el('td'); td.append(x); tr.append(td); });
+        tb.append(tr); return w;
+      };
+      const fill = (t) => { tb.replaceChildren(); (t ? t.items : []).forEach((it) => addRow(it)); };
+      fill(cur);
+      const nextWbsOf = () => { const ws = [...tb.children].map((tr) => tr._get().wbs).filter((x) => /^\d+(\.\d+)*$/.test(x)); if (!ws.length) return '1'; const last = ws.sort(wbsCmp).pop().split('.'); last[last.length - 1] = String(Number(last[last.length - 1]) + 1); return last.join('.'); };
+      const add = el('button', 'btn sm', '+ строка'); add.type = 'button';
+      add.addEventListener('click', () => { const w = addRow({ wbs: nextWbsOf() }); w.closest('tr').querySelector('td:nth-child(3) input').focus(); wrap.scrollTop = wrap.scrollHeight; });
+      const help = el('details', 'pm-help'); help.append(el('summary', null, 'Как заполнять?'), el('p', 'note', 'WBS задаёт вложенность: строки 3.1, 3.2 входят в этап 3. Связи пишутся через WBS этого же шаблона: «2.1» — после окончания 2.1; «3.1НН+5» — через 5 раб. дней после начала 3.1; «3.4ОН-10» — за 10 дней до окончания 3.4. Шифр берётся из справочника дисциплин. Порядок строк — по WBS.'));
+      const tools = el('div', 'te-tools'); tools.append(add, help);
+      m.append(top, wrap, tools, dl);
+      fPick.addEventListener('change', () => { const t = all.find((x) => String(x.id) === fPick.value) || null; tid = t ? t.id : null; fName.value = t ? t.name : ''; fill(t); if (!t) addRow({ wbs: '1' }); delB.hidden = !t; });
+      copy.addEventListener('click', () => { tid = null; fPick.value = ''; fName.value = (fName.value || 'Шаблон') + ' (копия)'; delB.hidden = true; fName.focus(); });
+      const foot = el('div', 'modal-foot'); const err = el('span', 'err');
+      const delB = el('button', 'btn ghost', 'Удалить шаблон'); delB.type = 'button'; delB.style.color = 'var(--bad)'; delB.hidden = !cur;
+      let armed = false;
+      const back = el('button', 'btn ghost', 'Назад'); back.type = 'button'; back.addEventListener('click', () => { close(); openTemplate(proj, tid); });
+      const save = el('button', 'btn primary', 'Сохранить шаблон'); save.type = 'button';
+      foot.append(err, delB, back, save); m.append(foot);
+      const send = async (body) => { const res = await apiFetch(API.tpl, body); S.d.compTpl = res.compTemplates || []; if (S.payload) S.payload.compTemplates = S.d.compTpl; return res; };
+      delB.addEventListener('click', async () => {
+        if (!armed) { armed = true; delB.textContent = 'Точно удалить шаблон?'; return; }
+        delB.disabled = true;
+        try { await send({ id: tid, delete: true }); toast('Шаблон удалён'); close(); openTemplateEditor(proj, null); } catch (e) { err.textContent = e && e.userText ? e.userText : errText(e); delB.disabled = false; armed = false; delB.textContent = 'Удалить шаблон'; }
+      });
+      save.addEventListener('click', async () => {
+        const items = [...tb.children].map((tr) => tr._get()).filter((x) => x.wbs || x.name);
+        if (!fName.value.trim()) { err.textContent = 'Напишите название шаблона.'; return; }
+        if (!items.length) { err.textContent = 'Добавьте хотя бы одну строку.'; return; }
+        err.textContent = ''; save.disabled = true; save.textContent = 'Сохраняю…';
+        try {
+          const res = await send({ id: tid, name: fName.value.trim(), items });
+          toast('Шаблон сохранён'); close(); openTemplate(proj, res.id);
+        } catch (e) { err.textContent = e && e.userText ? e.userText : errText(e); save.disabled = false; save.textContent = 'Сохранить шаблон'; }
+      });
+    });
+  }
+
 
   // ---------- baseline
   let baseArmed = null;
@@ -1911,6 +1988,18 @@
       const foot = el('div', 'modal-foot');
       const full = el('button', 'btn ghost', 'Все поля раздела…'); full.type = 'button'; full.addEventListener('click', () => { close(); openPlan(s.id); });
       foot.append(err, full);
+      // отменить отметку дисциплины: раздел убирается из состава (и из графика, если уже перенесён)
+      const del = el('button', 'btn ghost', 'Убрать раздел'); del.type = 'button'; del.style.color = 'var(--bad)';
+      let delArmed = false;
+      del.addEventListener('click', async () => {
+        if (!delArmed) { delArmed = true; del.textContent = s.inPlan === 'Нет' ? 'Точно убрать?' : 'Убрать и из графика?'; return; }
+        btns().forEach((b) => { b.disabled = true; }); err.textContent = ''; del.textContent = 'Удаляю…';
+        try {
+          await savePlan((rows) => removeIds(rows, new Set(rows.filter((x) => x.project === s.project && (x.id === s.id || (str(s.wbs) && str(x.wbs).startsWith(str(s.wbs) + '.')))).map((x) => x.id))));
+          toast(`Раздел ${s.code || ''} убран из состава`); close(); refreshAll();
+        } catch (e) { err.textContent = e && e.userText ? e.userText : errText(e); btns().forEach((b) => { b.disabled = false; }); del.textContent = 'Убрать раздел'; delArmed = false; }
+      });
+      foot.append(del);
       if (s.owner) { const clr = el('button', 'btn ghost', 'Снять всех'); clr.type = 'button'; clr.addEventListener('click', () => store([])); foot.append(clr); }
       save.addEventListener('click', () => store(chosen)); foot.append(save);
       m.append(foot);

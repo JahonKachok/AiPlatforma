@@ -11,6 +11,7 @@ urlpatterns = [
     path("<uuid:pk>/edit/", views.task_update, name="update"),
     path("<uuid:pk>/delete/", views.task_delete, name="delete"),
     path("<uuid:pk>/status/", views.task_update_status, name="update_status"),
+    path("<uuid:pk>/action/", views.task_pult_action, name="pult_action"),
     path("<uuid:pk>/move/", views.task_board_move, name="board_move"),
     path("<uuid:pk>/send-for-approval/", views.task_send_for_approval, name="send_for_approval"),
     path("<uuid:pk>/comments/<uuid:comment_id>/delete/", views.task_comment_delete, name="delete_comment"),

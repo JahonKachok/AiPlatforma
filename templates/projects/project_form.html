@@ -4,7 +4,7 @@
 {% block page_title %}{% if is_create %}{% trans "New project" %}{% else %}{% trans "Edit project" %}{% endif %}{% endblock %}
 {% block extra_head %}
   <link rel="stylesheet" href="{% static 'vendor/leaflet/leaflet.css' %}">
-  <link rel="stylesheet" href="{% static 'css/projects.css' %}?v=5">
+  <link rel="stylesheet" href="{% static 'css/projects.css' %}?v=6">
 {% endblock %}
 {% block content %}
 {% include "projects/_wizard_steps.html" with active_step=1 %}

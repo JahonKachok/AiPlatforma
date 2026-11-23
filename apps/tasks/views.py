@@ -24,6 +24,7 @@ from .permissions import (
     can_change_task_status, can_manage_task, is_privileged, resolve_reviewer,
     reviewer_candidates,
 )
+from .pult_card import STATUS_LABELS, task_card
 from .services import submit_task_for_approval
 
 
@@ -305,31 +306,43 @@ def task_detail(request, pk):
     else:
         comment_form = TaskCommentForm()
 
-    reviewer = resolve_reviewer(task)
-    is_reviewer = task.status == Task.Status.REVIEW and (
-        is_privileged(request.user) or (reviewer is not None and reviewer.id == request.user.id)
-    )
-    # "Review" gets its own dialog (you pick who checks it), so it is not one
-    # of the plain one-click status buttons.
-    next_statuses = [
-        (value, label) for value, label in Task.Status.choices
-        if value not in (Task.Status.REVISION, Task.Status.REVIEW, task.status)
-        and can_change_task_status(request.user, task, value)
-    ]
-    can_send_for_review = can_change_task_status(request.user, task, Task.Status.REVIEW)
-
+    # Vazifa Pult oqimi bilan yuradi: holat, muddat, ТЗ, hisobot, tekshiruv (pult_card.py).
     return render(request, "tasks/task_detail.html", {
         "task": task,
         "comment_form": comment_form,
         "attachment_form": TaskAttachmentForm(),
-        "next_statuses": next_statuses,
-        "reviewer": reviewer,
-        "is_reviewer": is_reviewer,
-        "can_send_for_review": can_send_for_review,
         "can_manage": can_manage_task(request.user, task),
-        "reviewer_candidates": reviewer_candidates().exclude(pk=request.user.pk),
-        "revision_form": TaskCommentForm(),
+        "card": task_card(request.user, task),
     })
+
+
+# Pult harakati formasidan keladigan maydonlar (pult_card._actions bilan bir xil).
+PULT_PARAMS = ("days", "note", "what", "q", "tz", "why", "a")
+
+
+@require_POST
+@login_required
+def task_pult_action(request, pk):
+    """Vazifa sahifasidagi Pult tugmalari: services.run_action / send_report."""
+    from apps.pult.services import PultError, ensure_workflow, run_action, send_report
+
+    task = get_object_or_404(_visible_tasks(request.user), pk=pk)
+    wf = ensure_workflow(task)
+    action = request.POST.get("action", "")
+    try:
+        if action == "report":
+            send_report(request.user, [{"id": wf.number, "done": request.POST.get("done")}],
+                        (request.POST.get("note") or "").strip())
+            messages.success(request, _("Report sent."))
+        else:
+            params = {k: request.POST.get(k, "") for k in PULT_PARAMS}
+            params["src"] = request.POST.get("src") == "on"
+            params["expect_status"] = request.POST.get("expect_status") or None
+            _task, wf = run_action(request.user, wf.number, action, params)
+            messages.success(request, _("Saved: %(status)s.") % {"status": STATUS_LABELS.get(wf.status, wf.status)})
+    except PultError as e:
+        messages.error(request, e.message)
+    return redirect("tasks:detail", pk=pk)
 
 
 @login_required

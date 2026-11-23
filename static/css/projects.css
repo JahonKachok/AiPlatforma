@@ -109,6 +109,8 @@
   border-left: 1px solid var(--prj-border);
 }
 .prj-stat:first-child { border-left: 0; }
+.prj-stat-link { text-decoration: none; color: inherit; border-radius: 0.375rem; }
+.prj-stat-link:hover dt { color: var(--kpi-color, inherit); text-decoration: underline; }
 .prj-stat dt { font-size: 0.75rem; color: var(--prj-muted); white-space: nowrap; }
 .prj-stat dd {
   margin: 0;

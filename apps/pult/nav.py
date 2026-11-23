@@ -33,6 +33,12 @@ GROUP_HOME = {
     "reports": ("reports:dashboard", _("Reports")),
 }
 
+# Asosiy sahifaning ichki tablari (bir sahifada, #hash bilan ochiladi). Pult
+# sahifalarida ham tablar qatori bir xil bo'lishi uchun shu yerdan chiziladi.
+GROUP_EXTRA_TABS = {
+    "users": [("tab-disciplines", _("Disciplines"))],
+}
+
 # «kanban» — tab emas: «Задачи» doskasining «Проектные» rejimi (urls.py yo'naltiradi).
 ALL_PAGES = ["work", "home", "kanban", "tasks", "comp", "plan", "team", "kpi", "money", "contracts"]
 ROLE_PAGES = {

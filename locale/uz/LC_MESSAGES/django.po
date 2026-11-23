@@ -4941,3 +4941,282 @@ msgstr "Jadval"
 
 msgid "Department"
 msgstr "Bo'lim"
+
+msgid "Only a manager can confirm the project. Send it to the manager — they will get a notification."
+msgstr "Loyihani faqat rahbar tasdiqlay oladi. Rahbarga yuboring — unga bildirishnoma boradi."
+
+msgid "Go to project"
+msgstr "Loyihaga o'tish"
+
+msgid "Confirmed at"
+msgstr "Tasdiqlangan vaqt"
+
+msgid "Confirmed by"
+msgstr "Kim tasdiqlagan"
+
+msgid "Confirmation requested at"
+msgstr "Tasdiq so'ralgan vaqt"
+
+msgid "Project confirmed"
+msgstr "Loyiha tasdiqlandi"
+
+msgid "Project confirmed."
+msgstr "Loyiha tasdiqlandi."
+
+msgid "%(manager)s confirmed the project \"%(project)s\"."
+msgstr "%(manager)s «%(project)s» loyihasini tasdiqladi."
+
+msgid "Project awaits confirmation"
+msgstr "Loyiha tasdiqni kutmoqda"
+
+msgid "%(user)s asks you to confirm the project \"%(project)s\"."
+msgstr "%(user)s «%(project)s» loyihasini tasdiqlashingizni so'ramoqda."
+
+msgid "Sent to the manager for confirmation."
+msgstr "Tasdiqlash uchun rahbarga yuborildi."
+
+msgid "Already sent"
+msgstr "Allaqachon yuborilgan"
+
+msgid "Confirm project"
+msgstr "Loyihani tasdiqlash"
+
+msgid "Send again"
+msgstr "Qayta yuborish"
+
+msgid "Send to the manager"
+msgstr "Rahbarga yuborish"
+
+msgid "Awaiting confirmation"
+msgstr "Tasdiq kutmoqda"
+
+msgid "Only a manager can confirm the project."
+msgstr "Loyihani faqat rahbar tasdiqlay oladi."
+
+msgid "+ Add sub-object"
+msgstr "+ Pod-obyekt qo'shish"
+
+msgid "Brief issued"
+msgstr "ТЗ berildi"
+
+msgid "Term proposed"
+msgstr "Muddat kelishuvda"
+
+msgid "On approval"
+msgstr "Kelishuvda"
+
+msgid "On review"
+msgstr "Tekshiruvda"
+
+msgid "Accepted"
+msgstr "Qabul qilindi"
+
+#, python-format
+msgid "Accept · %(n)s d."
+msgstr "Qabul qilish · %(n)s kun"
+
+msgid "I need a different term"
+msgstr "Menga boshqa muddat kerak"
+
+msgid "The GIP will confirm the term; it counts from that day."
+msgstr "ГИП muddatni tasdiqlaydi; hisob o'sha kundan boshlanadi."
+
+msgid "Accept and name the term"
+msgstr "Qabul qilish va muddatni aytish"
+
+msgid "Submit the work"
+msgstr "Ishni topshirish"
+
+msgid "Source files (DWG etc.) handed over"
+msgstr "Manba fayllar (DWG va b.) topshirildi"
+
+msgid "What needs approval"
+msgstr "Nimani kelishish kerak"
+
+msgid "While approval is going on, the term is paused and does not count against you."
+msgstr "Kelishuv davomida muddat to'xtatiladi va sizga minus bo'lmaydi."
+
+msgid "Ask a question"
+msgstr "Savol berish"
+
+msgid "Question"
+msgstr "Savol"
+
+msgid "Issue the brief"
+msgstr "ТЗ berish"
+
+msgid "Brief: file link or task text"
+msgstr "ТЗ: faylga havola yoki topshiriq matni"
+
+msgid "Term, days (empty: the assignee names it)"
+msgstr "Muddat, kun (bo'sh — ijrochi o'zi aytadi)"
+
+msgid "The assignee will see the task in «My work» and accept it."
+msgstr "Ijrochi vazifani «Mening ishim»da ko'radi va qabul qiladi."
+
+#, python-format
+msgid "Confirm the term · %(n)s d."
+msgstr "Muddatni tasdiqlash · %(n)s kun"
+
+msgid "Set another term"
+msgstr "Boshqa muddat"
+
+msgid "Do not confirm"
+msgstr "Tasdiqlamaslik"
+
+msgid "Why (the assignee will see it)"
+msgstr "Nega (ijrochi ko'radi)"
+
+msgid "Has remarks"
+msgstr "Izohlar bor"
+
+msgid "Remarks (the assignee will see them)"
+msgstr "Izohlar (ijrochi ko'radi)"
+
+msgid "Take it to the client for approval"
+msgstr "Buyurtmachi bilan kelishaman"
+
+msgid "Answer"
+msgstr "Javob berish"
+
+msgid "Accept the work"
+msgstr "Ishni qabul qilish"
+
+msgid "What to fix (the assignee will see it)"
+msgstr "Nimani tuzatish kerak (ijrochi ko'radi)"
+
+msgid "A revision counts in the assignee's KPI."
+msgstr "Qayta ishlash ijrochining KPI'siga ta'sir qiladi."
+
+msgid "Waiting for the brief from the GIP. This is a plan: work has not started yet."
+msgstr "ГИП'dan ТЗ kutilmoqda. Bu reja: ish hali boshlanmagan."
+
+#, python-format
+msgid "The brief is issued. Accept the task: the term is %(n)s d. from acceptance."
+msgstr "ТЗ berildi. Vazifani qabul qiling: muddat qabul qilingandan keyin %(n)s kun."
+
+msgid "The brief is issued. Accept the task and name your term."
+msgstr "ТЗ berildi. Vazifani qabul qiling va muddatingizni ayting."
+
+#, python-format
+msgid "Term of %(n)s d. proposed. Waiting for the GIP to confirm."
+msgstr "%(n)s kunlik muddat taklif qilindi. ГИП tasdig'i kutilmoqda."
+
+msgid "On approval with the client (handled by the GIP). The term is paused."
+msgstr "Buyurtmachida kelishuvda (ГИП olib boradi). Muddat to'xtatilgan."
+
+msgid "On approval with the GIP. The term is paused."
+msgstr "ГИП'da kelishuvda. Muddat to'xtatilgan."
+
+msgid "The question went to the GIP. Keep working, the answer will appear here."
+msgstr "Savol ГИП'ga yuborildi. Ishlashda davom eting, javob shu yerda chiqadi."
+
+msgid "The work is submitted. Waiting for the GIP to accept it."
+msgstr "Ish topshirildi. ГИП qabul qilishi kutilmoqda."
+
+msgid "Sent back for revision. Fix it and submit again."
+msgstr "Qayta ishlashga qaytarildi. Tuzating va qayta topshiring."
+
+msgid "In progress."
+msgstr "Jarayonda."
+
+#, python-format
+msgid "Overdue by %(n)s d. Submit as soon as possible."
+msgstr "%(n)s kunga kechikdi. Imkon qadar tezroq topshiring."
+
+msgid "Due today."
+msgstr "Bugun topshirish kerak."
+
+#, python-format
+msgid "%(n)s d. left. Report the percentage every day."
+msgstr "Topshirishgacha %(n)s kun. Har kuni foizni belgilang."
+
+msgid "Accepted."
+msgstr "Qabul qilindi."
+
+msgid "report"
+msgstr "hisobot"
+
+msgid "Alarm 70%"
+msgstr "Xavf 70%"
+
+msgid "Behind schedule"
+msgstr "Ortda qolmoqda"
+
+msgid "Report sent."
+msgstr "Hisobot yuborildi."
+
+#, python-format
+msgid "Saved: %(status)s."
+msgstr "Saqlandi: %(status)s."
+
+#, python-format
+msgid "overdue by %(n)s d."
+msgstr "%(n)s kun kechikdi"
+
+msgid "due today"
+msgstr "bugun topshirish"
+
+#, python-format
+msgid "%(n)s d. left"
+msgstr "%(n)s kun qoldi"
+
+msgid "done"
+msgstr "bajarildi"
+
+msgid "time"
+msgstr "vaqt"
+
+msgid "Brief"
+msgstr "ТЗ"
+
+msgid "Today's report"
+msgstr "Bugungi hisobot"
+
+msgid "sent"
+msgstr "yuborilgan"
+
+msgid "not sent"
+msgstr "yuborilmagan"
+
+msgid "Done, %"
+msgstr "Bajarildi, %"
+
+msgid "Comment to the report (optional)"
+msgstr "Hisobotga izoh (ixtiyoriy)"
+
+msgid "Update report"
+msgstr "Hisobotni yangilash"
+
+msgid "Send report"
+msgstr "Hisobotni yuborish"
+
+msgid "Even if the percentage has not changed, send it: this is the daily report."
+msgstr "Foiz o'zgarmagan bo'lsa ham yuboring: bu kunlik hisobot."
+
+msgid "Composition section"
+msgstr "Tarkib bo'limi"
+
+msgid "Accepts the work"
+msgstr "Ishni qabul qiladi"
+
+msgid "Term"
+msgstr "Muddat"
+
+msgid "d."
+msgstr "kun"
+
+msgid "Due by plan"
+msgstr "Reja bo'yicha topshirish"
+
+msgid "Actual finish"
+msgstr "Haqiqiy tugash"
+
+msgid "Source files"
+msgstr "Manba fayllar"
+
+msgid "handed over"
+msgstr "topshirildi"
+
+msgid "KPI points"
+msgstr "KPI ballari"

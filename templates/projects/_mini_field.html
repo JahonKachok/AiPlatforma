@@ -1,0 +1,6 @@
+{% load i18n %}{# Ixcham formadagi bitta maydon: tepada nomi (+ «i» izoh), pastda o'zi. #}
+<div class="pd-mini-field{% if field.name == 'name' or field.name == 'description' %} pd-wide{% endif %}">
+  <label for="{{ field.id_for_label }}">{% include "partials/field_label_info.html" %}</label>
+  {{ field }}
+  {% if field.errors %}<p class="pd-mini-err">{{ field.errors|join:", " }}</p>{% endif %}
+</div>

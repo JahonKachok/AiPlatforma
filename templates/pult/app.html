@@ -15,7 +15,7 @@
 .embed .wrap { max-width: none; }</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 </head>
-<body data-api-data="{% url 'pult:api_data' %}" data-api-tasks="{% url 'pult:api_create' %}" data-api-report="{% url 'pult:api_report' %}" data-api-plan="{% url 'pult:api_plan' %}" data-api-sync="{% url 'pult:api_sync' %}" data-api-import="{% url 'pult:api_plan_import' %}" data-api-disc="{% url 'pult:api_discipline' %}" data-api-ciph="{% url 'pult:api_cipher' %}" data-api-ops="{% url 'pult:api_ops' %}">
+<body data-api-data="{% url 'pult:api_data' %}" data-api-tasks="{% url 'pult:api_create' %}" data-api-report="{% url 'pult:api_report' %}" data-api-plan="{% url 'pult:api_plan' %}" data-api-sync="{% url 'pult:api_sync' %}" data-api-import="{% url 'pult:api_plan_import' %}" data-api-disc="{% url 'pult:api_discipline' %}" data-api-ciph="{% url 'pult:api_cipher' %}" data-api-tpl="{% url 'pult:api_comp_template' %}" data-api-ops="{% url 'pult:api_ops' %}">
 {% include "pult/_markup.html" %}
 {{ links|json_script:"pult-links" }}
 <script src="{% static_v 'pult/pult-i18n-data.js' %}"></script>

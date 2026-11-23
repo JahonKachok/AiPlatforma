@@ -328,3 +328,23 @@ class OperationInfo(models.Model):
 
     def __str__(self):
         return f"№{self.number}"
+
+class CompositionTemplate(models.Model):
+    """«Типовой состав»: yangi loyiha tarkibini bir bosishda yaratish uchun shablon.
+
+    ``items`` — qatorlar ro'yxati: ``{"wbs", "code", "name", "kind", "dur", "preds"}``.
+    ``preds`` shu shablon ichidagi WBS raqamlariga ishora qiladi: ``"2.1НН+5; 3.1"``.
+    """
+
+    name = models.CharField(max_length=200, unique=True, verbose_name=_("Name"))
+    order = models.PositiveIntegerField(default=0)
+    items = models.JSONField(default=list, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order", "name"]
+        verbose_name = _("Composition template")
+        verbose_name_plural = _("Composition templates")
+
+    def __str__(self):
+        return self.name

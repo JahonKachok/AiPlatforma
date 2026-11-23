@@ -9,7 +9,7 @@ from apps.finance.models import EmployeeContract, FinancialRecord
 from apps.projects.models import Project, ProjectMember
 from apps.tasks.models import Task, TaskComment
 
-from .models import Contract, OperationInfo, PlanRow, ProgressReport, PultSettings, TaskWorkflow
+from .models import CompositionTemplate, Contract, OperationInfo, PlanRow, ProgressReport, PultSettings, TaskWorkflow
 from .services import kpi_points, save_workflow, today
 
 
@@ -248,6 +248,25 @@ class PlanTests(PultTestBase):
         base.update(kw)
         return base
 
+    def test_object_from_composition_appears_on_project_page(self):
+        from apps.projects.models import SubObject, SubObjectDiscipline
+
+        state = self.state(self.gip)
+        rows = [self.row(1, wbs="1", code="BL01", name="Корпус 1", kind="Объект", dur=None),
+                self.row(2, wbs="1.1", code="АР", name="Архитектура", owner="Worker")]
+        self.assertEqual(self.post(self.gip, self.plan_url(), {"rows": rows, "version": state["version"]}).status_code, 200)
+        sub = SubObject.objects.get(project=self.project)
+        self.assertEqual(sub.name, "Корпус 1")
+        link = SubObjectDiscipline.objects.get(sub_object=sub)
+        self.assertEqual((link.discipline.code, link.assignee), (PlanRow.objects.get(pk=2).code, self.worker))
+        self.assertEqual(PlanRow.objects.get(pk=1).source_key, f"so:{sub.pk}")
+        # rename in the composition renames the object; nothing is duplicated
+        state = self.state(self.gip)
+        rows[0]["name"] = "Корпус А"
+        self.assertEqual(self.post(self.gip, self.plan_url(), {"rows": rows, "version": state["version"]}).status_code, 200)
+        self.assertEqual(list(SubObject.objects.filter(project=self.project).values_list("name", flat=True)), ["Корпус А"])
+        self.assertEqual(SubObjectDiscipline.objects.filter(sub_object=sub).count(), 1)
+
     def test_gip_saves_plan_and_version_moves(self):
         state = self.state(self.gip)
         response = self.post(self.gip, self.plan_url(), {"rows": [self.row(state["nextId"])], "version": state["version"]})
@@ -300,6 +319,35 @@ class PlanTests(PultTestBase):
         response = self.post(self.gip, reverse("pult:api_discipline"), {"code": "гсн", "name": "Газоснабжение", "dur": 12})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Discipline.objects.get(code="ГСН").pult_config.duration, 12)
+
+    def test_default_composition_template_is_seeded(self):
+        self.client.force_login(self.gip)
+        tpls = self.client.get(reverse("pult:api_data")).json()["compTemplates"]
+        self.assertEqual(len(tpls), 1)
+        items = {it["wbs"]: it for it in tpls[0]["items"]}
+        self.assertEqual(items["3.2"]["preds"], "2.2ОН-5; 3.1НН+5")
+
+    def test_gip_edits_composition_template(self):
+        url = reverse("pult:api_comp_template")
+        items = [
+            {"wbs": "2", "name": "Этап", "kind": "Этап"},
+            {"wbs": "1", "name": "Старт", "kind": "Веха"},
+            {"wbs": "2.1", "code": "ар", "name": "Архитектура", "kind": "Раздел", "dur": 7, "preds": "1 ; 1нн+2"},
+        ]
+        response = self.post(self.gip, url, {"name": "Жилой дом", "items": items})
+        self.assertEqual(response.status_code, 200, response.content)
+        tpl = CompositionTemplate.objects.get(name="Жилой дом")
+        self.assertEqual([it["wbs"] for it in tpl.items], ["1", "2", "2.1"])
+        self.assertEqual(tpl.items[2]["preds"], "1; 1НН+2")
+        self.assertEqual(tpl.items[2]["code"], "АР")
+        self.assertIsNone(tpl.items[1]["dur"])
+        # link to a missing row is refused
+        bad = items[:2] + [{**items[2], "preds": "9"}]
+        self.assertEqual(self.post(self.gip, url, {"id": tpl.pk, "name": "Жилой дом", "items": bad}).status_code, 400)
+        # workers cannot edit, GIP can delete
+        self.assertEqual(self.post(self.worker, url, {"id": tpl.pk, "delete": True}).status_code, 403)
+        self.assertEqual(self.post(self.gip, url, {"id": tpl.pk, "delete": True}).status_code, 200)
+        self.assertFalse(CompositionTemplate.objects.filter(name="Жилой дом").exists())
 
     def test_discipline_from_users_page_shows_in_composition(self):
         self.client.force_login(self.boss)

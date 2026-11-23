@@ -13,7 +13,7 @@ from apps.tasks.permissions import can_manage_task
 from .finance import can_finance, finance_payload
 from .models import ProgressReport, PultSettings, TaskTemplate, TaskWorkflow
 from .nav import allowed_pages
-from .plan import ciphers_json, composition_members, disciplines_json, plan_state, stages_json
+from .plan import ciphers_json, comp_templates_json, composition_members, disciplines_json, plan_state, stages_json
 from .services import (
     BOSS, GIP, WorkCalendar, can_approve, ensure_workflow, is_boss, kpi_config, pult_role, task_payload,
     today, visible_tasks,
@@ -109,6 +109,7 @@ def build_payload(user):
         "tasks": task_rows,
         "plan": plan["rows"], "planVersion": plan["version"],
         "disc": disciplines_json(), "stages": stages_json(), "ciphers": ciphers_json(user),
+        "compTemplates": comp_templates_json(),
         **finance,
         "progress": progress,
         "people": _people(),

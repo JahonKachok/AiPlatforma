@@ -1,7 +1,7 @@
 from django import template
 from django.urls import reverse
 
-from ..nav import GROUP_HOME, SECTIONS, allowed_pages, section_url_name
+from ..nav import GROUP_EXTRA_TABS, GROUP_HOME, SECTIONS, allowed_pages, section_url_name
 
 register = template.Library()
 
@@ -29,4 +29,8 @@ def pult_tabs(context, group):
     url_name, label = GROUP_HOME[group]
     home_url = reverse(url_name)
     home = {"url": home_url, "label": label, "active": context["request"].path == home_url}
-    return {"tabs": [home, *sections] if sections else []}
+    extra = [
+        {"url": f"{home_url}#{anchor}", "label": extra_label, "active": False}
+        for anchor, extra_label in GROUP_EXTRA_TABS.get(group, [])
+    ]
+    return {"tabs": [home, *extra, *sections] if sections else []}

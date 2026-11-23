@@ -131,6 +131,13 @@ def api_discipline(request, body):
 
 @require_POST
 @api
+def api_comp_template(request, body):
+    tpl = plan.save_comp_template(request.user, body)
+    return {"id": tpl.pk if tpl else None, "compTemplates": plan.comp_templates_json()}
+
+
+@require_POST
+@api
 def api_cipher(request, body):
     plan.save_cipher(request.user, body)
     return {}

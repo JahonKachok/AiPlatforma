@@ -208,7 +208,7 @@ class Command(BaseCommand):
             self.stdout.write("Users ready: " + ", ".join(users_by_email))
             return
 
-        projects = [Project.objects.create(created_by=admin, **p) for p in SEED_PROJECTS]
+        projects = [Project.objects.create(created_by=admin, confirmed_at=timezone.now(), **p) for p in SEED_PROJECTS]
 
         # Every seeded staff member can see every seeded project (small-company
         # demo data) — otherwise non-admin/manager logins would see an empty

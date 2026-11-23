@@ -1,5 +1,6 @@
 import io
 import zipfile
+from unittest import mock
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
@@ -8,6 +9,7 @@ from openpyxl import Workbook
 
 from apps.accounts.models import Discipline, User
 from apps.documents.models import Document
+from apps.notifications.models import Notification
 
 from .models import Project, ProjectMember, SubObject, SubObjectDiscipline
 
@@ -671,3 +673,45 @@ class BudgetVisibilityTests(TestCase):
         headers = [c.value for c in next(load_workbook(io.BytesIO(response.content)).active.iter_rows(max_row=1))]
         self.assertNotIn("Budget", headers)
         self.assertNotIn("Paid", headers)
+
+
+class WizardConfirmTests(TestCase):
+    """«Подтверждение» — faqat rahbar (Manager/Admin) tasdiqlaydi, boshqalar so'rov yuboradi."""
+
+    def setUp(self):
+        patcher = mock.patch("apps.notifications.tasks.send_notification_email.delay")
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.manager = User.objects.create_user(email="mgr@example.com", password="pw12345!", full_name="Mgr", role=User.Role.MANAGER)
+        self.gip = User.objects.create_user(email="gip9@example.com", password="pw12345!", full_name="Gip", role=User.Role.GIP)
+        self.project = Project.objects.create(name="Confirm me", created_by=self.gip)
+        ProjectMember.objects.create(project=self.project, user=self.gip, can_edit=True)
+        self.url = reverse("projects:wizard_confirm", args=[self.project.pk])
+
+    def test_new_project_awaits_confirmation(self):
+        self.assertTrue(self.project.awaiting_confirmation)
+        self.client.force_login(self.manager)
+        response = self.client.get(reverse("projects:list") + "?status=pending")
+        self.assertContains(response, "Confirm me")
+
+    def test_gip_requests_and_manager_is_notified(self):
+        self.client.force_login(self.gip)
+        response = self.client.get(self.url)
+        self.assertFalse(response.context["can_confirm"])
+        self.client.post(self.url)
+        self.project.refresh_from_db()
+        self.assertIsNotNone(self.project.confirm_requested_at)
+        self.assertTrue(self.project.awaiting_confirmation)
+        note = Notification.objects.get(user=self.manager)
+        self.assertEqual(note.link, self.url)
+        self.assertFalse(Notification.objects.filter(user=self.gip).exists())
+
+    def test_manager_confirms_and_author_is_notified(self):
+        self.client.force_login(self.manager)
+        self.assertTrue(self.client.get(self.url).context["can_confirm"])
+        response = self.client.post(self.url)
+        self.assertRedirects(response, reverse("projects:detail", args=[self.project.pk]), fetch_redirect_response=False)
+        self.project.refresh_from_db()
+        self.assertFalse(self.project.awaiting_confirmation)
+        self.assertEqual(self.project.confirmed_by, self.manager)
+        self.assertTrue(Notification.objects.filter(user=self.gip).exists())

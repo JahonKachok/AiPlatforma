@@ -208,3 +208,68 @@ class TaskAssigneeFromCompositionTests(TestCase):
         response = self._post(self.outsider)
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Task.objects.filter(title="Facade").exists())
+
+
+class TaskDetailPultFlowTests(TestCase):
+    """Vazifa sahifasi Pult oqimi bilan yuradi: muddat → ish → hisobot → topshirish → qabul."""
+
+    def setUp(self):
+        from unittest import mock
+
+        patcher = mock.patch("apps.notifications.tasks.send_notification_email.delay")
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.gip = User.objects.create_user(email="gip-d@example.com", password="pw12345!", full_name="Gip", role=User.Role.GIP)
+        self.worker = User.objects.create_user(email="worker-d@example.com", password="pw12345!", full_name="Worker", role=User.Role.DESIGNER)
+        self.project = Project.objects.create(name="PD", created_by=self.gip)
+        for u in (self.gip, self.worker):
+            ProjectMember.objects.create(project=self.project, user=u)
+        self.task = Task.objects.create(title="AR sheets", project=self.project, assignee=self.worker, creator=self.gip)
+        self.detail = reverse("tasks:detail", args=[self.task.pk])
+        self.action = reverse("tasks:pult_action", args=[self.task.pk])
+
+    def act(self, user, action, **data):
+        self.client.force_login(user)
+        return self.client.post(self.action, {"action": action, **data})
+
+    def status(self):
+        self.task.workflow.refresh_from_db()
+        return self.task.workflow.status
+
+    def keys(self, user):
+        self.client.force_login(user)
+        response = self.client.get(self.detail)
+        self.assertEqual(response.status_code, 200)
+        return [a["key"] for a in response.context["card"]["actions"]]
+
+    def test_full_cycle_from_detail_page(self):
+        self.assertIn("accept_own", self.keys(self.worker))
+        self.assertNotIn("approve_days", self.keys(self.worker))
+        self.act(self.worker, "accept_own", days="5")
+        self.assertEqual(self.status(), "На согласовании")
+        self.assertIn("approve_days", self.keys(self.gip))
+        self.act(self.gip, "approve_days")
+        self.assertEqual(self.status(), "В работе")
+        self.act(self.worker, "report", done="40", note="half of the sheets")
+        self.task.workflow.refresh_from_db()
+        self.assertAlmostEqual(self.task.workflow.done, 0.4)
+        self.act(self.worker, "submit", src="on")
+        self.assertEqual(self.status(), "На проверке")
+        self.act(self.gip, "review_ok")
+        self.assertEqual(self.status(), "Принята")
+        self.task.refresh_from_db()
+        self.assertEqual(self.task.status, Task.Status.COMPLETED)
+
+    def test_assignee_cannot_accept_own_work(self):
+        self.act(self.worker, "accept_own", days="5")
+        self.act(self.gip, "approve_days")
+        self.act(self.worker, "submit")
+        response = self.act(self.worker, "review_ok")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.status(), "На проверке")
+
+    def test_old_review_flow_is_gone_from_the_page(self):
+        self.client.force_login(self.gip)
+        html = self.client.get(self.detail).content.decode()
+        self.assertNotIn("review-submit-modal", html)
+        self.assertNotIn(reverse("tasks:send_for_approval", args=[self.task.pk]), html)

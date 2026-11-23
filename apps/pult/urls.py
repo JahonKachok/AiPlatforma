@@ -27,6 +27,7 @@ urlpatterns = [
     path("pult/api/plan/import/", views.api_plan_import, name="api_plan_import"),
     path("pult/api/sync/", views.api_sync, name="api_sync"),
     path("pult/api/disciplines/", views.api_discipline, name="api_discipline"),
+    path("pult/api/comp-templates/", views.api_comp_template, name="api_comp_template"),
     path("pult/api/ciphers/", views.api_cipher, name="api_cipher"),
     path("pult/api/ops/", views.api_operations, name="api_ops"),
     *(

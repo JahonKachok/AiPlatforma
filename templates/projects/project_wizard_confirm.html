@@ -39,14 +39,33 @@
     </ul>
   </details>
 
+  {% if not project.awaiting_confirmation %}
+  <p class="rounded-lg border border-gray-200 p-3 text-sm dark:border-gray-700">
+    ✅ {% trans "Project confirmed" %}: {{ project.confirmed_at|date:"d.m.Y H:i" }}{% if project.confirmed_by %} — {{ project.confirmed_by.full_name|default:project.confirmed_by.email }}{% endif %}
+  </p>
+  {% elif can_confirm %}
   <label class="flex items-start gap-2 text-sm">
     <input type="checkbox" required class="mt-0.5">
     {% trans "I confirm that the entered information is correct." %}
   </label>
+  {% else %}
+  <p class="rounded-lg border border-gray-200 p-3 text-sm dark:border-gray-700">
+    🔒 {% trans "Only a manager can confirm the project. Send it to the manager — they will get a notification." %}
+    {% if project.confirm_requested_at %}
+      <br><span class="text-gray-500 dark:text-gray-400">{% trans "Already sent" %}: {{ project.confirm_requested_at|date:"d.m.Y H:i" }}</span>
+    {% endif %}
+  </p>
+  {% endif %}
 
   <div class="flex gap-3 pt-2">
     <a href="{% url 'projects:wizard_documents' project.pk %}" class="btn btn-secondary btn-md">{% trans "Back" %}</a>
-    <button type="submit" class="btn btn-primary btn-md">{% trans "Finish" %}</button>
+    {% if not project.awaiting_confirmation %}
+    <a href="{% url 'projects:detail' project.pk %}" class="btn btn-primary btn-md">{% trans "Go to project" %}</a>
+    {% elif can_confirm %}
+    <button type="submit" class="btn btn-primary btn-md">{% trans "Confirm project" %}</button>
+    {% else %}
+    <button type="submit" class="btn btn-primary btn-md">{% if project.confirm_requested_at %}{% trans "Send again" %}{% else %}{% trans "Send to the manager" %}{% endif %}</button>
+    {% endif %}
   </div>
 </form>
 {% endblock %}

@@ -5220,3 +5220,61 @@ msgstr "topshirildi"
 
 msgid "KPI points"
 msgstr "KPI ballari"
+
+msgid "Devbot token"
+msgstr "Devbot tokeni"
+
+msgid "A separate bot from @BotFather (not the main bot's token). The devbot restarts with the new token within a minute."
+msgstr "@BotFather'dan alohida bot (asosiy botning tokeni emas). Devbot bir daqiqa ichida yangi token bilan qayta ishga tushadi."
+
+msgid "Devbot username"
+msgstr "Devbot nomi (username)"
+
+msgid "Without @, e.g. aiplatforma_dev_bot"
+msgstr "@ belgisiz, masalan: aiplatforma_dev_bot"
+
+msgid "Devbot Claude (Anthropic) API key"
+msgstr "Devbot uchun Claude (Anthropic) API kaliti"
+
+msgid "Used by Claude Code to change the code. If empty, the Claude key above is used."
+msgstr "Claude Code kodni o'zgartirishda ishlatadi. Bo'sh bo'lsa — yuqoridagi Claude kaliti ishlatiladi."
+
+msgid "Devbot Claude model"
+msgstr "Devbot Claude modeli"
+
+msgid "Empty: Claude Code default."
+msgstr "Bo'sh: Claude Code standart modeli."
+
+msgid "The devbot needs its own bot token, different from the main bot."
+msgstr "Devbot uchun asosiy botdan farqli, alohida bot tokeni kerak."
+
+msgid "Devbot: changing the platform code via Telegram"
+msgstr "Devbot: platforma kodini Telegram orqali o'zgartirish"
+
+msgid "Online"
+msgstr "Ishlayapti"
+
+msgid "Working on a task"
+msgstr "Vazifa ustida ishlayapti"
+
+#, python-format
+msgid "Not responding (%(s)s s)"
+msgstr "Javob bermayapti (%(s)s s)"
+
+msgid "Not installed on the server"
+msgstr "Serverga o'rnatilmagan"
+
+msgid "Admins write a task to the devbot, Claude Code changes the code and runs the tests in an isolated container, and the change reaches the live site only after the Deploy button is pressed. The server part is installed once: deploy/devbot/README.md"
+msgstr "Adminlar devbotga vazifa yozadi, Claude Code izolyatsiyalangan konteynerda kodni o'zgartiradi va testlarni o'tkazadi; o'zgarish saytga faqat Deploy tugmasi bosilgandan keyin chiqadi. Server qismi bir marta o'rnatiladi: deploy/devbot/README.md"
+
+msgid "Current task:"
+msgstr "Joriy vazifa:"
+
+msgid "Who can give commands (admins with a linked Telegram)"
+msgstr "Kim buyruq bera oladi (Telegram'i ulangan adminlar)"
+
+msgid "No admin has linked Telegram yet — link it in your profile, otherwise the devbot will not accept anyone's commands."
+msgstr "Hali hech bir admin Telegram'ini ulamagan — profilingizda ulang, aks holda devbot hech kimning buyrug'ini qabul qilmaydi."
+
+msgid "Devbot settings"
+msgstr "Devbot sozlamalari"

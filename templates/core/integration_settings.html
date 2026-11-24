@@ -11,6 +11,45 @@
   {% include "core/_integration_group.html" with title="Telegram" fields=telegram_fields %}
   {% trans "AI agents" as ai_title %}
   {% include "core/_integration_group.html" with title=ai_title fields=ai_fields %}
+
+  <div class="card p-6">
+    <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+      <h2 class="font-semibold">{% trans "Devbot: changing the platform code via Telegram" %}</h2>
+      {% if devbot_status.state == "online" %}
+        <span class="badge badge-success">{% trans "Online" %}</span>
+      {% elif devbot_status.state == "busy" %}
+        <span class="badge badge-warning">{% trans "Working on a task" %}</span>
+      {% elif devbot_status.state == "offline" %}
+        <span class="badge badge-danger">{% blocktrans with s=devbot_status.age|floatformat:0 %}Not responding ({{ s }} s){% endblocktrans %}</span>
+      {% else %}
+        <span class="badge badge-default">{% trans "Not installed on the server" %}</span>
+      {% endif %}
+    </div>
+    <p class="text-sm text-gray-500 dark:text-gray-400">
+      {% trans "Admins write a task to the devbot, Claude Code changes the code and runs the tests in an isolated container, and the change reaches the live site only after the Deploy button is pressed. The server part is installed once: deploy/devbot/README.md" %}
+    </p>
+    {% if devbot_username %}
+      <p class="mt-2 text-sm">
+        <a href="https://t.me/{{ devbot_username }}" target="_blank" rel="noopener" class="text-blue-600 hover:underline dark:text-blue-400">@{{ devbot_username }}</a>
+      </p>
+    {% endif %}
+    {% if devbot_status.task %}
+      <p class="mt-2 text-sm">{% trans "Current task:" %} {{ devbot_status.task }}</p>
+    {% endif %}
+    <div class="mt-4">
+      <p class="field-label mb-1">{% trans "Who can give commands (admins with a linked Telegram)" %}</p>
+      {% if devbot_admins %}
+        <ul class="flex flex-wrap gap-2">
+          {% for admin in devbot_admins %}<li class="badge badge-default">{{ admin.full_name }}</li>{% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-xs text-red-600 dark:text-red-400">{% trans "No admin has linked Telegram yet — link it in your profile, otherwise the devbot will not accept anyone's commands." %}</p>
+      {% endif %}
+    </div>
+  </div>
+  {% trans "Devbot settings" as devbot_title %}
+  {% include "core/_integration_group.html" with title=devbot_title fields=devbot_fields %}
+
   <button type="submit" class="btn btn-primary btn-md">{% trans "Save" %}</button>
 </form>
 {% endblock %}

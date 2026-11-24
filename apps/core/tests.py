@@ -343,3 +343,85 @@ class IntegrationSettingsTests(TestCase):
             self.assertIsNone(get_provider())
             self.rc.set_config("ANTHROPIC_API_KEY", "sk-ant-test", user=self.admin)
             self.assertEqual(get_provider(), "anthropic")
+
+
+class DevbotConfigTests(TestCase):
+    """Devbot sozlamalari: faqat admin sahifasida, docker exec orqali o'qiladi,
+    buyruq berish huquqi — Telegram'i ulangan faol adminlarda."""
+
+    TOKEN = "987654321:AAH" + "y" * 32
+    MAIN_TOKEN = "123456789:AAH" + "x" * 32
+
+    def setUp(self):
+        from . import runtime_config
+        self.rc = runtime_config
+        self.rc.invalidate()
+        self.admin = User.objects.create_user(
+            email="devadmin@example.com", password="pw12345!", full_name="Dev Admin",
+            role=User.Role.ADMIN, telegram_chat_id="5550001",
+        )
+        self.client.force_login(self.admin)
+
+    def tearDown(self):
+        self.rc.invalidate()
+
+    def _config(self, *args):
+        import json
+        from io import StringIO
+
+        from django.core.management import call_command
+
+        out = StringIO()
+        call_command("devbot_config", *args, stdout=out)
+        return json.loads(out.getvalue())
+
+    def test_settings_saved_from_panel_reach_devbot(self):
+        self.client.post(reverse("core:integration_settings"), {
+            "DEVBOT_TELEGRAM_TOKEN": self.TOKEN,
+            "DEVBOT_TELEGRAM_USERNAME": "@aiplatforma_dev_bot",
+            "DEVBOT_ANTHROPIC_API_KEY": "sk-ant-devbot",
+        })
+        cfg = self._config()
+        self.assertEqual(cfg["telegram_token"], self.TOKEN)
+        self.assertEqual(cfg["telegram_username"], "aiplatforma_dev_bot")
+        self.assertEqual(cfg["anthropic_api_key"], "sk-ant-devbot")
+        page = self.client.get(reverse("core:integration_settings")).content.decode()
+        self.assertNotIn(self.TOKEN, page)
+        self.assertNotIn("sk-ant-devbot", page)
+        self.assertIn("t.me/aiplatforma_dev_bot", page)
+
+    def test_falls_back_to_main_claude_key(self):
+        self.rc.set_config("ANTHROPIC_API_KEY", "sk-ant-main")
+        self.assertEqual(self._config()["anthropic_api_key"], "sk-ant-main")
+
+    def test_devbot_token_must_differ_from_main_bot(self):
+        self.rc.set_config("TELEGRAM_BOT_TOKEN", self.MAIN_TOKEN)
+        response = self.client.post(reverse("core:integration_settings"), {"DEVBOT_TELEGRAM_TOKEN": self.MAIN_TOKEN})
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("DEVBOT_TELEGRAM_TOKEN", self.rc.db_values(refresh=True))
+
+    def test_only_active_admins_with_telegram_are_allowed(self):
+        User.objects.create_user(email="m@example.com", password="pw12345!", full_name="M",
+                                 role=User.Role.MANAGER, telegram_chat_id="5550002")
+        User.objects.create_user(email="a2@example.com", password="pw12345!", full_name="A2",
+                                 role=User.Role.ADMIN)
+        User.objects.create_user(email="a3@example.com", password="pw12345!", full_name="A3",
+                                 role=User.Role.ADMIN, telegram_chat_id="5550003", is_active=False)
+        self.assertEqual(self._config()["admin_ids"], [5550001])
+
+    def test_heartbeat_shows_on_panel(self):
+        from django.core.cache import cache
+
+        cache.delete("devbot:heartbeat")
+        response = self.client.get(reverse("core:integration_settings"))
+        self.assertEqual(response.context["devbot_status"]["state"], "never")
+        self._config("--heartbeat", '{"busy": true, "task": "eksport tugmasi"}')
+        response = self.client.get(reverse("core:integration_settings"))
+        self.assertEqual(response.context["devbot_status"]["state"], "busy")
+        self.assertIn("eksport tugmasi", response.content.decode())
+
+    def test_manager_cannot_open_panel(self):
+        manager = User.objects.create_user(email="dm@example.com", password="pw12345!", full_name="M",
+                                           role=User.Role.MANAGER)
+        self.client.force_login(manager)
+        self.assertEqual(self.client.get(reverse("core:integration_settings")).status_code, 403)

@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import User
 
-from . import runtime_config
+from . import devbot, runtime_config
 from .permissions import role_required
 
 # Backup — butun bazaning nusxasi: parol xeshlari, TOTP sirlari, barcha
@@ -101,10 +101,15 @@ _TELEGRAM_TOKEN_RE = re.compile(r"^\d{5,}:[A-Za-z0-9_-]{30,}$")
 def _validate_integration(key, value):
     if not value:
         return None
-    if key == "TELEGRAM_BOT_TOKEN" and not _TELEGRAM_TOKEN_RE.match(value):
+    if key in ("TELEGRAM_BOT_TOKEN", "DEVBOT_TELEGRAM_TOKEN") and not _TELEGRAM_TOKEN_RE.match(value):
         return _("Invalid bot token format (expected 123456:ABC...).")
-    if key == "TELEGRAM_BOT_USERNAME" and not re.match(r"^@?[A-Za-z0-9_]{5,32}$", value):
+    if key in ("TELEGRAM_BOT_USERNAME", "DEVBOT_TELEGRAM_USERNAME") and not re.match(r"^@?[A-Za-z0-9_]{5,32}$", value):
         return _("Invalid bot username.")
+    # Bitta tokenni ikki jarayon polling qila olmaydi — botlar bir-birini
+    # "409 Conflict" bilan to'xtatib qo'yadi.
+    other = {"TELEGRAM_BOT_TOKEN": "DEVBOT_TELEGRAM_TOKEN", "DEVBOT_TELEGRAM_TOKEN": "TELEGRAM_BOT_TOKEN"}.get(key)
+    if other and value == runtime_config.get_config(other):
+        return _("The devbot needs its own bot token, different from the main bot.")
     field = runtime_config.FIELDS_BY_KEY[key]
     if field.choices and value not in {c[0] for c in field.choices}:
         return _("Invalid choice.")
@@ -130,7 +135,7 @@ def integration_settings(request):
                     changes[key] = ""
                 continue
             value = request.POST.get(key, "").strip()
-            if key == "TELEGRAM_BOT_USERNAME":
+            if key in ("TELEGRAM_BOT_USERNAME", "DEVBOT_TELEGRAM_USERNAME"):
                 value = value.lstrip("@")
             if field.secret and not value:
                 continue  # bo'sh — o'zgarishsiz
@@ -148,7 +153,7 @@ def integration_settings(request):
                 messages.success(request, _("Settings saved."))
             return redirect("core:integration_settings")
 
-    groups = {"telegram": [], "ai": []}
+    groups = {"telegram": [], "ai": [], "devbot": []}
     for field in runtime_config.FIELDS:
         db_value = db_values.get(field.key, "")
         env_value = runtime_config.env_value(field.key)
@@ -165,4 +170,8 @@ def integration_settings(request):
     return render(request, "core/integration_settings.html", {
         "telegram_fields": groups["telegram"],
         "ai_fields": groups["ai"],
+        "devbot_fields": groups["devbot"],
+        "devbot_status": devbot.status(),
+        "devbot_admins": devbot.allowed_admins(),
+        "devbot_username": runtime_config.get_config("DEVBOT_TELEGRAM_USERNAME"),
     })

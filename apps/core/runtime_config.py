@@ -48,6 +48,19 @@ FIELDS = (
     ConfigField("GEMINI_MODEL", _("Gemini model"), "ai"),
     ConfigField("GEMINI_FALLBACK_MODEL", _("Gemini fallback model"), "ai"),
     ConfigField("AI_MODEL", _("Claude model"), "ai"),
+    # Devbot (deploy/devbot) — Telegram orqali platforma kodini o'zgartiruvchi
+    # bot. U serverda alohida ishlaydi va bu qiymatlarni `manage.py
+    # devbot_config` orqali o'qiydi. Buyruqni faqat Telegram'i ulangan
+    # adminlar bera oladi.
+    ConfigField("DEVBOT_TELEGRAM_TOKEN", _("Devbot token"), "devbot", secret=True,
+                help_text=_("A separate bot from @BotFather (not the main bot's token). "
+                            "The devbot restarts with the new token within a minute.")),
+    ConfigField("DEVBOT_TELEGRAM_USERNAME", _("Devbot username"), "devbot",
+                help_text=_("Without @, e.g. aiplatforma_dev_bot")),
+    ConfigField("DEVBOT_ANTHROPIC_API_KEY", _("Devbot Claude (Anthropic) API key"), "devbot", secret=True,
+                help_text=_("Used by Claude Code to change the code. If empty, the Claude key above is used.")),
+    ConfigField("DEVBOT_CLAUDE_MODEL", _("Devbot Claude model"), "devbot",
+                help_text=_("Empty: Claude Code default.")),
 )
 FIELDS_BY_KEY = {f.key: f for f in FIELDS}
 

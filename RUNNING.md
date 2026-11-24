@@ -134,4 +134,5 @@ Telegram bot, Celery worker va Celery beat (kunlik 8:00 dagi AI hisobot).
    rahbarlarga sayt/email/Telegram orqali boradi.
    Qo'lda sinash: `python manage.py run_ai_agent`
 4. **Yangilash:** `git pull && docker compose up -d --build`
+   Telegram orqali kodni o'zgartirib deploy qilish: [deploy/devbot/README.md](deploy/devbot/README.md)
 5. `.env` faylini **hech qachon** git'ga qo'shmang — u allaqachon `.gitignore`da.

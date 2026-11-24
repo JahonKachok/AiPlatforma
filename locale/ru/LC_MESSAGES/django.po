@@ -5219,3 +5219,61 @@ msgstr "переданы"
 
 msgid "KPI points"
 msgstr "Баллы KPI"
+
+msgid "Devbot token"
+msgstr "Токен девбота"
+
+msgid "A separate bot from @BotFather (not the main bot's token). The devbot restarts with the new token within a minute."
+msgstr "Отдельный бот из @BotFather (не токен основного бота). Девбот перезапустится с новым токеном в течение минуты."
+
+msgid "Devbot username"
+msgstr "Имя девбота (username)"
+
+msgid "Without @, e.g. aiplatforma_dev_bot"
+msgstr "Без @, например: aiplatforma_dev_bot"
+
+msgid "Devbot Claude (Anthropic) API key"
+msgstr "API-ключ Claude (Anthropic) для девбота"
+
+msgid "Used by Claude Code to change the code. If empty, the Claude key above is used."
+msgstr "Используется Claude Code для изменения кода. Если пусто — используется ключ Claude выше."
+
+msgid "Devbot Claude model"
+msgstr "Модель Claude для девбота"
+
+msgid "Empty: Claude Code default."
+msgstr "Пусто: модель Claude Code по умолчанию."
+
+msgid "The devbot needs its own bot token, different from the main bot."
+msgstr "Девботу нужен собственный токен, отличный от основного бота."
+
+msgid "Devbot: changing the platform code via Telegram"
+msgstr "Девбот: изменение кода платформы через Telegram"
+
+msgid "Online"
+msgstr "Работает"
+
+msgid "Working on a task"
+msgstr "Выполняет задачу"
+
+#, python-format
+msgid "Not responding (%(s)s s)"
+msgstr "Не отвечает (%(s)s с)"
+
+msgid "Not installed on the server"
+msgstr "Не установлен на сервере"
+
+msgid "Admins write a task to the devbot, Claude Code changes the code and runs the tests in an isolated container, and the change reaches the live site only after the Deploy button is pressed. The server part is installed once: deploy/devbot/README.md"
+msgstr "Админы пишут задачу девботу, Claude Code меняет код и запускает тесты в изолированном контейнере; изменение попадает на сайт только после нажатия кнопки Deploy. Серверная часть устанавливается один раз: deploy/devbot/README.md"
+
+msgid "Current task:"
+msgstr "Текущая задача:"
+
+msgid "Who can give commands (admins with a linked Telegram)"
+msgstr "Кто может давать команды (админы с привязанным Telegram)"
+
+msgid "No admin has linked Telegram yet — link it in your profile, otherwise the devbot will not accept anyone's commands."
+msgstr "Ни один админ ещё не привязал Telegram — привяжите его в профиле, иначе девбот не примет ничьих команд."
+
+msgid "Devbot settings"
+msgstr "Настройки девбота"

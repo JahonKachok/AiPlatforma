@@ -1,0 +1,36 @@
+# Devbot runner: Claude Code shu konteyner ichida ishlaydi.
+#
+# Asos — platformaning web image'i (barcha Python kutubxonalari tayyor),
+# ustiga git, gettext, Tailwind CLI va Claude Code qo'shiladi. Konteynerda
+# .env, baza, docker socket yo'q: Claude buyruqlarni (testlar,
+# makemigrations, tailwind) faqat shu yerda bajaradi, serverga tegmaydi.
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+
+USER root
+ARG TAILWIND_VERSION=v4.3.3
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git curl ca-certificates gettext ripgrep procps \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN arch="$(uname -m)"; case "$arch" in x86_64) tw=x64 ;; aarch64) tw=arm64 ;; *) echo "arch $arch" >&2; exit 1 ;; esac \
+    && curl -fsSLo /usr/local/bin/tailwindcss \
+       "https://github.com/tailwindlabs/tailwindcss/releases/download/${TAILWIND_VERSION}/tailwindcss-linux-${tw}" \
+    && chmod 755 /usr/local/bin/tailwindcss
+
+RUN curl -fsSL https://claude.ai/install.sh | bash \
+    && install -m 755 "$(readlink -f /root/.local/bin/claude)" /usr/local/bin/claude \
+    && rm -rf /root/.local /root/.claude /root/.claude.json
+
+ENV HOME=/home/runner \
+    DISABLE_AUTOUPDATER=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    SECRET_KEY=devbot-test \
+    DJANGO_SETTINGS_MODULE=aiplatforma.settings.dev \
+    DATABASE_URL=sqlite:////tmp/devbot.sqlite3 \
+    GIT_AUTHOR_NAME="AiPlatforma devbot" GIT_AUTHOR_EMAIL=devbot@localhost \
+    GIT_COMMITTER_NAME="AiPlatforma devbot" GIT_COMMITTER_EMAIL=devbot@localhost
+
+WORKDIR /work
+ENTRYPOINT []

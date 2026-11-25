@@ -34,18 +34,19 @@
   <section class="page mw" id="p-work" hidden><div id="mw" class="mw-wrap"></div></section>
 
   <section class="page" id="p-home">
-    <div class="tiles" id="home-task-tiles"></div>
-    <div class="tiles" id="home-money-tiles"></div>
-    <div class="grid">
-      <div class="card"><div class="card-h"><h2>Требуют вашего внимания</h2><button class="btn sm" data-goto="tasks">Все задачи</button></div>
+    <div class="tiles" id="home-tiles"></div>
+    <div class="hw-grid">
+      <section class="card hw" id="hw-k70" aria-label="Контроль 70/70"></section>
+      <section class="card hw" id="hw-load" aria-label="Загрузка сотрудников"></section>
+      <section class="card hw" id="hw-proj" aria-label="Проекты: план и факт"></section>
+      <section class="card hw" id="hw-due" aria-label="Ближайшие сдачи"></section>
+      <section class="card hw" id="hw-rep" aria-label="Ежедневные отчёты"></section>
+      <section class="card hw" id="hw-money" aria-label="Деньги по проектам"></section>
+    </div>
+    <div class="card"><div class="card-h"><h2>Требуют вашего внимания</h2><button class="btn sm" data-goto="tasks">Все задачи</button></div>
         <p class="note">Тревога 70%, отставание, нет исходника, просрочка или задача ждёт вашего решения.</p>
         <div class="scroll" style="max-height: 26rem"><table id="att"><thead><tr><th>№</th><th>Задача</th><th>Кто</th><th>Сдать до</th><th class="hide-narrow">Ход</th><th>Что не так</th></tr></thead><tbody></tbody></table></div>
       </div>
-      <div class="card"><div class="card-h"><h2>Движение денег по дням</h2><button class="btn sm" data-goto="money">Финансы</button></div>
-        <p class="note">Приход и расход в пересчёте на сумы по курсу из настроек, без начальных остатков.</p>
-        <div class="chart" id="home-flow"></div>
-      </div>
-    </div>
   </section>
 
   <section class="page" id="p-tasks" hidden>

@@ -5310,3 +5310,6 @@ msgstr "Позиция справочника ТКП"
 
 msgid "Offer library"
 msgstr "Справочник ТКП"
+
+msgid "Open with filters"
+msgstr "Открыть с фильтрами"

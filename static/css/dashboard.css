@@ -643,3 +643,10 @@
   .dsh-kpi-spark polyline { transition: none !important; }
   .dsh-card:hover, .dsh-kpi:hover, .dsh-ai:hover { transform: none; }
 }
+
+/* ---- Pult «Главная» vidjetlari (iframe) ---------------------------------- */
+.dsh-summary { margin-bottom: 1.125rem; }
+.dsh-summary-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem; }
+.dsh-summary iframe { display: block; width: 100%; min-height: 24rem; border: 0; background: transparent; color-scheme: light; }
+/* iframe ichidagi color-scheme bilan bir xil bo'lmasa, brauzer shaffof fon o'rniga qora/oq chizadi */
+.dark .dsh-summary iframe { color-scheme: dark; }

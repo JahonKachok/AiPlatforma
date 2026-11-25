@@ -68,7 +68,7 @@ The UI lives in `static/pult/pult.js` + `templates/pult/` and is shown in an ifr
 | Projects | Состав `/projects/composition/`, График `/projects/schedule/` |
 | Finance | Операции `/finance/operations/`, Договоры `/finance/contracts/` |
 | Users | Сотрудники `/accounts/users/workload/`, KPI `/accounts/users/kpi/` |
-| Reports | Главная `/reports/summary/` |
+| Reports | Главная `/reports/summary/` (the same widgets are on the dashboard `/` for admin/manager) |
 | Inquiries | Запросы `/inquiries/` (own menu item, admin/manager only) |
 
 Which pages a role sees is decided on the server (`nav.allowed_pages`) and sent to the browser as `viewer.pages`. The old `/pult/` address redirects to "My work".

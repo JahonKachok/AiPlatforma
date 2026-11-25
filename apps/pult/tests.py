@@ -84,6 +84,19 @@ class SectionPageTests(PultTestBase):
             self.assertEqual(response.status_code, 200)
             self.assertContains(response, "?embed=1#")
 
+    def test_dashboard_shows_home_widgets_only_to_allowed(self):
+        self.client.force_login(self.boss)
+        self.assertContains(self.client.get("/"), "?embed=1&amp;dash=1#home")
+        for user in (self.gip, self.worker, self.client_user):
+            self.client.force_login(user)
+            self.assertNotContains(self.client.get("/"), "dash=1")
+
+    def test_dash_mode_marks_the_page(self):
+        self.client.force_login(self.boss)
+        url = reverse("pult:app")
+        self.assertContains(self.client.get(url + "?embed=1&dash=1"), 'class="embed dash"')
+        self.assertContains(self.client.get(url + "?embed=1"), 'class="embed"')
+
     def test_role_without_the_page_is_refused(self):
         self.client.force_login(self.worker)
         self.assertEqual(self.client.get(reverse("pult:section_work")).status_code, 200)

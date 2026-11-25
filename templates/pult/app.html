@@ -1,5 +1,5 @@
 {% load static core_extras %}<!doctype html>
-<html lang="{{ LANGUAGE_CODE }}"{% if dark_mode %} data-theme="dark"{% else %} data-theme="light"{% endif %}{% if request.GET.embed %} class="embed"{% endif %}>
+<html lang="{{ LANGUAGE_CODE }}"{% if dark_mode %} data-theme="dark"{% else %} data-theme="light"{% endif %}{% if request.GET.embed %} class="embed{% if request.GET.dash %} dash{% endif %}"{% endif %}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">

@@ -5311,3 +5311,6 @@ msgstr "Takliflar ma'lumotnomasi qatori"
 
 msgid "Offer library"
 msgstr "Takliflar ma'lumotnomasi"
+
+msgid "Open with filters"
+msgstr "Filtrlar bilan ochish"

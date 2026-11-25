@@ -9,6 +9,9 @@
   // The tab is fixed by the URL; going to another tab opens that page's platform URL.
   const EMBED = new URLSearchParams(location.search).has('embed');
   const EMBED_TAB = location.hash.slice(1);
+  // ?dash=1 — «Главная» platformaning asosiy ekranida (templates/core/dashboard.html): faqat vidjetlar,
+  // iframe balandligi ichidagiga moslanadi, vazifa o'z sahifasida ochiladi (oynalar bunday iframe'ga sig'maydi).
+  const DASH = document.documentElement.classList.contains('dash');
   const LINKS = JSON.parse(document.getElementById('pult-links')?.textContent || '{}');
   const REFRESH_MS = 60000;
   // Tabs whose data the platform does not provide yet (next integration stages).
@@ -82,6 +85,8 @@
   S.kpiMonth = (() => { const n = new Date(); return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0'); })();
   try { const t = localStorage.getItem('gx-tab'); if (t && !EMBED) S.tab = t; const g = localStorage.getItem('gx-group'); if (g) S.gGroup = g; const z = localStorage.getItem('gx-zoom'); if (z) S.pl.zoom = z; if (localStorage.getItem('gx-owners') === '0') S.pl.owners = false; const km = localStorage.getItem('gx-kbmode'); if (km) S.kbMode = km; } catch (e) { /* storage unavailable */ }
   const h = location.hash.slice(1); if (h) S.tab = h;
+  // goTabWith(): boshqa sahifaga filtr bilan o'tish (har sahifa alohida iframe, holat sessionStorage'da)
+  try { const g = JSON.parse(sessionStorage.getItem('gx-goto') || 'null'); if (g && g.tab === S.tab) { sessionStorage.removeItem('gx-goto'); S.filters = { project: str(g.project), person: str(g.person) }; if (g.project) S.pl.project = str(g.project); } } catch (e) { /* storage unavailable */ }
 
   // ---------- server payload into S.d (the same shapes the sheets used to give)
   function parseAll() {
@@ -277,37 +282,41 @@
 
   // ---------- HOME
   function renderHome() {
-    const tt = $('#home-task-tiles'), mt = $('#home-money-tiles');
+    const ht = $('#home-tiles');
     if (S.d.tasks) {
-      const ts = fTasks();
-      tt.replaceChildren(
-        tile('В работе', fNum(ts.filter((t) => ACTIVE.includes(t.status)).length), 'в работе, на доработке, с вопросом', '', 'tasks'),
-        tile('Тревога 70%', fNum(ts.filter((t) => t.control === 'ТРЕВОГА 70%').length), 'прошло ≥70% срока, сделано <70%', 'bad', 'tasks'),
-        tile('Просрочено', fNum(ts.filter(overdue).length), 'плановая дата прошла', 'bad', 'tasks'),
-        tile('Отстают', fNum(ts.filter((t) => t.control === 'Отстаёт').length), '% работы ниже % времени', 'warn', 'tasks'),
-        tile('Ждут вашего решения', fNum(ts.filter((t) => WAIT.includes(t.status)).length), 'новые, согласование, проверка, вопросы', 'ink', 'tasks'),
-      );
-    } else if (status('tasks') === 'error') failIn(tt, 'tasks'); else skel(tt, 84);
-    const fin = !!S.d.features?.finance;
-    mt.hidden = !fin; $('#home-flow').closest('.card').hidden = !fin;
-    if (!fin) { /* finance arrives in a later integration stage */ }
-    else if (S.d.home) {
-      const H = S.d.home;
-      mt.replaceChildren(
-        tile('Деньги сейчас, сум', fMln(H.uzs), fNum(H.uzs) + ' сум', H.uzs < 0 ? 'bad' : '', 'money'),
-        tile('Деньги сейчас, $', fUsd(H.usd), 'наличные и счёт в долларах', '', 'money'),
-        tile('Всего в $', fUsd(H.totalUsd), 'по курсу ' + fNum(H.rate), 'ink', 'money'),
-        tile('Чистая прибыль GASTEC', fUsd((H.profit.find((r) => /^Чистая прибыль/.test(r.label)) || {}).a), 'прогноз по открытым договорам', 'ok', 'money'),
-        tile('Должны исполнителям', fUsd((H.profit.find((r) => /^Должны исполнителям/.test(r.label)) || {}).a), 'проекты GASTEC', 'warn', 'contracts'),
-      );
-    } else if (status('home') === 'error') failIn(mt, 'home'); else skel(mt, 84);
+      const ts = fTasks(); const open = ts.filter((t) => !CLOSED.includes(t.status));
+      const T0 = today(); const ago = (n) => new Date(T0.getTime() - n * DAY);
+      const accIn = (a, b) => ts.filter((t) => t.status === 'Принята' && t.finished && isNum(t.delay) && parseD(t.finished) > ago(a) && parseD(t.finished) <= ago(b));
+      const share = (l) => (l.length ? l.filter((t) => t.delay <= 0).length / l.length : null);
+      const cur = share(accIn(28, 0)), prev = share(accIn(56, 28));
+      const work = S.d.cal.isWork(todayN());
+      const noRep = S.d.progress ? [...new Set(ts.filter((t) => needsReport(t) && !reportedToday(t)).map((t) => t.assignee || '—'))] : null;
+      const withAct = new Set(ts.filter((t) => ACTIVE.includes(t.status)).map((t) => t.assignee)).size;
+      const tiles = [
+        tile('Открытые задачи', fNum(open.length), `в работе ${open.filter((t) => ACTIVE.includes(t.status)).length}`, '', 'tasks'),
+        tile('Тревога 70%', fNum(open.filter((t) => t.control === 'ТРЕВОГА 70%').length), 'время ≥70%, сделано <70%', 'bad', 'tasks'),
+        tile('Просрочено', fNum(open.filter(overdue).length), 'срок сдачи прошёл', 'bad', 'tasks'),
+        tile('Ждут вашего решения', fNum(open.filter((t) => WAIT.includes(t.status)).length), 'проверка, сроки, вопросы', 'ink', 'work'),
+        tile('Нет отчёта сегодня', !work ? '—' : noRep ? `${noRep.length} чел.` : '…', !work ? 'сегодня выходной' : `из ${withAct} с задачами в работе`, noRep && noRep.length ? 'warn' : 'ok', 'work'),
+        tile('Сдано в срок', cur == null ? '—' : fPct(cur), cur == null ? 'за 4 недели нет принятых' : `за 4 недели${prev != null ? ', было ' + fPct(prev) : ''}`, cur == null ? '' : cur >= 0.8 ? 'ok' : 'warn', 'kpi'),
+      ];
+      if (canFinance() && S.d.contracts) {
+        const rate = S.d.rate || S.d.home?.rate; const toUsd = (c, v) => (curOf(c) === 'USD' ? v || 0 : rate ? (v || 0) / rate : 0);
+        const openC = S.d.contracts.filter((c) => c.status !== 'Закрыт' && (!S.filters.project || c.project === S.filters.project));
+        const cl = openC.filter((c) => c.side === 'Заказчик' && (c.rest || 0) > 0), ex = openC.filter((c) => c.side === 'Исполнитель' && (c.rest || 0) > 0);
+        tiles.push(tile('Получить от заказчиков', fUsd(Math.round(d3.sum(cl, (c) => (isNum(c.restUsd) ? c.restUsd : toUsd(c, c.rest))))), `по ${cl.length} ${plural(cl.length, 'договору', 'договорам', 'договорам')}`, '', 'contracts'));
+        tiles.push(tile('Долг исполнителям', fUsd(Math.round(d3.sum(ex, (c) => (isNum(c.restUsd) ? c.restUsd : toUsd(c, c.rest))))), `по ${ex.length} ${plural(ex.length, 'договору', 'договорам', 'договорам')}`, 'warn', 'contracts'));
+      }
+      ht.replaceChildren(...tiles);
+    } else if (status('tasks') === 'error') failIn(ht, 'tasks'); else skel(ht, 84);
+    hwK70(); hwLoad(); hwProj(); hwDue(); hwRep(); hwMoney();
     // attention
     const tb = $('#att tbody'); tb.replaceChildren();
     if (!S.d.tasks) { if (status('tasks') !== 'error') emptyRow(tb, 6, 'Загрузка…'); else emptyRow(tb, 6, 'Не загрузилось'); }
     else {
       const rows = fTasks().filter((t) => !CLOSED.includes(t.status) && problem(t)).sort((a, b) => problem(a).key - problem(b).key || ((a.plan || '9') < (b.plan || '9') ? -1 : 1));
       rows.forEach((t) => {
-        const tr = el('tr', 'click'); tr.addEventListener('click', () => openTask(t.id));
+        const tr = el('tr', 'click'); tr.addEventListener('click', () => (DASH ? showTask(t) : openTask(t.id)));
         const p = problem(t); const pc = el('td'); pc.append(el('span', 'pill ' + p.cls, p.text));
         const pg = el('td'); pg.append(progBlock(t));
         pg.className = 'hide-narrow'; tr.append(el('td', 'num', t.id ?? '—'), el('td', null, t.task || '—'), el('td', null, t.assignee || '—'), el('td', 'num', fD(t.plan)), pg, pc);
@@ -315,7 +324,199 @@
       });
       if (!rows.length) emptyRow(tb, 6, S.d.tasks.length ? 'Сейчас ничего не требует внимания.' : 'Задач пока нет. Поставьте первую кнопкой «+ Задача».');
     }
-    if (fin) drawFlow($('#home-flow'), 30, 180);
+  }
+
+  // ---------- home widgets
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const sv = (tag, attrs, text) => { const n = document.createElementNS(SVGNS, tag); Object.entries(attrs || {}).forEach(([k, v]) => n.setAttribute(k, v)); if (text != null) n.textContent = text; return n; };
+  function hwHead(box, title, right, sub) {
+    const h = el('div', 'hw-h'); h.append(el('h2', null, title)); if (right) h.append(el('span', 'note', right));
+    box.replaceChildren(h); if (sub) box.append(el('p', 'hw-sub', sub));
+  }
+  function hwLegend(items) { const l = el('div', 'hw-legend'); items.forEach(([c, t, n]) => { const s = el('span'); const i = el('i'); i.style.background = c; s.append(i, document.createTextNode(t)); if (n != null) s.append(document.createTextNode(': '), el('span', 'num', String(n))); l.append(s); }); return l; }
+  function hwWait(box, id) { if (status(id) === 'error') failIn(box, id); else box.append(el('div', 'empty', 'Загрузка…')); }
+
+  function hwK70() {
+    const box = $('#hw-k70');
+    if (!S.d.tasks) { hwHead(box, 'Контроль 70/70'); hwWait(box, 'tasks'); return; }
+    const ts = fTasks().filter((t) => ACTIVE.includes(t.status) && isNum(t.elapsed));
+    hwHead(box, 'Контроль 70/70', `задач в работе: ${ts.length}`, 'Каждая точка — задача. Слева направо — сколько прошло срока, снизу вверх — сколько сделано. Красный угол — правило 70/70 нарушено. Нажмите на точку, чтобы открыть задачу.');
+    if (!ts.length) { box.append(el('div', 'empty', 'Сейчас нет задач в работе.')); return; }
+    const X = (v) => 50 + Math.max(0, Math.min(1.05, v)) * 505, Y = (v) => 270 - Math.max(0, Math.min(1, v)) * 250;
+    const svg = sv('svg', { viewBox: '0 0 600 300', role: 'group', 'aria-label': 'Процент прошедшего срока против процента выполнения' }); svg.style.width = '100%'; svg.style.height = 'auto'; svg.style.display = 'block';
+    svg.append(sv('rect', { x: X(0.7), y: Y(0.7), width: X(1.05) - X(0.7), height: Y(0) - Y(0.7), fill: 'var(--bad-soft)' }));
+    svg.append(sv('text', { x: (X(0.7) + X(1.05)) / 2, y: 262, 'text-anchor': 'middle', 'font-size': 11, style: 'fill: var(--bad)' }, 'тревога 70%'));
+    [[50, 270, 580, 270, '--line'], [50, 20, 50, 270, '--line'], [50, Y(0.5), 580, Y(0.5), '--grid'], [X(0.5), 20, X(0.5), 270, '--grid'], [X(1), 20, X(1), 270, '--grid']].forEach(([x1, y1, x2, y2, c]) => svg.append(sv('line', { x1, y1, x2, y2, style: `stroke: var(${c})` })));
+    svg.append(sv('line', { x1: X(0), y1: Y(0), x2: X(1), y2: Y(1), 'stroke-dasharray': '4 4', style: 'stroke: var(--faint)' }));
+    svg.append(sv('text', { x: X(1) - 6, y: 34, 'text-anchor': 'end', 'font-size': 11 }, 'по графику'));
+    [[X(0), 288, 'middle', '0'], [X(0.5), 288, 'middle', '50%'], [X(1), 288, 'end', '100% срока'], [44, Y(0.5) + 4, 'end', '50'], [44, Y(1) + 4, 'end', '100%']].forEach(([x, y, a, t]) => svg.append(sv('text', { x, y, 'text-anchor': a, 'font-size': 10, class: 'mono' }, t)));
+    let nb = 0, nw = 0, nk = 0;
+    ts.slice().sort((a, b) => (a.done || 0) - (b.done || 0)).forEach((t) => {
+      const e = t.elapsed, d = t.done || 0; const bad = t.control === 'ТРЕВОГА 70%' || overdue(t) || (e >= 0.7 && d < 0.7); const lag = !bad && d < e;
+      if (bad) nb++; else if (lag) nw++; else nk++;
+      const c = sv('circle', { cx: X(e), cy: Y(d), r: 7, class: 'hw-dot', tabindex: 0, role: 'button', 'aria-label': `№${t.id} ${t.task || ''}: срок ${fPct(e)}, сделано ${fPct(d)}`, style: `fill: ${bad ? 'var(--bad)' : lag ? 'var(--warn)' : 'var(--ink)'}; fill-opacity: .85` });
+      c.append(sv('title', {}, `№${t.id} ${t.task || ''}\n${t.assignee || '—'} · ${t.project || ''}\nсрок прошёл ${fPct(e)}, сделано ${fPct(d)}`));
+      c.addEventListener('click', () => showTask(t)); c.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); showTask(t); } });
+      svg.append(c);
+    });
+    box.append(svg, hwLegend([['var(--bad)', 'Тревога', nb], ['var(--warn)', 'Отстают', nw], ['var(--ink)', 'В графике', nk]]));
+  }
+
+  function hwLoad() {
+    const box = $('#hw-load');
+    if (!S.d.tasks || !S.d.people) { hwHead(box, 'Загрузка сотрудников'); hwWait(box, !S.d.tasks ? 'tasks' : 'people'); return; }
+    const W = workload(); const byHours = W.some((w) => w.hours > 0);
+    const rows = W.map((w) => ({ ...w, v: byHours ? (w.norm ? w.hours / w.norm : 0) : w.open })).sort((a, b) => b.v - a.v || a.name.localeCompare(b.name, 'ru'));
+    hwHead(box, 'Загрузка сотрудников', byHours ? 'часы открытых задач / норма в неделю' : 'открытые задачи', byHours ? 'Кто перегружен, а кому можно дать новую задачу. Черта — 100% нормы. Нажмите на имя — откроются его задачи.' : 'Часы по задачам не указаны, поэтому считаю открытые задачи. Заполните «Оценку часов», и шкала станет в часах от нормы. Нажмите на имя — откроются его задачи.');
+    if (!rows.length) { box.append(el('div', 'empty', 'Нет сотрудников с отметкой «В задачах».')); return; }
+    const maxOpen = Math.max(4, d3.max(rows, (r) => r.open) || 1);
+    const list = el('div', 'hw-rows');
+    rows.slice(0, 11).forEach((r) => {
+      const b = el('button', 'hw-row'); b.type = 'button'; b.title = `${r.name}: открытых ${r.open}${r.overdue ? ', просрочено ' + r.overdue : ''}`;
+      const bar = el('div', 'hw-bar'); const f = el('i');
+      let txt, col;
+      if (byHours) { const p = r.v; f.style.width = Math.min(p, 1.5) / 1.5 * 100 + '%'; col = p > 1.1 ? 'var(--bad)' : p < 0.5 ? 'var(--muted-bar)' : 'var(--ink)'; const mk = el('b'); mk.style.left = '66.66%'; bar.append(f, mk); txt = `${nf.format(Math.round(r.hours))} / ${nf.format(r.norm)} ч · ${fPct(p)}`; }
+      else { f.style.width = r.open / maxOpen * 100 + '%'; col = r.overdue ? 'var(--bad)' : r.open === 0 ? 'var(--muted-bar)' : 'var(--ink)'; bar.append(f); txt = r.overdue ? `${r.open} зад. · ${r.overdue} проср.` : `${r.open} ${plural(r.open, 'задача', 'задачи', 'задач')}`; }
+      f.style.background = col;
+      const v = el('span', 'hw-val', txt); if (col === 'var(--bad)') v.style.color = 'var(--bad)';
+      b.append(el('span', 'hw-name', r.name), bar, v);
+      b.addEventListener('click', () => goTabWith('tasks', { person: r.name }));
+      list.append(b);
+    });
+    box.append(list);
+    if (rows.length > 11) box.append(el('p', 'hw-sub', `и ещё ${rows.length - 11} — на вкладке «Сотрудники»`));
+    box.append(byHours ? hwLegend([['var(--bad)', 'перегружен >110%'], ['var(--ink)', 'норма'], ['var(--muted-bar)', 'свободен <50%']]) : hwLegend([['var(--bad)', 'есть просрочка'], ['var(--ink)', 'в порядке'], ['var(--muted-bar)', 'без задач']]));
+  }
+
+  function hwProj() {
+    const box = $('#hw-proj');
+    if (!S.d.tasks) { hwHead(box, 'Проекты: план и факт'); hwWait(box, 'tasks'); return; }
+    const T = todayN(); const cal = S.d.cal; const out = [];
+    const names = new Set([...(S.d.sched ? S.d.sched.rows.map((r) => r.project) : []), ...fTasks().filter((t) => !CLOSED.includes(t.status)).map((t) => t.project)].filter(Boolean));
+    names.forEach((p) => {
+      if (S.filters.project && p !== S.filters.project) return; if (!inMyProjects(p)) return;
+      const P = (S.d.projects || []).find((x) => x.name === p); if (P && P.status === 'Закрыт') return;
+      const st = S.d.sched ? projStats(S.d.sched.rows.filter((r) => r.project === p && r.Sd != null)) : null;
+      if (st && st.days) {
+        if (st.p >= 0.999) return;
+        const tp = T < st.s ? 0 : T > st.f ? 1 : cal.count(st.s, T + 1) / st.days;
+        out.push({ p, done: st.p, time: tp, due: fN(st.f), src: 'plan' });
+      } else {
+        const ts = fTasks().filter((t) => t.project === p && !CLOSED.includes(t.status) && t.status !== 'Черновик'); if (!ts.length) return;
+        const el2 = ts.filter((t) => isNum(t.elapsed));
+        const last = d3.max(ts, (t) => t.plan || '');
+        out.push({ p, done: d3.mean(ts, (t) => t.done || 0), time: el2.length ? Math.min(1, d3.mean(el2, (t) => t.elapsed)) : null, due: last ? fD(last) : '—', src: 'tasks' });
+      }
+    });
+    out.forEach((o) => { o.gap = o.time == null ? 0 : o.done - o.time; });
+    out.sort((a, b) => a.gap - b.gap || a.p.localeCompare(b.p, 'ru'));
+    hwHead(box, 'Проекты: план и факт', 'из графика проекта', 'Полоса — сколько сделано. Чёрная черта — где проект должен быть сегодня по графику. Нажмите на проект — откроется его график.');
+    if (!out.length) { box.append(el('div', 'empty', 'Нет открытых проектов с графиком или задачами.')); return; }
+    const list = el('div', 'hw-rows'); list.style.gap = '12px';
+    out.slice(0, 6).forEach((o) => {
+      const late = o.gap <= -0.1, lag = !late && o.gap < -0.03;
+      const b = el('button', 'hw-proj'); b.type = 'button';
+      const top = el('div', 'hw-ptop'); top.append(el('b', 'hw-pn', o.p), el('span', 'note', (o.src === 'plan' ? 'сдача ' : 'последний срок ') + o.due), el('span', 'pill ' + (late ? 'bad' : lag ? 'warn' : 'ok'), late ? `отстаёт на ${Math.round(-o.gap * 100)}%` : lag ? 'чуть отстаёт' : o.time == null ? 'нет срока' : 'по графику'));
+      const line = el('div', 'hw-pline'); const bar = el('div', 'hw-bar'); const f = el('i'); f.style.width = Math.max(0, Math.min(1, o.done)) * 100 + '%'; f.style.background = late ? 'var(--bad)' : lag ? 'var(--warn)' : 'var(--ink)'; bar.append(f);
+      if (o.time != null) { const mk = el('b'); mk.style.left = `calc(${o.time * 100}% - 1px)`; bar.append(mk); }
+      line.append(bar, el('span', 'hw-val', fPct(o.done))); b.append(top, line);
+      b.title = o.time == null ? '' : `сделано ${fPct(o.done)}, по графику должно быть ${fPct(o.time)}`;
+      b.addEventListener('click', () => goTabWith(o.src === 'plan' ? 'plan' : 'tasks', { project: o.p }));
+      list.append(b);
+    });
+    box.append(list);
+    if (out.length > 6) box.append(el('p', 'hw-sub', `Показаны 6 из ${out.length}: сначала отстающие.`));
+  }
+
+  function hwDue() {
+    const box = $('#hw-due');
+    if (!S.d.tasks) { hwHead(box, 'Ближайшие сдачи'); hwWait(box, 'tasks'); return; }
+    const cal = S.d.cal; const T = todayN();
+    const open = fTasks().filter((t) => !CLOSED.includes(t.status) && t.status !== 'Черновик' && t.plan);
+    const late = open.filter(overdue);
+    const cnt = d3.rollup(open.filter((t) => !overdue(t)), (v) => v.length, (t) => dn(t.plan));
+    const days = []; let n = T; while (days.length < 10 && n < T + 40) { if (cal.isWork(n) || n === T || cnt.has(n)) days.push(n); n++; }
+    hwHead(box, 'Ближайшие сдачи', '2 рабочие недели');
+    const strip = el('div', 'hw-days');
+    const lc = el('div', 'hw-day late'); lc.append(el('span', null, 'просрочено'), el('b', null, String(late.length))); strip.append(lc);
+    const WD = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+    days.forEach((d) => { const k = cnt.get(d) || 0; const dt = new Date(d * DAY); const c = el('div', 'hw-day' + (k >= 4 ? ' hi' : k >= 2 ? ' mid' : '') + (d === T ? ' today' : ''));
+      c.append(el('span', null, d === T ? 'сегодня' : WD[dt.getUTCDay()]), el('span', 'd', pad(dt.getUTCDate()) + '.' + pad(dt.getUTCMonth() + 1)), el('b', null, k ? String(k) : '·')); c.title = `к сдаче: ${k}`; strip.append(c); });
+    box.append(strip, el('p', 'hw-sub', 'Число — сколько задач сдаётся в этот день. Тёмный день — сдач много, проверьте заранее.'));
+    const next = [...late.sort((a, b) => (a.plan < b.plan ? -1 : 1)), ...open.filter((t) => !overdue(t)).sort((a, b) => (a.plan < b.plan ? -1 : a.plan > b.plan ? 1 : (a.priority || 2) - (b.priority || 2)))].slice(0, 6);
+    if (!next.length) { box.append(el('div', 'empty', 'Сроков сдачи впереди нет.')); return; }
+    const list = el('div', 'hw-list');
+    next.forEach((t) => { const b = el('button', 'hw-li'); b.type = 'button'; const od = overdue(t);
+      const d = el('span', 'hw-val' + (od ? ' bad' : ''), fD(t.plan).slice(0, 5)); d.style.textAlign = 'left';
+      const p = el('span', 'hw-val', fPct(t.done)); if (problem(t) && problem(t).key <= 2) p.style.color = problem(t).cls === 'bad' ? 'var(--bad)' : 'var(--warn)';
+      b.append(d, el('span', 'hw-name', t.task || '—'), el('span', 'who', t.assignee || '—'), p); b.addEventListener('click', () => showTask(t)); list.append(b); });
+    box.append(list);
+  }
+
+  function hwRep() {
+    const box = $('#hw-rep');
+    if (!S.d.tasks || !S.d.progress) { hwHead(box, 'Ежедневные отчёты'); hwWait(box, !S.d.tasks ? 'tasks' : 'progress'); return; }
+    const cal = S.d.cal; const T = todayN();
+    const days = []; let n = T; while (days.length < 10 && n > T - 40) { if (cal.isWork(n)) days.unshift(n); n--; }
+    hwHead(box, 'Ежедневные отчёты', `последние ${days.length} рабочих дней`, 'Кто каждый день отмечает процент, а кто пропускает. Пропуски идут в KPI. Нажмите на имя — откроются его задачи.');
+    const ts = fTasks().filter((t) => t.status !== 'Отменена' && t.start && !['Черновик', 'Новая', 'На согласовании'].includes(t.status));
+    const repBy = new Set(), evBy = new Map();
+    (S.d.progress || []).forEach((r) => {
+      if (!isStatusLog(r)) { repBy.add(r.task_id + '|' + r.date); return; }
+      if (!evBy.has(r.task_id)) evBy.set(r.task_id, []);
+      evBy.get(r.task_id).push([r.date, str(r.comment).slice(2).split(/[:·]/)[0].trim()]);
+    });
+    evBy.forEach((l) => l.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)));
+    const activeOn = (t, di) => { let st = 'В работе'; for (const [d, s] of evBy.get(t.id) || []) { if (d > di) break; st = s; } return ACTIVE.includes(st); };
+    const people = d3.groups(ts, (t) => t.assignee || '—').map(([name, list]) => {
+      let due = 0, ok = 0;
+      const cells = days.map((d) => { const di = dIso(d);
+        const act = list.filter((t) => dn(t.start) < d && (d === T ? ACTIVE.includes(t.status) : (t.finished ? dn(t.finished) > d : !CLOSED.includes(t.status)) && activeOn(t, di)));
+        if (!act.length) return '-';
+        const sent = act.some((t) => repBy.has(t.id + '|' + di));
+        if (d === T) return sent ? 'y' : 'p';
+        due++; if (sent) ok++; return sent ? 'y' : 'n'; });
+      return { name, cells, due, ok, p: due ? ok / due : null };
+    }).filter((r) => r.cells.some((c) => c !== '-')).sort((a, b) => (a.p ?? 2) - (b.p ?? 2) || a.name.localeCompare(b.name, 'ru'));
+    if (!people.length) { box.append(el('div', 'empty', 'За эти дни ни у кого не было задач в работе.')); return; }
+    const grid = el('div', 'hw-rep'); grid.append(el('span'));
+    days.forEach((d) => grid.append(el('span', 'h', String(new Date(d * DAY).getUTCDate()))));
+    grid.append(el('span', 'h', 'сдано'));
+    people.slice(0, 10).forEach((r) => {
+      const nm = el('button', 'hw-name linkbtn', r.name); nm.type = 'button'; nm.style.textAlign = 'left'; nm.addEventListener('click', () => goTabWith('tasks', { person: r.name })); grid.append(nm);
+      r.cells.forEach((c, i) => { const x = el('span', 'hw-cell' + (c === '-' ? '' : ' ' + c)); x.title = `${fD(dIso(days[i]))}: ${c === 'y' ? 'отчёт есть' : c === 'n' ? 'пропуск' : c === 'p' ? 'сегодня ещё нет' : 'не было задач в работе'}`; grid.append(x); });
+      const pv = el('span', 'hw-val', r.p == null ? '—' : fPct(r.p)); if (r.p != null && r.p < 0.8) pv.style.color = 'var(--warn)'; pv.style.fontWeight = '600'; grid.append(pv);
+    });
+    box.append(grid);
+    if (people.length > 10) box.append(el('p', 'hw-sub', `Показаны 10 из ${people.length}: сначала те, кто пропускает чаще.`));
+    box.append(hwLegend([['var(--ink)', 'отчёт есть'], ['var(--warn-soft)', 'пропуск'], ['var(--panel-2)', 'не было задач']]));
+    const lg = box.lastChild.children[1].firstChild; lg.style.boxShadow = 'inset 0 0 0 1.5px var(--warn)';
+  }
+
+  function hwMoney() {
+    const box = $('#hw-money');
+    if (!canFinance()) { box.hidden = true; return; } box.hidden = false;
+    if (!S.d.contracts) { hwHead(box, 'Деньги по проектам'); hwWait(box, 'contracts'); return; }
+    const rate = S.d.rate || S.d.home?.rate; const toUsd = (c, v) => (curOf(c) === 'USD' ? v || 0 : rate ? (v || 0) / rate : 0);
+    const by = d3.groups(S.d.contracts.filter((c) => c.project && (!S.filters.project || c.project === S.filters.project)), (c) => c.project).map(([p, cs]) => {
+      const cl = cs.filter((c) => c.side === 'Заказчик'), ex = cs.filter((c) => c.side === 'Исполнитель');
+      return { p, total: d3.sum(cl, (c) => toUsd(c, c.amount)), got: d3.sum(cl, (c) => toUsd(c, c.paid)), spent: d3.sum(ex, (c) => toUsd(c, c.paid)), open: cs.some((c) => c.status !== 'Закрыт') };
+    }).filter((r) => r.total > 0 && r.open).sort((a, b) => b.total - a.total);
+    hwHead(box, 'Деньги по проектам', `USD${rate ? ', сумы по курсу ' + fNum(rate) : ''} · вся полоса = договор`, 'Синяя — получено от заказчика, оранжевая — выплачено исполнителям. Справа — сколько из полученного осталось в проекте.');
+    if (!rate && S.d.contracts.some((c) => c.status !== 'Закрыт' && curOf(c) !== 'USD')) box.append(el('p', 'hw-sub warn', 'Курс доллара не задан: договоры в сумах не учтены.'));
+    if (!by.length) { box.append(el('div', 'empty', 'Нет открытых договоров с заказчиками.')); return; }
+    const list = el('div', 'hw-rows'); list.style.gap = '12px';
+    by.slice(0, 6).forEach((r) => {
+      const m = r.got - r.spent; const b = el('button', 'hw-money'); b.type = 'button';
+      const top = el('div', 'hw-ptop'); top.append(el('b', 'hw-pn', r.p), el('span', 'note', 'договор ' + fUsd(Math.round(r.total))));
+      const mv = el('span', 'hw-val', (m < 0 ? '−' : '') + fUsd(Math.round(Math.abs(m)))); mv.style.fontWeight = '600'; mv.style.fontSize = '13px'; mv.style.color = m < 0 ? 'var(--bad)' : 'var(--ok)';
+      const bars = el('div'); bars.style.display = 'flex'; bars.style.flexDirection = 'column'; bars.style.gap = '3px';
+      [[r.got, 'var(--ink)'], [r.spent, 'var(--warn)']].forEach(([v, c]) => { const t = el('div', 'hw-bar thin'); const f = el('i'); f.style.width = Math.min(1, v / r.total) * 100 + '%'; f.style.background = c; t.append(f); bars.append(t); });
+      const rt = el('span', 'r'); rt.append(document.createTextNode(fUsd(Math.round(r.got))), el('br'), document.createTextNode(fUsd(Math.round(r.spent))));
+      b.append(top, mv, bars, rt); b.title = `${r.p}: договор ${fUsd(Math.round(r.total))}, получено ${fUsd(Math.round(r.got))}, выплачено исполнителям ${fUsd(Math.round(r.spent))}`;
+      b.addEventListener('click', () => goTabWith('contracts', { project: r.p })); list.append(b);
+    });
+    box.append(list, hwLegend([['var(--ink)', 'получено от заказчика'], ['var(--warn)', 'выплачено исполнителям']]));
   }
 
   // ---------- money flow chart (daily in/out bars)
@@ -3318,6 +3519,12 @@
     if (t === 'kanban' && LINKS.kanban) { window.top.location.href = LINKS.kanban; return; }
     if (EMBED) { if (LINKS[t] && t !== S.tab) window.top.location.href = LINKS[t]; return; }
     S.tab = t; try { localStorage.setItem('gx-tab', t); } catch (e) { /* ignore */ } render(); window.scrollTo({ top: 0 }); }
+  function goTabWith(t, f) {
+    const g = { project: f.project ?? S.filters.project, person: f.person ?? S.filters.person };
+    if (EMBED) { try { sessionStorage.setItem('gx-goto', JSON.stringify({ tab: t, ...g })); } catch (e) { /* ignore */ } goTab(t); return; }
+    S.filters = g; if (g.project) { S.pl.project = g.project; S.pl.keepScroll = false; } goTab(t);
+  }
+  function showTask(t) { if (DASH && t.url) window.top.location.href = t.url; else openTaskCard(t.id); }
   $$('.tab').forEach((b) => b.addEventListener('click', () => goTab(b.dataset.tab)));
   $$('[data-goto]').forEach((b) => b.addEventListener('click', () => goTab(b.dataset.goto)));
   $('#f-project').addEventListener('change', (e) => { S.filters.project = e.target.value; if (e.target.value) { S.pl.project = e.target.value; S.pl.keepScroll = false; } render(); });
@@ -3360,6 +3567,10 @@
   $$('#pl-zoom button').forEach((b) => b.addEventListener('click', () => { S.pl.zoom = b.dataset.z; S.pl.keepScroll = false; try { localStorage.setItem('gx-zoom', S.pl.zoom); } catch (x) { /* ignore */ } renderPlan(); }));
   [['#pl-crit', 'crit'], ['#pl-basechk', 'base'], ['#pl-links', 'links']].forEach(([id, k]) => $(id).addEventListener('change', (e) => { S.pl[k] = e.target.checked; renderPlan(); }));
   let rw; window.addEventListener('resize', () => { clearTimeout(rw); rw = setTimeout(render, 150); });
+  if (DASH && window.frameElement) {
+    const fitFrame = () => { window.frameElement.style.height = Math.ceil(document.body.getBoundingClientRect().height) + 'px'; };
+    new ResizeObserver(fitFrame).observe(document.body); fitFrame();
+  }
   render();
   boot();
 })();

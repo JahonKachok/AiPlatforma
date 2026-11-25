@@ -25,6 +25,8 @@ def pult_sections(context, group):
 def pult_tabs(context, group):
     """Tablar qatori: guruhning asosiy sahifasi + uning Pult bo'limlari.
     Ruxsat etilgan bo'lim bo'lmasa, qator umuman chizilmaydi."""
+    if group not in GROUP_HOME:
+        return {"tabs": []}
     sections = pult_sections(context, group)
     url_name, label = GROUP_HOME[group]
     home_url = reverse(url_name)

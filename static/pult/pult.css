@@ -411,3 +411,76 @@ textarea.ctl { min-height: 4.5rem; resize: vertical; }
 .op-sum { margin: 8px 0 4px; }
 .op-group { position: sticky; top: 0; z-index: 1; padding: 8px 8px 4px; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); background: var(--panel); }
 .op-group.is-fit { color: var(--ink); }
+
+/* ---------- «Запросы»: reyestr, ТКП konstruktori, imzo va muhr (pult-requests.js) */
+.modal.tkp-modal { width: min(100%, 86rem); max-height: calc(100vh - 32px); overflow: auto; padding: var(--s4); }
+.tkp-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: var(--s4); align-items: start; }
+@media (max-width: 1000px) { .tkp-grid { grid-template-columns: minmax(0, 1fr); } }
+.tkp-form { display: flex; flex-direction: column; gap: var(--s2); min-width: 0; }
+.tkp-sec { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+.tkp-sec > summary { font-weight: 600; cursor: pointer; padding: 4px 0; }
+.tkp-sec[open] > summary { margin-bottom: 8px; }
+.tkp-sec h4 { margin: 10px 0 4px; font-size: 13px; }
+.tkp-form .tp-item { flex-wrap: nowrap; grid-column: 1 / -1; align-items: flex-start; }
+.tkp-form .tp-item input { margin-top: 3px; flex: none; }
+.sg-modal .modal-foot { position: sticky; bottom: calc(-1 * var(--s5)); background: var(--panel); padding: 10px 0 4px; }
+.tkp-items { display: flex; flex-direction: column; gap: 10px; }
+.tkp-grp { display: flex; flex-direction: column; gap: 4px; }
+.tkp-gh { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.tkp-gh .ctl { width: 5rem; margin-left: 2px; }
+.tkp-it { display: grid; grid-template-columns: auto minmax(0, 1fr) 7.5rem 4rem auto 6.5rem; gap: 6px; align-items: center; opacity: .62; }
+.tkp-it.on { opacity: 1; }
+.tkp-it .ctl { padding: 4px 6px; font-size: 13px; min-width: 0; }
+.tkp-add { display: grid; grid-template-columns: 10rem minmax(0, 1fr) auto; gap: 6px; }
+@media (max-width: 640px) { .tkp-it { grid-template-columns: auto minmax(0, 1fr) 6rem; } .tkp-it .tkp-dy, .tkp-it select { grid-column: 2; } .tkp-add { grid-template-columns: 1fr; } }
+.tkp-prev { position: sticky; top: 0; max-height: calc(100vh - 140px); overflow: auto; background: var(--panel-2); border-radius: 10px; padding: 12px; }
+.tkp-pages { display: flex; flex-direction: column; gap: 14px; align-items: center; }
+.tkp-page { background: #fff; color: #111; width: 100%; max-width: 640px; aspect-ratio: 210 / 297; padding: 5% 6% 5% 8.5%; box-sizing: border-box; box-shadow: 0 1px 6px rgba(0,0,0,.18); font-family: Tinos, "Times New Roman", serif; font-size: 11.4px; line-height: 1.32; overflow: hidden; }
+.tkp-page.land { aspect-ratio: 297 / 210; max-width: 100%; padding: 4% 4%; font-size: 9.5px; }
+.tkp-head { display: flex; justify-content: space-between; gap: 10px; font-size: 9.6px; }
+.tkp-head img { width: 28%; height: auto; object-fit: contain; align-self: center; }
+.tkp-org { font-weight: 700; font-size: 14px; }
+.tkp-mail { color: #1155cc; text-decoration: underline; }
+.tkp-rule { height: 4px; border: 1.2px solid #e36c09; margin: 2px 0 16px; }
+.tkp-meta { display: flex; justify-content: space-between; gap: 12px; margin: 0 0 14px 3%; white-space: pre-line; }
+.tkp-title { text-align: center; font-size: 11.4px; font-weight: 700; margin: 4px 0 10px; }
+.tkp-p { margin: 0 0 10px; text-align: justify; } .tkp-p.ind { text-indent: 2.2em; } .tkp-p.c { text-align: center; font-style: italic; } .tkp-p.small { font-size: 8.5px; font-style: italic; }
+.tkp-kv { border-collapse: collapse; font-size: inherit; margin-bottom: 6px; }
+.tkp-kv th { text-align: left; vertical-align: top; width: 28%; padding: 0 8px 7px 0; border: 0; font-weight: 700; color: #111; }
+.tkp-kv td { padding: 0 0 7px; border: 0; text-align: justify; }
+.tkp-tbl { border-collapse: collapse; width: 100%; font-size: 0.9em; margin: 6px 0; }
+.tkp-tbl th, .tkp-tbl td { border: 1px solid #9aa3b0; padding: 2px 4px; color: #111; }
+.tkp-tbl th { background: #dbe5fb; font-weight: 700; text-align: center; }
+.tkp-tbl td.c { text-align: center; } .tkp-tbl td.r { text-align: right; } .tkp-tbl td.sub { padding-left: 14px; } .tkp-tbl tr.g td { font-weight: 700; } .tkp-tbl tr.tot td { font-weight: 600; }
+.tkp-gantt th.w, .tkp-gantt td.w { padding: 0; min-width: 7px; } .tkp-gantt td.on { background: #4f7fe0; } .tkp-gantt td.on.z { background: #f0a83a; }
+.tkp-gwrap { overflow-x: auto; }
+.tkp-app { text-align: right; font-size: 0.9em; }
+.tkp-sign { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 18px; } .tkp-fio { padding-right: 8%; }
+.tkp-foot { flex-wrap: wrap; position: sticky; bottom: calc(-1 * var(--s4)); background: var(--panel); padding: 10px 0 2px; }
+.tkp-sum { margin-right: auto; font-family: var(--f-num); font-size: 12px; }
+#rq-filter { max-width: 100%; overflow-x: auto; }
+#rq-filter button { flex: none; }
+.modal.rq-modal { width: min(100%, 56rem); max-height: calc(100vh - 32px); overflow: auto; }
+.rq-contacts .card-h h4 { margin: 0; font-size: 14px; }
+.rq-clist { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.rq-crow { display: grid; grid-template-columns: 1.1fr 1.3fr 1fr 1.1fr .8fr 1fr auto; gap: 6px; }
+.rq-crow .ctl { padding: 5px 7px; font-size: 13px; min-width: 0; }
+@media (max-width: 760px) { .rq-crow { grid-template-columns: 1fr 1fr auto; } }
+.rq-side h4 { margin: 8px 0 4px; font-size: 13px; }
+.modal.sg-modal { width: min(100%, 64rem); max-height: calc(100vh - 32px); overflow: auto; }
+.sg-top { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.sg-pages { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; background: var(--panel-2); padding: 12px; border-radius: 10px; min-height: 120px; }
+.sg-page { position: relative; box-shadow: 0 1px 6px rgba(0,0,0,.2); background: #fff; }
+.sg-page canvas { display: block; cursor: crosshair; }
+.sg-ov { position: absolute; pointer-events: none; }
+.sg-rm { pointer-events: auto; top: 6px; right: 6px; left: auto !important; }
+.sg-pn { position: absolute; left: 6px; top: 6px; font-size: 11px; background: rgba(255,255,255,.85); padding: 1px 6px; border-radius: 4px; color: #333; }
+.rq-empty-lib { border: 1px dashed var(--line); border-radius: 8px; padding: 8px 10px; font-size: 13px; color: var(--muted); }
+.sg-upload { display: flex; flex-direction: column; gap: var(--s2); border: 1px dashed var(--line); border-radius: 10px; padding: var(--s3); }
+/* Hujjat ko'rinishi — har doim oq qog'oz: ilovaning (qorong'i) jadval uslubi unga o'tmasin. */
+.tkp-page table th { position: static; white-space: normal; }
+.tkp-kv th { background: none; }
+.tkp-page td { border-bottom-color: #9aa3b0; }
+.tkp-modal > *, .rq-modal > *, .sg-modal > * { flex: none; }
+a.btn { color: inherit; text-decoration: none; }
+.tkp-page .tkp-title { font-size: 1.05em; }

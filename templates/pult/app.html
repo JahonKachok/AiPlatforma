@@ -8,18 +8,22 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Oswald:wght@500;600;700&display=swap">
 <link rel="stylesheet" href="{% static_v 'pult/pult.css' %}">
-<style>body { margin: 0; } img { max-width: 100%; } [hidden]:not([hidden=until-found i]) { display: none !important; }
+<style>@font-face { font-family: Tinos; src: url("{% static_v 'pult/fonts/Tinos-Regular.ttf' %}") format("truetype"); font-weight: 400; }
+@font-face { font-family: Tinos; src: url("{% static_v 'pult/fonts/Tinos-Bold.ttf' %}") format("truetype"); font-weight: 700; }
+@font-face { font-family: Tinos; src: url("{% static_v 'pult/fonts/Tinos-Italic.ttf' %}") format("truetype"); font-style: italic; }
+body { margin: 0; } img { max-width: 100%; } [hidden]:not([hidden=until-found i]) { display: none !important; }
 /* ?embed: the platform page already shows the title and the tabs (apps/pult/nav.py) */
 .embed .tabs, .embed .brand h1 { display: none; }
 /* ?embed: iframe already sits inside the platform's content column — use its full width on large screens */
 .embed .wrap { max-width: none; }</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 </head>
-<body data-api-data="{% url 'pult:api_data' %}" data-api-tasks="{% url 'pult:api_create' %}" data-api-report="{% url 'pult:api_report' %}" data-api-plan="{% url 'pult:api_plan' %}" data-api-sync="{% url 'pult:api_sync' %}" data-api-import="{% url 'pult:api_plan_import' %}" data-api-disc="{% url 'pult:api_discipline' %}" data-api-ciph="{% url 'pult:api_cipher' %}" data-api-tpl="{% url 'pult:api_comp_template' %}" data-api-ops="{% url 'pult:api_ops' %}">
+<body data-api-data="{% url 'pult:api_data' %}" data-api-tasks="{% url 'pult:api_create' %}" data-api-report="{% url 'pult:api_report' %}" data-api-plan="{% url 'pult:api_plan' %}" data-api-sync="{% url 'pult:api_sync' %}" data-api-import="{% url 'pult:api_plan_import' %}" data-api-disc="{% url 'pult:api_discipline' %}" data-api-ciph="{% url 'pult:api_cipher' %}" data-api-tpl="{% url 'pult:api_comp_template' %}" data-api-ops="{% url 'pult:api_ops' %}" data-api-requests="{% url 'pult:api_requests' %}" data-api-seal="{% url 'pult:api_seal' %}" data-tinos-r="{% static_v 'pult/fonts/Tinos-Regular.ttf' %}" data-tinos-b="{% static_v 'pult/fonts/Tinos-Bold.ttf' %}" data-tinos-i="{% static_v 'pult/fonts/Tinos-Italic.ttf' %}" data-tinos-bi="{% static_v 'pult/fonts/Tinos-BoldItalic.ttf' %}" data-logo="{% static_v 'pult/gastec-letterhead.png' %}"{% if request.user.is_staff %} data-lib-url="{% url 'admin:pult_offerlibraryitem_changelist' %}"{% endif %}>
 {% include "pult/_markup.html" %}
 {{ links|json_script:"pult-links" }}
 <script src="{% static_v 'pult/pult-i18n-data.js' %}"></script>
 <script src="{% static_v 'pult/pult-i18n.js' %}"></script>
+<script src="{% static_v 'pult/pult-requests.js' %}"></script>
 <script src="{% static_v 'pult/pult.js' %}"></script>
 </body>
 </html>

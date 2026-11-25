@@ -30,6 +30,12 @@ urlpatterns = [
     path("pult/api/comp-templates/", views.api_comp_template, name="api_comp_template"),
     path("pult/api/ciphers/", views.api_cipher, name="api_cipher"),
     path("pult/api/ops/", views.api_operations, name="api_ops"),
+    path("pult/api/requests/", views.api_request_save, name="api_requests"),
+    path("pult/api/requests/import/", views.api_request_import, name="api_request_import"),
+    path("pult/api/requests/offers/<int:pk>/", views.api_offer, name="api_offer"),
+    path("pult/api/requests/<str:number>/offers/", views.api_offer_save, name="api_offer_save"),
+    path("pult/api/seal/", views.api_seal, name="api_seal"),
+    path("pult/api/seal/upload/", views.api_seal_upload, name="api_seal_upload"),
     *(
         path(route, views.pult_section, {"section": section}, name=section_url_name(section))
         for section, (_group, route, _label) in SECTIONS.items()

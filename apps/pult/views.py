@@ -10,7 +10,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_GET, require_POST
 
-from . import finance, plan, services
+from . import finance, inquiries, plan, services
 from .nav import SECTIONS, allowed_pages, section_url_name
 from .payload import build_payload
 from .services import PultError, pult_role
@@ -45,7 +45,9 @@ def api(view):
         if pult_role(request.user) is None:
             return JsonResponse({"ok": False, "error": "Нет доступа к Пульту."}, status=403)
         try:
-            body = json.loads(request.body or b"{}") if request.method == "POST" else {}
+            # Fayl yuklash (multipart) — maydonlar request.POST/FILES'da.
+            is_json = request.method == "POST" and request.content_type != "multipart/form-data"
+            body = json.loads(request.body or b"{}") if is_json else {}
         except ValueError:
             return JsonResponse({"ok": False, "error": "Неверный запрос."}, status=400)
         if not isinstance(body, dict):
@@ -155,3 +157,45 @@ def api_report(request, body):
     items = body.get("items") if isinstance(body.get("items"), list) else []
     count = services.send_report(request.user, items, str(body.get("note") or "").strip())
     return {"count": count}
+
+
+# ---------------------------------------------------------------- «Запросы»
+
+@require_POST
+@api
+def api_request_save(request, body):
+    req = inquiries.save_request(request.user, body)
+    return {"no": req.number, "version": req.version}
+
+
+@require_POST
+@api
+def api_offer_save(request, body, number):
+    offer = inquiries.save_offer(request.user, number, body)
+    return {"id": offer.pk, "ver": offer.version}
+
+
+@never_cache
+@require_GET
+@api
+def api_offer(request, body, pk):
+    return inquiries.offer_data(request.user, pk)
+
+
+@require_POST
+@api
+def api_request_import(request, body):
+    return {"counts": inquiries.import_workbook(request.user, request.FILES.get("file"))}
+
+
+@never_cache
+@require_POST
+@api
+def api_seal(request, body):
+    return inquiries.seal_images(request.user, body.get("doc"))
+
+
+@require_POST
+@api
+def api_seal_upload(request, body):
+    return {"saved": inquiries.save_seal(request.user, request.FILES)}

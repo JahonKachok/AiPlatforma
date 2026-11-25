@@ -15,6 +15,7 @@
     <nav class="tabs" role="tablist" aria-label="Разделы">
       <button class="tab" role="tab" data-tab="work" aria-selected="false">Моя работа</button>
       <button class="tab" role="tab" data-tab="home" aria-selected="true">Главная</button>
+      <button class="tab" role="tab" data-tab="req" aria-selected="false">Запросы</button>
       <button class="tab" role="tab" data-tab="tasks" aria-selected="false">Задачи</button>
       <button class="tab" role="tab" data-tab="comp" aria-selected="false">Состав проекта</button>
       <button class="tab" role="tab" data-tab="plan" aria-selected="false">График проекта</button>
@@ -211,6 +212,24 @@
       <div class="scroll"><table id="op-table"><thead><tr><th class="r">№</th><th>Дата</th><th>Проект</th><th>Кто / контрагент</th><th>Категория</th><th class="r">Сумма, сум</th><th class="r">Сумма, $</th><th class="hide-narrow">Договор</th><th class="hide-narrow">Примечание</th><th class="hide-narrow">Кто внёс</th></tr></thead><tbody></tbody></table></div>
     </div>
     <div class="card"><h2>По месяцам</h2><div class="scroll"><table id="month-table"><thead><tr><th>Месяц</th><th class="r">Приход, сум</th><th class="r">Расход, сум</th><th class="r">Приход, $</th><th class="r">Расход, $</th><th class="r">Зарплаты</th><th class="r">Налоги</th><th class="r">Офис</th></tr></thead><tbody></tbody></table></div></div>
+  </section>
+
+  <section class="page" id="p-req" hidden>
+    <div class="tiles" id="rq-tiles"></div>
+    <div class="card">
+      <div class="card-h"><h2>Реестр запросов <span class="note" id="rq-count"></span></h2>
+        <div class="chips">
+          <div class="seg" id="rq-filter" role="group" aria-label="Какие запросы"><button type="button" data-f="open">Активные</button><button type="button" data-f="all">Все</button><button type="button" data-f="win">Выиграно</button><button type="button" data-f="lost">Проиграно</button></div>
+          <input class="ctl" type="search" id="rq-search" placeholder="Поиск: заказчик, объект, контакт" aria-label="Поиск по запросам">
+          <a class="btn" id="rq-lib" target="_top" hidden>Справочник ТКП</a>
+          <button type="button" class="btn" id="rq-import" hidden>Импорт из Excel</button>
+          <button type="button" class="btn" id="rq-sign" hidden>Подписать PDF</button>
+          <button type="button" class="btn primary" id="rq-add">+ Запрос</button>
+        </div>
+      </div>
+      <div class="scroll" style="max-height: 44rem"><table id="rq-table"><thead><tr><th>№</th><th class="hide-narrow">Поступил</th><th>Запрос</th><th>Статус</th><th class="hide-narrow">Контакт</th><th>ТКП</th><th class="r">Сумма</th><th class="hide-narrow">Подать до</th><th></th></tr></thead><tbody></tbody></table></div>
+      <p class="note">Нажмите на строку, чтобы открыть карточку: контакты, статус, история. «ТКП» — конструктор коммерческого предложения с галочками, ценами, графиками и PDF. Позиции, цены по умолчанию и тексты условий меняются в «Справочнике ТКП» (админка платформы).</p>
+    </div>
   </section>
 
   <section class="page" id="p-contracts" hidden>

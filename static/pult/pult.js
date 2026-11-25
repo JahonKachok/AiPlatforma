@@ -3,7 +3,7 @@
   // ---------- constants
   // Data comes from the platform (apps/pult) instead of Google Sheets.
   const DS = document.body.dataset;
-  const API = { data: DS.apiData, tasks: DS.apiTasks, report: DS.apiReport, plan: DS.apiPlan, planImport: DS.apiImport, sync: DS.apiSync, disc: DS.apiDisc, ciph: DS.apiCiph, ops: DS.apiOps, tpl: DS.apiTpl };
+  const API = { data: DS.apiData, tasks: DS.apiTasks, report: DS.apiReport, plan: DS.apiPlan, planImport: DS.apiImport, sync: DS.apiSync, disc: DS.apiDisc, ciph: DS.apiCiph, ops: DS.apiOps, tpl: DS.apiTpl, requests: DS.apiRequests, seal: DS.apiSeal };
   const CSRF = document.querySelector('meta[name="csrf-token"]').content;
   // ?embed=1#<tab>: the platform shows one Pult page inside its own menu (apps/pult/nav.py).
   // The tab is fixed by the URL; going to another tab opens that page's platform URL.
@@ -12,7 +12,7 @@
   const LINKS = JSON.parse(document.getElementById('pult-links')?.textContent || '{}');
   const REFRESH_MS = 60000;
   // Tabs whose data the platform does not provide yet (next integration stages).
-  const PAGE_FEATURE = { comp: 'plan', plan: 'plan', money: 'finance', contracts: 'finance' };
+  const PAGE_FEATURE = { comp: 'plan', plan: 'plan', money: 'finance', contracts: 'finance', req: 'requests' };
   const ACTIVE = ['В работе', 'Есть вопрос', 'На доработке'];
   const WAIT = ['Новая', 'На согласовании', 'На проверке', 'Есть вопрос', 'Согласование'];
   const CLOSED = ['Принята', 'Отменена'];
@@ -78,7 +78,7 @@
   }
 
   // ---------- state
-  const S = { raw: {}, payload: null, load: 'loading', loadErr: '', loadedAt: 0, d: {}, tab: 'home', mcp: null, fatal: null, filters: { project: '', person: '' }, gGroup: 'assignee', gDone: false, tSort: ['plan', 1], teamF: 'all', teamOpen: new Set(), kb: { f: { prio: new Set(), proj: new Set(), time: new Set(), who: new Set() }, over: new Map(), multi: false, oldDone: false, drag: null }, pl: { project: '', zoom: 'week', crit: true, base: true, links: true, owners: true, tails: true }, cp: { busy: new Set() }, kbMode: 'proj', pk: { project: '', f: { obj: new Set(), disc: new Set(), who: new Set(), sig: new Set() } }, rep: new Map(), repNote: '', as: null, me: null, meRaw: undefined, started: new Set(), dl: null, tStatus: 'open', cStatus: 'Открыт', kpiMonth: null };
+  const S = { raw: {}, payload: null, load: 'loading', loadErr: '', loadedAt: 0, d: {}, tab: 'home', mcp: null, fatal: null, filters: { project: '', person: '' }, gGroup: 'assignee', gDone: false, tSort: ['plan', 1], rqF: 'open', teamF: 'all', teamOpen: new Set(), kb: { f: { prio: new Set(), proj: new Set(), time: new Set(), who: new Set() }, over: new Map(), multi: false, oldDone: false, drag: null }, pl: { project: '', zoom: 'week', crit: true, base: true, links: true, owners: true, tails: true }, cp: { busy: new Set() }, kbMode: 'proj', pk: { project: '', f: { obj: new Set(), disc: new Set(), who: new Set(), sig: new Set() } }, rep: new Map(), repNote: '', as: null, me: null, meRaw: undefined, started: new Set(), dl: null, tStatus: 'open', cStatus: 'Открыт', kpiMonth: null };
   S.kpiMonth = (() => { const n = new Date(); return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0'); })();
   try { const t = localStorage.getItem('gx-tab'); if (t && !EMBED) S.tab = t; const g = localStorage.getItem('gx-group'); if (g) S.gGroup = g; const z = localStorage.getItem('gx-zoom'); if (z) S.pl.zoom = z; if (localStorage.getItem('gx-owners') === '0') S.pl.owners = false; const km = localStorage.getItem('gx-kbmode'); if (km) S.kbMode = km; } catch (e) { /* storage unavailable */ }
   const h = location.hash.slice(1); if (h) S.tab = h;
@@ -89,6 +89,7 @@
     const d = { tasks: P.tasks, progress: P.progress, people: P.people, projects: P.projects, templates: P.templates, kpi: P.kpi, access: P.access, features: P.features || {} };
     d.cal = makeCal(P.calendar);
     d.disc = P.disc || []; d.stages = P.stages || []; d.ciph = new Map((P.ciphers || []).map((r) => [r.project, r])); d.compTpl = P.compTemplates || [];
+    if (d.features.requests) Object.assign(d, { reqs: P.reqs, rcont: P.rcont, tkp: P.tkp, rlog: P.rlog, tkplib: P.tkplib });
     if (d.features.finance) Object.assign(d, { ops: P.ops, contracts: P.contracts, home: P.home, months: P.months, rate: P.rate, lists: P.lists });
     // schedule() reads stages and disciplines through S.d, so publish them first
     S.d = d;
@@ -157,6 +158,7 @@
     let res;
     try {
       res = await fetch(url, body === undefined ? { credentials: 'same-origin', headers: { Accept: 'application/json' } }
+        : body instanceof FormData ? { method: 'POST', credentials: 'same-origin', headers: { 'X-CSRFToken': CSRF, Accept: 'application/json' }, body }
         : { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF, Accept: 'application/json' }, body: JSON.stringify(body) });
     } catch (e) { throw userErr('Сервер не отвечает. Проверьте интернет и нажмите «Обновить».'); }
     if (res.status === 401 || res.redirected) { location.reload(); throw userErr('Сессия истекла, войдите снова.'); }
@@ -222,7 +224,7 @@
     }
     $$('.tab').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === S.tab)));
     $$('main > .page').forEach((p) => { p.hidden = p.id !== 'p-' + S.tab; });
-    const fn = { work: renderWork, home: renderHome, tasks: renderTasks, kanban: renderKanban, gantt: renderGantt, comp: renderComp, plan: renderPlan, team: renderTeam, kpi: renderKpi, money: renderMoney, contracts: renderContracts }[S.tab];
+    const fn = { work: renderWork, home: renderHome, req: () => REQ?.renderReq(), tasks: renderTasks, kanban: renderKanban, gantt: renderGantt, comp: renderComp, plan: renderPlan, team: renderTeam, kpi: renderKpi, money: renderMoney, contracts: renderContracts }[S.tab];
     if (fn) fn();
   }
   function renderBanner() {
@@ -2713,7 +2715,7 @@
   const APPROVER_ST = ['На согласовании', 'Согласование', 'На проверке', 'Есть вопрос'];
   const DEPTS = ['Кадры', 'Админ', 'Бухгалтерия', 'Прочее'];
   const DEPT_ROLE = { 'Кадры': 'Кадры', 'Админ': 'Админ', 'Бухгалтерия': 'Бухгалтер' };
-  const ALL_PAGES = ['work', 'home', 'kanban', 'tasks', 'comp', 'plan', 'team', 'kpi', 'money', 'contracts'];
+  const ALL_PAGES = ['work', 'home', 'req', 'kanban', 'tasks', 'comp', 'plan', 'team', 'kpi', 'money', 'contracts'];
   const ROLE_PAGES = {
     'Руководитель': ALL_PAGES,
     'ГИП': ['work', 'kanban', 'tasks', 'comp', 'plan', 'team', 'kpi'],
@@ -2722,7 +2724,7 @@
     'Админ': ['work', 'kanban', 'kpi'],
   };
   const SPEC_PAGES = ['work', 'kanban', 'plan', 'kpi'];
-  const PAGE_NAMES = { work: 'Моя работа', home: 'Главная', kanban: 'Канбан', tasks: 'Задачи', comp: 'Состав проекта', plan: 'График проекта', gantt: 'Ганта задач', team: 'Сотрудники', kpi: 'KPI', money: 'Финансы', contracts: 'Договоры' };
+  const PAGE_NAMES = { work: 'Моя работа', home: 'Главная', req: 'Запросы', kanban: 'Канбан', tasks: 'Задачи', comp: 'Состав проекта', plan: 'График проекта', gantt: 'Ганта задач', team: 'Сотрудники', kpi: 'KPI', money: 'Финансы', contracts: 'Договоры' };
   const PAGE_ALIAS = { 'моя работа': 'work', 'главная': 'home', 'канбан': 'kanban', 'задачи': 'tasks', 'состав': 'comp', 'состав проекта': 'comp', 'график': 'plan', 'график проекта': 'plan', 'ганта': 'gantt', 'ганта задач': 'gantt', 'сотрудники': 'team', 'kpi': 'kpi', 'финансы': 'money', 'договоры': 'contracts' };
 
   // ---- who is looking
@@ -3306,6 +3308,9 @@
     $('#kb-legend').replaceChildren(el('p', 'note', proj ? 'Сигнал' : 'Приоритет'), ...(proj ? [['var(--kb-hi)', 'Проблема'], ['var(--kb-md)', 'Ждёт решения или отчёта'], ['var(--kb-lo)', 'В порядке']] : [['var(--kb-hi)', 'Высокий'], ['var(--kb-md)', 'Средний'], ['var(--kb-lo)', 'Низкий']]).map(([c, t]) => { const s = el('span'); const i = el('i', 'kb-arrow'); i.style.background = c; s.append(i, document.createTextNode(t)); return s; }));
     if (proj) renderPK(); else renderNS();
   }
+
+  // ---------- «Запросы» (pult-requests.js)
+  const REQ = window.PULT_REQUESTS ? window.PULT_REQUESTS({ S, API, DS, $, $$, el, nf, nf1, isNum, fNum, fPct, fD, fN, iso, today, pad, str, dn, plural, DAY, modal, field, input, select, tile, emptyRow, skel, failIn, status, toast, userErr, errText, apiFetch, refreshAll, loadScript, saveFile, safeName, allPeopleNames, isBoss }) : null;
 
   // ---------- wiring
   function goTab(t) {

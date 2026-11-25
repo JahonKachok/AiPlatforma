@@ -5277,3 +5277,36 @@ msgstr "Ни один админ ещё не привязал Telegram — пр�
 
 msgid "Devbot settings"
 msgstr "Настройки девбота"
+
+msgid "Inquiries"
+msgstr "Запросы"
+
+msgid "Inquiry"
+msgstr "Запрос"
+
+msgid "May sign and seal"
+msgstr "Может ставить подпись и печать"
+
+msgid "Besides admins: who may put the director's signature and seal on a PDF."
+msgstr "Кроме админов: кто может ставить подпись и печать директора на PDF."
+
+msgid "Group"
+msgstr "Группа"
+
+msgid "Text"
+msgstr "Текст"
+
+msgid "Price without VAT / setting value"
+msgstr "Цена без НДС / значение настройки"
+
+msgid "Days"
+msgstr "Дней"
+
+msgid "On by default"
+msgstr "По умолчанию"
+
+msgid "Offer library item"
+msgstr "Позиция справочника ТКП"
+
+msgid "Offer library"
+msgstr "Справочник ТКП"

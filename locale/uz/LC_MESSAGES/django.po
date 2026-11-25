@@ -5278,3 +5278,36 @@ msgstr "Hali hech bir admin Telegram'ini ulamagan — profilingizda ulang, aks h
 
 msgid "Devbot settings"
 msgstr "Devbot sozlamalari"
+
+msgid "Inquiries"
+msgstr "So'rovlar"
+
+msgid "Inquiry"
+msgstr "So'rov"
+
+msgid "May sign and seal"
+msgstr "Imzo va muhr qo'ya oladi"
+
+msgid "Besides admins: who may put the director's signature and seal on a PDF."
+msgstr "Adminlardan tashqari: PDFga direktor imzosi va muhrini kim qo'ya oladi."
+
+msgid "Group"
+msgstr "Guruh"
+
+msgid "Text"
+msgstr "Matn"
+
+msgid "Price without VAT / setting value"
+msgstr "QQSsiz narx / sozlama qiymati"
+
+msgid "Days"
+msgstr "Kunlar"
+
+msgid "On by default"
+msgstr "Standart holatda belgilangan"
+
+msgid "Offer library item"
+msgstr "Takliflar ma'lumotnomasi qatori"
+
+msgid "Offer library"
+msgstr "Takliflar ma'lumotnomasi"

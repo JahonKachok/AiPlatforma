@@ -69,11 +69,13 @@ The UI lives in `static/pult/pult.js` + `templates/pult/` and is shown in an ifr
 | Finance | Операции `/finance/operations/`, Договоры `/finance/contracts/` |
 | Users | Сотрудники `/accounts/users/workload/`, KPI `/accounts/users/kpi/` |
 | Reports | Главная `/reports/summary/` |
+| Inquiries | Запросы `/inquiries/` (own menu item, admin/manager only) |
 
 Which pages a role sees is decided on the server (`nav.allowed_pages`) and sent to the browser as `viewer.pages`. The old `/pult/` address redirects to "My work".
 
 - **Состав / График проекта** — `PlanRow` (`apps/pult/plan.py`). Dates, links and the critical path are calculated in the browser; the server stores the rows, writes only projects the user may plan (admin/manager, or a GIP of the project) and rejects a save made on stale data (`PultSettings.plan_version`). The «Из объектов платформы» button copies objects, pod-objects and disciplines entered in the project wizard into the composition (once per item, tracked by `PlanRow.source_key`). Disciplines are the platform's `accounts.Discipline` plus `DisciplineConfig` (duration, typical links, cipher code); cipher rules and stages (Смета/Оформление/Печать) are in the admin.
 - **Финансы / Договоры** — `apps/pult/finance.py`, visible to admin/manager/finance only. An operation is a `finance.FinancialRecord` (one per currency) plus `OperationInfo`; a contract with a platform employee is mirrored into `finance.EmployeeContract`, so the payment also shows on the Finance and "My salary" pages. The USD rate comes from Finance settings.
+- **Запросы** — `apps/pult/inquiries.py` + `static/pult/pult-requests.js`: register of customer inquiries, contacts, history and the commercial-offer (ТКП) builder with PDF. Totals and offer versions are computed on the server. «Импорт из Excel» loads the former Google Sheets file (existing inquiries are never overwritten); items, prices and terms are in the admin under "Offer library". The director's signature and seal (PNG) are uploaded by an admin, stored encrypted, available to admins and the users listed in Pult settings → "May sign and seal", and every use is written to the audit log. The offer text is always Russian, whatever the interface language.
 - Per-employee pay type (оклад/договор), weekly hours and stage role are set in the admin under "Employee settings"; an employee without settings counts as salaried.
 
 ### Telegram bot

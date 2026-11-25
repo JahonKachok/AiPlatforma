@@ -1,4 +1,4 @@
-{% load i18n static core_extras %}
+{% load i18n static core_extras pult_nav %}
 {% comment %}
 Primary navigation. Items, routes and the AI-agents role gate are unchanged —
 this file only carries the presentation. Collapse state lives on <html> as
@@ -35,6 +35,17 @@ this file only carries the presentation. Collapse state lives on <html> as
       </svg>
       <span class="ap-nav-text">{% trans "Dashboard" %}</span>
     </a>
+
+    {% pult_sections "inquiries" as inquiry_sections %}
+    {% for section in inquiry_sections %}
+    <a href="{{ section.url }}" class="ap-nav-link{% if section.active %} is-active{% endif %}"
+       data-tip="{{ section.label }}"{% if section.active %} aria-current="page"{% endif %}>
+      <svg class="ap-nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 13l3-8h12l3 8v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5z"/><path d="M3 13h5l1.5 3h5L16 13h5"/>
+      </svg>
+      <span class="ap-nav-text">{{ section.label }}</span>
+    </a>
+    {% endfor %}
 
     {% url 'projects:list' as projects_url %}
     <a href="{{ projects_url }}" class="ap-nav-link{% if request.path|slice:':9' == '/projects' %} is-active{% endif %}"

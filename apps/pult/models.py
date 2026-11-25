@@ -146,6 +146,11 @@ class PultSettings(models.Model):
         "projects.Project", on_delete=models.SET_NULL, null=True, blank=True, related_name="+",
         help_text=_("Project used for non-standard tasks that belong to no client project."),
     )
+    # Adminlardan tashqari kim ТКП'ga direktor imzosi va muhrini qo'ya oladi.
+    signers = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, blank=True, related_name="+", verbose_name=_("May sign and seal"),
+        help_text=_("Besides admins: who may put the director's signature and seal on a PDF."),
+    )
 
     class Meta:
         verbose_name = _("Pult settings")
@@ -348,3 +353,155 @@ class CompositionTemplate(models.Model):
 
     def __str__(self):
         return self.name
+
+
+# ---------------------------------------------------------------- «Запросы»: so'rovlar, ТКП, imzo va muhr
+
+class CommercialRequest(models.Model):
+    """«Запросы» reyestri: buyurtmachidan kelgan so'rov (tijorat taklifigacha va undan keyin)."""
+
+    class Status(models.TextChoices):
+        NEW = "Новый", "Новый"
+        PREPARING = "Готовим ТКП", "Готовим ТКП"
+        SENT = "ТКП отправлено", "ТКП отправлено"
+        TALKS = "Переговоры", "Переговоры"
+        WAITING = "Ожидание", "Ожидание"
+        WON = "Выигран", "Выигран"
+        LOST = "Проигран", "Проигран"
+        DECLINED = "Отказались", "Отказались"
+
+    number = models.CharField(max_length=20, unique=True, verbose_name="№")  # R001
+    received = models.DateField(null=True, blank=True)
+    short = models.CharField(max_length=255, blank=True, default="")
+    client = models.CharField(max_length=255, blank=True, default="")
+    title = models.TextField(blank=True, default="")
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.NEW)
+    owner = models.CharField(max_length=255, blank=True, default="")
+    due = models.DateField(null=True, blank=True)
+    kind = models.CharField(max_length=255, blank=True, default="")
+    basis = models.CharField(max_length=500, blank=True, default="")
+    place = models.CharField(max_length=255, blank=True, default="")
+    folder = models.CharField(max_length=1000, blank=True, default="")
+    tz = models.CharField(max_length=1000, blank=True, default="")
+    offer_no = models.CharField(max_length=50, blank=True, default="")
+    offer_date = models.DateField(null=True, blank=True)
+    amount = models.FloatField(null=True, blank=True)
+    currency = models.CharField(max_length=3, choices=[("UZS", "UZS"), ("USD", "USD")], default="UZS")
+    vat = models.CharField(max_length=50, blank=True, default="")
+    offer_text = models.TextField(blank=True, default="")
+    offer2_date = models.DateField(null=True, blank=True)
+    offer2_text = models.TextField(blank=True, default="")
+    reason = models.CharField(max_length=500, blank=True, default="")
+    note = models.TextField(blank=True, default="")
+    project = models.ForeignKey(
+        "projects.Project", on_delete=models.SET_NULL, null=True, blank=True, related_name="commercial_requests",
+    )
+    # Ikki kishi bir vaqtda o'zgartirsa, keyingisi eski ma'lumot ustiga yozmasin.
+    version = models.PositiveIntegerField(default=1, editable=False)
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+",
+    )
+
+    class Meta:
+        ordering = ["-number"]
+        verbose_name = _("Inquiry")
+        verbose_name_plural = _("Inquiries")
+
+    def __str__(self):
+        return f"{self.number} {self.short}"
+
+
+class RequestContact(models.Model):
+    request = models.ForeignKey(CommercialRequest, on_delete=models.CASCADE, related_name="contacts")
+    name = models.CharField(max_length=255, blank=True, default="")
+    role = models.CharField(max_length=255, blank=True, default="")
+    phone = models.CharField(max_length=100, blank=True, default="")
+    email = models.CharField(max_length=255, blank=True, default="")
+    telegram = models.CharField(max_length=100, blank=True, default="")
+    note = models.CharField(max_length=500, blank=True, default="")
+
+    class Meta:
+        ordering = ["id"]
+
+    def __str__(self):
+        return self.name
+
+
+class CommercialOffer(models.Model):
+    """Saqlangan ТКП versiyasi. ``data`` — konstruktor holati, undan ТКП qayta ochiladi."""
+
+    request = models.ForeignKey(CommercialRequest, on_delete=models.CASCADE, related_name="offers")
+    number = models.CharField(max_length=50)
+    version = models.PositiveIntegerField(default=1)
+    date = models.DateField(null=True, blank=True)
+    net = models.FloatField(default=0)
+    vat = models.FloatField(default=0)
+    total = models.FloatField(default=0)
+    currency = models.CharField(max_length=3, default="UZS")
+    data = models.JSONField(default=dict, blank=True)
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+",
+    )
+    author_name = models.CharField(max_length=255, blank=True, default="")  # Excel'dan ko'chirilganlarda
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        constraints = [models.UniqueConstraint(fields=["request", "number", "version"], name="pult_offer_version")]
+
+    def __str__(self):
+        return f"№{self.number} v{self.version}"
+
+
+class OfferLibraryItem(models.Model):
+    """«Справочник ТКП»: konstruktordagi pozitsiyalar, to'lov shartlari, izohlar, standart qiymatlar."""
+
+    SECTIONS = [(s, s) for s in ("Позиция", "Группа", "Оплата", "Примечание", "Приложение", "Настройка")]
+
+    section = models.CharField(max_length=20, choices=SECTIONS, verbose_name=_("Section"))
+    group = models.CharField(max_length=255, blank=True, default="", verbose_name=_("Group"))
+    text = models.TextField(verbose_name=_("Text"))
+    # Pozitsiyada — QQSsiz narx (so'm), «Настройка»da — qiymat matni.
+    value = models.CharField(max_length=500, blank=True, default="", verbose_name=_("Price without VAT / setting value"))
+    days = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Days"))
+    is_default = models.BooleanField(default=False, verbose_name=_("On by default"))
+    order = models.PositiveIntegerField(default=999)
+
+    class Meta:
+        ordering = ["section", "order", "id"]
+        verbose_name = _("Offer library item")
+        verbose_name_plural = _("Offer library")
+
+    def __str__(self):
+        return f"{self.section}: {self.text[:60]}"
+
+
+class RequestLog(models.Model):
+    request = models.ForeignKey(CommercialRequest, on_delete=models.CASCADE, related_name="log")
+    date = models.DateField()
+    text = models.CharField(max_length=500)
+    author = models.CharField(max_length=255, blank=True, default="")
+
+    class Meta:
+        ordering = ["date", "id"]
+
+    def __str__(self):
+        return f"{self.date} {self.text}"
+
+
+class SealImage(models.Model):
+    """Direktor imzosi va muhri (PNG). Media papkada emas, bazada shifrlangan
+    holda turadi: fayl havolasi orqali olib bo'lmaydi (``inquiries.can_sign``)."""
+
+    KINDS = [("seal", "Печать"), ("sign", "Подпись")]
+
+    kind = models.CharField(max_length=10, choices=KINDS, unique=True)
+    encrypted = models.TextField()
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+",
+    )
+
+    def __str__(self):
+        return self.get_kind_display()

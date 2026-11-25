@@ -5,11 +5,15 @@ from django.test import TestCase
 from django.urls import reverse
 
 from apps.accounts.models import Discipline, User
+from apps.documents.models import AuditLog
 from apps.finance.models import EmployeeContract, FinancialRecord
 from apps.projects.models import Project, ProjectMember
 from apps.tasks.models import Task, TaskComment
 
-from .models import CompositionTemplate, Contract, OperationInfo, PlanRow, ProgressReport, PultSettings, TaskWorkflow
+from .models import (
+    CommercialOffer, CommercialRequest, CompositionTemplate, Contract, OfferLibraryItem, OperationInfo, PlanRow,
+    ProgressReport, PultSettings, RequestContact, RequestLog, SealImage, TaskWorkflow,
+)
 from .services import kpi_points, save_workflow, today
 
 
@@ -715,3 +719,175 @@ class DisciplineSourceTests(PultTestBase):
         self.assertEqual(canonical_code("КЖ"), "KR")
         self.assertEqual(canonical_code("кр"), "KR")
         self.assertEqual(canonical_code("ГСН"), "ГСН")
+
+
+class InquiryTests(PultTestBase):
+    """«Запросы»: reyestr, kontaktlar, ТКП, Excel'dan ko'chirish, imzo va muhr."""
+
+    def setUp(self):
+        super().setUp()
+        self.admin = User.objects.create_user(email="adm@example.com", password="pw12345!", full_name="Adm", role=User.Role.ADMIN)
+
+    def save(self, user=None, **body):
+        body.setdefault("set", {"short": "ХВП", "status": "Новый"})
+        return self.post(user or self.boss, reverse("pult:api_requests"), body)
+
+    def offer(self, request_no, **data):
+        base = {"no": "261125-1", "date": "2026-11-25", "vatRate": 12, "vatMode": "with", "cur": "сум",
+                "items": [{"text": "РП", "price": 1000, "on": True}, {"text": "ТЭО", "price": 500, "on": False}]}
+        return self.post(self.boss, reverse("pult:api_offer_save", args=[request_no]), {"data": {**base, **data}, "text": "1 120 сум"})
+
+    def png(self, name="a.png", fmt="PNG"):
+        import io
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from PIL import Image
+
+        buf = io.BytesIO()
+        Image.new("RGB", (4, 4)).save(buf, fmt)
+        return SimpleUploadedFile(name, buf.getvalue())
+
+    # --- ruxsat
+    def test_only_boss_sees_section_and_data(self):
+        self.save()
+        for user, code in ((self.boss, 200), (self.gip, 403), (self.worker, 403), (self.client_user, 403)):
+            self.client.force_login(user)
+            self.assertEqual(self.client.get("/inquiries/").status_code, code, user)
+        self.client.force_login(self.gip)
+        data = self.client.get(reverse("pult:api_data")).json()
+        self.assertNotIn("reqs", data)
+        self.assertNotIn("tkplib", data)
+        self.assertEqual(self.save(user=self.gip).status_code, 403)
+        self.assertEqual(self.client.post(reverse("pult:api_request_import")).status_code, 403)
+
+    def test_sidebar_link_only_for_allowed(self):
+        self.client.force_login(self.boss)
+        self.assertContains(self.client.get("/tasks/"), 'href="/inquiries/"')
+        self.client.force_login(self.worker)
+        self.assertNotContains(self.client.get("/tasks/"), 'href="/inquiries/"')
+
+    # --- kartochka
+    def test_create_number_contacts_and_log(self):
+        r = self.save(contacts=[{"name": "Али", "phone": "+998"}, {"name": "", "phone": ""}])
+        self.assertEqual(r.json()["no"], "R001")
+        self.assertEqual(self.save().json()["no"], "R002")
+        data = self.client.get(reverse("pult:api_data")).json()
+        self.assertEqual([c["name"] for c in data["rcont"]], ["Али"])
+        self.assertIn("Запрос создан", [x["text"] for x in data["rlog"]])
+
+    def test_update_contacts_and_stale_version(self):
+        self.save(contacts=[{"name": "Али", "phone": "1"}, {"name": "Вали", "phone": "2"}])
+        keep = RequestContact.objects.get(name="Али")
+        r = self.save(no="R001", version=1, set={"short": "X", "status": "Переговоры"}, contacts=[{"id": keep.pk, "name": "Али 2"}])
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(list(RequestContact.objects.values_list("pk", "name")), [(keep.pk, "Али 2")])
+        self.assertTrue(RequestLog.objects.filter(text="Статус: Новый → Переговоры").exists())
+        self.assertEqual(self.save(no="R001", version=1).status_code, 409)
+
+    def test_bad_input_is_refused(self):
+        for bad in ({"short": ""}, {"short": "a", "status": "Нет такого"}, {"short": "a", "folder": "javascript:alert(1)"},
+                    {"short": "a", "due": "2026-99-99"}, {"short": "a", "project": "yo'q"}):
+            self.assertEqual(self.save(set=bad).status_code, 400, bad)
+        self.assertFalse(CommercialRequest.objects.exists())
+
+    # --- ТКП
+    def test_offer_totals_versions_and_status(self):
+        self.save()
+        r = self.offer("R001", items=[{"price": 1000, "on": True}, {"price": 99, "on": False}])
+        self.assertEqual(r.json()["ver"], 1)
+        self.assertEqual(self.offer("R001").json()["ver"], 2)
+        req = CommercialRequest.objects.get()
+        self.assertEqual((req.status, req.amount, req.offer_no, req.vat), ("ТКП отправлено", 1120, "261125-1", "с НДС"))
+        pk = CommercialOffer.objects.first().pk
+        self.assertEqual(self.client.get(reverse("pult:api_offer", args=[pk])).json()["data"]["no"], "261125-1")
+        # ikkinchi raqam — ТКП-2 bo'lib yoziladi
+        self.offer("R001", no="261125-2", vatMode="without")
+        req.refresh_from_db()
+        self.assertEqual((req.offer_no, req.amount, req.vat), ("261125-1", 1000, "без НДС"))
+        self.assertTrue(req.offer2_text)
+
+    def test_offer_manual_amount_and_errors(self):
+        self.save()
+        self.save()
+        self.assertEqual(self.offer("R001", items=[]).status_code, 400)
+        self.assertEqual(self.offer("R001", items=[], manual=1120, manualVat=True).status_code, 200)
+        o = CommercialOffer.objects.get()
+        self.assertEqual((o.net, o.vat, o.total), (1000, 120, 1120))
+        self.assertEqual(self.offer("R002").status_code, 409)  # raqam band
+        self.assertEqual(self.offer("R404").status_code, 404)
+
+    # --- Excel
+    def workbook(self):
+        import io
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from openpyxl import Workbook
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Запросы"
+        ws.append(["№", "Дата поступления", "Краткое название", "Статус", "Сумма ТКП", "Валюта", "Папка на Диске", "Проект в финансах"])
+        ws.append(["R007", "05.10.2026", "Котельная", "Выигран", "1 200,50", "USD", "papka", "P1"])
+        ws.append(["R008", None, "Склад", "Непонятно", None, "сум", "https://d.example/x", "Нет такого"])
+        c = wb.create_sheet("Контакты запросов")
+        c.append(["Запрос №", "Имя", "Телефон"])
+        c.append(["R007", "Али", 998901234567])
+        t = wb.create_sheet("ТКП")
+        t.append(["Запрос №", "№ ТКП", "Дата", "Версия", "Итого", "Валюта", "Кто", "Данные (не редактировать)"])
+        t.append(["R007", "261005-1", "05.10.2026", 1, 1200, "USD", "Sardor", '{"items": []}'])
+        lib = wb.create_sheet("Справочник ТКП")
+        lib.append(["Раздел", "Группа", "Текст", "Цена без НДС, сум", "Дней", "По умолчанию", "Порядок"])
+        lib.append(["Позиция", "РП", "АР", 5000000, 10, "Да", 1])
+        lib.append(["Настройка", None, "Ставка НДС, %", 15, None, None, 1])
+        buf = io.BytesIO()
+        wb.save(buf)
+        return SimpleUploadedFile("f.xlsx", buf.getvalue())
+
+    def imp(self, f):
+        self.client.force_login(self.boss)
+        return self.client.post(reverse("pult:api_request_import"), {"file": f})
+
+    def test_import_is_repeatable_and_keeps_platform_edits(self):
+        counts = self.imp(self.workbook()).json()["counts"]
+        self.assertEqual((counts["requests"], counts["contacts"], counts["offers"], counts["library"]), (2, 1, 1, 2))
+        r7, r8 = CommercialRequest.objects.get(number="R007"), CommercialRequest.objects.get(number="R008")
+        self.assertEqual((r7.amount, r7.currency, r7.project, r7.received.isoformat()), (1200.5, "USD", self.project, "2026-10-05"))
+        self.assertEqual((r7.folder, r8.folder, r8.status), ("", "https://d.example/x", "Новый"))
+        self.assertIn("Непонятно", r8.note)
+        self.assertEqual(OfferLibraryItem.objects.get(text="Ставка НДС, %").value, "15")
+        r7.short = "O'zgargan"
+        r7.save()
+        RequestContact.objects.all().delete()
+        again = self.imp(self.workbook()).json()["counts"]
+        self.assertEqual((again["requests"], again["contacts"], again["offers"], again["skipped"]), (0, 0, 0, 2))
+        r7.refresh_from_db()
+        self.assertEqual(r7.short, "O'zgargan")
+        self.assertEqual(self.save().json()["no"], "R009")
+
+    def test_import_rejects_wrong_files(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        self.assertEqual(self.imp(SimpleUploadedFile("f.xlsx", b"not excel")).status_code, 400)
+        self.client.force_login(self.boss)
+        self.assertEqual(self.client.post(reverse("pult:api_request_import"), {}).status_code, 400)
+
+    # --- imzo va muhr
+    def upload(self, user, **files):
+        self.client.force_login(user)
+        return self.client.post(reverse("pult:api_seal_upload"), files)
+
+    def test_seal_is_encrypted_audited_and_limited(self):
+        self.assertEqual(self.upload(self.boss, seal=self.png(), sign=self.png()).status_code, 403)
+        self.assertEqual(self.upload(self.admin, seal=self.png(fmt="JPEG")).status_code, 400)
+        self.assertEqual(self.upload(self.admin, seal=self.png(), sign=self.png()).status_code, 200)
+        self.assertNotIn("iVBOR", SealImage.objects.get(kind="seal").encrypted)
+        url = reverse("pult:api_seal")
+        out = self.post(self.admin, url, {"doc": "kp.pdf"}).json()
+        self.assertTrue(out["images"]["seal"].startswith("iVBOR"))
+        self.assertTrue(AuditLog.objects.filter(action="seal_used", user=self.admin, details__document="kp.pdf").exists())
+        # menejer — faqat ro'yxatga qo'shilsa
+        self.assertEqual(self.post(self.boss, url, {}).status_code, 403)
+        PultSettings.load().signers.add(self.boss)
+        self.assertEqual(self.post(self.boss, url, {}).status_code, 200)
+        PultSettings.load().signers.add(self.gip)  # bo'limni ko'rmaydigan odam imzolay olmaydi
+        self.assertEqual(self.post(self.gip, url, {}).status_code, 403)

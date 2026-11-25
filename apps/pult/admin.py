@@ -1,8 +1,9 @@
 from django.contrib import admin
 
 from .models import (
-    CalendarDay, CipherRule, CompositionTemplate, Contract, DisciplineConfig, OperationInfo, PersonSettings, PlanRow, ProgressReport,
-    PultSettings, StageConfig, TaskTemplate, TaskWorkflow,
+    CalendarDay, CipherRule, CommercialOffer, CommercialRequest, CompositionTemplate, Contract, DisciplineConfig,
+    OfferLibraryItem, OperationInfo, PersonSettings, PlanRow, ProgressReport, PultSettings, StageConfig, TaskTemplate,
+    TaskWorkflow,
 )
 
 
@@ -84,6 +85,8 @@ class TaskTemplateAdmin(admin.ModelAdmin):
 
 @admin.register(PultSettings)
 class PultSettingsAdmin(admin.ModelAdmin):
+    filter_horizontal = ("signers",)
+
     def has_add_permission(self, request):
         return not PultSettings.objects.exists()
 
@@ -92,3 +95,26 @@ class PultSettingsAdmin(admin.ModelAdmin):
 class CompositionTemplateAdmin(admin.ModelAdmin):
     list_display = ("name", "order", "updated_at")
     list_editable = ("order",)
+
+
+@admin.register(OfferLibraryItem)
+class OfferLibraryItemAdmin(admin.ModelAdmin):
+    list_display = ("section", "group", "text", "value", "days", "is_default", "order")
+    list_display_links = ("text",)
+    list_editable = ("value", "days", "is_default", "order")
+    list_filter = ("section", "group")
+    search_fields = ("text", "group")
+
+
+@admin.register(CommercialRequest)
+class CommercialRequestAdmin(admin.ModelAdmin):
+    list_display = ("number", "short", "client", "status", "owner", "offer_no", "amount", "currency", "due")
+    list_filter = ("status",)
+    search_fields = ("number", "short", "client", "title", "offer_no")
+
+
+@admin.register(CommercialOffer)
+class CommercialOfferAdmin(admin.ModelAdmin):
+    list_display = ("number", "version", "request", "date", "total", "currency", "author")
+    search_fields = ("number", "request__number", "request__short")
+    raw_id_fields = ("request", "author")

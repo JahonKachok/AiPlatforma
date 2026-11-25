@@ -10,6 +10,7 @@ from apps.projects.models import Project, ProjectMember
 from apps.projects.permissions import visible_projects_for
 from apps.tasks.permissions import can_manage_task
 
+from . import inquiries
 from .finance import can_finance, finance_payload
 from .models import ProgressReport, PultSettings, TaskTemplate, TaskWorkflow
 from .nav import allowed_pages
@@ -111,6 +112,7 @@ def build_payload(user):
         "disc": disciplines_json(), "stages": stages_json(), "ciphers": ciphers_json(user),
         "compTemplates": comp_templates_json(),
         **finance,
+        **inquiries.payload(user),
         "progress": progress,
         "people": _people(),
         "projects": [
@@ -126,6 +128,7 @@ def build_payload(user):
         ],
         "kpi": kpi_config(settings),
         "calendar": WorkCalendar(settings).sheet_rows(),
-        "features": {"plan": True, "finance": can_finance(user)},
+        "features": {"plan": True, "finance": can_finance(user), "requests": inquiries.can_requests(user),
+                     "sign": inquiries.can_sign(user), "seal": inquiries.can_manage_seal(user)},
         "generatedAt": timezone.now().isoformat(),
     }

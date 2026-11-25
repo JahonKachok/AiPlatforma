@@ -135,6 +135,9 @@
   });
 
   const ctn = Document.prototype.createTextNode;
+  // Tarjima qilinmaydigan matn (foydalanuvchi yozgani, ruscha hujjat): [data-no-i18n] ichida ishlatiladi.
+  API.raw = (v) => ctn.call(document, String(v));
+  const isRaw = (n) => !!(n && n.closest && n.closest('[data-no-i18n]'));
   Document.prototype.createTextNode = function (v) { return ctn.call(this, translate(String(v))); };
 
   const wrapArgs = (proto, name) => {
@@ -179,14 +182,15 @@
       // Sahifa yuklanayotganda parser keyingi <script> (pult.js) matnini ham qo'shadi —
       // uni tarjima qilish kodni buzardi.
       const parent = root.parentNode;
-      if (!parent || (parent.nodeType === 1 && SKIP.has(parent.tagName))) return;
+      if (!parent || (parent.nodeType === 1 && (SKIP.has(parent.tagName) || isRaw(parent)))) return;
       const t = translate(root.data);
       if (t !== root.data) root.data = t;
       return;
     }
-    if (root.nodeType !== 1 || SKIP.has(root.tagName)) return;
+    if (root.nodeType !== 1 || SKIP.has(root.tagName) || isRaw(root)) return;
     const els = [root, ...root.querySelectorAll('*')];
     for (const e of els) {
+      if (isRaw(e)) continue;
       for (const a of ATTRS) {
         const v = e.getAttribute(a);
         if (v && CYR.test(v)) { const t = translate(v); if (t !== v) sa.call(e, a, t); }
@@ -194,7 +198,7 @@
       if (e.tagName === 'OPTION' && !e.hasAttribute('value')) sa.call(e, 'value', e.text);
     }
     const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-      acceptNode: (n) => (n.parentElement && SKIP.has(n.parentElement.tagName) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
+      acceptNode: (n) => (n.parentElement && (SKIP.has(n.parentElement.tagName) || isRaw(n.parentElement)) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
     });
     const texts = [];
     while (w.nextNode()) texts.push(w.currentNode);

@@ -15,6 +15,7 @@ from .services import ACCOUNTANT, ADMIN_DEPT, BOSS, GIP, HR, pult_role
 SECTIONS = {
     "work": ("tasks", "tasks/my-work/", _("My work")),
     "tasks": ("tasks", "tasks/register/", _("Task register")),
+    "req": ("inquiries", "inquiries/", _("Inquiries")),
     "comp": ("projects", "projects/composition/", _("Project composition")),
     "plan": ("projects", "projects/schedule/", _("Project schedule")),
     "money": ("finance", "finance/operations/", _("Operations")),
@@ -25,6 +26,7 @@ SECTIONS = {
 }
 
 # Guruhning platformadagi asosiy sahifasi (tablar qatorida birinchi turadi).
+# «inquiries» guruhida asosiy sahifa yo'q: menyu to'g'ridan-to'g'ri Pult sahifasini ochadi.
 GROUP_HOME = {
     "tasks": ("tasks:board", _("Tasks")),
     "projects": ("projects:list", _("Projects")),
@@ -40,7 +42,7 @@ GROUP_EXTRA_TABS = {
 }
 
 # «kanban» — tab emas: «Задачи» doskasining «Проектные» rejimi (urls.py yo'naltiradi).
-ALL_PAGES = ["work", "home", "kanban", "tasks", "comp", "plan", "team", "kpi", "money", "contracts"]
+ALL_PAGES = ["work", "home", "req", "kanban", "tasks", "comp", "plan", "team", "kpi", "money", "contracts"]
 ROLE_PAGES = {
     BOSS: ALL_PAGES,
     GIP: ["work", "kanban", "tasks", "comp", "plan", "team", "kpi"],

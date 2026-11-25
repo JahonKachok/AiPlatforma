@@ -23,6 +23,7 @@ Dockerfile      text eol=lf
 *.svg           text
 *.ico           binary
 *.docx          binary
+*.ttf           binary
 *.xlsx          binary
 *.sqlite3       binary
 *.mo            binary

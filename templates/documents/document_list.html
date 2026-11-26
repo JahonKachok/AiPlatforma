@@ -14,13 +14,33 @@
 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
   <form method="get" class="flex flex-wrap items-center gap-2">
     <input type="text" name="search" value="{{ filters.search }}" placeholder="{% trans 'Search...' %}" class="field-input w-48">
-    <select name="project" onchange="this.form.submit()" class="field-input w-auto">
+    <select name="project" onchange="this.form.sub_object && (this.form.sub_object.value = ''); this.form.submit()" class="field-input w-auto" aria-label="{% trans 'Project' %}">
       <option value="">{% trans "All projects" %}</option>
       {% for project in projects %}
         <option value="{{ project.pk }}" {% if filters.project == project.pk|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
       {% endfor %}
     </select>
-    <select name="status" onchange="this.form.submit()" class="field-input w-auto">
+    {% if sub_objects %}
+    <select name="sub_object" onchange="this.form.submit()" class="field-input w-auto" aria-label="{% trans 'Object' %}">
+      <option value="">{% trans "All objects" %}</option>
+      {% for so in sub_objects %}
+        <option value="{{ so.pk }}" {% if filters.sub_object == so.pk|stringformat:"s" %}selected{% endif %}>{% if so.parent %}{{ so.parent.name }} › {% endif %}{{ so.name }}</option>
+      {% endfor %}
+    </select>
+    {% endif %}
+    <select name="discipline" onchange="this.form.submit()" class="field-input w-auto" aria-label="{% trans 'Discipline' %}">
+      <option value="">{% trans "All disciplines" %}</option>
+      {% for d in disciplines %}
+        <option value="{{ d.pk }}" {% if filters.discipline == d.pk|stringformat:"s" %}selected{% endif %}>{{ d.code }} · {{ d.name }}</option>
+      {% endfor %}
+    </select>
+    <select name="kind" onchange="this.form.submit()" class="field-input w-auto" aria-label="{% trans 'File type' %}">
+      <option value="">{% trans "All file types" %}</option>
+      {% for value, label in file_kinds %}
+        <option value="{{ value }}" {% if value == filters.kind %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select name="status" onchange="this.form.submit()" class="field-input w-auto" aria-label="{% trans 'Status' %}">
       <option value="">{% trans "All statuses" %}</option>
       {% for value, label in statuses %}
         <option value="{{ value }}" {% if value == filters.status %}selected{% endif %}>{{ label }}</option>
@@ -28,14 +48,29 @@
     </select>
     <button type="submit" class="btn btn-secondary btn-sm">{% trans "Filter" %}</button>
   </form>
-  <a href="{% url 'documents:upload' %}" class="btn btn-primary btn-md">{% trans "Upload" %}</a>
+  <div class="flex flex-wrap gap-2">
+    {% if filtered_total %}
+    <a href="{% url 'documents:bulk_download' %}?{% if querystring %}{{ querystring }}&amp;{% endif %}all=1" class="btn btn-secondary btn-md">{% blocktrans count counter=filtered_total %}Download ZIP ({{ counter }} document){% plural %}Download ZIP ({{ counter }} documents){% endblocktrans %}</a>
+    {% endif %}
+    <a href="{% url 'documents:upload' %}" class="btn btn-primary btn-md">{% trans "Upload" %}</a>
+  </div>
 </div>
 
 <form method="post" id="bulk-form">
   {% csrf_token %}
-  <div class="mb-2 flex gap-2">
+  <div class="mb-2 flex flex-wrap items-center gap-2">
     <button type="button" class="btn btn-secondary btn-sm" onclick="submitBulkGet()">{% trans "Download selected" %}</button>
-    <button type="submit" name="delete_selected" value="1" class="btn btn-danger btn-sm">{% trans "Delete selected" %}</button>
+    {% if recipients %}
+    <span class="flex items-center gap-1">
+      <select name="recipient" id="tg-recipient" class="field-input w-auto py-1 text-sm" aria-label="{% trans 'Recipient' %}">
+        {% for u in recipients %}
+          <option value="{{ u.pk }}" {% if u.pk == request.user.pk %}selected{% endif %}>{% if u.pk == request.user.pk %}{% trans "Me" %}{% else %}{{ u.get_short_name }}{% endif %}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" name="send_telegram" value="1" class="btn btn-secondary btn-sm" title="{% trans 'One file is sent as is, several files as a ZIP' %}">{% trans "Send to Telegram" %}</button>
+    </span>
+    {% endif %}
+    <button type="submit" name="delete_selected" value="1" class="btn btn-danger btn-sm" onclick="return confirm('{% trans "Delete selected documents?" %}')">{% trans "Delete selected" %}</button>
   </div>
   <div class="card overflow-x-auto">
     <table class="w-full text-left text-sm">
@@ -43,6 +78,7 @@
         <tr>
           <th class="px-3 py-2"><input type="checkbox" onclick="document.querySelectorAll('.doc-checkbox').forEach(c=>c.checked=this.checked)"></th>
           <th class="px-3 py-2">{% trans "Name" %}</th><th class="px-3 py-2">{% trans "Project" %}</th>
+          <th class="px-3 py-2">{% trans "Object" %} / {% trans "Discipline" %}</th>
           <th class="px-3 py-2">{% trans "Version" %}</th><th class="px-3 py-2">{% trans "Size" %}</th>
           <th class="px-3 py-2">{% trans "Uploaded by" %}</th><th class="px-3 py-2">{% trans "Status" %}</th>
           <th class="px-3 py-2"></th>
@@ -54,6 +90,12 @@
             <td class="px-3 py-2"><input type="checkbox" class="doc-checkbox" name="selected" value="{{ document.pk }}"></td>
             <td class="px-3 py-2"><a href="{% url 'documents:detail' document.pk %}" class="text-blue-600 hover:underline dark:text-blue-400">{{ document.name }}</a></td>
             <td class="px-3 py-2">{{ document.project.name }}</td>
+            <td class="px-3 py-2" title="{% trans 'Folder' %}: {{ document|folder_path }}">
+              {% with s=document.section %}{% if s %}
+                {% if s.sub_object %}<span class="text-gray-700 dark:text-gray-300">{% if s.sub_object.parent %}{{ s.sub_object.parent.name }} › {% endif %}{{ s.sub_object.name }}</span>{% endif %}
+                <span class="badge badge-info">{{ s.discipline.code }}</span>
+              {% else %}<span class="text-gray-400 dark:text-gray-500">—</span>{% endif %}{% endwith %}
+            </td>
             <td class="px-3 py-2">v{{ document.version }}</td>
             <td class="px-3 py-2">{{ document.file_size|filesizeformat_short }}</td>
             <td class="px-3 py-2">{{ document.uploaded_by.get_short_name }}</td>
@@ -67,7 +109,7 @@
             </td>
           </tr>
         {% empty %}
-          <tr><td colspan="8" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">{% trans "No documents found." %}</td></tr>
+          <tr><td colspan="9" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">{% trans "No documents found." %}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -76,9 +118,9 @@
 
 {% if page_obj.has_other_pages %}
   <div class="mt-6 flex justify-center gap-2 text-sm">
-    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary btn-sm">{% trans "Previous" %}</a>{% endif %}
+    {% if page_obj.has_previous %}<a href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.previous_page_number }}" class="btn btn-secondary btn-sm">{% trans "Previous" %}</a>{% endif %}
     <span class="px-2 py-1">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary btn-sm">{% trans "Next" %}</a>{% endif %}
+    {% if page_obj.has_next %}<a href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.next_page_number }}" class="btn btn-secondary btn-sm">{% trans "Next" %}</a>{% endif %}
   </div>
 {% endif %}
 {% endblock %}

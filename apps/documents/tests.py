@@ -1,12 +1,18 @@
+import io
+import shutil
+import tempfile
+import zipfile
+from unittest.mock import patch
+
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import Discipline, User
 from apps.notifications.models import Notification
-from apps.projects.models import Project, ProjectMember, SubObject, SubObjectDiscipline
+from apps.projects.models import Project, ProjectMember, Section, SubObject, SubObjectDiscipline
 
-from .models import ApprovalStage, ApprovalStatus, Document, DocumentStatus
+from .models import ApprovalStage, ApprovalStatus, AuditLog, Document, DocumentStatus
 
 
 class ApprovalWorkflowTests(TestCase):
@@ -157,3 +163,118 @@ class ApprovalSubmissionTests(TestCase):
         response = self._submit(sub_object=no_gip_object)
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Document.objects.filter(name="Facade drawings").exists())
+
+
+_TMP_MEDIA = tempfile.mkdtemp(prefix="docs-test-")
+
+
+@override_settings(MEDIA_ROOT=_TMP_MEDIA)
+class LocationZipTelegramTests(TestCase):
+    """Hujjat joylashuvi (obyekt/intizom), ZIP yuklash va Telegram'ga ulashish."""
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(_TMP_MEDIA, ignore_errors=True)
+
+    def setUp(self):
+        self.user = User.objects.create_user(email="u@example.com", password="pw12345!", full_name="Ali Valiyev", role=User.Role.DESIGNER, telegram_chat_id="111")
+        self.boss = User.objects.create_user(email="b@example.com", password="pw12345!", full_name="Boss", role=User.Role.MANAGER, telegram_chat_id="222")
+        self.outsider = User.objects.create_user(email="o@example.com", password="pw12345!", full_name="Outsider", role=User.Role.DESIGNER)
+        self.project = Project.objects.create(name="Zavod", created_by=self.boss)
+        ProjectMember.objects.create(project=self.project, user=self.user)
+        self.ar, _ = Discipline.objects.get_or_create(code="AR", defaults={"name": "Arxitektura"})
+        self.kj, _ = Discipline.objects.get_or_create(code="KJ", defaults={"name": "Konstruktiv"})
+        self.obj = SubObject.objects.create(project=self.project, name="Bino 1")
+        self.pod = SubObject.objects.create(project=self.project, parent=self.obj, name="Blok A")
+        self.sec_ar = Section.objects.create(project=self.project, sub_object=self.pod, discipline=self.ar, name="AR")
+        self.sec_kj = Section.objects.create(project=self.project, sub_object=self.obj, discipline=self.kj, name="KJ")
+        self.dwg = self._doc("Plan", "plan 1-qavat.dwg", self.sec_ar)
+        self.pdf = self._doc("Fasad", "fasad.pdf", self.sec_ar)
+        self.kj_pdf = self._doc("Fundament", "fund.pdf", self.sec_kj)
+        other = Project.objects.create(name="Yashirin", created_by=self.boss)
+        self.hidden = Document.objects.create(name="Secret", project=other, uploaded_by=self.boss,
+                                              file=SimpleUploadedFile("secret.pdf", b"x"), file_size=1)
+
+    def _doc(self, name, filename, section, data=b"data"):
+        return Document.objects.create(
+            name=name, project=self.project, section=section, uploaded_by=self.user,
+            file=SimpleUploadedFile(filename, data), file_size=len(data),
+        )
+
+    def _zip_names(self, response):
+        return sorted(zipfile.ZipFile(io.BytesIO(b"".join(response.streaming_content))).namelist())
+
+    def test_list_shows_object_and_discipline(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("documents:list"))
+        self.assertContains(response, "Bino 1 › Blok A")
+        self.assertContains(response, "Zavod / Bino 1 / Blok A / AR")
+
+    def test_filters_by_object_including_pods_discipline_and_kind(self):
+        self.client.force_login(self.user)
+        url = reverse("documents:list")
+        page = self.client.get(url, {"project": self.project.pk, "sub_object": self.obj.pk})
+        self.assertEqual(page.context["filtered_total"], 3)
+        page = self.client.get(url, {"discipline": self.kj.pk})
+        self.assertEqual([d.pk for d in page.context["page_obj"]], [self.kj_pdf.pk])
+        page = self.client.get(url, {"kind": "dwg"})
+        self.assertEqual([d.pk for d in page.context["page_obj"]], [self.dwg.pk])
+
+    def test_zip_of_filtered_list_keeps_folders_and_names(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("documents:bulk_download"), {"all": "1", "discipline": self.ar.pk})
+        self.assertEqual(response["Content-Type"], "application/zip")
+        self.assertIn('filename="Zavod.zip"', response["Content-Disposition"])
+        self.assertEqual(self._zip_names(response), ["Zavod/Bino 1/Blok A/AR/fasad.pdf", "Zavod/Bino 1/Blok A/AR/plan 1-qavat.dwg"])
+
+    def test_zip_never_includes_invisible_documents(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("documents:bulk_download"), {"id": [self.hidden.pk, self.kj_pdf.pk]})
+        self.assertEqual(self._zip_names(response), ["Zavod/Bino 1/KJ/fund.pdf"])
+
+    def test_same_name_in_one_folder_is_not_overwritten(self):
+        dup = self._doc("Plan copy", "plan 1-qavat.dwg", self.sec_ar)
+        self.assertNotEqual(dup.file.name, self.dwg.file.name)  # omborda Django nomni o'zgartirdi
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("documents:bulk_download"), {"id": [self.dwg.pk, dup.pk]})
+        self.assertEqual(self._zip_names(response), [
+            "Zavod/Bino 1/Blok A/AR/plan 1-qavat (2).dwg", "Zavod/Bino 1/Blok A/AR/plan 1-qavat.dwg",
+        ])
+
+    def test_single_download_keeps_original_name(self):
+        self._doc("Plan copy", "plan 1-qavat.dwg", self.sec_ar)  # ombordagi nom endi boshqacha
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("documents:download", args=[self.dwg.pk]))
+        self.assertIn("plan 1-qavat.dwg", response["Content-Disposition"])
+
+    @patch("apps.telegram_bot.services.send_document", return_value=True)
+    def test_one_file_goes_to_telegram_as_is(self, send):
+        self.client.force_login(self.user)
+        self.client.post(reverse("documents:list"), {"send_telegram": "1", "recipient": self.boss.pk, "selected": [self.dwg.pk]})
+        chat_id, _fh, filename, caption = send.call_args.args
+        self.assertEqual((chat_id, filename), ("222", "plan 1-qavat.dwg"))
+        self.assertIn("Plan", caption)
+        self.assertTrue(AuditLog.objects.filter(action="sent_telegram", object_id=str(self.dwg.pk)).exists())
+
+    @patch("apps.telegram_bot.services.send_document", return_value=True)
+    def test_several_files_go_as_one_zip(self, send):
+        self.client.force_login(self.user)
+        self.client.post(reverse("documents:list"), {"send_telegram": "1", "selected": [self.dwg.pk, self.kj_pdf.pk, self.hidden.pk]})
+        chat_id, _fh, filename, _caption = send.call_args.args
+        self.assertEqual((chat_id, filename), ("111", "Zavod.zip"))  # qabul qiluvchi ko'rsatilmasa — o'zi
+        self.assertEqual(AuditLog.objects.filter(action="sent_telegram").count(), 2)  # yashirin hujjat tushib qoldi
+
+    @patch("apps.telegram_bot.services.send_document", return_value=True)
+    def test_too_large_file_is_reported_not_sent(self, send):
+        Document.objects.filter(pk=self.dwg.pk).update(file_size=60 * 1024 * 1024)
+        self.client.force_login(self.user)
+        self.client.post(reverse("documents:list"), {"send_telegram": "1", "selected": [self.dwg.pk]})
+        send.assert_not_called()
+        self.assertTrue(Notification.objects.filter(user=self.user, type="document").exists())
+
+    @patch("apps.telegram_bot.services.send_document", return_value=True)
+    def test_recipient_without_telegram_is_refused(self, send):
+        self.client.force_login(self.user)
+        self.client.post(reverse("documents:list"), {"send_telegram": "1", "recipient": self.outsider.pk, "selected": [self.dwg.pk]})
+        send.assert_not_called()

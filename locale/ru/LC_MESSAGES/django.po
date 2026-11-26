@@ -5313,3 +5313,64 @@ msgstr "Справочник ТКП"
 
 msgid "Open with filters"
 msgstr "Открыть с фильтрами"
+
+msgid "All disciplines"
+msgstr "Все дисциплины"
+
+msgid "File type"
+msgstr "Тип файла"
+
+msgid "All file types"
+msgstr "Все типы файлов"
+
+msgid "Folder"
+msgstr "Папка"
+
+msgid "Recipient"
+msgstr "Получатель"
+
+msgid "Me"
+msgstr "Себе"
+
+msgid "Send to Telegram"
+msgstr "Отправить в Telegram"
+
+msgid "One file is sent as is, several files as a ZIP"
+msgstr "Один файл отправляется как есть, несколько — одним ZIP"
+
+msgid "Delete selected documents?"
+msgstr "Удалить выбранные документы?"
+
+msgid "Select documents with files to send."
+msgstr "Выберите документы с файлами для отправки."
+
+msgid "The recipient has not linked Telegram."
+msgstr "Получатель не подключил Telegram."
+
+msgid "%(count)s file(s) are being sent to %(name)s in Telegram."
+msgstr "Файлов: %(count)s — отправляются пользователю %(name)s в Telegram."
+
+msgid "Files were not sent to Telegram"
+msgstr "Файлы не отправлены в Telegram"
+
+msgid "From %(sender)s: %(count)s file(s)"
+msgstr "От %(sender)s: файлов — %(count)s"
+
+msgid "The file is larger than 50 MB, Telegram does not accept it. Download it from the platform."
+msgstr "Файл больше 50 МБ, Telegram его не принимает. Скачайте его на платформе."
+
+msgid "The file was not found in storage."
+msgstr "Файл не найден в хранилище."
+
+msgid "The ZIP archive is larger than 50 MB, Telegram does not accept it. Download the ZIP from the platform."
+msgstr "ZIP-архив больше 50 МБ, Telegram его не принимает. Скачайте ZIP на платформе."
+
+msgid "Telegram did not accept the file. Check that the recipient has not blocked the bot."
+msgstr "Telegram не принял файл. Проверьте, что получатель не заблокировал бота."
+
+msgid "Download ZIP (%(counter)s document)"
+msgid_plural "Download ZIP (%(counter)s documents)"
+msgstr[0] "Скачать ZIP (%(counter)s документ)"
+msgstr[1] "Скачать ZIP (%(counter)s документа)"
+msgstr[2] "Скачать ZIP (%(counter)s документов)"
+msgstr[3] "Скачать ZIP (%(counter)s документа)"

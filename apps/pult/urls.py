@@ -12,8 +12,6 @@ app_name = "pult"
 urlpatterns = [
     # Eski /pult/ xatcho'plari uchun.
     path("pult/", RedirectView.as_view(pattern_name="pult:section_work"), name="page"),
-    # «Диаграмма Ганта» tabi olib tashlandi — eski xatcho'plar vazifalarga boradi.
-    path("tasks/gantt/", RedirectView.as_view(pattern_name="tasks:board")),
     # «Канбан разделов» «Задачи» doskasiga qo'shildi (Проектные / Нестандартные).
     path("tasks/sections/", RedirectView.as_view(url="/tasks/?kind=project", permanent=False), name="section_kanban"),
     path("pult/app/", views.pult_app, name="app"),

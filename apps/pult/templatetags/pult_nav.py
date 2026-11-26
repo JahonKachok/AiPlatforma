@@ -31,8 +31,10 @@ def pult_tabs(context, group):
     url_name, label = GROUP_HOME[group]
     home_url = reverse(url_name)
     home = {"url": home_url, "label": label, "active": context["request"].path == home_url}
+    user = context["request"].user
     extra = [
-        {"url": f"{home_url}#{anchor}", "label": extra_label, "active": False}
-        for anchor, extra_label in GROUP_EXTRA_TABS.get(group, [])
+        {"url": f"{home_url}{suffix}", "label": extra_label, "active": False}
+        for suffix, extra_label, check in GROUP_EXTRA_TABS.get(group, [])
+        if check is None or check(user)
     ]
     return {"tabs": [home, *extra, *sections] if sections else []}

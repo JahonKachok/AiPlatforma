@@ -121,10 +121,27 @@ class SectionPageTests(PultTestBase):
         self.client.force_login(self.boss)
         self.assertRedirects(self.client.get("/pult/"), reverse("pult:section_work"))
 
-    def test_gantt_tab_is_removed(self):
+    def test_gantt_tab_is_back(self):
+        """«Диаграмма Ганта» — «Задачи» menyusida tab (rahbar va GIP uchun)."""
+        self.assertEqual(reverse("pult:section_gantt"), "/tasks/gantt/")
+        for user in (self.boss, self.gip):
+            self.client.force_login(user)
+            self.assertContains(self.client.get(reverse("tasks:board")), 'href="/tasks/gantt/"')
+            page = self.client.get("/tasks/gantt/")
+            self.assertEqual(page.status_code, 200)
+            self.assertContains(page, "?embed=1#gantt")
+        self.client.force_login(self.worker)
+        self.assertEqual(self.client.get("/tasks/gantt/").status_code, 403)
+
+    def test_operations_page_keeps_finance_tabs(self):
+        """«Операции»ga o'tganda Moliyaning o'z tablari yo'qolmaydi."""
         self.client.force_login(self.boss)
-        self.assertNotContains(self.client.get(reverse("tasks:board")), "/tasks/gantt/")
-        self.assertRedirects(self.client.get("/tasks/gantt/"), reverse("tasks:board"), fetch_redirect_response=False)
+        page = self.client.get(reverse("pult:section_money"))
+        home = reverse("finance:home")
+        for suffix in ("", "?tab=payroll", "?tab=cash_flow", "?tab=admin_expenses"):
+            self.assertContains(page, f'href="{home}{suffix}"')
+        self.assertContains(page, f'href="{reverse("pult:section_contracts")}"')
+        self.assertContains(page, 'aria-current="page"', count=1)
 
 
 class ActionTests(PultTestBase):

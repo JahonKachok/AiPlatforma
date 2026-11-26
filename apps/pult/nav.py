@@ -15,6 +15,7 @@ from .services import ACCOUNTANT, ADMIN_DEPT, BOSS, GIP, HR, pult_role
 SECTIONS = {
     "work": ("tasks", "tasks/my-work/", _("My work")),
     "tasks": ("tasks", "tasks/register/", _("Task register")),
+    "gantt": ("tasks", "tasks/gantt/", _("Gantt chart")),
     "req": ("inquiries", "inquiries/", _("Inquiries")),
     "comp": ("projects", "projects/composition/", _("Project composition")),
     "plan": ("projects", "projects/schedule/", _("Project schedule")),
@@ -30,22 +31,29 @@ SECTIONS = {
 GROUP_HOME = {
     "tasks": ("tasks:board", _("Tasks")),
     "projects": ("projects:list", _("Projects")),
-    "finance": ("finance:home", _("Finance")),
+    "finance": ("finance:home", _("General")),
     "users": ("accounts:user_list", _("Users")),
     "reports": ("reports:dashboard", _("Reports")),
 }
 
-# Asosiy sahifaning ichki tablari (bir sahifada, #hash bilan ochiladi). Pult
-# sahifalarida ham tablar qatori bir xil bo'lishi uchun shu yerdan chiziladi.
+# Asosiy sahifaning ichki tablari: (asosiy URL'ga qo'shimcha — #hash yoki ?query,
+# nomi, ruxsat tekshiruvi yoki None). Pult sahifalarida tablar qatori asosiy
+# sahifadagidek bo'lishi uchun shu yerdan chiziladi — aks holda masalan
+# «Операции»ga o'tganda Moliyaning «Зарплата», «Движение денег» tablari yo'qoladi.
 GROUP_EXTRA_TABS = {
-    "users": [("tab-disciplines", _("Disciplines"))],
+    "users": [("#tab-disciplines", _("Disciplines"), None)],
+    "finance": [
+        ("?tab=payroll", _("Payroll"), can_finance),
+        ("?tab=cash_flow", _("Cash flow"), can_finance),
+        ("?tab=admin_expenses", _("Administrative expenses"), can_finance),
+    ],
 }
 
 # «kanban» — tab emas: «Задачи» doskasining «Проектные» rejimi (urls.py yo'naltiradi).
-ALL_PAGES = ["work", "home", "req", "kanban", "tasks", "comp", "plan", "team", "kpi", "money", "contracts"]
+ALL_PAGES = ["work", "home", "req", "kanban", "tasks", "gantt", "comp", "plan", "team", "kpi", "money", "contracts"]
 ROLE_PAGES = {
     BOSS: ALL_PAGES,
-    GIP: ["work", "kanban", "tasks", "comp", "plan", "team", "kpi"],
+    GIP: ["work", "kanban", "tasks", "gantt", "comp", "plan", "team", "kpi"],
     ACCOUNTANT: ["work", "kanban", "money", "contracts", "kpi"],
     HR: ["work", "kanban", "kpi"],
     ADMIN_DEPT: ["work", "kanban", "kpi"],

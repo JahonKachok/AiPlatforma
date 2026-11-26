@@ -1,3 +1,4 @@
+import os
 import uuid
 
 from django.conf import settings
@@ -7,6 +8,15 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.validators import AllowedExtensionsValidator, MaxFileSizeValidator
+
+
+def _uploaded_name(field_file):
+    """Yangi yuklangan (hali saqlanmagan) faylning foydalanuvchidagi asl nomi.
+    Saqlashda Django nomni o'zgartirishi mumkin (probel → «_», takrorda
+    «_AbC1234» qo'shimchasi) — yuklab olish/ZIP/Telegram'da asl nom kerak."""
+    if field_file and not getattr(field_file, "_committed", True):
+        return os.path.basename(field_file.name)[:255]
+    return None
 
 
 class DocumentStatus(models.TextChoices):
@@ -41,6 +51,7 @@ class Document(models.Model):
         upload_to="documents/%Y/%m/", blank=True, null=True,
         validators=[MaxFileSizeValidator(50), AllowedExtensionsValidator()],
     )
+    original_name = models.CharField(max_length=255, blank=True, default="", editable=False)
     file_size = models.PositiveIntegerField(default=0)
     mime_type = models.CharField(max_length=100, blank=True, null=True)
     deadline = models.DateField(blank=True, null=True)
@@ -56,6 +67,10 @@ class Document(models.Model):
     def __str__(self):
         return f"{self.name} v{self.version}"
 
+    def save(self, *args, **kwargs):
+        self.original_name = _uploaded_name(self.file) or self.original_name
+        super().save(*args, **kwargs)
+
 
 class DocumentVersion(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -65,6 +80,7 @@ class DocumentVersion(models.Model):
         upload_to="documents/%Y/%m/",
         validators=[MaxFileSizeValidator(50), AllowedExtensionsValidator()],
     )
+    original_name = models.CharField(max_length=255, blank=True, default="", editable=False)
     file_size = models.PositiveIntegerField(default=0)
     uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     notes = models.CharField(max_length=1000, blank=True, null=True)
@@ -75,6 +91,15 @@ class DocumentVersion(models.Model):
 
     def __str__(self):
         return f"{self.document.name} v{self.version_number}"
+
+    def save(self, *args, **kwargs):
+        name = _uploaded_name(self.file)
+        if name:
+            self.original_name = name
+        elif not self.original_name and self.file and self.file.name == self.document.file.name:
+            # Birinchi versiya hujjatning o'z faylini oladi (document_upload).
+            self.original_name = self.document.original_name
+        super().save(*args, **kwargs)
 
 
 class ApprovalStage(models.Model):

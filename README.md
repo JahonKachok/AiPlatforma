@@ -45,6 +45,7 @@ celery -A aiplatforma worker --loglevel=info
 celery -A aiplatforma beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
 python manage.py setup_periodic_tasks   # registers the hourly deadline-check task
 python manage.py setup_pult_periodic_tasks  # Pult: 17:30 report reminder, 08:30 "waiting for your decision" digest
+python manage.py drive_sync --schedule  # every 30 min: upload revisions that are not on Google Drive yet
 ```
 
 ### AI agents (Claude)
@@ -56,6 +57,18 @@ python manage.py run_ai_agent            # manual test run (prints the report; -
 python manage.py setup_ai_periodic_tasks # registers the daily 08:00 Celery Beat task
 ```
 
+### Google Drive archive (Arxivarius)
+
+Every document revision (`DocumentVersion` — the revisions registry, numbered 1, 2, 3…) is uploaded to Google Drive as `<root>/<Project>/<Object>/<Pod-object>/<Discipline>/<file>` with its original file name; when a new revision arrives the previous ones move to the `Old` subfolder of the same folder. Uploading a file with the same name into the same project section adds a revision instead of a duplicate document. Code: `apps/documents/archivist.py`, `drive.py`.
+
+Setup (admin panel → Integrations → Google Drive):
+
+1. Google Cloud console: enable the **Google Drive API**, create a service account, add a **JSON key**, paste the whole JSON.
+2. Create a **Shared Drive** (a service account has no storage of its own), add the service account e-mail shown on the settings page as *Content manager/Editor*, create the root folder and paste its ID (the part after `/folders/`).
+3. Optional: "Server copy after upload → Delete" to save disk space; files are then read back from Drive.
+
+Without the key nothing is uploaded and revisions stay "Waiting for Drive"; `python manage.py drive_sync` (and the 30-min beat task) uploads them later.
+
 ### GASTEC Pult
 
 The former Google-Sheets "GASTEC Пульт" page now runs on the platform's own data (`apps/pult`). Every `tasks.Task` gets a `TaskWorkflow` row with a sequential № and the Pult's 10-step status (Черновик → Новая → … → Принята); `Task.status` is kept in sync, so the regular task board stays correct. All transitions (issue ТЗ, propose/approve the term, submit, accept, send back) are checked on the server in `apps/pult/services.py`. KPI points, the working calendar (holidays) and task templates are edited in the Django admin under "GASTEC Пульт".
@@ -64,7 +77,7 @@ The UI lives in `static/pult/pult.js` + `templates/pult/` and is shown in an ifr
 
 | Menu | Pult pages (URL) |
 |---|---|
-| Tasks | Моя работа `/tasks/my-work/`, Задачи `/tasks/register/`, Канбан `/tasks/sections/`, Ганта `/tasks/gantt/` |
+| Tasks | Моя работа `/tasks/my-work/`, Задачи `/tasks/register/`, Ганта `/tasks/gantt/` |
 | Projects | Состав `/projects/composition/`, График `/projects/schedule/` |
 | Finance | Операции `/finance/operations/`, Договоры `/finance/contracts/` |
 | Users | Сотрудники `/accounts/users/workload/`, KPI `/accounts/users/kpi/` |

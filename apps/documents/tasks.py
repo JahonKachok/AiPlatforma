@@ -13,6 +13,7 @@ def send_documents_to_telegram(sender_id, recipient_id, document_ids):
     from apps.projects.permissions import visible_projects_for
     from apps.telegram_bot.services import send_document
 
+    from .archivist import open_file
     from .models import AuditLog, Document
     from .services import TELEGRAM_FILE_LIMIT, build_zip, file_basename, zip_filename
 
@@ -38,7 +39,7 @@ def send_documents_to_telegram(sender_id, recipient_id, document_ids):
         if document.file_size > TELEGRAM_FILE_LIMIT:
             return fail(_("The file is larger than 50 MB, Telegram does not accept it. Download it from the platform."))
         try:
-            handle = document.file.open("rb")
+            handle = open_file(document)
         except FileNotFoundError:
             return fail(_("The file was not found in storage."))
         with handle:
@@ -58,3 +59,33 @@ def send_documents_to_telegram(sender_id, recipient_id, document_ids):
     for document in sent:
         AuditLog.log(obj=document, action="sent_telegram", user=sender, details={"to": str(recipient.pk)})
     return True
+
+
+@shared_task
+def sync_version_to_drive(version_id):
+    """Arxivarius: bitta reviziyani Google Drive'ga yuklaydi."""
+    from .archivist import sync_version
+    from .models import DocumentVersion
+
+    version = DocumentVersion.objects.select_related(
+        "document__project", "document__section__sub_object__parent", "document__section__discipline",
+    ).filter(pk=version_id).first()
+    return bool(version) and sync_version(version)
+
+
+@shared_task
+def sync_pending_to_drive(limit=200):
+    """Drive'ga tushmagan (yoki xato bergan) reviziyalarni qayta yuklaydi —
+    Drive ulanmasdan oldin yuklanganlar va vaqtincha xatolar uchun."""
+    from . import drive
+    from .archivist import sync_version
+    from .models import DocumentVersion, DriveStatus
+
+    if not drive.is_configured():
+        return 0
+    pending = (
+        DocumentVersion.objects.exclude(drive_status=DriveStatus.SYNCED).exclude(file="")
+        .select_related("document__project", "document__section__sub_object__parent", "document__section__discipline")
+        .order_by("document_id", "revision")[:limit]
+    )
+    return sum(1 for version in pending if sync_version(version))

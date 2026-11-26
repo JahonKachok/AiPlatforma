@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import User
 from apps.core.permissions import role_required
-from apps.documents.models import AuditLog, Document
+from apps.documents.models import AuditLog, Document, DocumentVersion
 from apps.finance.models import EmployeeContract
 from apps.projects.permissions import visible_projects_for
 
@@ -106,6 +106,11 @@ def template_generate(request, pk):
                     file=docx_file,
                     file_size=docx_file.size,
                     version="1.0",
+                )
+                # Reviziyalar reyestri va Drive uchun birinchi reviziya.
+                DocumentVersion.objects.create(
+                    document=document, version_number=document.version,
+                    file=document.file.name, file_size=document.file_size, uploaded_by=request.user,
                 )
                 AuditLog.log(obj=document, action="generate_from_template", user=request.user)
                 download_url = reverse("documents:download", args=[document.pk])

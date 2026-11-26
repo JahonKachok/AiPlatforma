@@ -5372,3 +5372,52 @@ msgstr "Telegram faylni qabul qilmadi. Qabul qiluvchi botni bloklamaganini teksh
 msgid "Download ZIP (%(counter)s document)"
 msgid_plural "Download ZIP (%(counter)s documents)"
 msgstr[0] "ZIP yuklab olish (%(counter)s ta hujjat)"
+
+msgid "Service account key (JSON)"
+msgstr "Service account kaliti (JSON)"
+
+msgid "Google Cloud → IAM → Service accounts → Keys → JSON. Paste the whole file content."
+msgstr "Google Cloud → IAM → Service accounts → Keys → JSON. Fayl mazmunini to'liq joylang."
+
+msgid "Root folder ID"
+msgstr "Ildiz papka ID"
+
+msgid "The part of the folder link after /folders/. The folder must be in a Shared Drive (or shared with the service account as Editor)."
+msgstr "Papka havolasidagi /folders/ dan keyingi qism. Papka Shared Drive ichida (yoki service account'ga «Muharrir» sifatida ulashilgan) bo'lishi kerak."
+
+msgid "Server copy after upload"
+msgstr "Yuklangandan keyin serverdagi nusxa"
+
+msgid "Deleting saves server disk space; files are then read from Drive."
+msgstr "O'chirish server diskini tejaydi; fayllar keyin Drive'dan o'qiladi."
+
+msgid "Keep"
+msgstr "Saqlash"
+
+msgid "Paste the service account JSON key (type «service_account»)."
+msgstr "Service account JSON kalitini joylang (turi «service_account»)."
+
+msgid "Google Drive: document archive"
+msgstr "Google Drive: hujjatlar arxivi"
+
+msgid "Share the root folder (or the Shared Drive) with this address as Editor:"
+msgstr "Ildiz papkani (yoki Shared Drive'ni) shu manzilga «Muharrir» sifatida ulashing:"
+
+msgid "Waiting for Drive"
+msgstr "Drive'ga navbatda"
+
+msgid "On Drive"
+msgstr "Drive'da"
+
+msgid "Drive error"
+msgstr "Drive xatosi"
+
+msgid "A file with this name already exists here, so it was saved as revision %(rev)s of «%(name)s»."
+msgstr "Bu yerda shu nomli fayl bor edi, shuning uchun u «%(name)s» ning %(rev)s-reviziyasi sifatida saqlandi."
+
+msgid "Revisions"
+msgstr "Reviziyalar"
+
+msgid "Open folder in Google Drive"
+msgstr "Papkani Google Drive'da ochish"
+

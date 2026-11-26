@@ -48,6 +48,16 @@ FIELDS = (
     ConfigField("GEMINI_MODEL", _("Gemini model"), "ai"),
     ConfigField("GEMINI_FALLBACK_MODEL", _("Gemini fallback model"), "ai"),
     ConfigField("AI_MODEL", _("Claude model"), "ai"),
+    # Google Drive (Arxivarius): hujjat reviziyalari Loyiha/Obyekt/Intizom
+    # papkalariga yuklanadi (apps/documents/drive.py).
+    ConfigField("GOOGLE_DRIVE_CREDENTIALS", _("Service account key (JSON)"), "drive", secret=True,
+                help_text=_("Google Cloud → IAM → Service accounts → Keys → JSON. Paste the whole file content.")),
+    ConfigField("GOOGLE_DRIVE_ROOT_FOLDER_ID", _("Root folder ID"), "drive",
+                help_text=_("The part of the folder link after /folders/. The folder must be in a Shared Drive "
+                            "(or shared with the service account as Editor).")),
+    ConfigField("GOOGLE_DRIVE_DELETE_LOCAL", _("Server copy after upload"), "drive",
+                help_text=_("Deleting saves server disk space; files are then read from Drive."),
+                choices=(("", _("Keep")), ("1", _("Delete")))),
     # Devbot (deploy/devbot) — Telegram orqali platforma kodini o'zgartiruvchi
     # bot. U serverda alohida ishlaydi va bu qiymatlarni `manage.py
     # devbot_config` orqali o'qiydi. Buyruqni faqat Telegram'i ulangan

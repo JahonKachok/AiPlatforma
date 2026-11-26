@@ -19,6 +19,7 @@ from .forms import (
     ApprovalReviewForm, ApprovalStageFormSet, ApprovalSubmissionForm, DocumentUploadForm, DocumentVersionForm,
 )
 from .models import ApprovalStage, ApprovalStatus, AuditLog, Document, DocumentStatus, DocumentVersion
+from .archivist import add_revision, find_same_file, open_file
 from .services import build_zip, file_basename, zip_filename
 from .services import resolve_gip_reviewer as _resolve_gip_reviewer
 from .tasks import send_documents_to_telegram
@@ -155,6 +156,16 @@ def document_upload(request):
         form = DocumentUploadForm(request.POST, request.FILES)
         form.fields["project"].queryset = visible_projects_for(request.user)
         if form.is_valid():
+            uploaded = form.cleaned_data.get("file")
+            same = uploaded and find_same_file(form.cleaned_data["project"], form.cleaned_data.get("section"), uploaded.name)
+            if same and _can_modify(request.user, same):
+                # Arxivarius: shu bo'limda shu nomli fayl bor — bu uning yangi reviziyasi.
+                version = add_revision(same, uploaded, request.user)
+                AuditLog.log(obj=same, action="new_version", user=request.user, details={"version": version.version_number})
+                messages.success(request, _("A file with this name already exists here, so it was saved as revision %(rev)s of «%(name)s».") % {
+                    "rev": version.revision, "name": same.name,
+                })
+                return redirect("documents:detail", pk=same.pk)
             document = form.save(commit=False)
             document.uploaded_by = request.user
             if document.file:
@@ -199,7 +210,7 @@ def document_download(request, pk):
     if not document.file:
         raise Http404
     try:
-        file_handle = document.file.open("rb")
+        file_handle = open_file(document)
     except FileNotFoundError:
         raise Http404
     AuditLog.log(obj=document, action="downloaded", user=request.user)
@@ -218,7 +229,7 @@ def document_version_download(request, pk):
     if not version.file:
         raise Http404
     try:
-        file_handle = version.file.open("rb")
+        file_handle = open_file(version)
     except FileNotFoundError:
         raise Http404
     AuditLog.log(obj=version.document, action="version_downloaded", user=request.user)
@@ -265,21 +276,8 @@ def document_add_version(request, pk):
     if request.method == "POST":
         form = DocumentVersionForm(request.POST, request.FILES)
         if form.is_valid():
-            major = document.version.split(".")[0] if "." in document.version else document.version
-            try:
-                minor = int(document.version.split(".")[1]) + 1
-            except (IndexError, ValueError):
-                minor = 1
-            new_version = f"{major}.{minor}"
-            uploaded = form.cleaned_data["file"]
-            DocumentVersion.objects.create(
-                document=document, version_number=new_version, file=uploaded,
-                file_size=uploaded.size, uploaded_by=request.user, notes=form.cleaned_data.get("notes"),
-            )
-            document.file = uploaded
-            document.version = new_version
-            document.file_size = uploaded.size
-            document.save()
+            version = add_revision(document, form.cleaned_data["file"], request.user, form.cleaned_data.get("notes"))
+            new_version = version.version_number
             AuditLog.log(obj=document, action="new_version", user=request.user, details={"version": new_version})
             messages.success(request, _("New version uploaded."))
     return redirect("documents:detail", pk=pk)

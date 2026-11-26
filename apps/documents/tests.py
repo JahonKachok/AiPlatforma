@@ -12,7 +12,7 @@ from apps.accounts.models import Discipline, User
 from apps.notifications.models import Notification
 from apps.projects.models import Project, ProjectMember, Section, SubObject, SubObjectDiscipline
 
-from .models import ApprovalStage, ApprovalStatus, AuditLog, Document, DocumentStatus
+from .models import ApprovalStage, ApprovalStatus, AuditLog, Document, DocumentStatus, DocumentVersion
 
 
 class ApprovalWorkflowTests(TestCase):
@@ -278,3 +278,137 @@ class LocationZipTelegramTests(TestCase):
         self.client.force_login(self.user)
         self.client.post(reverse("documents:list"), {"send_telegram": "1", "recipient": self.outsider.pk, "selected": [self.dwg.pk]})
         send.assert_not_called()
+
+
+class FakeDrive:
+    """Drive API o'rnini bosadi: papkalar va fayllar xotirada."""
+
+    def __init__(self):
+        self.folders = {}   # (parent, name) -> id
+        self.files = {}     # id -> {"name", "parent", "data"}
+        self.calls = []
+
+    def ensure_folder(self, parent, name):
+        self.calls.append(("ensure", parent, name))
+        return self.folders.setdefault((parent, name), f"F{len(self.folders) + 1}")
+
+    def upload(self, folder, name, fh, mime="", description=""):
+        file_id = f"D{len(self.files) + 1}"
+        self.files[file_id] = {"name": name, "parent": folder, "data": fh.read()}
+        return file_id
+
+    def move(self, file_id, new_parent, old_parent):
+        assert self.files[file_id]["parent"] == old_parent
+        self.files[file_id]["parent"] = new_parent
+
+    def download(self, file_id):
+        return io.BytesIO(self.files[file_id]["data"])
+
+    def path_of(self, folder_id):
+        names = {v: k for k, v in self.folders.items()}
+        parts = []
+        while folder_id in names:
+            parent, name = names[folder_id]
+            parts.insert(0, name)
+            folder_id = parent
+        return "/".join(parts)
+
+
+@override_settings(MEDIA_ROOT=_TMP_MEDIA, GOOGLE_DRIVE_CREDENTIALS="{}", GOOGLE_DRIVE_ROOT_FOLDER_ID="ROOT")
+class ArchivistDriveTests(TestCase):
+    def setUp(self):
+        from . import drive
+
+        self.fake = FakeDrive()
+        for name in ("ensure_folder", "upload", "move", "download"):
+            patcher = patch.object(drive, name, getattr(self.fake, name))
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        self.user = User.objects.create_user(email="a@example.com", password="pw12345!", full_name="Archivist", role=User.Role.MANAGER)
+        self.project = Project.objects.create(name="Zavod", created_by=self.user)
+        self.ar, _ = Discipline.objects.get_or_create(code="AR", defaults={"name": "Arxitektura"})
+        obj = SubObject.objects.create(project=self.project, name="Bino 1")
+        self.section = Section.objects.create(project=self.project, sub_object=obj, discipline=self.ar, name="AR")
+
+    def _upload(self, filename="plan.dwg", data=b"v1"):
+        self.client.force_login(self.user)
+        with self.captureOnCommitCallbacks(execute=True):
+            self.client.post(reverse("documents:upload"), {
+                "name": "Plan", "project": self.project.pk, "section": self.section.pk, "version": "1.0",
+                "file": SimpleUploadedFile(filename, data),
+            })
+
+    def test_upload_goes_to_project_object_discipline_folder(self):
+        self._upload()
+        document = Document.objects.get()
+        version = document.versions.get()
+        self.assertEqual((version.revision, version.drive_status), (1, "synced"))
+        self.assertEqual(self.fake.path_of(document.drive_folder_id), "Zavod/Bino 1/AR")
+        self.assertEqual(self.fake.files[document.drive_file_id]["name"], "plan.dwg")
+
+    def test_same_name_becomes_next_revision_and_old_one_moves_to_old(self):
+        self._upload(data=b"v1")
+        self._upload(data=b"v2")
+        document = Document.objects.get()  # dublikat hujjat yaratilmadi
+        rev1, rev2 = document.versions.order_by("revision")
+        self.assertEqual((rev1.revision, rev2.revision, document.version), (1, 2, "1.1"))
+        self.assertTrue(rev1.in_old_folder)
+        self.assertEqual(self.fake.path_of(self.fake.files[rev1.drive_file_id]["parent"]), "Zavod/Bino 1/AR/Old")
+        self.assertEqual(self.fake.files[document.drive_file_id]["data"], b"v2")
+        self.assertEqual(self.fake.files[document.drive_file_id]["parent"], document.drive_folder_id)
+
+    def test_folders_are_cached(self):
+        self._upload("a.dwg")
+        before = len(self.fake.calls)
+        self._upload("b.dwg")
+        self.assertEqual(len(self.fake.calls), before)
+
+    def test_drive_error_is_recorded_and_retried_later(self):
+        from . import drive
+        from .tasks import sync_pending_to_drive
+
+        with patch.object(drive, "upload", side_effect=drive.DriveError("Drive API 403: no quota")):
+            self._upload()
+        version = DocumentVersion.objects.get()
+        self.assertEqual(version.drive_status, "error")
+        self.assertIn("403", version.drive_error)
+        self.assertEqual(sync_pending_to_drive(), 1)
+        version.refresh_from_db()
+        self.assertEqual(version.drive_status, "synced")
+
+    def test_without_drive_config_nothing_is_uploaded(self):
+        with self.settings(GOOGLE_DRIVE_CREDENTIALS=""):
+            self._upload()
+        self.assertEqual(DocumentVersion.objects.get().drive_status, "pending")
+        self.assertEqual(self.fake.files, {})
+
+    def test_deleted_local_copy_is_read_from_drive(self):
+        with self.settings(GOOGLE_DRIVE_DELETE_LOCAL="1"):
+            self._upload(data=b"content")
+        document = Document.objects.get()
+        self.assertFalse(document.file.storage.exists(document.file.name))
+        response = self.client.get(reverse("documents:download", args=[document.pk]))
+        self.assertEqual(b"".join(response.streaming_content), b"content")
+
+    def test_ai_tool_sends_object_zip_to_colleague(self):
+        from apps.ai_agents.agent_tools import build_telegram_tools
+
+        User.objects.create_user(email="c@example.com", password="pw12345!", full_name="Karim Aliyev", role=User.Role.DESIGNER, telegram_chat_id="333")
+        self._upload("a.dwg")
+        self._upload("b.pdf")
+        tool = {t.__name__: t for t in build_telegram_tools(self.user)}["send_documents_zip"]
+        with patch("apps.telegram_bot.services.send_document", return_value=True) as send:
+            answer = tool("Zavod", recipient_name="Karim", object_name="Bino 1", discipline_code="ar")
+        self.assertIn("2", answer)
+        chat_id, _fh, filename, _caption = send.call_args.args
+        self.assertEqual((chat_id, filename), ("333", "Zavod.zip"))
+
+
+class DriveCredentialsSettingTests(TestCase):
+    def test_service_account_json_is_validated(self):
+        from apps.core.admin_ops import _validate_integration
+
+        self.assertIsNotNone(_validate_integration("GOOGLE_DRIVE_CREDENTIALS", "not json"))
+        self.assertIsNotNone(_validate_integration("GOOGLE_DRIVE_CREDENTIALS", '{"type": "user"}'))
+        key = '{"type": "service_account", "client_email": "x@y.iam.gserviceaccount.com", "private_key": "-----BEGIN"}'
+        self.assertIsNone(_validate_integration("GOOGLE_DRIVE_CREDENTIALS", key))

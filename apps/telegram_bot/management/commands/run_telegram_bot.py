@@ -369,6 +369,7 @@ class Command(BaseCommand):
                 mime_type=pending.get("mime_type") or "",
             )
             document.file.save(pending["file_name"], ContentFile(bytes(data)), save=False)
+            document.original_name = pending["file_name"][:255]
             document.save()
             DocumentVersion.objects.create(
                 document=document, version_number=document.version,
@@ -500,9 +501,15 @@ class Command(BaseCommand):
             doc = Document.objects.filter(pk=doc_id).first()
             if doc is None or not doc.file:
                 return None
-            with doc.file.open("rb") as f:
-                data = f.read()
-            file_name = doc.file.name.rsplit("/", 1)[-1]
+            from apps.documents.archivist import open_file
+            from apps.documents.services import file_basename
+
+            try:
+                with open_file(doc) as f:
+                    data = f.read()
+            except FileNotFoundError:
+                return None
+            file_name = file_basename(doc)
             return data, file_name, doc.name
 
         async def _send_found_documents(update: Update, documents):

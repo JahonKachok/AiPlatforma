@@ -95,6 +95,7 @@
                 {% if s.sub_object %}<span class="text-gray-700 dark:text-gray-300">{% if s.sub_object.parent %}{{ s.sub_object.parent.name }} › {% endif %}{{ s.sub_object.name }}</span>{% endif %}
                 <span class="badge badge-info">{{ s.discipline.code }}</span>
               {% else %}<span class="text-gray-400 dark:text-gray-500">—</span>{% endif %}{% endwith %}
+              {% if document.drive_folder_id %}<a href="{{ document.drive_folder_id|drive_folder_url }}" target="_blank" rel="noopener" class="text-xs text-blue-600 hover:underline dark:text-blue-400">Drive</a>{% endif %}
             </td>
             <td class="px-3 py-2">v{{ document.version }}</td>
             <td class="px-3 py-2">{{ document.file_size|filesizeformat_short }}</td>

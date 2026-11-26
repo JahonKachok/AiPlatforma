@@ -78,8 +78,10 @@ def build_zip(documents):
             while path.lower() in used:
                 n += 1
                 path = f"{folder}/{stem} ({n}).{ext}" if dot else f"{folder}/{name} ({n})"
+            from .archivist import open_file  # aylanma import: archivist -> services
+
             try:
-                with document.file.open("rb") as src, zf.open(path, "w") as dst:
+                with open_file(document) as src, zf.open(path, "w") as dst:
                     for chunk in iter(lambda: src.read(1024 * 1024), b""):
                         dst.write(chunk)
             except FileNotFoundError:

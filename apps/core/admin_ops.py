@@ -113,9 +113,39 @@ def _validate_integration(key, value):
     field = runtime_config.FIELDS_BY_KEY[key]
     if field.choices and value not in {c[0] for c in field.choices}:
         return _("Invalid choice.")
+    if key == "GOOGLE_DRIVE_CREDENTIALS":
+        from apps.documents.drive import DriveError, parse_credentials
+
+        try:
+            parse_credentials(value)
+        except DriveError:
+            return _("Paste the service account JSON key (type «service_account»).")
+        return None
     if any(ch.isspace() for ch in value):
         return _("Value must not contain spaces.")
     return None
+
+
+def _worker_status():
+    from apps.worker.models import JobStatus, WorkerJob, WorkerNode
+    from apps.worker.services import is_online
+
+    return {
+        "online": is_online(),
+        "nodes": list(WorkerNode.objects.order_by("-last_seen")[:5]),
+        "queued": WorkerJob.objects.filter(status=JobStatus.QUEUED).count(),
+        "errors": WorkerJob.objects.filter(status=JobStatus.ERROR).count(),
+    }
+
+
+def _drive_service_email(raw):
+    """Admin ildiz papkani kimga ulashishi kerakligini ko'rsin."""
+    from apps.documents.drive import DriveError, parse_credentials
+
+    try:
+        return parse_credentials(raw)["client_email"] if raw else ""
+    except DriveError:
+        return ""
 
 
 @role_required(*MANAGE_ROLES)
@@ -153,7 +183,7 @@ def integration_settings(request):
                 messages.success(request, _("Settings saved."))
             return redirect("core:integration_settings")
 
-    groups = {"telegram": [], "ai": [], "devbot": []}
+    groups = {"telegram": [], "ai": [], "drive": [], "worker": [], "devbot": []}
     for field in runtime_config.FIELDS:
         db_value = db_values.get(field.key, "")
         env_value = runtime_config.env_value(field.key)
@@ -170,6 +200,10 @@ def integration_settings(request):
     return render(request, "core/integration_settings.html", {
         "telegram_fields": groups["telegram"],
         "ai_fields": groups["ai"],
+        "drive_fields": groups["drive"],
+        "worker_fields": groups["worker"],
+        "worker_status": _worker_status(),
+        "drive_service_email": _drive_service_email(runtime_config.get_config("GOOGLE_DRIVE_CREDENTIALS")),
         "devbot_fields": groups["devbot"],
         "devbot_status": devbot.status(),
         "devbot_admins": devbot.allowed_admins(),

@@ -43,3 +43,6 @@ celery-results.sqlite
 
 # Lokal baza nusxalari
 db.sqlite3.bak-*
+
+# Ishchi kompyuter sozlamasi (token)
+worker/worker.ini

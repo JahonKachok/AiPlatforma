@@ -33,3 +33,12 @@ def run_deadline_agent(self):
     for user in recipients:
         notify_user(user, "deadline", "AI: Muddatlar bo'yicha kunlik hisobot", report, link="/tasks/")
     return f"sent to {recipients.count()} recipients"
+
+
+@shared_task
+def remind_office_payments():
+    """Zavxoz: takrorlanuvchi ofis to'lovlari (ijara, maosh, kommunal, soliq)
+    navbatdagi sanasidan 3 kun oldin va o'sha kuni moliya rollariga eslatma."""
+    from .zavxoz import send_payment_reminders
+
+    return send_payment_reminders()

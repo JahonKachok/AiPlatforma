@@ -5313,3 +5313,136 @@ msgstr "Справочник ТКП"
 
 msgid "Open with filters"
 msgstr "Открыть с фильтрами"
+
+msgid "All disciplines"
+msgstr "Все дисциплины"
+
+msgid "File type"
+msgstr "Тип файла"
+
+msgid "All file types"
+msgstr "Все типы файлов"
+
+msgid "Folder"
+msgstr "Папка"
+
+msgid "Recipient"
+msgstr "Получатель"
+
+msgid "Me"
+msgstr "Себе"
+
+msgid "Send to Telegram"
+msgstr "Отправить в Telegram"
+
+msgid "One file is sent as is, several files as a ZIP"
+msgstr "Один файл отправляется как есть, несколько — одним ZIP"
+
+msgid "Delete selected documents?"
+msgstr "Удалить выбранные документы?"
+
+msgid "Select documents with files to send."
+msgstr "Выберите документы с файлами для отправки."
+
+msgid "The recipient has not linked Telegram."
+msgstr "Получатель не подключил Telegram."
+
+msgid "%(count)s file(s) are being sent to %(name)s in Telegram."
+msgstr "Файлов: %(count)s — отправляются пользователю %(name)s в Telegram."
+
+msgid "Files were not sent to Telegram"
+msgstr "Файлы не отправлены в Telegram"
+
+msgid "From %(sender)s: %(count)s file(s)"
+msgstr "От %(sender)s: файлов — %(count)s"
+
+msgid "The file is larger than 50 MB, Telegram does not accept it. Download it from the platform."
+msgstr "Файл больше 50 МБ, Telegram его не принимает. Скачайте его на платформе."
+
+msgid "The file was not found in storage."
+msgstr "Файл не найден в хранилище."
+
+msgid "The ZIP archive is larger than 50 MB, Telegram does not accept it. Download the ZIP from the platform."
+msgstr "ZIP-архив больше 50 МБ, Telegram его не принимает. Скачайте ZIP на платформе."
+
+msgid "Telegram did not accept the file. Check that the recipient has not blocked the bot."
+msgstr "Telegram не принял файл. Проверьте, что получатель не заблокировал бота."
+
+msgid "Download ZIP (%(counter)s document)"
+msgid_plural "Download ZIP (%(counter)s documents)"
+msgstr[0] "Скачать ZIP (%(counter)s документ)"
+msgstr[1] "Скачать ZIP (%(counter)s документа)"
+msgstr[2] "Скачать ZIP (%(counter)s документов)"
+msgstr[3] "Скачать ZIP (%(counter)s документа)"
+
+msgid "Service account key (JSON)"
+msgstr "Ключ сервисного аккаунта (JSON)"
+
+msgid "Google Cloud → IAM → Service accounts → Keys → JSON. Paste the whole file content."
+msgstr "Google Cloud → IAM → Service accounts → Keys → JSON. Вставьте всё содержимое файла."
+
+msgid "Root folder ID"
+msgstr "ID корневой папки"
+
+msgid "The part of the folder link after /folders/. The folder must be in a Shared Drive (or shared with the service account as Editor)."
+msgstr "Часть ссылки на папку после /folders/. Папка должна быть в общем диске (Shared Drive) или открыта сервисному аккаунту с правом «Редактор»."
+
+msgid "Server copy after upload"
+msgstr "Копия на сервере после загрузки"
+
+msgid "Deleting saves server disk space; files are then read from Drive."
+msgstr "Удаление экономит место на сервере; файлы затем читаются из Drive."
+
+msgid "Keep"
+msgstr "Оставлять"
+
+msgid "Paste the service account JSON key (type «service_account»)."
+msgstr "Вставьте JSON-ключ сервисного аккаунта (тип «service_account»)."
+
+msgid "Google Drive: document archive"
+msgstr "Google Drive: архив документов"
+
+msgid "Share the root folder (or the Shared Drive) with this address as Editor:"
+msgstr "Откройте корневую папку (или общий диск) этому адресу с правом «Редактор»:"
+
+msgid "Waiting for Drive"
+msgstr "Ожидает Drive"
+
+msgid "On Drive"
+msgstr "В Drive"
+
+msgid "Drive error"
+msgstr "Ошибка Drive"
+
+msgid "A file with this name already exists here, so it was saved as revision %(rev)s of «%(name)s»."
+msgstr "Здесь уже есть файл с таким именем, поэтому он сохранён как ревизия %(rev)s документа «%(name)s»."
+
+msgid "Revisions"
+msgstr "Ревизии"
+
+msgid "Open folder in Google Drive"
+msgstr "Открыть папку в Google Drive"
+
+
+msgid "Intermediate file handed over"
+msgstr "Промежуточный файл сдан"
+
+
+msgid "Worker PC token"
+msgstr "Токен рабочего компьютера"
+
+msgid "A long random string; put the same value into worker/worker.ini on the worker PC."
+msgstr "Длинная случайная строка; то же значение впишите в worker/worker.ini на рабочем компьютере."
+
+msgid "Worker PC: AutoCAD, Word, Excel"
+msgstr "Рабочий компьютер: AutoCAD, Word, Excel"
+
+msgid "Offline"
+msgstr "Не в сети"
+
+msgid "queued: %(q)s, errors: %(e)s"
+msgstr "в очереди: %(q)s, ошибок: %(e)s"
+
+msgid "Setup: worker/README.md"
+msgstr "Установка: worker/README.md"
+

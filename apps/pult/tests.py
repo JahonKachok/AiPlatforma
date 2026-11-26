@@ -121,10 +121,27 @@ class SectionPageTests(PultTestBase):
         self.client.force_login(self.boss)
         self.assertRedirects(self.client.get("/pult/"), reverse("pult:section_work"))
 
-    def test_gantt_tab_is_removed(self):
+    def test_gantt_tab_is_back(self):
+        """«Диаграмма Ганта» — «Задачи» menyusida tab (rahbar va GIP uchun)."""
+        self.assertEqual(reverse("pult:section_gantt"), "/tasks/gantt/")
+        for user in (self.boss, self.gip):
+            self.client.force_login(user)
+            self.assertContains(self.client.get(reverse("tasks:board")), 'href="/tasks/gantt/"')
+            page = self.client.get("/tasks/gantt/")
+            self.assertEqual(page.status_code, 200)
+            self.assertContains(page, "?embed=1#gantt")
+        self.client.force_login(self.worker)
+        self.assertEqual(self.client.get("/tasks/gantt/").status_code, 403)
+
+    def test_operations_page_keeps_finance_tabs(self):
+        """«Операции»ga o'tganda Moliyaning o'z tablari yo'qolmaydi."""
         self.client.force_login(self.boss)
-        self.assertNotContains(self.client.get(reverse("tasks:board")), "/tasks/gantt/")
-        self.assertRedirects(self.client.get("/tasks/gantt/"), reverse("tasks:board"), fetch_redirect_response=False)
+        page = self.client.get(reverse("pult:section_money"))
+        home = reverse("finance:home")
+        for suffix in ("", "?tab=payroll", "?tab=cash_flow", "?tab=admin_expenses"):
+            self.assertContains(page, f'href="{home}{suffix}"')
+        self.assertContains(page, f'href="{reverse("pult:section_contracts")}"')
+        self.assertContains(page, 'aria-current="page"', count=1)
 
 
 class ActionTests(PultTestBase):
@@ -219,8 +236,19 @@ class ReportAndCreateTests(PultTestBase):
         response = self.post(self.gip, reverse("pult:api_create"), {"task": "KJ", "assignee": "Worker", "project": "P1", "days": 4})
         self.assertEqual(response.status_code, 200)
         wf = TaskWorkflow.objects.get(number=response.json()["id"])
-        self.assertEqual(wf.status, "В работе")
+        # Muddat bo'lsa ham ijrochi qabul qilguncha «Новая»; qabul qilgach — «В работе».
+        self.assertEqual((wf.status, wf.days), ("Новая", 4))
         self.assertEqual(wf.task.creator, self.gip)
+        url = reverse("pult:api_action", args=[wf.number])
+        self.assertEqual(self.post(self.worker, url, {"action": "accept", "params": {}, "expect_status": "Новая"}).status_code, 200)
+        wf.refresh_from_db()
+        self.assertEqual((wf.status, wf.start_date), ("В работе", today()))
+        self.assertEqual(Task.objects.get(pk=wf.task_id).deadline, today() + timedelta(days=4))
+
+    def test_boss_may_still_start_task_explicitly(self):
+        response = self.post(self.gip, reverse("pult:api_create"), {"task": "KJ", "assignee": "Worker", "project": "P1", "days": 4, "status": "В работе"})
+        wf = TaskWorkflow.objects.get(number=response.json()["id"])
+        self.assertEqual(wf.status, "В работе")
         self.assertEqual(wf.task.deadline, today() + timedelta(days=4))
 
     def test_designer_cannot_create_project_task(self):
@@ -636,7 +664,7 @@ class SectionTaskSyncTests(PultTestBase):
         self.assertEqual(response.json()["id"], draft.number)
         self.assertEqual(TaskWorkflow.objects.filter(section=7).count(), 1)
         draft.refresh_from_db()
-        self.assertEqual((draft.status, draft.days, draft.task.title), ("В работе", 5, "Фасады"))
+        self.assertEqual((draft.status, draft.days, draft.task.title), ("Новая", 5, "Фасады"))
 
     def test_sync_does_not_duplicate_task_created_in_tasks(self):
         number = self.create().json()["id"]
@@ -646,7 +674,7 @@ class SectionTaskSyncTests(PultTestBase):
         self.assertEqual(PlanRow.objects.get(pk=7).task, number)
 
     def test_task_in_progress_is_not_duplicated(self):
-        self.create(days=3)
+        self.create(days=3, status="В работе")
         response = self.create()
         self.assertEqual(response.status_code, 409)
         self.assertEqual(TaskWorkflow.objects.filter(section=7).count(), 1)
@@ -904,3 +932,151 @@ class InquiryTests(PultTestBase):
         self.assertEqual(self.post(self.boss, url, {}).status_code, 200)
         PultSettings.load().signers.add(self.gip)  # bo'limni ko'rmaydigan odam imzolay olmaydi
         self.assertEqual(self.post(self.gip, url, {}).status_code, 403)
+
+
+class DispatcherTests(PultTestBase):
+    """Telegram dispetcheri: qabul/rad, foiz tugmalari, 50% fayl, trevoga, KPI."""
+
+    def setUp(self):
+        super().setUp()
+        from datetime import date
+        from unittest import mock
+
+        self.day = date(2026, 10, 28)  # chorshanba — ish kuni
+        for target in ("apps.pult.services.today", "apps.pult.dispatcher.today", "apps.pult.tasks.today"):
+            patcher = mock.patch(target, return_value=self.day)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        self.send = mock.patch("apps.telegram_bot.services.send_message").start()
+        self.addCleanup(mock.patch.stopall)
+        User.objects.filter(pk=self.worker.pk).update(telegram_chat_id="900")
+        User.objects.filter(pk=self.other.pk).update(telegram_chat_id="901")
+        self.worker.refresh_from_db()
+
+    def cb(self, data, chat="900"):
+        from .dispatcher import handle_callback
+        return handle_callback(chat, data)
+
+    def set_wf(self, **fields):
+        for k, v in fields.items():
+            setattr(self.wf, k, v)
+        save_workflow(self.task, self.wf)
+
+    def buttons_sent(self):
+        return [data for call in self.send.call_args_list for row in (call.kwargs.get("buttons") or []) for _l, data in row]
+
+    def test_new_task_offer_has_accept_and_decline_buttons(self):
+        from .services import create_task
+        _task, wf = create_task(self.gip, {"task": "OV", "assignee": "Worker", "project": "P1", "status": "Новая", "amount": 1500000})
+        self.assertEqual(wf.status, "Новая")
+        self.assertIn(f"pd:o:{wf.number}:5", self.buttons_sent())
+        self.assertIn(f"pd:d:{wf.number}", self.buttons_sent())
+        self.assertIn("1 500 000", self.send.call_args.args[1])
+
+    def test_accept_with_term(self):
+        self.set_wf(status="Новая", days=5)
+        reply = self.cb(f"pd:a:{self.wf.number}")
+        self.refresh()
+        self.assertEqual((self.wf.status, self.wf.start_date), ("В работе", self.day))
+        self.assertIn("В работе", reply.text)
+
+    def test_propose_own_term(self):
+        self.set_wf(status="Новая", days=None)
+        self.cb(f"pd:o:{self.wf.number}:7")
+        self.refresh()
+        self.assertEqual((self.wf.status, self.wf.days), ("На согласовании", 7))
+
+    def test_decline_asks_reason_and_returns_task_to_gip(self):
+        from apps.notifications.models import Notification
+
+        from .dispatcher import handle_text
+        self.set_wf(status="Новая", days=5)
+        reply = self.cb(f"pd:d:{self.wf.number}")
+        self.assertEqual(reply.wait, {"a": "decline", "n": self.wf.number})
+        handle_text("900", reply.wait, "ТЗ без исходных данных")
+        self.refresh()
+        self.assertEqual(self.wf.status, "Черновик")
+        self.assertTrue(Notification.objects.filter(user=self.gip, message__contains="ТЗ без исходных данных").exists())
+
+    def test_someone_else_cannot_press_the_buttons(self):
+        self.set_wf(status="Новая", days=5)
+        reply = self.cb(f"pd:a:{self.wf.number}", chat="901")
+        self.refresh()
+        self.assertEqual(self.wf.status, "Новая")
+        self.assertTrue(reply.text.startswith("⚠️"))
+        self.assertEqual(self.cb(f"pd:a:{self.wf.number}", chat="12345").text.startswith("⚠️"), False)  # ulanmagan chat
+
+    def test_percent_report_and_mid_file_at_50(self):
+        from apps.documents.models import Document
+
+        from .dispatcher import handle_file
+        self.set_wf(status="В работе", start_date=self.day - timedelta(days=2), days=10)
+        reply = self.cb(f"pd:p:{self.wf.number}:50")
+        self.refresh()
+        self.assertAlmostEqual(self.wf.done, 0.5)
+        self.assertTrue(ProgressReport.objects.filter(task=self.task, status="", done=0.5).exists())
+        self.assertEqual(reply.wait, {"a": "mid", "n": self.wf.number})
+        handle_file("900", reply.wait, "AR isxodnik.dwg", b"dwg-bytes")
+        self.refresh()
+        self.assertTrue(self.wf.mid_file_ok)
+        doc = Document.objects.get(project=self.project)
+        self.assertEqual((doc.original_name, doc.versions.count()), ("AR isxodnik.dwg", 1))
+        self.assertIsNone(self.cb(f"pd:p:{self.wf.number}:70").wait)  # fayl bor — boshqa so'ramaydi
+
+    def test_bad_mid_file_is_refused(self):
+        from .dispatcher import handle_file
+        self.set_wf(status="В работе", start_date=self.day, days=10)
+        reply = handle_file("900", {"a": "mid", "n": self.wf.number}, "virus.exe", b"x")
+        self.refresh()
+        self.assertFalse(self.wf.mid_file_ok)
+        self.assertNotIn("✅", reply.text)
+
+    def test_100_percent_offers_submit(self):
+        self.set_wf(status="В работе", start_date=self.day - timedelta(days=2), days=10)
+        reply = self.cb(f"pd:p:{self.wf.number}:100")
+        self.assertEqual(reply.buttons[0][0][1], f"pd:s:{self.wf.number}")
+        self.cb(f"pd:s:{self.wf.number}")
+        self.refresh()
+        self.assertEqual(self.wf.status, "На проверке")
+
+    def test_alarm_when_half_term_passed_below_50_once_a_day(self):
+        from apps.notifications.models import Notification
+
+        from .dispatcher import alarm_level, send_alarms
+        self.set_wf(status="В работе", start_date=self.day - timedelta(days=6), days=10, done=0.2)
+        self.assertEqual(alarm_level(self.task, self.wf, PultSettings.load())[0], 50)
+        self.assertEqual(send_alarms(), 1)
+        self.assertEqual(send_alarms(), 0)
+        self.assertTrue(Notification.objects.filter(user=self.worker, title=f"Пульт: тревога №{self.wf.number}").exists())
+        self.assertIn(f"pd:p:{self.wf.number}:50", self.buttons_sent())
+
+    def test_alarm_levels(self):
+        from .dispatcher import alarm_level
+        s = PultSettings.load()
+        self.set_wf(status="В работе", start_date=self.day - timedelta(days=8), days=10, done=0.6)
+        self.assertEqual(alarm_level(self.task, self.wf, s)[0], 70)
+        self.set_wf(done=0.75)
+        self.assertIsNone(alarm_level(self.task, self.wf, s)[0])
+        self.set_wf(start_date=self.day - timedelta(days=3), done=0.1)
+        self.assertIsNone(alarm_level(self.task, self.wf, s)[0])  # muddatning 30% — hali erta
+
+    def test_daily_reminder_sends_percent_buttons_instead_of_plain_text(self):
+        from .tasks import remind_daily_reports
+        self.set_wf(status="В работе", start_date=self.day - timedelta(days=2), days=10)
+        self.assertEqual(remind_daily_reports(), 1)
+        self.assertEqual(self.send.call_count, 1)
+        self.assertIn(f"pd:p:{self.wf.number}:10", self.buttons_sent())
+
+    def test_kpi_summary_and_rank(self):
+        from .dispatcher import kpi_summary, kpi_table
+        self.set_wf(status="Принята", start_date=self.day - timedelta(days=5), days=10, finished_at=self.day - timedelta(days=1), done=1)
+        other_task = Task.objects.create(title="KJ", project=self.project, assignee=self.other, creator=self.gip)
+        owf = other_task.workflow
+        owf.status, owf.start_date, owf.days, owf.finished_at, owf.reworks = "Принята", self.day - timedelta(days=9), 5, self.day, 1
+        save_workflow(other_task, owf)
+        table = kpi_table(self.day)
+        self.assertEqual([row[0] for row in table], [self.worker.pk, self.other.pk])
+        self.assertEqual(table[0][1], 5)  # muddatdan oldin +3, qayta ishlashsiz +2
+        text = kpi_summary(self.worker, "ru", self.day)
+        self.assertIn("1 / 2", text)
+        self.assertIn("Правила KPI", text)

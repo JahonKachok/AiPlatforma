@@ -43,6 +43,8 @@ class TaskWorkflow(models.Model):
     amount = models.FloatField(null=True, blank=True, verbose_name=_("Amount, UZS"))
     done = models.FloatField(default=0, verbose_name=_("Done (0–1)"))
     source_ok = models.BooleanField(default=False, verbose_name=_("Source files handed over"))
+    # Dispetcher: 50% da so'raladigan oraliq fayl (isxodnik) topshirildimi.
+    mid_file_ok = models.BooleanField(default=False, verbose_name=_("Intermediate file handed over"))
     finished_at = models.DateField(null=True, blank=True, verbose_name=_("Actual finish"))
     reworks = models.PositiveIntegerField(default=0, verbose_name=_("Reworks"))
     missed_reports = models.PositiveIntegerField(default=0, verbose_name=_("Missed reports"))

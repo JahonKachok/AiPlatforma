@@ -18,6 +18,7 @@ from apps.tasks.permissions import resolve_reviewer
 
 from .models import ProgressReport, TaskWorkflow
 from .models import WorkflowStatus as WS
+from .dispatcher import ask_daily_reports, send_alarms
 from .services import ACTIVE, BOSS, GIP, WorkCalendar, can_approve, effective_status, pult_role, today
 
 REPORT_TITLE = "Пульт: отметьте процент за сегодня"
@@ -60,9 +61,13 @@ def remind_daily_reports():
         if not user.is_active or _sent_today(user, REPORT_TITLE):
             continue
         names = "; ".join(f"№{wf.number} {wf.task.title}" for wf in wfs[:5]) + ("…" if len(wfs) > 5 else "")
+        # Telegram'i ulanganlarga — har vazifa alohida, foiz tugmalari bilan (dispatcher).
         notify_user(user, "task", REPORT_TITLE,
                     f"{len(wfs)} {_plural(len(wfs), 'задача', 'задачи', 'задач')} без отчёта: {names}. "
-                    "Откройте «Моя работа» и нажмите «Отправить отчёт».", link="/pult/")
+                    "Откройте «Моя работа» и нажмите «Отправить отчёт».", link="/pult/",
+                    send_telegram=not user.telegram_chat_id)
+        if user.telegram_chat_id:
+            ask_daily_reports(user, wfs)
         sent += 1
     return sent
 
@@ -110,3 +115,9 @@ def digest_pending_decisions():
                     link="/pult/")
         sent += 1
     return sent
+
+
+@shared_task
+def send_task_alarms():
+    """Ertalab: orqada qolgan vazifalar bo'yicha ijrochilarga trevoga (dispatcher)."""
+    return send_alarms()

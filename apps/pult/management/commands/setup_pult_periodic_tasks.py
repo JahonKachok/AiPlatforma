@@ -8,11 +8,12 @@ from django.core.management.base import BaseCommand
 TASKS = [
     ("pult_daily_report_reminder", "apps.pult.tasks.remind_daily_reports", "30", "17", "har kuni 17:30"),
     ("pult_pending_decisions_digest", "apps.pult.tasks.digest_pending_decisions", "30", "8", "har kuni 08:30"),
+    ("pult_task_alarms", "apps.pult.tasks.send_task_alarms", "0", "10", "har kuni 10:00"),
 ]
 
 
 class Command(BaseCommand):
-    help = "Pult eslatmalarini (kunlik hisobot, qaror kutayotganlar) Celery Beat'da idempotent ro'yxatdan o'tkazadi."
+    help = "Pult eslatmalarini (kunlik hisobot, qaror kutayotganlar, trevoga) Celery Beat'da idempotent ro'yxatdan o'tkazadi."
 
     def handle(self, *args, **options):
         for name, task_path, minute, hour, label in TASKS:

@@ -321,9 +321,24 @@ def log_status(task, wf, user, text):
     )
 
 
-def _notify(user, target, title, message, task):
+def _notify(user, target, title, message, task, wf=None):
     if target is not None and target.id != user.id:
-        notify_user(target, "task", title, message, link=f"/tasks/{task.pk}/")
+        buttons = None
+        if wf is not None and wf.status == WS.NEW and target.id == task.assignee_id and target.telegram_chat_id:
+            from .dispatcher import offer_buttons  # aylanma import
+
+            buttons = offer_buttons(wf, target)
+        notify_user(target, "task", title, message, link=f"/tasks/{task.pk}/", telegram_buttons=buttons)
+
+
+def offer_text(task, wf):
+    """Ijrochiga yangi vazifa xabari: nima, qaysi loyiha, muddat va summa."""
+    parts = [f"№{wf.number} «{task.title}»", task.project.name]
+    if wf.days:
+        parts.append(f"срок {wf.days} дн.")
+    if wf.amount:
+        parts.append(f"сумма {wf.amount:,.0f} сум".replace(",", " "))
+    return " · ".join(parts)
 
 
 def _approver_for(task):
@@ -368,6 +383,13 @@ def _a_accept_own(task, wf, p):
     days, note = _days(p), _text(p, "note", False)
     wf.status, wf.days = WS.DAYS_PROPOSED, days
     return f"На согласовании: предложил срок {days} дн." + (f" — {note}" if note else ""), note, "approver"
+
+
+def _a_decline(task, wf, p):
+    """Ijrochi vazifani qabul qilmaydi (ТЗ'da kamchilik) — ГИП'ga qaytadi."""
+    why = _text(p, "why")
+    wf.status = WS.DRAFT
+    return f"Черновик: исполнитель отказался — {why}", why, "approver"
 
 
 def _a_submit(task, wf, p):
@@ -491,6 +513,7 @@ ASSIGNEE, APPROVER = "assignee", "approver"
 ACTIONS = {
     "accept": (ASSIGNEE, (WS.NEW,), _a_accept),
     "accept_own": (ASSIGNEE, (WS.NEW,), _a_accept_own),
+    "decline": (ASSIGNEE, (WS.NEW,), _a_decline),
     "submit": (ASSIGNEE, (WS.IN_PROGRESS, WS.REVISION), _a_submit),
     "to_appr": (ASSIGNEE, (WS.IN_PROGRESS, WS.REVISION), _a_to_appr),
     "question": (ASSIGNEE, (WS.IN_PROGRESS, WS.REVISION), _a_question),
@@ -541,7 +564,7 @@ def run_action(user, number, action, params):
     AuditLog.log(obj=task, action="status_changed", user=user, details={"pult": action, "status": wf.status})
     title = f"№{wf.number}: {wf.status}"
     if notify == "assignee":
-        _notify(user, task.assignee, title, f"«{task.title}»: {log}", task)
+        _notify(user, task.assignee, title, f"«{task.title}»: {log}", task, wf)
     elif notify == "approver":
         _notify(user, _approver_for(task), title, f"{_actor_name(user)} · «{task.title}»: {log}", task)
     return task, wf
@@ -705,7 +728,7 @@ def _merge_into_open(user, wf, data, assignee, days, status):
     AuditLog.log(obj=task, action="updated", user=user, details={"pult": True, "merged": True})
     if task.assignee_id != old_assignee:
         ensure_project_member(task.project, assignee)
-    _notify(user, assignee, "Задача назначена вам", f"№{wf.number} «{task.title}»", task)
+    _notify(user, assignee, "Задача назначена вам", offer_text(task, wf), task, wf)
     return task, wf
 
 
@@ -723,7 +746,10 @@ def create_task(user, data):
     assignee = resolve_person(data.get("assignee"))
     project = resolve_project(user, data.get("project"), nonstd=nonstd)
     days = _days(data, required=False)
-    status = data.get("status") or (WS.IN_PROGRESS if days else WS.NEW)
+    # Muddat bo'lsa ham vazifa ijrochi «Принять» bosguncha «Новая» (dispetcher
+    # Telegram'da qabul qilish/rad etishni so'raydi). «В работе»ni rahbar faqat
+    # ataylab tanlaydi (masalan, ijrochi telefonda rozi bo'lgan).
+    status = data.get("status") or WS.NEW
     if status not in (WS.DRAFT, WS.NEW, WS.IN_PROGRESS):
         status = WS.NEW
     section = _section(project, data.get("section"))
@@ -752,7 +778,7 @@ def create_task(user, data):
     log_status(task, wf, user, f"{wf.status}: поставлена")
     AuditLog.log(obj=task, action="created", user=user, details={"pult": True})
     ensure_project_member(project, assignee)
-    _notify(user, assignee, "Новая задача", f"№{wf.number} «{task.title}»", task)
+    _notify(user, assignee, "Новая задача", offer_text(task, wf), task, wf)
     return task, wf
 
 

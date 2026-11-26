@@ -38,12 +38,27 @@
     </div>
 
     <div class="card p-6">
-      <h2 class="mb-3 font-semibold">{% trans "Versions" %}</h2>
+      <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h2 class="font-semibold">{% trans "Revisions" %}</h2>
+        {% if document.drive_folder_id %}
+          <a href="{{ document.drive_folder_id|drive_folder_url }}" target="_blank" rel="noopener" class="text-sm text-blue-600 hover:underline dark:text-blue-400">{% trans "Open folder in Google Drive" %}</a>
+        {% endif %}
+      </div>
+      <p class="mb-2 text-xs text-gray-500 dark:text-gray-400">{% trans "Folder" %}: {{ document|folder_path }}</p>
       <ul class="mb-3 space-y-1 text-sm">
         {% for v in document.versions.all %}
-          <li class="flex items-center justify-between border-b border-gray-100 py-1 dark:border-gray-700">
-            <span>v{{ v.version_number }} — {{ v.uploaded_by.get_short_name }} — {{ v.created_at|date:"Y-m-d" }}</span>
-            <a href="{% url 'documents:version_download' v.pk %}" class="text-blue-600 hover:underline dark:text-blue-400">{% trans "Download" %}</a>
+          <li class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 py-1 dark:border-gray-700">
+            <span><b>Rev {{ v.revision }}</b> · v{{ v.version_number }} — {{ v.uploaded_by.get_short_name }} — {{ v.created_at|date:"Y-m-d" }}{% if v.original_name %} — {{ v.original_name }}{% endif %}</span>
+            <span class="flex items-center gap-2">
+              {% if v.drive_status == "synced" %}
+                <a href="{{ v.drive_file_id|drive_file_url }}" target="_blank" rel="noopener" class="badge badge-success">Drive{% if v.in_old_folder %} · Old{% endif %}</a>
+              {% elif v.drive_status == "error" %}
+                <span class="badge badge-danger" title="{{ v.drive_error }}">{{ v.get_drive_status_display }}</span>
+              {% else %}
+                <span class="badge badge-default">{{ v.get_drive_status_display }}</span>
+              {% endif %}
+              <a href="{% url 'documents:version_download' v.pk %}" class="text-blue-600 hover:underline dark:text-blue-400">{% trans "Download" %}</a>
+            </span>
           </li>
         {% empty %}<li class="text-gray-500 dark:text-gray-400">{% trans "No versions yet." %}</li>{% endfor %}
       </ul>

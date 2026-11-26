@@ -1,4 +1,5 @@
 import asyncio
+import time
 from html import escape
 
 from asgiref.sync import sync_to_async
@@ -211,6 +212,9 @@ class Command(BaseCommand):
                       email=escape(user.email)),
                     reply_markup=main_keyboard(lang, _is_manager(user)),
                 )
+                from apps.pult.dispatcher import kpi_rules
+
+                await update.message.reply_html(await sync_to_async(kpi_rules)(lang))
             else:
                 await update.message.reply_text(t("link.invalid", lang))
 
@@ -369,6 +373,7 @@ class Command(BaseCommand):
                 mime_type=pending.get("mime_type") or "",
             )
             document.file.save(pending["file_name"], ContentFile(bytes(data)), save=False)
+            document.original_name = pending["file_name"][:255]
             document.save()
             DocumentVersion.objects.create(
                 document=document, version_number=document.version,
@@ -381,6 +386,36 @@ class Command(BaseCommand):
             """Yuborilgan fayl/rasmni qabul qilib, loyiha tanlashni so'raydi."""
             message = update.message
             lang = await get_lang(update, context)
+            from apps.ai_agents.secretary import SIGN_CAPTION
+
+            if message.document and SIGN_CAPTION.search(message.caption or ""):
+                # «imzola» izohli PDF — direktor tasdig'iga (Sekretar).
+                from apps.ai_agents import secretary
+
+                user = await _get_user_by_chat_id(update.effective_chat.id)
+                if user is None:
+                    await message.reply_text(t("not_linked", lang))
+                    return
+                tg_file = await context.bot.get_file(message.document.file_id)
+                data = await tg_file.download_as_bytearray()
+                reply = await sync_to_async(secretary.submit_pdf)(
+                    user, message.document.file_name or "document.pdf", data, lang)
+                await message.reply_text(reply.text)
+                return
+            wait = _take_wait(context, "mid") if message.document else None
+            if wait:
+                from apps.pult import dispatcher
+
+                attachment = message.document
+                if attachment.file_size and attachment.file_size > dispatcher.FILE_LIMIT:
+                    await message.reply_text(t("pd.file_bad", lang))
+                    return
+                tg_file = await context.bot.get_file(attachment.file_id)
+                data = await tg_file.download_as_bytearray()
+                reply = await sync_to_async(dispatcher.handle_file)(
+                    update.effective_chat.id, wait, attachment.file_name or "file.bin", data, attachment.mime_type or "")
+                await _send_reply(update.effective_chat, reply, context)
+                return
             user, projects = await _get_uploader(update.effective_chat.id)
             if user is None:
                 await message.reply_text(t("not_linked", lang))
@@ -500,9 +535,15 @@ class Command(BaseCommand):
             doc = Document.objects.filter(pk=doc_id).first()
             if doc is None or not doc.file:
                 return None
-            with doc.file.open("rb") as f:
-                data = f.read()
-            file_name = doc.file.name.rsplit("/", 1)[-1]
+            from apps.documents.archivist import open_file
+            from apps.documents.services import file_basename
+
+            try:
+                with open_file(doc) as f:
+                    data = f.read()
+            except FileNotFoundError:
+                return None
+            file_name = file_basename(doc)
             return data, file_name, doc.name
 
         async def _send_found_documents(update: Update, documents):
@@ -518,6 +559,128 @@ class Command(BaseCommand):
                     caption=doc_name[:1024],
                 )
 
+        # --- Pult dispetcheri (apps/pult/dispatcher.py) ----------------------
+
+        def _markup(buttons):
+            if not buttons:
+                return None
+            return InlineKeyboardMarkup([[InlineKeyboardButton(label, callback_data=data) for label, data in row]
+                                         for row in buttons])
+
+        PD_WAIT_SECONDS = 30 * 60
+
+        def _take_wait(context, kind):
+            """Bot kutayotgan javob (rad etish sababi / oraliq fayl), 30 daqiqagacha."""
+            wait = context.user_data.get("pd_wait")
+            if not wait or wait.get("a") != kind:
+                return None
+            context.user_data.pop("pd_wait", None)
+            return wait if time.monotonic() - wait.get("at", 0) < PD_WAIT_SECONDS else None
+
+        async def _send_reply(chat, reply, context):
+            if reply.wait:
+                context.user_data["pd_wait"] = {**reply.wait, "at": time.monotonic()}
+            await chat.send_message(reply.text, reply_markup=_markup(reply.buttons))
+
+        async def pd_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+            """Pult tugmalari: qabul/rad, foiz, topshirish, oraliq fayl."""
+            from apps.pult import dispatcher
+
+            query = update.callback_query
+            await query.answer()
+            reply = await sync_to_async(dispatcher.handle_callback)(update.effective_chat.id, query.data)
+            try:
+                await query.edit_message_reply_markup(reply_markup=None)  # bir marta bosiladi
+            except Exception:
+                pass
+            if query.data.startswith("pd:m:"):
+                context.user_data.pop("pd_wait", None)
+            await _send_reply(update.effective_chat, reply, context)
+
+        async def pd_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
+            """/report — faol vazifalar bo'yicha foiz tugmalari."""
+            from apps.pult import dispatcher
+
+            lang = await get_lang(update, context)
+            user = await _get_user_by_chat_id(update.effective_chat.id)
+            if user is None:
+                await update.message.reply_text(t("not_linked", lang))
+                return
+            workflows = await sync_to_async(dispatcher.active_for)(user)
+            if not workflows:
+                await update.message.reply_text(t("pd.no_active", lang))
+                return
+            for wf in workflows[:10]:
+                await update.message.reply_text(
+                    t("pd.report_ask", lang, n=wf.number, title=wf.task.title, pct=round(wf.done * 100)),
+                    reply_markup=_markup(dispatcher.percent_buttons(wf)),
+                )
+
+        async def pd_kpi(update: Update, context: ContextTypes.DEFAULT_TYPE):
+            """/kpi — oylik ball, reytingdagi o'rin va qoidalar."""
+            from apps.pult import dispatcher
+
+            lang = await get_lang(update, context)
+            user = await _get_user_by_chat_id(update.effective_chat.id)
+            if user is None:
+                await update.message.reply_text(t("not_linked", lang))
+                return
+            await update.message.reply_html(await sync_to_async(dispatcher.kpi_summary)(user, lang))
+
+        # --- Orchestrator (apps/ai_agents/orchestrator.py) -------------------
+
+        @sync_to_async
+        def _orchestrator_reply(chat_id, text, lang):
+            from apps.ai_agents import orchestrator
+
+            user = _user_by_chat_sync(chat_id)
+            if user is None:
+                return None
+            return orchestrator.handle(user, text, lang)
+
+        def _user_by_chat_sync(chat_id):
+            from apps.accounts.models import User
+            return User.objects.filter(telegram_chat_id=str(chat_id), is_active=True).first()
+
+        async def _orchestrate(update, context, text, lang):
+            """True — xabarni agent bajardi (chat'ga berilmaydi)."""
+            reply = await _orchestrator_reply(update.effective_chat.id, text, lang)
+            if reply is None:
+                return False
+            await update.effective_chat.send_message(
+                reply.text, parse_mode="HTML" if reply.html else None, reply_markup=_markup(reply.buttons))
+            return True
+
+        async def ag_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+            """Agent amalini tasdiqlash/bekor qilish (moliya yozuvi)."""
+            from apps.ai_agents import orchestrator
+
+            query = update.callback_query
+            await query.answer()
+            lang = await get_lang(update, context)
+            user = await sync_to_async(_user_by_chat_sync)(update.effective_chat.id)
+            reply = await sync_to_async(orchestrator.confirm)(user, query.data, lang)
+            try:
+                await query.edit_message_reply_markup(reply_markup=None)
+            except Exception:
+                pass
+            await update.effective_chat.send_message(reply.text)
+
+        async def sg_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+            """Direktor: hujjatga imzo va muhr qo'yish yoki rad etish."""
+            from apps.ai_agents import secretary
+
+            query = update.callback_query
+            await query.answer()
+            lang = await get_lang(update, context)
+            user = await sync_to_async(_user_by_chat_sync)(update.effective_chat.id)
+            try:
+                await query.edit_message_reply_markup(reply_markup=None)
+            except Exception:
+                pass
+            reply = await sync_to_async(secretary.decide)(user, query.data, lang)
+            await update.effective_chat.send_message(reply.text)
+
         async def ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
             """Oddiy matnli xabarlarga platforma konteksti asosida AI javob beradi.
 
@@ -526,6 +689,15 @@ class Command(BaseCommand):
             tushirilganda tarix tozalanadi)."""
             lang = await get_lang(update, context)
             text = update.message.text or ""
+            wait = _take_wait(context, "decline")
+            if wait:
+                from apps.pult import dispatcher
+
+                reply = await sync_to_async(dispatcher.handle_text)(update.effective_chat.id, wait, text)
+                await _send_reply(update.effective_chat, reply, context)
+                return
+            if await _orchestrate(update, context, text, lang):
+                return
             history = context.user_data.get("ai_history", [])
             await update.effective_chat.send_action("typing")
             try:
@@ -574,13 +746,28 @@ class Command(BaseCommand):
                 return
             history = context.user_data.get("ai_history", [])
             await update.effective_chat.send_action("typing")
+            from apps.ai_agents.services import transcribe
+            from apps.core.runtime_config import get_config as _cfg
+
+            if not await sync_to_async(_cfg)("GEMINI_API_KEY"):
+                # Claude audio eshitmaydi — javobni to'qib chiqarmasin.
+                await update.message.reply_text(t("ag.voice_needs_gemini", lang))
+                return
             try:
                 tg_file = await context.bot.get_file(voice.file_id)
                 data = bytes(await tg_file.download_as_bytearray())
-                state, answer, documents = await _ai_voice_answer(
-                    update.effective_chat.id, data,
-                    voice.mime_type or "audio/ogg", lang, history,
-                )
+                # Avval matnga: keyin Orchestrator (pul, ZIP, KPI) yoki oddiy chat —
+                # audio modelga ikkinchi marta yuborilmaydi.
+                transcript = await sync_to_async(transcribe)((data, voice.mime_type or "audio/ogg"))
+                if transcript:
+                    if await _orchestrate(update, context, transcript, lang):
+                        return
+                    state, answer, documents = await _ai_answer(update.effective_chat.id, transcript, lang, history)
+                else:
+                    state, answer, documents = await _ai_voice_answer(
+                        update.effective_chat.id, data,
+                        voice.mime_type or "audio/ogg", lang, history,
+                    )
             except Exception:
                 await update.message.reply_text(t("ai.error", lang))
                 raise
@@ -603,16 +790,19 @@ class Command(BaseCommand):
             commands = {
                 None: [  # standart (til aniqlanmaganda)
                     ("start", "Botni ishga tushirish"), ("whoami", "Profil ma'lumotlari"),
+                    ("report", "Kunlik hisobot (foiz)"), ("kpi", "KPI ballarim"),
                     ("link", "Hisobni ulash"), ("unlink", "Hisobni uzish"),
                     ("help", "Yordam"),
                 ],
                 "ru": [
                     ("start", "Запустить бота"), ("whoami", "Данные профиля"),
+                    ("report", "Ежедневный отчёт (%)"), ("kpi", "Мои баллы KPI"),
                     ("link", "Привязать аккаунт"), ("unlink", "Отвязать аккаунт"),
                     ("help", "Помощь"),
                 ],
                 "en": [
                     ("start", "Start the bot"), ("whoami", "Profile info"),
+                    ("report", "Daily report (%)"), ("kpi", "My KPI points"),
                     ("link", "Link account"), ("unlink", "Unlink account"),
                     ("help", "Help"),
                 ],
@@ -651,9 +841,14 @@ class Command(BaseCommand):
         application.add_handler(CommandHandler("myinfo", whoami))
         application.add_handler(CommandHandler("link", link))
         application.add_handler(CommandHandler("unlink", unlink))
+        application.add_handler(CommandHandler("report", pd_report))
+        application.add_handler(CommandHandler("kpi", pd_kpi))
         application.add_handler(MessageHandler(filters.Document.ALL | filters.PHOTO, receive_file))
         application.add_handler(MessageHandler(filters.VOICE, voice_message))
         application.add_handler(CallbackQueryHandler(choose_project, pattern=r"^tgdoc:"))
+        application.add_handler(CallbackQueryHandler(pd_callback, pattern=r"^pd:"))
+        application.add_handler(CallbackQueryHandler(ag_callback, pattern=r"^ag:"))
+        application.add_handler(CallbackQueryHandler(sg_callback, pattern=r"^sg:"))
         application.add_handler(CallbackQueryHandler(settings_callback, pattern=r"^settings:"))
         application.add_handler(CallbackQueryHandler(set_language, pattern=r"^setlang:"))
         application.add_handler(CallbackQueryHandler(start_language, pattern=r"^startlang:"))

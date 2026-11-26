@@ -145,9 +145,23 @@ def _get_gemini_client():
     return _gemini_client[1]
 
 
+# Server tomonidagi zaxira (refusal fallback) shu modellarda ishlaydi: xavfsizlik
+# klassifikatori so'rovni rad etsa, API uni o'sha chaqiruv ichida boshqa modelda
+# qayta bajaradi. Boshqa modellarga (masalan Haiku) parametr yuborilmaydi.
+FALLBACK_MODELS = {"claude-opus-5-5", "claude-opus-5", "claude-sonnet-5-5", "claude-fable-5-2", "claude-fable-5-1"}
+
+
+def _claude_create(**kwargs):
+    model = kwargs["model"]
+    client = _get_anthropic_client()
+    if model in FALLBACK_MODELS:
+        return client.beta.messages.create(betas=["server-side-fallback-2026-07-01"], fallbacks="default", **kwargs)
+    return client.messages.create(**kwargs)
+
+
 def ask_claude(system: str, prompt: str, max_tokens: int = 4000, effort: str = "low") -> str:
     """Claude'ga bitta so'rov yuborib, javob matnini qaytaradi."""
-    response = _get_anthropic_client().messages.create(
+    response = _claude_create(
         model=get_config("AI_MODEL"),
         max_tokens=max_tokens,
         thinking={"type": "adaptive"},
@@ -195,6 +209,82 @@ def ask_gemini(system: str, prompt: str, max_tokens: int = 4000, model: str = ""
         ),
     )
     return (response.text or "").strip()
+
+
+def ask_json(system: str, prompt: str, schema: dict, agent: str = "", max_tokens: int = 1024,
+             audio: tuple[bytes, str] | None = None) -> dict | None:
+    """Qat'iy JSON javob (structured outputs). Orchestrator agentlari shu orqali
+    ishlaydi: model faqat sxemaga mos JSON yozadi, erkin matn yo'q — chiqish
+    tokenlari minimal. Xato/rad etish/AI sozlanmagan bo'lsa None."""
+    import json
+    import time
+
+    from .models import AILog
+
+    provider = get_provider()
+    if provider is None:
+        return None
+    model = get_config("GEMINI_MODEL") if provider == "gemini" else get_config("AI_MODEL")
+    start = time.monotonic()
+    status, text, error = AILog.Status.SUCCESS, "", ""
+    try:
+        if provider == "gemini":
+            from google.genai import types
+
+            contents = prompt if audio is None else [prompt, types.Part.from_bytes(data=audio[0], mime_type=audio[1])]
+            response = _get_gemini_client().models.generate_content(
+                model=model, contents=contents,
+                config=types.GenerateContentConfig(
+                    system_instruction=system, max_output_tokens=max_tokens,
+                    response_mime_type="application/json", response_json_schema=schema,
+                    thinking_config=types.ThinkingConfig(thinking_budget=512),
+                ),
+            )
+            text = (response.text or "").strip()
+        else:
+            if audio is not None:
+                raise ValueError("Claude ovozli xabarni qabul qilmaydi")
+            response = _claude_create(
+                model=model, max_tokens=max_tokens, system=system,
+                output_config={"effort": "low", "format": {"type": "json_schema", "schema": schema}},
+                messages=[{"role": "user", "content": prompt}],
+            )
+            if response.stop_reason == "refusal":
+                status = AILog.Status.EMPTY
+                return None
+            text = next((b.text for b in response.content if b.type == "text"), "")
+        data = json.loads(text) if text else None
+        if data is None:
+            status = AILog.Status.EMPTY
+        return data
+    except Exception as exc:
+        status, error = AILog.Status.ERROR, str(exc)
+        logger.warning("ask_json (%s) xato: %s", agent, exc)
+        return None
+    finally:
+        try:
+            AILog.objects.create(
+                agent=agent, provider=provider, model=model, system=system[:AILOG_TEXT_LIMIT],
+                prompt=("[OVOZLI XABAR] " if audio else "") + prompt[:AILOG_TEXT_LIMIT],
+                response=text[:AILOG_TEXT_LIMIT], status=status, error=error,
+                duration_ms=int((time.monotonic() - start) * 1000),
+            )
+        except Exception:
+            logger.exception("AILog yozishda xato")
+
+
+def transcribe(audio: tuple[bytes, str]) -> str | None:
+    """Ovozli xabar -> matn (faqat Gemini eshita oladi). Matn keyin oddiy xabar
+    kabi Orchestrator'dan o'tadi. Gemini sozlanmagan bo'lsa None."""
+    if not get_config("GEMINI_API_KEY"):
+        return None
+    try:
+        text = ask_gemini("Transcribe the audio verbatim in its original language. Output only the transcript.",
+                          "Transcribe.", max_tokens=1000, audio=audio)
+    except Exception as exc:
+        logger.warning("Transkripsiya xatosi: %s", exc)
+        return None
+    return text or None
 
 
 def _is_overloaded(exc: Exception) -> bool:

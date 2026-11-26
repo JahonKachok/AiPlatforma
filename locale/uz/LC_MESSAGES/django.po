@@ -5314,3 +5314,133 @@ msgstr "Takliflar ma'lumotnomasi"
 
 msgid "Open with filters"
 msgstr "Filtrlar bilan ochish"
+
+msgid "All disciplines"
+msgstr "Barcha intizomlar"
+
+msgid "File type"
+msgstr "Fayl turi"
+
+msgid "All file types"
+msgstr "Barcha fayl turlari"
+
+msgid "Folder"
+msgstr "Papka"
+
+msgid "Recipient"
+msgstr "Qabul qiluvchi"
+
+msgid "Me"
+msgstr "O'zimga"
+
+msgid "Send to Telegram"
+msgstr "Telegram'ga yuborish"
+
+msgid "One file is sent as is, several files as a ZIP"
+msgstr "Bitta fayl o'zicha, bir nechtasi ZIP qilib yuboriladi"
+
+msgid "Delete selected documents?"
+msgstr "Tanlangan hujjatlar o'chirilsinmi?"
+
+msgid "Select documents with files to send."
+msgstr "Yuborish uchun fayli bor hujjatlarni tanlang."
+
+msgid "The recipient has not linked Telegram."
+msgstr "Qabul qiluvchi Telegram'ni ulamagan."
+
+msgid "%(count)s file(s) are being sent to %(name)s in Telegram."
+msgstr "%(count)s ta fayl Telegram orqali %(name)s ga yuborilmoqda."
+
+msgid "Files were not sent to Telegram"
+msgstr "Fayllar Telegram'ga yuborilmadi"
+
+msgid "From %(sender)s: %(count)s file(s)"
+msgstr "%(sender)s dan: %(count)s ta fayl"
+
+msgid "The file is larger than 50 MB, Telegram does not accept it. Download it from the platform."
+msgstr "Fayl 50 MB dan katta, Telegram uni qabul qilmaydi. Platformadan yuklab oling."
+
+msgid "The file was not found in storage."
+msgstr "Fayl omborda topilmadi."
+
+msgid "The ZIP archive is larger than 50 MB, Telegram does not accept it. Download the ZIP from the platform."
+msgstr "ZIP arxiv 50 MB dan katta, Telegram uni qabul qilmaydi. ZIP'ni platformadan yuklab oling."
+
+msgid "Telegram did not accept the file. Check that the recipient has not blocked the bot."
+msgstr "Telegram faylni qabul qilmadi. Qabul qiluvchi botni bloklamaganini tekshiring."
+
+msgid "Download ZIP (%(counter)s document)"
+msgid_plural "Download ZIP (%(counter)s documents)"
+msgstr[0] "ZIP yuklab olish (%(counter)s ta hujjat)"
+
+msgid "Service account key (JSON)"
+msgstr "Service account kaliti (JSON)"
+
+msgid "Google Cloud → IAM → Service accounts → Keys → JSON. Paste the whole file content."
+msgstr "Google Cloud → IAM → Service accounts → Keys → JSON. Fayl mazmunini to'liq joylang."
+
+msgid "Root folder ID"
+msgstr "Ildiz papka ID"
+
+msgid "The part of the folder link after /folders/. The folder must be in a Shared Drive (or shared with the service account as Editor)."
+msgstr "Papka havolasidagi /folders/ dan keyingi qism. Papka Shared Drive ichida (yoki service account'ga «Muharrir» sifatida ulashilgan) bo'lishi kerak."
+
+msgid "Server copy after upload"
+msgstr "Yuklangandan keyin serverdagi nusxa"
+
+msgid "Deleting saves server disk space; files are then read from Drive."
+msgstr "O'chirish server diskini tejaydi; fayllar keyin Drive'dan o'qiladi."
+
+msgid "Keep"
+msgstr "Saqlash"
+
+msgid "Paste the service account JSON key (type «service_account»)."
+msgstr "Service account JSON kalitini joylang (turi «service_account»)."
+
+msgid "Google Drive: document archive"
+msgstr "Google Drive: hujjatlar arxivi"
+
+msgid "Share the root folder (or the Shared Drive) with this address as Editor:"
+msgstr "Ildiz papkani (yoki Shared Drive'ni) shu manzilga «Muharrir» sifatida ulashing:"
+
+msgid "Waiting for Drive"
+msgstr "Drive'ga navbatda"
+
+msgid "On Drive"
+msgstr "Drive'da"
+
+msgid "Drive error"
+msgstr "Drive xatosi"
+
+msgid "A file with this name already exists here, so it was saved as revision %(rev)s of «%(name)s»."
+msgstr "Bu yerda shu nomli fayl bor edi, shuning uchun u «%(name)s» ning %(rev)s-reviziyasi sifatida saqlandi."
+
+msgid "Revisions"
+msgstr "Reviziyalar"
+
+msgid "Open folder in Google Drive"
+msgstr "Papkani Google Drive'da ochish"
+
+
+msgid "Intermediate file handed over"
+msgstr "Oraliq fayl topshirildi"
+
+
+msgid "Worker PC token"
+msgstr "Ishchi kompyuter tokeni"
+
+msgid "A long random string; put the same value into worker/worker.ini on the worker PC."
+msgstr "Uzun tasodifiy satr; xuddi shuni ishchi kompyuterdagi worker/worker.ini ga yozing."
+
+msgid "Worker PC: AutoCAD, Word, Excel"
+msgstr "Ishchi kompyuter: AutoCAD, Word, Excel"
+
+msgid "Offline"
+msgstr "O'chiq"
+
+msgid "queued: %(q)s, errors: %(e)s"
+msgstr "navbatda: %(q)s, xatolar: %(e)s"
+
+msgid "Setup: worker/README.md"
+msgstr "O'rnatish: worker/README.md"
+

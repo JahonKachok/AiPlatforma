@@ -286,6 +286,229 @@ T = {
         "ru": "✅ Язык изменён: Русский",
         "en": "✅ Language changed: English",
     },
+
+    # --- Pult dispetcheri (apps/pult/dispatcher.py) -------------------------
+    "pd.accept": {"uz": "✅ Qabul qilaman", "ru": "✅ Принять", "en": "✅ Accept"},
+    "pd.accept_days": {"uz": "✅ Qabul ({days} kun)", "ru": "✅ Принять ({days} дн.)", "en": "✅ Accept ({days} d)"},
+    "pd.own_days": {"uz": "{days} kun", "ru": "{days} дн.", "en": "{days} d"},
+    "pd.decline": {"uz": "❌ Rad etish", "ru": "❌ Отказ", "en": "❌ Decline"},
+    "pd.submit": {"uz": "📤 Tekshiruvga topshirish", "ru": "📤 Сдать на проверку", "en": "📤 Submit for review"},
+    "pd.later": {"uz": "Keyinroq", "ru": "Позже", "en": "Later"},
+    # --- Orchestrator agentlari (apps/ai_agents/orchestrator.py) ----------
+    "ag.confirm": {"uz": "✅ Yozish", "ru": "✅ Записать", "en": "✅ Save"},
+    "ag.cancel": {"uz": "❌ Bekor", "ru": "❌ Отмена", "en": "❌ Cancel"},
+    "ag.cancelled": {"uz": "Bekor qilindi.", "ru": "Отменено.", "en": "Cancelled."},
+    "ag.project_summary": {
+        "uz": "💰 Kaznachey: {sign}{money}\nLoyiha: {project}\nKim: {who}\nToifa: {cat}\nSana: {date}\nYozaymi?",
+        "ru": "💰 Казначей: {sign}{money}\nПроект: {project}\nКто: {who}\nКатегория: {cat}\nДата: {date}\nЗаписать?",
+        "en": "💰 Treasurer: {sign}{money}\nProject: {project}\nWho: {who}\nCategory: {cat}\nDate: {date}\nSave it?",
+    },
+    "ag.office_summary": {
+        "uz": "🏢 Zavxoz: ofis xarajati {money}\nToifa: {cat}\nKim: {who}\nSana: {date}\nIzoh: {note}\nYozaymi?",
+        "ru": "🏢 Завхоз: офисный расход {money}\nКатегория: {cat}\nКому: {who}\nДата: {date}\nПримечание: {note}\nЗаписать?",
+        "en": "🏢 Quartermaster: office cost {money}\nCategory: {cat}\nTo: {who}\nDate: {date}\nNote: {note}\nSave it?",
+    },
+    "ag.project_saved": {
+        "uz": "✅ Operatsiya №{n} yozildi. «{project}» balansi: {balance}",
+        "ru": "✅ Операция №{n} записана. Баланс «{project}»: {balance}",
+        "en": "✅ Operation #{n} saved. «{project}» balance: {balance}",
+    },
+    "ag.office_saved": {
+        "uz": "✅ Ofis xarajati yozildi: {money} ({cat}).",
+        "ru": "✅ Офисный расход записан: {money} ({cat}).",
+        "en": "✅ Office cost saved: {money} ({cat}).",
+    },
+    "ag.project_unknown": {
+        "uz": "Loyiha aniqlanmadi («{name}»). Loyiha nomini aniqroq yozing.",
+        "ru": "Не понял проект («{name}»). Напишите название проекта точнее.",
+        "en": "Could not find the project («{name}»). Please name it more exactly.",
+    },
+    "ag.finance_denied": {
+        "uz": "Moliya yozuvlarini faqat rahbar yoki buxgalter kiritadi.",
+        "ru": "Финансовые записи вносят только руководитель или бухгалтер.",
+        "en": "Only a manager or accountant can record money operations.",
+    },
+    "ag.not_understood": {
+        "uz": "Tushuna olmadim — summani, valyutani va loyihani aniq yozing.",
+        "ru": "Не понял — напишите сумму, валюту и проект точнее.",
+        "en": "I did not get it — please state the amount, currency and project.",
+    },
+    "ag.remembered": {
+        "uz": "🧠 Eslab qoldim — keyingi vazifalarda shunday qilaman.",
+        "ru": "🧠 Запомнил — буду так делать в следующих задачах.",
+        "en": "🧠 Noted — I will apply this from now on.",
+    },
+    "ag.no_files": {"uz": "Mos fayl topilmadi.", "ru": "Подходящих файлов нет.", "en": "No matching files."},
+    "ag.recipient_unknown": {
+        "uz": "Qabul qiluvchi aniq emas: «{name}».",
+        "ru": "Не понял получателя: «{name}».",
+        "en": "Recipient is unclear: «{name}».",
+    },
+    "ag.recipient_no_tg": {
+        "uz": "{name} Telegram'ni platformaga ulamagan.",
+        "ru": "{name} не привязал Telegram к платформе.",
+        "en": "{name} has not linked Telegram.",
+    },
+    "ag.files_sending": {
+        "uz": "📦 Arxivarius: {count} ta fayl {name} ga yuborilmoqda.",
+        "ru": "📦 Архивариус: {count} файл(ов) отправляются — {name}.",
+        "en": "📦 Archivist: sending {count} file(s) to {name}.",
+    },
+    "ag.jobs_queued": {
+        "uz": "🖥 {count} ta fayl ishchi kompyuter navbatiga qo'yildi — tayyor bo'lgach shu yerga yuboraman.",
+        "ru": "🖥 Файлов в очереди рабочего компьютера: {count} — пришлю сюда, когда будет готово.",
+        "en": "🖥 {count} file(s) queued on the worker PC — I will send them here when ready.",
+    },
+    "ag.jobs_queued_offline": {
+        "uz": "🖥 {count} ta fayl navbatga qo'yildi, lekin ishchi kompyuter hozir o'chiq — yoqilgach bajariladi.",
+        "ru": "🖥 Файлов в очереди: {count}, но рабочий компьютер сейчас выключен — выполнится, когда включится.",
+        "en": "🖥 {count} file(s) queued, but the worker PC is offline — they run once it is back.",
+    },
+    "ag.which_lang": {
+        "uz": "Qaysi tilga tarjima qilay: xitoy, rus yoki ingliz?",
+        "ru": "На какой язык перевести: китайский, русский или английский?",
+        "en": "Translate into which language: Chinese, Russian or English?",
+    },
+    "ag.letter_queued": {
+        "uz": "✍️ «{title}» tayyorlandi, PDF qilinmoqda — keyin direktorga imzoga yuboraman.",
+        "ru": "✍️ «{title}» подготовлено, делаю PDF — затем отправлю директору на подпись.",
+        "en": "✍️ «{title}» is drafted, making the PDF — then it goes to the director for signature.",
+    },
+    "ag.letter_queued_offline": {
+        "uz": "✍️ «{title}» tayyorlandi. PDF ishchi kompyuter yoqilgach qilinadi va direktorga imzoga ketadi.",
+        "ru": "✍️ «{title}» подготовлено. PDF сделает рабочий компьютер, когда включится, и отправит директору.",
+        "en": "✍️ «{title}» is drafted. The worker PC will make the PDF when it is back and send it for signature.",
+    },
+    "ag.sign_ok": {"uz": "✅ Imzo va muhr", "ru": "✅ Подписать и печать", "en": "✅ Sign and seal"},
+    "ag.sign_no": {"uz": "❌ Rad etish", "ru": "❌ Отклонить", "en": "❌ Reject"},
+    "ag.sign_ask": {"uz": "Imzoga: {name} ({who})", "ru": "На подпись: {name} ({who})", "en": "For signature: {name} ({who})"},
+    "ag.sign_question": {
+        "uz": "«{name}» ga imzo va muhr qo'yaymi?",
+        "ru": "Поставить подпись и печать на «{name}»?",
+        "en": "Put the signature and seal on «{name}»?",
+    },
+    "ag.sign_sent": {
+        "uz": "📨 Hujjat direktorga imzoga yuborildi.",
+        "ru": "📨 Документ отправлен директору на подпись.",
+        "en": "📨 Sent to the director for signature.",
+    },
+    "ag.sign_pdf_only": {
+        "uz": "Imzoga faqat PDF yuboring.",
+        "ru": "На подпись отправляйте PDF.",
+        "en": "Send a PDF for signature.",
+    },
+    "ag.no_signers": {
+        "uz": "Imzo huquqi bor va Telegram'i ulangan rahbar topilmadi.",
+        "ru": "Нет руководителя с правом подписи и привязанным Telegram.",
+        "en": "No signer with a linked Telegram was found.",
+    },
+    "ag.sign_denied": {
+        "uz": "Imzo va muhrni faqat direktor (imzo huquqi borlar) qo'yadi.",
+        "ru": "Подпись и печать ставит только директор (с правом подписи).",
+        "en": "Only the director (signers) can sign and seal.",
+    },
+    "ag.sign_rejected": {"uz": "Rad etildi, muallifga xabar berildi.", "ru": "Отклонено, автору сообщено.", "en": "Rejected, the author was told."},
+    "ag.no_seal": {
+        "uz": "Imzo va muhr rasmlari yuklanmagan (Pult → Запросы → Подпись и печать).",
+        "ru": "Не загружены подпись и печать (Пульт → Запросы → Подпись и печать).",
+        "en": "Signature and seal images are not uploaded (Pult → Requests).",
+    },
+    "ag.no_label": {
+        "uz": "PDF'da «Директор» yozuvi topilmadi (skan bo'lsa matn qatlami yo'q). Saytdagi Pult orqali qo'lda qo'ying.",
+        "ru": "В PDF не найдено слово «Директор» (у скана нет текста). Поставьте вручную через Пульт на сайте.",
+        "en": "No «Директор» label found in the PDF (scans have no text layer). Place it manually in the Pult.",
+    },
+    "ag.signed": {"uz": "✅ «{name}» imzolandi va muhrlandi.", "ru": "✅ «{name}» подписан и заверен печатью.", "en": "✅ «{name}» signed and sealed."},
+    "ag.voice_needs_gemini": {
+        "uz": "Ovozli xabarni tushunish uchun admin panelda Gemini kaliti kerak. Hozircha matn bilan yozing.",
+        "ru": "Для голосовых сообщений нужен ключ Gemini в админ-панели. Пока напишите текстом.",
+        "en": "Voice messages need a Gemini key in the admin panel. Please type for now.",
+    },
+    "pd.no_active": {
+        "uz": "Hozir ishdagi vazifangiz yo'q.",
+        "ru": "Сейчас у вас нет задач в работе.",
+        "en": "You have no tasks in progress.",
+    },
+    "pd.choose_days": {
+        "uz": "Muddat belgilanmagan — necha kunda bajarasiz? ГИП tasdiqlaydi.",
+        "ru": "Срок не назван — за сколько дней сделаете? ГИП утвердит.",
+        "en": "No term set — how many days do you need? The GIP will approve.",
+    },
+    "pd.ask_decline": {
+        "uz": "№{n}: rad etish sababini yozing (ТЗ'dagi kamchilik):",
+        "ru": "№{n}: напишите причину отказа (что не так в ТЗ):",
+        "en": "#{n}: write why you decline (what is wrong in the brief):",
+    },
+    "pd.done": {"uz": "✅ №{n}: {status}", "ru": "✅ №{n}: {status}", "en": "✅ #{n}: {status}"},
+    "pd.report_saved": {
+        "uz": "✅ №{n}: bugungi hisobot — {pct}%",
+        "ru": "✅ №{n}: отчёт за сегодня — {pct}%",
+        "en": "✅ #{n}: today's report — {pct}%",
+    },
+    "pd.ask_mid_file": {
+        "uz": "№{n} 50% ga yetdi. Oraliq faylni (isxodnik) shu chatga yuboring — u platformaga va Google Drive'ga yuklanadi.",
+        "ru": "№{n} достигла 50%. Пришлите сюда промежуточный файл (исходник) — он попадёт на платформу и в Google Drive.",
+        "en": "#{n} reached 50%. Send the intermediate (source) file here — it goes to the platform and Google Drive.",
+    },
+    "pd.mid_saved": {
+        "uz": "📎 №{n}: oraliq fayl qabul qilindi — {name}",
+        "ru": "📎 №{n}: промежуточный файл принят — {name}",
+        "en": "📎 #{n}: intermediate file received — {name}",
+    },
+    "pd.mid_later": {
+        "uz": "Mayli. Faylni keyin ham yuborishingiz mumkin — 50% dan oshgan vazifa bo'yicha bot yana so'raydi.",
+        "ru": "Хорошо. Файл можно прислать позже — бот напомнит по задаче выше 50%.",
+        "en": "OK. You can send the file later — the bot will remind you.",
+    },
+    "pd.report_ask": {
+        "uz": "📊 №{n} «{title}» — bugun necha foiz bajarildi? (hozir {pct}%)",
+        "ru": "📊 №{n} «{title}» — сколько процентов сделано сегодня? (сейчас {pct}%)",
+        "en": "📊 #{n} «{title}» — how much is done today? (now {pct}%)",
+    },
+    "pd.alarm_50": {
+        "uz": "🚨 TREVOGA №{n} «{title}»: muddatning {elapsed}% o'tdi, bajarilgani {pct}% (50% ga yetmagan). Muddat: {plan}.",
+        "ru": "🚨 ТРЕВОГА №{n} «{title}»: прошло {elapsed}% срока, сделано {pct}% (меньше 50%). Срок: {plan}.",
+        "en": "🚨 ALARM #{n} «{title}»: {elapsed}% of the term passed, {pct}% done (below 50%). Due: {plan}.",
+    },
+    "pd.alarm_70": {
+        "uz": "🚨 TREVOGA №{n} «{title}»: muddatning {elapsed}% o'tdi, bajarilgani {pct}% (70% ga yetmagan). Muddat: {plan}.",
+        "ru": "🚨 ТРЕВОГА №{n} «{title}»: прошло {elapsed}% срока, сделано {pct}% (меньше 70%). Срок: {plan}.",
+        "en": "🚨 ALARM #{n} «{title}»: {elapsed}% of the term passed, {pct}% done (below 70%). Due: {plan}.",
+    },
+    "pd.not_linked": {
+        "uz": "Telegram hisobingiz platformaga ulanmagan.",
+        "ru": "Ваш Telegram не привязан к платформе.",
+        "en": "Your Telegram is not linked to the platform.",
+    },
+    "pd.expired": {
+        "uz": "Bu tugma eskirgan. Vazifani platformada oching.",
+        "ru": "Кнопка устарела. Откройте задачу на платформе.",
+        "en": "This button is outdated. Open the task on the platform.",
+    },
+    "pd.file_bad": {
+        "uz": "Bu fayl turi qabul qilinmaydi yoki fayl juda katta (20 MB gacha).",
+        "ru": "Такой тип файла не принимается или файл слишком большой (до 20 МБ).",
+        "en": "This file type is not accepted or the file is too large (up to 20 MB).",
+    },
+    "pd.kpi": {
+        "uz": "📈 <b>KPI — {month}</b>\nBallaringiz: <b>{points}</b> (qabul qilingan vazifalar: {tasks})\nReytingdagi o'rin: {rank} / {total}",
+        "ru": "📈 <b>KPI — {month}</b>\nВаши баллы: <b>{points}</b> (принято задач: {tasks})\nМесто в рейтинге: {rank} / {total}",
+        "en": "📈 <b>KPI — {month}</b>\nYour points: <b>{points}</b> (accepted tasks: {tasks})\nRank: {rank} / {total}",
+    },
+    "pd.kpi_rules": {
+        "uz": "⚖️ <b>KPI qoidalari</b> — ballar avtomatik yoziladi va iltimos bilan o'zgartirilmaydi:\n"
+              "• muddatdan oldin topshirish: {early}\n• o'z vaqtida: {ontime}\n• kechikish ({late_days} kundan ko'p): {late}\n"
+              "• qayta ishlashsiz qabul: {clean}; har bir qayta ishlash: −{rework}\n"
+              "• o'tkazib yuborilgan kunlik hisobot: −{missed} (vazifa uchun ko'pi bilan −{missed_max})",
+        "ru": "⚖️ <b>Правила KPI</b> — баллы начисляются автоматически и по просьбам не меняются:\n"
+              "• сдача раньше срока: {early}\n• вовремя: {ontime}\n• опоздание (больше {late_days} дн.): {late}\n"
+              "• принято без доработок: {clean}; каждая доработка: −{rework}\n"
+              "• пропуск ежедневного отчёта: −{missed} (не больше −{missed_max} за задачу)",
+        "en": "⚖️ <b>KPI rules</b> — points are applied automatically and are not changed on request:\n"
+              "• submitted early: {early}\n• on time: {ontime}\n• late (more than {late_days} d): {late}\n"
+              "• accepted without reworks: {clean}; each rework: −{rework}\n"
+              "• missed daily report: −{missed} (at most −{missed_max} per task)",
+    },
 }
 
 MENU_KEYS = ["menu.profile", "menu.upload", "menu.settings", "menu.help", "menu.report"]

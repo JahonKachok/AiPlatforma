@@ -1,16 +1,15 @@
-import io
-import zipfile
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
-from django.http import FileResponse, Http404, HttpResponse
+from django.db.models import Q
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from apps.accounts.models import Discipline, User
 from apps.core.json_utils import script_json
 from apps.notifications.services import notify_user
 from apps.projects.models import Section, SubObject, SubObjectDiscipline
@@ -20,7 +19,10 @@ from .forms import (
     ApprovalReviewForm, ApprovalStageFormSet, ApprovalSubmissionForm, DocumentUploadForm, DocumentVersionForm,
 )
 from .models import ApprovalStage, ApprovalStatus, AuditLog, Document, DocumentStatus, DocumentVersion
+from .archivist import add_revision, find_same_file, open_file
+from .services import build_zip, file_basename, zip_filename
 from .services import resolve_gip_reviewer as _resolve_gip_reviewer
+from .tasks import send_documents_to_telegram
 
 
 def _visible_documents(user):
@@ -43,22 +45,53 @@ def _submission_cascade_json(projects):
     return script_json({"subObjects": sub_objects})
 
 
+# Fayl turi filtri: kalit -> fayl nomi oxiri (regex).
+FILE_KINDS = {
+    "dwg": ("DWG", r"\.dwg$"),
+    "pdf": ("PDF", r"\.pdf$"),
+    "xls": ("Excel", r"\.xls[xm]?$"),
+    "doc": ("Word", r"\.docx?$"),
+}
+
+
+def _filtered_documents(request):
+    """Ro'yxat filtrlari (GET): loyiha, obyekt, intizom, fayl turi, holat,
+    qidiruv. ZIP yuklash ham aynan shu natijani oladi."""
+    documents = _visible_documents(request.user).select_related(
+        "section__sub_object__parent", "section__discipline",
+    )
+    g = request.GET
+    filters = {k: g.get(k, "") for k in ("project", "sub_object", "discipline", "kind", "status", "doc_type", "search")}
+    if filters["project"]:
+        documents = documents.filter(project_id=filters["project"])
+    if filters["sub_object"]:
+        # Obyekt tanlansa — uning pod-obyektlaridagi hujjatlar ham.
+        documents = documents.filter(
+            Q(section__sub_object_id=filters["sub_object"]) | Q(section__sub_object__parent_id=filters["sub_object"])
+        )
+    if filters["discipline"]:
+        documents = documents.filter(section__discipline_id=filters["discipline"])
+    if filters["kind"] in FILE_KINDS:
+        documents = documents.filter(file__iregex=FILE_KINDS[filters["kind"]][1])
+    if filters["status"]:
+        documents = documents.filter(status=filters["status"])
+    if filters["doc_type"]:
+        documents = documents.filter(doc_type=filters["doc_type"])
+    if filters["search"]:
+        documents = documents.filter(name__icontains=filters["search"])
+    return documents, filters
+
+
+def _telegram_recipients():
+    return (
+        User.objects.filter(is_active=True).exclude(telegram_chat_id__isnull=True).exclude(telegram_chat_id="")
+        .order_by("full_name")
+    )
+
+
 @login_required
 def document_list(request):
-    documents = _visible_documents(request.user)
-
-    project_id = request.GET.get("project")
-    if project_id:
-        documents = documents.filter(project_id=project_id)
-    status = request.GET.get("status")
-    if status:
-        documents = documents.filter(status=status)
-    doc_type = request.GET.get("doc_type")
-    if doc_type:
-        documents = documents.filter(doc_type=doc_type)
-    search = request.GET.get("search")
-    if search:
-        documents = documents.filter(name__icontains=search)
+    documents, filters = _filtered_documents(request)
 
     if request.method == "POST":
         ids = request.POST.getlist("selected")
@@ -73,25 +106,47 @@ def document_list(request):
                 document.delete()
             messages.success(request, _("Selected documents deleted."))
             return redirect("documents:list")
+        if "send_telegram" in request.POST:
+            recipient = _telegram_recipients().filter(pk=request.POST.get("recipient") or request.user.pk).first()
+            count = _visible_documents(request.user).filter(pk__in=ids).exclude(file="").count() if ids else 0
+            if not count:
+                messages.error(request, _("Select documents with files to send."))
+            elif recipient is None:
+                messages.error(request, _("The recipient has not linked Telegram."))
+            else:
+                send_documents_to_telegram.delay(str(request.user.pk), str(recipient.pk), [str(i) for i in ids])
+                messages.success(request, _("%(count)s file(s) are being sent to %(name)s in Telegram.") % {
+                    "count": count, "name": recipient.get_short_name(),
+                })
+            return redirect(request.get_full_path())
 
-    status_counts = {
-        value: _visible_documents(request.user).filter(status=value).count()
-        for value, _label in DocumentStatus.choices
-    }
+    visible = _visible_documents(request.user)
+    status_counts = {value: visible.filter(status=value).count() for value, _label in DocumentStatus.choices}
 
     paginator = Paginator(documents, 20)
     page_obj = paginator.get_page(request.GET.get("page"))
+    query = request.GET.copy()
+    query.pop("page", None)
+
+    sub_objects = SubObject.objects.none()
+    if filters["project"]:
+        sub_objects = SubObject.objects.filter(
+            project_id=filters["project"], project__in=visible_projects_for(request.user),
+        ).select_related("parent").order_by("parent__name", "name")
 
     return render(request, "documents/document_list.html", {
         "page_obj": page_obj,
         "status_counts": status_counts,
-        "total": _visible_documents(request.user).count(),
+        "total": visible.count(),
+        "filtered_total": paginator.count,
         "statuses": DocumentStatus.choices,
         "projects": visible_projects_for(request.user),
-        "filters": {
-            "project": project_id or "", "status": status or "",
-            "doc_type": doc_type or "", "search": search or "",
-        },
+        "sub_objects": sub_objects,
+        "disciplines": Discipline.objects.filter(sections__documents__in=visible).distinct(),
+        "file_kinds": [(k, label) for k, (label, _rx) in FILE_KINDS.items()],
+        "filters": filters,
+        "querystring": query.urlencode(),
+        "recipients": _telegram_recipients(),
     })
 
 
@@ -101,6 +156,16 @@ def document_upload(request):
         form = DocumentUploadForm(request.POST, request.FILES)
         form.fields["project"].queryset = visible_projects_for(request.user)
         if form.is_valid():
+            uploaded = form.cleaned_data.get("file")
+            same = uploaded and find_same_file(form.cleaned_data["project"], form.cleaned_data.get("section"), uploaded.name)
+            if same and _can_modify(request.user, same):
+                # Arxivarius: shu bo'limda shu nomli fayl bor — bu uning yangi reviziyasi.
+                version = add_revision(same, uploaded, request.user)
+                AuditLog.log(obj=same, action="new_version", user=request.user, details={"version": version.version_number})
+                messages.success(request, _("A file with this name already exists here, so it was saved as revision %(rev)s of «%(name)s».") % {
+                    "rev": version.revision, "name": same.name,
+                })
+                return redirect("documents:detail", pk=same.pk)
             document = form.save(commit=False)
             document.uploaded_by = request.user
             if document.file:
@@ -145,11 +210,11 @@ def document_download(request, pk):
     if not document.file:
         raise Http404
     try:
-        file_handle = document.file.open("rb")
+        file_handle = open_file(document)
     except FileNotFoundError:
         raise Http404
     AuditLog.log(obj=document, action="downloaded", user=request.user)
-    return FileResponse(file_handle, as_attachment=True, filename=document.file.name.split("/")[-1])
+    return FileResponse(file_handle, as_attachment=True, filename=file_basename(document))
 
 
 @login_required
@@ -164,31 +229,29 @@ def document_version_download(request, pk):
     if not version.file:
         raise Http404
     try:
-        file_handle = version.file.open("rb")
+        file_handle = open_file(version)
     except FileNotFoundError:
         raise Http404
     AuditLog.log(obj=version.document, action="version_downloaded", user=request.user)
-    return FileResponse(file_handle, as_attachment=True, filename=version.file.name.split("/")[-1])
+    return FileResponse(file_handle, as_attachment=True, filename=file_basename(version))
 
 
 @login_required
 def document_bulk_download(request):
-    ids = request.GET.getlist("id")
-    documents = _visible_documents(request.user).filter(pk__in=ids)
-    buffer = io.BytesIO()
-    with zipfile.ZipFile(buffer, "w") as zf:
-        for document in documents:
-            if document.file:
-                try:
-                    content = document.file.read()
-                except FileNotFoundError:
-                    continue
-                zf.writestr(document.file.name.split("/")[-1], content)
-                AuditLog.log(obj=document, action="bulk_download", user=request.user)
-    buffer.seek(0)
-    response = HttpResponse(buffer.getvalue(), content_type="application/zip")
-    response["Content-Disposition"] = 'attachment; filename="documents.zip"'
-    return response
+    """ZIP: ?id=... — tanlanganlar, ?all=1 — ro'yxat filtridagi hammasi.
+    Arxiv ichida fayllar Loyiha/Obyekt/Intizom papkalarida."""
+    if request.GET.get("all"):
+        documents, _filters = _filtered_documents(request)
+    else:
+        documents = _visible_documents(request.user).filter(pk__in=request.GET.getlist("id")).select_related(
+            "section__sub_object__parent", "section__discipline",
+        )
+    documents = list(documents)
+    archive, added = build_zip(documents)
+    for document in added:
+        AuditLog.log(obj=document, action="bulk_download", user=request.user)
+    return FileResponse(archive, as_attachment=True, filename=zip_filename(added or documents),
+                        content_type="application/zip")
 
 
 @login_required
@@ -213,21 +276,8 @@ def document_add_version(request, pk):
     if request.method == "POST":
         form = DocumentVersionForm(request.POST, request.FILES)
         if form.is_valid():
-            major = document.version.split(".")[0] if "." in document.version else document.version
-            try:
-                minor = int(document.version.split(".")[1]) + 1
-            except (IndexError, ValueError):
-                minor = 1
-            new_version = f"{major}.{minor}"
-            uploaded = form.cleaned_data["file"]
-            DocumentVersion.objects.create(
-                document=document, version_number=new_version, file=uploaded,
-                file_size=uploaded.size, uploaded_by=request.user, notes=form.cleaned_data.get("notes"),
-            )
-            document.file = uploaded
-            document.version = new_version
-            document.file_size = uploaded.size
-            document.save()
+            version = add_revision(document, form.cleaned_data["file"], request.user, form.cleaned_data.get("notes"))
+            new_version = version.version_number
             AuditLog.log(obj=document, action="new_version", user=request.user, details={"version": new_version})
             messages.success(request, _("New version uploaded."))
     return redirect("documents:detail", pk=pk)

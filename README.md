@@ -45,6 +45,7 @@ celery -A aiplatforma worker --loglevel=info
 celery -A aiplatforma beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
 python manage.py setup_periodic_tasks   # registers the hourly deadline-check task
 python manage.py setup_pult_periodic_tasks  # Pult: 17:30 report reminder, 08:30 "waiting for your decision" digest
+python manage.py drive_sync --schedule  # every 30 min: upload revisions that are not on Google Drive yet
 ```
 
 ### AI agents (Claude)
@@ -56,6 +57,26 @@ python manage.py run_ai_agent            # manual test run (prints the report; -
 python manage.py setup_ai_periodic_tasks # registers the daily 08:00 Celery Beat task
 ```
 
+### Google Drive archive (Arxivarius)
+
+Every document revision (`DocumentVersion` — the revisions registry, numbered 1, 2, 3…) is uploaded to Google Drive as `<root>/<Project>/<Object>/<Pod-object>/<Discipline>/<file>` with its original file name; when a new revision arrives the previous ones move to the `Old` subfolder of the same folder. Uploading a file with the same name into the same project section adds a revision instead of a duplicate document. Code: `apps/documents/archivist.py`, `drive.py`.
+
+Setup (admin panel → Integrations → Google Drive):
+
+1. Google Cloud console: enable the **Google Drive API**, create a service account, add a **JSON key**, paste the whole JSON.
+2. Create a **Shared Drive** (a service account has no storage of its own), add the service account e-mail shown on the settings page as *Content manager/Editor*, create the root folder and paste its ID (the part after `/folders/`).
+3. Optional: "Server copy after upload → Delete" to save disk space; files are then read back from Drive.
+
+Without the key nothing is uploaded and revisions stay "Waiting for Drive"; `python manage.py drive_sync` (and the 30-min beat task) uploads them later.
+
+### AI Orchestrator (Telegram)
+
+`apps/ai_agents/orchestrator.py` routes each Telegram text or voice message (voice is transcribed by Gemini first) by keywords, with no LLM call for routing: money + amount → **Kaznachey** (project income/expense into the Pult operations register) or **Zavxoz** (office costs: salary, rent, furniture, stationery, inventory, repair → administrative expenses); "zip / tashlab ber" → **Arxivarius** (sends the files of a project/object/discipline); "kpi / reyting" → KPI; "eslab qol: …" / "запомни: …" → a correction saved in `AgentMemory` and added to that agent's prompt from then on. Everything else goes to the regular AI chat. Each agent makes one short structured-output call (`ask_json`, strict JSON schema, effort `low`); money operations are written only after the ✅ button. Prompts and JSON schemas of the orchestrator and all 9 agents live in `apps/ai_agents/prompts.py`; the worker-PC agents (translator, printer/stamp, norm control, secretary) run in the next stage. Zavxoz reminds finance roles of recurring office payments at 09:00 (`zavxoz_office_payments`, registered by `setup_periodic_tasks`).
+
+### Worker PC (AutoCAD / Word / Excel)
+
+A Windows PC that is always on runs `worker/gaztek_worker.py` and pulls jobs from `/api/worker/` with the `WORKER_TOKEN` set under Integrations (outgoing HTTPS only; the Claude key stays on the server, the worker calls `/api/worker/ai/`). Jobs: `dwg_print` (fill empty title-block attributes + plot every layout with its own page setup to one PDF), `dwg_translate` / `xlsx_translate` (zh/ru/en, file names unchanged, overflowing text squeezed, overlaps counted), `docx_to_pdf` (secretary letters), `norm_control` (sheet format, text outside the frame, overlapping text → remarks). Results come back as document revisions (then Google Drive) and are sent to the requester in Telegram. Letters: "xat tayyorla …" → DOCX on the letterhead → PDF on the worker → signers get it in Telegram with ✅ → signature and seal PNGs are placed next to «Директор» on the server (`apps/documents/signing.py`). A PDF sent to the bot with the caption "imzola" goes the same way. Setup: `worker/README.md`.
+
 ### GASTEC Pult
 
 The former Google-Sheets "GASTEC Пульт" page now runs on the platform's own data (`apps/pult`). Every `tasks.Task` gets a `TaskWorkflow` row with a sequential № and the Pult's 10-step status (Черновик → Новая → … → Принята); `Task.status` is kept in sync, so the regular task board stays correct. All transitions (issue ТЗ, propose/approve the term, submit, accept, send back) are checked on the server in `apps/pult/services.py`. KPI points, the working calendar (holidays) and task templates are edited in the Django admin under "GASTEC Пульт".
@@ -64,7 +85,7 @@ The UI lives in `static/pult/pult.js` + `templates/pult/` and is shown in an ifr
 
 | Menu | Pult pages (URL) |
 |---|---|
-| Tasks | Моя работа `/tasks/my-work/`, Задачи `/tasks/register/`, Канбан `/tasks/sections/`, Ганта `/tasks/gantt/` |
+| Tasks | Моя работа `/tasks/my-work/`, Задачи `/tasks/register/`, Ганта `/tasks/gantt/` |
 | Projects | Состав `/projects/composition/`, График `/projects/schedule/` |
 | Finance | Операции `/finance/operations/`, Договоры `/finance/contracts/` |
 | Users | Сотрудники `/accounts/users/workload/`, KPI `/accounts/users/kpi/` |
@@ -72,6 +93,8 @@ The UI lives in `static/pult/pult.js` + `templates/pult/` and is shown in an ifr
 | Inquiries | Запросы `/inquiries/` (own menu item, admin/manager only) |
 
 Which pages a role sees is decided on the server (`nav.allowed_pages`) and sent to the browser as `viewer.pages`. The old `/pult/` address redirects to "My work".
+
+**Telegram dispatcher** (`apps/pult/dispatcher.py`, buttons handled in `run_telegram_bot`): a new task reaches the assignee with *Accept* (or term options 3/5/7/10/15 days) and *Decline* (asks for the reason, sends the task back to the GIP as a draft). The 17:30 report reminder comes with 10–100 % buttons (`/report` shows them any time); at 50 % the bot asks for the intermediate file and stores it as a document revision (then Google Drive); at 100 % it offers *Submit for review*. Every working day at 10:00 (`pult_task_alarms`) assignees get an alarm when half of the term has passed with less than 50 % done, or 70 % with less than 70 %. `/kpi` shows the month's points, rank and the penalty rules (also sent once when Telegram is linked); points use the Pult KPI settings in the admin.
 
 - **Состав / График проекта** — `PlanRow` (`apps/pult/plan.py`). Dates, links and the critical path are calculated in the browser; the server stores the rows, writes only projects the user may plan (admin/manager, or a GIP of the project) and rejects a save made on stale data (`PultSettings.plan_version`). The «Из объектов платформы» button copies objects, pod-objects and disciplines entered in the project wizard into the composition (once per item, tracked by `PlanRow.source_key`). Disciplines are the platform's `accounts.Discipline` plus `DisciplineConfig` (duration, typical links, cipher code); cipher rules and stages (Смета/Оформление/Печать) are in the admin.
 - **Финансы / Договоры** — `apps/pult/finance.py`, visible to admin/manager/finance only. An operation is a `finance.FinancialRecord` (one per currency) plus `OperationInfo`; a contract with a platform employee is mirrored into `finance.EmployeeContract`, so the payment also shows on the Finance and "My salary" pages. The USD rate comes from Finance settings.

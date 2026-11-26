@@ -137,7 +137,47 @@ def build_telegram_tools(user, found_documents: list | None = None):
         ]
         return "Muddati o'tgan/yaqin vazifalar:\n" + "\n".join(lines)
 
-    tools = [find_documents, find_tasks, list_projects, list_overdue_tasks]
+    def send_documents_zip(project_name: str, recipient_name: str = "", object_name: str = "",
+                           discipline_code: str = "") -> str:
+        """Arxivarius: loyiha (obyekt/intizom bo'yicha tor) hujjatlarini Telegram'ga
+        yuboradi — bitta fayl o'zicha, bir nechtasi ZIP (Obyekt/Intizom papkalari).
+        Masalan: "Aliga Zavod loyihasining 1-bino barcha razdellarini ZIP qilib tashla".
+
+        project_name: loyiha nomi (qismi).
+        recipient_name: kimga (xodim F.I.Sh. qismi); bo'sh — so'rovchining o'ziga.
+        object_name: obyekt yoki pod-obyekt nomi (qismi); bo'sh — butun loyiha.
+        discipline_code: intizom kodi (AR, KJ, OV...); bo'sh — barcha intizomlar.
+        """
+        from django.db.models import Q
+
+        from apps.accounts.models import User
+        from apps.documents.tasks import send_documents_to_telegram
+
+        project, error = _find_project(project_name)
+        if error:
+            return error
+        docs = Document.objects.filter(project=project).exclude(file="").exclude(file__isnull=True)
+        if object_name.strip():
+            o = object_name.strip()
+            docs = docs.filter(Q(section__sub_object__name__icontains=o) | Q(section__sub_object__parent__name__icontains=o))
+        if discipline_code.strip():
+            docs = docs.filter(section__discipline__code__iexact=discipline_code.strip())
+        ids = [str(pk) for pk in docs.values_list("pk", flat=True)[:500]]
+        if not ids:
+            return "Mos fayl topilmadi."
+        recipient = user
+        if recipient_name.strip():
+            found = list(User.objects.filter(is_active=True, full_name__icontains=recipient_name.strip())[:5])
+            if len(found) != 1:
+                names = "; ".join(u.full_name for u in found)
+                return f"Qabul qiluvchi aniq emas: {names or 'topilmadi'}."
+            recipient = found[0]
+        if not recipient.telegram_chat_id:
+            return f"{recipient.full_name} Telegram'ni platformaga ulamagan."
+        send_documents_to_telegram.delay(str(user.pk), str(recipient.pk), ids)
+        return f"{len(ids)} ta fayl {recipient.full_name} ga yuborilmoqda."
+
+    tools = [find_documents, find_tasks, list_projects, list_overdue_tasks, send_documents_zip]
 
     if not _can_mutate(user):
         return tools

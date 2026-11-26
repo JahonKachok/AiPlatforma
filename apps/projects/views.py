@@ -16,6 +16,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import Discipline, User
 from apps.core.json_utils import script_json
+from apps.documents.archivist import open_file
 from apps.documents.models import AuditLog, Document, DocumentVersion
 from apps.finance.forms import FinancialRecordForm
 from apps.finance.permissions import can_manage_finance
@@ -738,8 +739,11 @@ def project_documents_download_zip(request, pk):
                 filename = f"{stem or filename}-{document.pk.hex[:8]}{('.' + ext) if ext else ''}"
                 arcname = f"{folder}/{filename}"
             used_names.add(arcname)
-            with document.file.open("rb") as fh:
-                archive.writestr(arcname, fh.read())
+            try:
+                with open_file(document) as fh:
+                    archive.writestr(arcname, fh.read())
+            except FileNotFoundError:
+                continue
 
     response = HttpResponse(buffer.getvalue(), content_type="application/zip")
     response["Content-Disposition"] = f'attachment; filename="{project.name}-source-files.zip"'

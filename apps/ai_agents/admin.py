@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import AILog
+from .models import AgentMemory, AILog
 
 
 @admin.register(AILog)
@@ -12,3 +12,10 @@ class AILogAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False
+
+
+@admin.register(AgentMemory)
+class AgentMemoryAdmin(admin.ModelAdmin):
+    list_display = ["agent", "text", "user", "created_at"]
+    list_filter = ["agent"]
+    search_fields = ["text"]

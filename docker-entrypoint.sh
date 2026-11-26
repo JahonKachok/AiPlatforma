@@ -6,5 +6,6 @@ python manage.py migrate --noinput
 python manage.py collectstatic --noinput --ignore=input.css
 python manage.py setup_periodic_tasks
 python manage.py setup_pult_periodic_tasks
+python manage.py drive_sync --schedule
 
 exec "$@"

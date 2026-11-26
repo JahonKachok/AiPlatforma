@@ -34,12 +34,14 @@ def send_message(chat_id, text, parse_mode="HTML", buttons=None):
     bot = _bot()
     if bot is None:
         logger.debug("Telegram bot not configured; skipping message to %s", chat_id)
-        return
+        return False
     import asyncio
     try:
         asyncio.run(bot.send_message(chat_id=chat_id, text=text, parse_mode=parse_mode, reply_markup=keyboard(buttons)))
     except Exception:
         logger.exception("Failed to send Telegram message to %s", chat_id)
+        return False
+    return True
 
 
 def send_document(chat_id, fileobj, filename, caption=""):

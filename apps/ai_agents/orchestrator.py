@@ -10,7 +10,9 @@ Token tejash tartibi:
 import re
 from dataclasses import dataclass, field
 from datetime import date, timedelta
+from uuid import UUID
 
+from django.db import transaction
 from django.db.models import Q, Sum
 from django.utils import timezone
 
@@ -23,10 +25,14 @@ from .services import ask_json
 PENDING_TTL = timedelta(hours=24)
 MEMORY_LIMIT = 8
 
-_AMOUNT = re.compile(r"\d")
+_AMOUNT = re.compile(r"\d|\b(?:ming|million|milliard|yuz|тысяч\w*|миллион\w*|миллиард\w*|"
+                     r"bir|ikki|uch|to[‘’'ʻ]?rt|besh|olti|yetti|sakkiz|to[‘’'ʻ]?qqiz|o[‘’'ʻ]?n|"
+                     r"yigirma|o[‘’'ʻ]?ttiz|qirq|ellik|oltmish|yetmish|sakson|to[‘’'ʻ]?qson|"
+                     r"один|одну|два|две|три|четыре|пять|шесть|семь|восемь|девять|десять|"
+                     r"\w+надцать|\w+дцать|\w+десят|сорок|сто|двести|триста|\w+сот)\b", re.I)
 _MONEY = re.compile(
     r"(\$|доллар|dollar|so['ʻ’]?m\b|сум|сўм|usd|uzs|o['ʻ’]?tkaz|to['ʻ’]?la|berdim|oldim|tushdi|kirim|chiqim|"
-    r"xarajat|перев|оплат|заплат|получил|поступ|расход|приход|ijara|аренд|zarplata|maosh|зарплат|"
+    r"xarajat|перев[её]л|перечисл|оплат|заплат|получил|поступ|расход|приход|ijara|аренд|zarplata|maosh|зарплат|"
     r"kanselyar|канцел|mebel|мебел|remont|ta['ʻ’]?mir|ремонт|inventar|инвентар|kommunal|коммунал|soliq|налог)",
     re.I,
 )
@@ -47,8 +53,9 @@ _MEMORY_AGENT = [
     ("treasurer", r"pul|so['ʻ’]?m|dollar|оплат|kirim|chiqim"),
     ("quartermaster", r"ofis|ijara|zarplata|офис|аренд"),
 ]
-WORKER_AGENTS = {"translator", "printer", "norm_control", "secretary"}
 _WORKER = [
+    ("drawing_pipeline", re.compile(r"(chizmalar konveyeri|dwg konveyer|конвейер чертежей|конвейер dwg)", re.I)),
+    ("gost", re.compile(r"(?:оформ\w*.*\bГОСТ|ГОСТ.*оформ|gost.*rasmiy|rasmiy.*gost|format.*gost)", re.I)),
     ("translator", re.compile(r"(tarjima qil|переведи|translate)", re.I)),
     ("printer", re.compile(r"(pdf ga|pdf qil|в pdf|to pdf|shtamp|штамп)", re.I)),
     ("norm_control", re.compile(r"(normokontrol|нормоконтрол|norm control)", re.I)),
@@ -59,7 +66,6 @@ OFFICE_STORE = {  # Zavxoz toifasi -> AdministrativeExpense.category
     "rent": "rent", "stationery": "supplies", "utilities": "utilities", "tax": "tax", "other": "other",
     "salary": "Зарплата", "furniture": "Мебель", "inventory": "Инвентарь", "repair": "Ремонт",
 }
-RECURRING = {"salary": "month", "rent": "month", "utilities": "month", "tax": "quarter"}
 
 
 @dataclass
@@ -128,11 +134,11 @@ def route(text):
         return "kpi"
     if _AMOUNT.search(text) and _MONEY.search(text):
         return "quartermaster" if _OFFICE.search(text) else "treasurer"
-    if _ARCHIVE.search(text):
-        return "archivist"
     for agent, rx in _WORKER:
         if rx.search(text):
             return agent
+    if _ARCHIVE.search(text):
+        return "archivist"
     return None
 
 
@@ -164,9 +170,9 @@ def _remember(user, lang, text):
 # ---------------------------------------------------------------- Kaznachey / Zavxoz
 
 def _finance(user, lang, text, agent):
-    from apps.finance.permissions import can_manage_finance
+    from apps.pult.services import is_boss
 
-    if not can_manage_finance(user):
+    if not is_boss(user):
         return Reply(t("ag.finance_denied", lang))
     data = ask_json(prompts.FINANCE + _memory_rules(user, agent), _context(user, text),
                     prompts.FINANCE_SCHEMA, agent=agent, max_tokens=600)
@@ -228,7 +234,7 @@ def _execute(pending):
     stored = OFFICE_STORE.get(cat, "other")
     if stored not in ("rent", "supplies", "utilities", "tax", "other"):
         FinanceCategory.objects.get_or_create(name=stored, type="admin", defaults={"created_by": user})
-    period = data["period"] if data["period"] in ("month", "quarter", "year") else RECURRING.get(cat, "month")
+    period = data["period"]
     note = " · ".join(x for x in (data["counterparty"], data["note"], "Telegram") if x)
     AdministrativeExpense.objects.create(
         category=stored, amount=float(data["amount"]), currency=data["currency"], period=period,
@@ -240,22 +246,32 @@ def _execute(pending):
 def confirm(user, data, lang="uz"):
     """Tugma «ag:ok:<id>» / «ag:no:<id>»."""
     from apps.pult.services import PultError
+    from apps.pult.services import is_boss
 
     parts = data.split(":")
-    if len(parts) != 3 or user is None:
+    if len(parts) != 3 or parts[0] != "ag" or parts[1] not in ("ok", "no") or user is None:
         return Reply(t("pd.expired", lang))
-    pending = PendingAction.objects.filter(
-        pk=parts[2] if re.fullmatch(r"[0-9a-f-]{36}", parts[2]) else None, user=user, done_at__isnull=True,
-        created_at__gte=timezone.now() - PENDING_TTL,
-    ).first()
-    if pending is None:
-        return Reply(t("pd.expired", lang))
-    pending.done_at = timezone.now()
-    pending.save(update_fields=["done_at"])
-    if parts[1] != "ok":
-        return Reply(t("ag.cancelled", lang))
     try:
-        key, fmt = _execute(pending)
+        key = UUID(parts[2])
+    except ValueError:
+        return Reply(t("pd.expired", lang))
+    available = PendingAction.objects.filter(
+        pk=key, user=user, done_at__isnull=True,
+        created_at__gte=timezone.now() - PENDING_TTL,
+    )
+    try:
+        with transaction.atomic():
+            if not available.update(done_at=timezone.now()):
+                return Reply(t("pd.expired", lang))
+            if parts[1] == "no":
+                return Reply(t("ag.cancelled", lang))
+            pending = PendingAction.objects.get(pk=key)
+            if pending.kind in ("task_create", "task_status"):
+                from .agent_tools import apply_task_proposal
+                return Reply(apply_task_proposal(pending, lang))
+            if pending.kind not in ("project_operation", "office_expense") or not is_boss(user):
+                return Reply(t("ag.finance_denied", lang))
+            key, fmt = _execute(pending)
     except PultError as exc:
         return Reply(f"⚠️ {exc.message}")
     return Reply(t(f"ag.{key}", lang, **fmt))
@@ -330,6 +346,8 @@ def _worker(user, lang, text, agent):
     if data["file"]:
         docs = docs.filter(Q(original_name__icontains=data["file"]) | Q(name__icontains=data["file"]))
     kinds = {
+        "drawing_pipeline": (JobKind.DWG_TRANSLATE,),
+        "gost": (JobKind.GOST_FORMAT,),
         "translator": (JobKind.DWG_TRANSLATE, JobKind.XLSX_TRANSLATE),
         "printer": (JobKind.DWG_PRINT,),
         "norm_control": (JobKind.NORM_CONTROL,),
@@ -339,7 +357,10 @@ def _worker(user, lang, text, agent):
         kind = next((k for k in kinds if accepts(k, file_basename(doc))), None)
         if kind is None or not doc.versions.exists():
             continue
-        create_job(kind, doc, user, params={"target_lang": data["target_lang"]} if agent == "translator" else {})
+        if agent == "drawing_pipeline":
+            create_job(kind, doc, user, params={"target_lang": "ru", "preserve_english": True}, then="drawing_pipeline")
+        else:
+            create_job(kind, doc, user, params={"target_lang": data["target_lang"]} if agent == "translator" else {})
         created += 1
         if created >= MAX_JOBS:
             break

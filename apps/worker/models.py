@@ -9,6 +9,7 @@ from django.db import models
 
 
 class JobKind(models.TextChoices):
+    GOST_FORMAT = "gost_format", "DWG · ГОСТ"
     DWG_PRINT = "dwg_print", "DWG → PDF + shtamp"
     DWG_TRANSLATE = "dwg_translate", "DWG tarjima"
     XLSX_TRANSLATE = "xlsx_translate", "Excel tarjima"

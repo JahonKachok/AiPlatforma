@@ -324,10 +324,12 @@ def log_status(task, wf, user, text):
 def _notify(user, target, title, message, task, wf=None):
     if target is not None and target.id != user.id:
         buttons = None
-        if wf is not None and wf.status == WS.NEW and target.id == task.assignee_id and target.telegram_chat_id:
-            from .dispatcher import offer_buttons  # aylanma import
-
-            buttons = offer_buttons(wf, target)
+        if wf is not None and target.telegram_chat_id:
+            from .dispatcher import offer_buttons, review_buttons
+            if wf.status == WS.NEW and target.id == task.assignee_id:
+                buttons = offer_buttons(wf, target)
+            elif can_approve(target, task, wf):
+                buttons = review_buttons(wf, target)
         notify_user(target, "task", title, message, link=f"/tasks/{task.pk}/", telegram_buttons=buttons)
 
 
@@ -382,6 +384,12 @@ def _a_accept(task, wf, p):
 def _a_accept_own(task, wf, p):
     days, note = _days(p), _text(p, "note", False)
     wf.status, wf.days = WS.DAYS_PROPOSED, days
+    if p.get("amount") is not None:
+        value = str(p["amount"])
+        if not value.isascii() or not value.isdigit() or len(value) > 12:
+            raise PultError("Укажите сумму в целых сумах.")
+        wf.amount = int(value)
+        note = f"{wf.amount:,} UZS".replace(",", " ") + (f" · {note}" if note else "")
     return f"На согласовании: предложил срок {days} дн." + (f" — {note}" if note else ""), note, "approver"
 
 
@@ -566,7 +574,7 @@ def run_action(user, number, action, params):
     if notify == "assignee":
         _notify(user, task.assignee, title, f"«{task.title}»: {log}", task, wf)
     elif notify == "approver":
-        _notify(user, _approver_for(task), title, f"{_actor_name(user)} · «{task.title}»: {log}", task)
+        _notify(user, _approver_for(task), title, f"{_actor_name(user)} · «{task.title}»: {log}", task, wf)
     return task, wf
 
 

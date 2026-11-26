@@ -37,3 +37,23 @@ Telegram'da: «Zavod AR chizmalarini PDF qil», «KJ ni xitoy tiliga tarjima qil
   teglari kompaniya shabloniga qarab AI tomonidan moslanadi.
 - «Eslab qol: …» bilan berilgan tuzatishlar (masalan, «matn ustma-ust tushmasin»)
   tarjimon va normokontrol promptlariga avtomatik qo'shiladi.
+
+## Профиль оформления ГОСТ
+
+Для задания `gost_format` укажите путь к утверждённому JSON-профилю в параметре `gost_profile` файла `worker.ini` на рабочем ПК. Входной DWG должен содержать именованные наборы параметров листа и определения блоков из принятого в проекте шаблона. Указанные в профиле шрифты должны быть установлены в AutoCAD. Пример структуры с условными именами:
+
+```json
+{
+  "fonts": {"Notes": "approved.shx"},
+  "layouts": {
+    "Лист 1": {
+      "page_setup": "Approved A3",
+      "stamp_block": "Approved A3 title",
+      "origin": [0, 0, 0],
+      "attributes": {"PROJECT": "project", "SHEET": "sheet"}
+    }
+  }
+}
+```
+
+Для одинаковых форматов можно задать правила в объекте `media`, используя значение AutoCAD `CanonicalMediaName` в качестве ключа. Правило для конкретного листа имеет приоритет. Агент заполняет пустые атрибуты штампа. Неизвестный формат или отсутствующее определение прерывает обработку до сохранения новой ревизии. Соответствие утверждённого профиля ГОСТ 21.101 и 21.502 проверяется на контрольном комплекте проекта.

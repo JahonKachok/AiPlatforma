@@ -17,7 +17,7 @@ ORCHESTRATOR = (
     "Agents: dispatcher (tasks, progress, deadlines), kpi (points, rating), "
     "treasurer (project money in/out), quartermaster (office costs: salary, rent, furniture, "
     "stationery, inventory, repair, utilities, tax), translator (translate DWG/XLSX/PDF text zh/ru/en), "
-    "printer (DWG->PDF, title block stamp), norm_control (check drawings), "
+    "printer (DWG->PDF, title block stamp), gost (apply a drafting template to DWG), norm_control (check drawings), "
     "archivist (find/send/zip project files, revisions), secretary (letters, contracts, signature/seal), "
     "chat (anything else). Reply JSON only."
 )
@@ -26,7 +26,7 @@ ORCHESTRATOR_SCHEMA = {
     "properties": {
         "agent": {"type": "string", "enum": [
             "dispatcher", "kpi", "treasurer", "quartermaster", "translator", "printer",
-            "norm_control", "archivist", "secretary", "chat",
+            "gost", "norm_control", "archivist", "secretary", "chat",
         ]},
     },
     "required": ["agent"],
@@ -149,17 +149,17 @@ NORM_CONTROL = (
     "You check a drawing set against drafting standards. Input: machine-extracted facts per sheet "
     "(overlapping text boxes, frame size, missing title-block fields, layer/scale data). "
     "Return only real problems as remarks; severity: critical (blocks issue) or minor. "
-    "Be terse, in Russian. Reply JSON only."
+    "Write the issue in Russian in issue and the corresponding English text in issue_en. Reply JSON only."
 )
 NORM_CONTROL_SCHEMA = {
     "type": "object",
     "properties": {"remarks": {"type": "array", "items": {
         "type": "object",
         "properties": {
-            "sheet": {"type": "string"}, "issue": {"type": "string"},
+            "sheet": {"type": "string"}, "issue": {"type": "string"}, "issue_en": {"type": "string"},
             "severity": {"type": "string", "enum": ["critical", "minor"]},
         },
-        "required": ["sheet", "issue", "severity"], "additionalProperties": False,
+        "required": ["sheet", "issue", "issue_en", "severity"], "additionalProperties": False,
     }}},
     "required": ["remarks"],
     "additionalProperties": False,

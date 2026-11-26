@@ -32,7 +32,15 @@ def _can_mutate(user) -> bool:
     return user.is_superuser or user.role in (User.Role.ADMIN, User.Role.MANAGER)
 
 
-def build_telegram_tools(user, found_documents: list | None = None):
+def chat_tasks(user):
+    from apps.projects.permissions import visible_projects_for
+    from apps.tasks.models import Task
+
+    tasks = Task.objects.filter(project__in=visible_projects_for(user))
+    return tasks if _can_mutate(user) else Task.objects.filter(assignee=user)
+
+
+def build_telegram_tools(user, found_documents: list | None = None, proposals=None, lang="uz"):
     """Foydalanuvchi uchun ruxsat etilgan AI vositalari ro'yxati.
 
     `found_documents` berilsa (bo'sh list), `find_documents` topgan va faylga
@@ -40,10 +48,20 @@ def build_telegram_tools(user, found_documents: list | None = None):
     chaqiruvchi tomon (Telegram handler) shu asosda haqiqiy fayllarni
     foydalanuvchiga yuborishi mumkin."""
     from apps.documents.models import AuditLog, Document
-    from apps.notifications.services import notify_user
     from apps.projects.models import Project
     from apps.projects.permissions import can_create_project, ensure_project_member, visible_projects_for
     from apps.tasks.models import Task
+    from apps.telegram_bot.texts import t
+
+    def propose(kind, payload, preview):
+        from .models import PendingAction
+        from .orchestrator import Reply, _confirm_buttons
+
+        if proposals is None or proposals:
+            return t("ag.one_proposal", lang)
+        pending = PendingAction.objects.create(user=user, kind=kind, payload=payload)
+        proposals.append(Reply(preview, _confirm_buttons(lang, pending)))
+        return preview
 
     def _find_project(name: str):
         """Ko'rinadigan loyihalar orasidan nom bo'yicha bittasini topadi.
@@ -90,8 +108,7 @@ def build_telegram_tools(user, found_documents: list | None = None):
 
         query: vazifa sarlavhasining bir qismi.
         """
-        tasks = (Task.objects.filter(
-            project__in=visible_projects_for(user), title__icontains=query.strip())
+        tasks = (chat_tasks(user).filter(title__icontains=query.strip())
             .select_related("project", "assignee")[:MAX_RESULTS])
         if not tasks:
             return f"'{query}' bo'yicha vazifa topilmadi."
@@ -121,9 +138,7 @@ def build_telegram_tools(user, found_documents: list | None = None):
         from django.utils import timezone
 
         today = timezone.now().date()
-        tasks = (Task.objects.filter(
-            project__in=visible_projects_for(user),
-            deadline__isnull=False, deadline__lte=today + timedelta(days=3))
+        tasks = (chat_tasks(user).filter(deadline__isnull=False, deadline__lte=today + timedelta(days=3))
             .exclude(status__in=[Task.Status.COMPLETED, Task.Status.APPROVED])
             .select_related("project", "assignee").order_by("deadline")[:20])
         if not tasks:
@@ -266,29 +281,22 @@ def build_telegram_tools(user, found_documents: list | None = None):
                 return f"Bir nechta xodim mos keldi: {names}. Qaysi birini aniq ayting."
             assignee = candidates[0]
 
-        task = Task.objects.create(
-            title=title.strip(), description=description or None, project=project,
-            assignee=assignee, creator=user, priority=priority, deadline=deadline_date,
-        )
-        if assignee:
-            ensure_project_member(project, assignee)
-            notify_user(
-                assignee, "task", "Yangi vazifa",
-                f"Sizga vazifa biriktirildi: {task.title} ({project.name})",
-                link=f"/tasks/{task.pk}/",
-            )
-        AuditLog.log(obj=task, action="created", user=user, details={"source": "telegram-ai"})
-        masul = assignee.full_name if assignee else "biriktirilmagan"
-        return (f"Vazifa yaratildi: '{task.title}' | loyiha: {project.name}"
-                f" | mas'ul: {masul} | muddat: {task.deadline or 'belgilanmagan'}"
-                f" | prioritet: {task.get_priority_display()}.")
+        payload = {"project": str(project.pk), "title": title.strip(), "description": description,
+                   "assignee": str(assignee.pk) if assignee else None, "priority": priority,
+                   "deadline": deadline_date.isoformat() if deadline_date else None}
+        if len(title.strip()) > Task._meta.get_field("title").max_length or len(description) > 2400:
+            return t("ag.task_too_long", lang)
+        return propose("task_create", payload, t("ag.task_preview", lang, project=project.name,
+                       title=payload["title"], person=assignee.full_name if assignee else "—",
+                       deadline=deadline or "—", priority=priority, description=description or "—"))
 
-    def update_task_status(task_title: str, status: str, project_name: str = "") -> str:
+    def update_task_status(task_title: str, status: str, project_name: str = "", reason: str = "") -> str:
         """Vazifa holatini o'zgartiradi.
 
         task_title: vazifa sarlavhasi (yoki bir qismi).
         status: yangi holat — new, in_progress, review, revision, approved yoki completed.
         project_name: bir xil nomli vazifalar bo'lsa, loyiha nomi bilan aniqlashtirish (ixtiyoriy).
+        reason: qayta ishlash kerak bo‘lsa, foydalanuvchi aytgan sabab.
         """
         if status not in Task.Status.values:
             return f"Noto'g'ri holat: '{status}'. Mumkin: {', '.join(Task.Status.values)}."
@@ -304,18 +312,50 @@ def build_telegram_tools(user, found_documents: list | None = None):
             names = "; ".join(f"{t.title} ({t.project.name})" for t in matches)
             return f"Bir nechta vazifa mos keldi: {names}. Loyiha nomi bilan aniqlashtiring."
         task = matches[0]
-        old = task.get_status_display()
-        task.status = status
-        task.save(update_fields=["status", "updated_at"])
-        AuditLog.log(obj=task, action="status_changed", user=user,
-                     details={"source": "telegram-ai", "from": old, "to": status})
-        if task.assignee and task.assignee != user:
-            notify_user(
-                task.assignee, "task", "Vazifa holati o'zgardi",
-                f"'{task.title}' holati: {task.get_status_display()}",
-                link=f"/tasks/{task.pk}/",
-            )
-        return f"'{task.title}' holati o'zgartirildi: {old} -> {task.get_status_display()}."
+        if status == Task.Status.REVISION and not reason.strip():
+            return t("ag.need_reason", lang)
+        return propose("task_status", {"task": str(task.pk), "previous": task.status, "status": status,
+                       "reason": reason[:1000], "updated": task.updated_at.isoformat()}, t("ag.status_preview", lang,
+                       title=task.title, project=task.project.name, old=task.get_status_display(),
+                       new=Task.Status(status).label) + ("\n" + reason[:1000] if reason else ""))
 
     tools.extend([create_project, update_project_status, create_task, update_task_status])
     return tools
+
+
+def apply_task_proposal(pending, lang):
+    from apps.accounts.models import User
+    from apps.documents.models import AuditLog
+    from apps.projects.permissions import ensure_project_member, visible_projects_for
+    from apps.pult.services import PultError, _notify, ensure_workflow, log_status, offer_text, run_action
+    from apps.tasks.models import Task
+    from apps.telegram_bot.texts import t
+
+    data, user = pending.payload, pending.user
+    projects = visible_projects_for(user)
+    if not _can_mutate(user):
+        raise PultError(t("pd.expired", lang))
+    if pending.kind == "task_create":
+        project = projects.filter(pk=data["project"]).first()
+        assignee = User.objects.filter(pk=data["assignee"], is_active=True).first() if data["assignee"] else None
+        if not project or (data["assignee"] and not assignee):
+            raise PultError(t("pd.expired", lang))
+        task = Task.objects.create(title=data["title"], description=data["description"], project=project,
+                                   assignee=assignee, creator=user, priority=data["priority"], deadline=data["deadline"])
+        wf = ensure_workflow(task)
+        log_status(task, wf, user, wf.status)
+        AuditLog.log(obj=task, action="created", user=user, details={"source": "telegram-ai", "proposal": str(pending.pk)})
+        if assignee:
+            ensure_project_member(project, assignee)
+            _notify(user, assignee, t("ag.created_task", lang, n=wf.number), offer_text(task, wf), task, wf)
+        return t("ag.created_task", lang, n=wf.number)
+    task = Task.objects.select_for_update().filter(pk=data["task"], project__in=projects).first()
+    if not task or task.status != data["previous"] or task.updated_at.isoformat() != data["updated"]:
+        raise PultError(t("pd.expired", lang))
+    wf = ensure_workflow(task)
+    actions = {Task.Status.NEW: ("move", {"col": "new"}), Task.Status.IN_PROGRESS: ("move", {"col": "work"}),
+               Task.Status.REVIEW: ("submit", {}), Task.Status.REVISION: ("review_back", {"why": data.get("reason", "")}),
+               Task.Status.APPROVED: ("review_ok", {}), Task.Status.COMPLETED: ("review_ok", {})}
+    action, params = actions[data["status"]]
+    _, wf = run_action(user, wf.number, action, params)
+    return t("pd.done", lang, n=wf.number, status=wf.status)

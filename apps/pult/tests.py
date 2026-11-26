@@ -986,6 +986,24 @@ class DispatcherTests(PultTestBase):
         self.refresh()
         self.assertEqual((self.wf.status, self.wf.days), ("На согласовании", 7))
 
+    def test_confirm_price_and_term_then_approve_and_accept(self):
+        from .dispatcher import handle_text
+        self.set_wf(status="Новая", days=None)
+        n = self.wf.number
+        User.objects.filter(pk=self.boss.pk).update(telegram_chat_id="902")
+        wait = self.cb(f"pd:q:{n}").wait
+        button = handle_text("900", wait, "7, 1 500 000").buttons[0][0][1]
+        self.refresh()
+        self.assertIsNone(self.wf.amount)
+        self.cb(button)
+        self.refresh()
+        self.assertEqual((self.wf.status, self.wf.days, self.wf.amount), ("На согласовании", 7, 1500000))
+        self.cb(f"pd:c:{n}", chat="902")
+        self.cb(f"pd:s:{n}")
+        self.cb(f"pd:v:{n}", chat="902")
+        self.refresh()
+        self.assertEqual(self.wf.status, "Принята")
+
     def test_decline_asks_reason_and_returns_task_to_gip(self):
         from apps.notifications.models import Notification
 
@@ -1050,6 +1068,23 @@ class DispatcherTests(PultTestBase):
         self.assertTrue(Notification.objects.filter(user=self.worker, title=f"Пульт: тревога №{self.wf.number}").exists())
         self.assertIn(f"pd:p:{self.wf.number}:50", self.buttons_sent())
 
+    def test_source_at_half_term_even_with_progress_and_director_escalation(self):
+        from .dispatcher import send_alarms
+
+        self.set_wf(status="В работе", start_date=self.day - timedelta(days=5), days=10, done=0.65)
+        self.assertEqual(send_alarms(), 1)
+        button = f"pd:f:{self.wf.number}"
+        self.assertIn(button, self.buttons_sent())
+        self.assertEqual(self.cb(button).wait, {"a": "mid", "n": self.wf.number})
+        self.assertIsNone(self.cb(button, chat="901").wait)
+        User.objects.filter(pk=self.boss.pk).update(telegram_chat_id="902")
+        self.set_wf(start_date=self.day - timedelta(days=7))
+        with self.settings(GASTEC_DIRECTOR_EMAIL=self.boss.email):
+            self.assertEqual(send_alarms(), 1)
+            self.assertEqual(send_alarms(), 0)
+        self.assertEqual(self.send.call_args.args[0], "902")
+        self.assertIn("70%", self.send.call_args.args[1])
+
     def test_alarm_levels(self):
         from .dispatcher import alarm_level
         s = PultSettings.load()
@@ -1077,6 +1112,11 @@ class DispatcherTests(PultTestBase):
         table = kpi_table(self.day)
         self.assertEqual([row[0] for row in table], [self.worker.pk, self.other.pk])
         self.assertEqual(table[0][1], 5)  # muddatdan oldin +3, qayta ishlashsiz +2
+        text = kpi_summary(self.worker, "ru", self.day)
+        self.assertIn("— / —", text)
+        settings = PultSettings.load()
+        settings.min_tasks = 1
+        settings.save()
         text = kpi_summary(self.worker, "ru", self.day)
         self.assertIn("1 / 2", text)
         self.assertIn("Правила KPI", text)

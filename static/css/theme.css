@@ -317,32 +317,67 @@ aside nav a[class*="bg-blue-50"]::before {
 .ap-header-right { margin-left: auto; }
 
 /* ============ Tablar ============ */
+/* Moliya bo'limidagi tablar (.fin-tabs, finance-dashboard.css) bilan bir xil
+   ko'rinish: tablar bitta panel ichida, faol tab ajratilgan "tugma". */
 .ap-tabs {
-  display: flex;
-  flex-wrap: wrap;
+  display: inline-flex;
+  align-items: center;
   gap: 0.25rem;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 0.3rem;
+  border-radius: 0.85rem;
+  background: rgba(15, 23, 42, 0.035);
+  border: 1px solid rgba(15, 23, 42, 0.09);
+  overflow-x: auto;
+  scrollbar-width: none;
+  max-width: 100%;
 }
-.dark .ap-tabs { border-color: #374151; }
+.ap-tabs::-webkit-scrollbar { display: none; }
+.dark .ap-tabs {
+  background: rgba(148, 178, 232, 0.05);
+  border-color: rgba(148, 178, 232, 0.12);
+}
 .ap-tab {
-  padding: 0.5rem 0.875rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #64748b;
-  border: none;
-  background: none;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  transition: color .15s ease, border-color .15s ease;
-}
-.dark .ap-tab { color: #9ca3af; }
-.ap-tab:hover { color: var(--ap-primary); }
-.ap-tab.is-active {
-  color: var(--ap-primary);
-  border-bottom-color: var(--ap-primary);
+  position: relative;
+  white-space: nowrap;
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.6rem;
+  font-size: 0.8125rem;
   font-weight: 600;
+  color: #64748b;
+  background: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: color .18s ease, background-color .18s ease, border-color .18s ease, box-shadow .18s ease;
 }
+.dark .ap-tab { color: #8fa0bd; }
+.ap-tab:hover { color: #101a33; background: rgba(15, 23, 42, 0.035); }
+.dark .ap-tab:hover { color: #e8edf7; background: rgba(148, 178, 232, 0.05); }
+.ap-tab:focus-visible { outline: none; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #1d6fa5; }
+.dark .ap-tab:focus-visible { box-shadow: 0 0 0 2px #0e1526, 0 0 0 4px #5b9ee0; }
+.ap-tab.is-active {
+  color: #101a33;
+  background: linear-gradient(180deg, #fbfcfe, #ffffff);
+  border-color: rgba(15, 23, 42, 0.16);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+.dark .ap-tab.is-active {
+  color: #e8edf7;
+  background: linear-gradient(180deg, rgba(91, 158, 224, 0.16), rgba(91, 158, 224, 0.04));
+  border-color: rgba(91, 158, 224, 0.32);
+  box-shadow: 0 0 0 1px rgba(91, 158, 224, 0.10), 0 6px 20px -8px rgba(91, 158, 224, 0.45);
+}
+.ap-tab.is-active::after {
+  content: "";
+  position: absolute;
+  left: 0.9rem;
+  right: 0.9rem;
+  bottom: 0.28rem;
+  height: 2px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, transparent, #1d6fa5, transparent);
+  opacity: .75;
+}
+.dark .ap-tab.is-active::after { background: linear-gradient(90deg, transparent, #5b9ee0, transparent); }
 
 /* Global qidiruv maydoni */
 .ap-search { flex: 0 1 20rem; min-width: 0; }

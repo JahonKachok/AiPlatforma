@@ -5446,3 +5446,219 @@ msgstr "в очереди: %(q)s, ошибок: %(e)s"
 msgid "Setup: worker/README.md"
 msgstr "Установка: worker/README.md"
 
+
+msgid "Agent map"
+msgstr "Карта агентов"
+
+msgid "Select an agent to see its role."
+msgstr "Выберите агента, чтобы увидеть его задачи."
+
+msgid "Request orchestrator"
+msgstr "Оркестратор запросов"
+
+msgid "Finance and office"
+msgstr "Финансы и офис"
+
+msgid "Drawings"
+msgstr "Чертежи"
+
+msgid "Task dispatcher"
+msgstr "Диспетчер задач"
+
+msgid "Collects progress updates and requests intermediate files."
+msgstr "Собирает отчёты о ходе работ и запрашивает промежуточные файлы."
+
+msgid "KPI analyst"
+msgstr "KPI-аналитик"
+
+msgid "Calculates points and ranks accepted work."
+msgstr "Рассчитывает баллы и рейтинг по принятым задачам."
+
+msgid "Treasurer"
+msgstr "Казначей"
+
+msgid "Prepares project payments for confirmation."
+msgstr "Готовит проектные платежи к подтверждению."
+
+msgid "Office manager"
+msgstr "Завхоз"
+
+msgid "Records office expenses and reminds staff about recurring payments."
+msgstr "Учитывает офисные расходы и напоминает о регулярных платежах."
+
+msgid "Drawing translator"
+msgstr "Переводчик чертежей"
+
+msgid "Translates DWG text and spreadsheet cells."
+msgstr "Переводит надписи в DWG и текст в таблицах."
+
+msgid "PDF printer"
+msgstr "Печатник"
+
+msgid "Fills existing stamps and merges drawing layouts into a PDF."
+msgstr "Заполняет существующие штампы и объединяет листы чертежа в PDF."
+
+msgid "GOST formatter"
+msgstr "Оформитель ГОСТ"
+
+msgid "Applies the approved page setup, title block and fonts to DWG layouts."
+msgstr "Применяет утверждённые настройки листов, штамп и шрифты к листам DWG."
+
+msgid "Standards checker"
+msgstr "Нормоконтролёр"
+
+msgid "Checks sheet size, margins and overlapping text."
+msgstr "Проверяет формат листов, поля и наложения текста."
+
+msgid "Archivist"
+msgstr "Архивариус"
+
+msgid "Finds project documents and archives revisions in Google Drive."
+msgstr "Находит документы проекта и архивирует версии в Google Drive."
+
+msgid "Contract secretary"
+msgstr "Секретарь-договорник"
+
+msgid "Drafts documents and sends PDFs for signature."
+msgstr "Готовит документы и отправляет PDF на подпись."
+
+msgid "AI calls"
+msgstr "Вызовы ИИ"
+
+msgid "Daily AI calls"
+msgstr "Вызовы ИИ по дням"
+
+msgid "Current workload"
+msgstr "Текущая нагрузка"
+
+msgid "Worker online"
+msgstr "Рабочий ПК на связи"
+
+msgid "Worker offline"
+msgstr "Рабочий ПК вне сети"
+
+msgid "Queued jobs"
+msgstr "В очереди"
+
+msgid "Running jobs"
+msgstr "В работе"
+
+msgid "Awaiting payment confirmation"
+msgstr "Платежи на подтверждении"
+
+msgid "Activity log"
+msgstr "Журнал работы"
+
+msgid "Records"
+msgstr "Записи"
+
+msgid "Worker jobs"
+msgstr "Задания рабочего ПК"
+
+msgid "Pending payments"
+msgstr "Платежи на подтверждении"
+
+msgid "Operation"
+msgstr "Операция"
+
+msgid "Requested by"
+msgstr "Инициатор"
+
+msgid "Success"
+msgstr "Успешно"
+
+msgid "Error"
+msgstr "Ошибка"
+
+msgid "Empty response"
+msgstr "Пустой ответ"
+
+msgid "Office expense"
+msgstr "Офисный расход"
+
+msgid "Project payment"
+msgstr "Проектный платёж"
+
+msgid "Pages"
+msgstr "Страницы"
+
+msgid "No worker jobs yet."
+msgstr "Заданий для рабочего ПК пока нет."
+
+msgid "No payments awaiting confirmation."
+msgstr "Нет платежей, ожидающих подтверждения."
+
+msgid "DWG → PDF + shtamp"
+msgstr "DWG → PDF со штампом"
+
+msgid "DWG tarjima"
+msgstr "Перевод DWG"
+
+msgid "Excel tarjima"
+msgstr "Перевод Excel"
+
+msgid "DOCX → PDF"
+msgstr "DOCX → PDF"
+
+msgid "Normokontrol"
+msgstr "Нормоконтроль"
+
+msgid "Navbatda"
+msgstr "В очереди"
+
+msgid "Bajarilmoqda"
+msgstr "В работе"
+
+msgid "Tayyor"
+msgstr "Готово"
+
+msgid "Xato"
+msgstr "Ошибка"
+
+msgid "Open 3D office"
+msgstr "Открыть 3D-офис"
+
+msgid "3D agent office"
+msgstr "3D-офис агентов"
+
+msgid "Office floor"
+msgstr "Макет офиса"
+
+msgid "Select a desk or choose an agent from the list."
+msgstr "Нажмите на стол или выберите агента из списка."
+
+msgid "Rotate left"
+msgstr "Повернуть влево"
+
+msgid "Rotate right"
+msgstr "Повернуть вправо"
+
+msgid "Zoom out"
+msgstr "Отдалить"
+
+msgid "Zoom in"
+msgstr "Приблизить"
+
+msgid "Reset view"
+msgstr "Исходный вид"
+
+msgid "AI calls in 24 hours"
+msgstr "Вызовы ИИ за 24 часа"
+
+msgid "View records"
+msgstr "Открыть записи"
+
+msgid "No active records"
+msgstr "Нет активных записей"
+
+msgid "Waiting"
+msgstr "Ожидание"
+
+msgid "Planned"
+msgstr "В планах"
+
+msgid "Update unavailable"
+msgstr "Обновление недоступно"
+
+msgid "Last update"
+msgstr "Последнее обновление"

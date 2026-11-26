@@ -57,12 +57,18 @@ def load_config(path=None):
     cfg = configparser.ConfigParser()
     cfg.read(path or Path(__file__).with_name("worker.ini"), encoding="utf-8")
     s = cfg["worker"]
+    profile = Path(s["gost_profile"]) if s.get("gost_profile") else None
+    kinds = [k.strip() for k in s.get("kinds", ",".join(handlers.HANDLERS)).split(",") if k.strip()]
+    if "gost_format" in kinds and not (profile and profile.is_file()):
+        kinds.remove("gost_format")
+    if not kinds:
+        raise ValueError("No configured worker job types")
     return {
         "server": s["server"], "token": s["token"], "name": s.get("name", socket.gethostname()),
         "workdir": Path(s.get("workdir", r"C:\GaztekWorker\jobs")),
         "out_dir": Path(s["out_dir"]) if s.get("out_dir") else None,
         "poll": s.getint("poll_seconds", 10),
-        "kinds": [k.strip() for k in s.get("kinds", ",".join(handlers.HANDLERS)).split(",") if k.strip()],
+        "kinds": kinds, "gost_profile": profile,
     }
 
 
@@ -76,6 +82,7 @@ def run_job(client, cfg, job):
             for chunk in r.iter_content(1 << 20):
                 fh.write(chunk)
     ctx = Context(client, job, jobdir)
+    ctx.gost_profile = cfg.get("gost_profile")
     try:
         output = handlers.HANDLERS[job["kind"]](job, source, ctx)
     except Exception as exc:  # noqa: BLE001 — har qanday xato serverga qaytadi

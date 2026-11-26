@@ -148,6 +148,11 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 # Telegram bot
 TELEGRAM_BOT_TOKEN = env("TELEGRAM_BOT_TOKEN", default="")
+GASTEC_DIRECTOR_EMAIL = env("GASTEC_DIRECTOR_EMAIL", default="")
+GASTEC_MDR_SPREADSHEET_ID = env("GASTEC_MDR_SPREADSHEET_ID", default="")
+GASTEC_MDR_TAB = env("GASTEC_MDR_TAB", default="MDR")
+GASTEC_MDR_COLUMNS = env.json("GASTEC_MDR_COLUMNS", default={})
+GASTEC_MDR_HEADER_ROW = env.int("GASTEC_MDR_HEADER_ROW", default=1)
 TELEGRAM_BOT_USERNAME = env("TELEGRAM_BOT_USERNAME", default="")
 
 # Email
@@ -168,6 +173,8 @@ AI_PROVIDER = env("AI_PROVIDER", default="")
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
 AI_MODEL = env("AI_MODEL", default="claude-opus-5-5")
 GEMINI_API_KEY = env("GEMINI_API_KEY", default="")
+AI_OFFICE_API_KEY = env("AI_OFFICE_API_KEY", default="")
+AI_OFFICE_MODEL = env("AI_OFFICE_MODEL", default="gemini-2.5-flash")
 GEMINI_MODEL = env("GEMINI_MODEL", default="gemini-3.5-flash")
 # Asosiy model band (503) bo'lganda ishlatiladigan zaxira model.
 GEMINI_FALLBACK_MODEL = env("GEMINI_FALLBACK_MODEL", default="gemini-3.1-flash-lite")

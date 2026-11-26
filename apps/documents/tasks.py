@@ -70,7 +70,12 @@ def sync_version_to_drive(version_id):
     version = DocumentVersion.objects.select_related(
         "document__project", "document__section__sub_object__parent", "document__section__discipline",
     ).filter(pk=version_id).first()
-    return bool(version) and sync_version(version)
+    if not version or not sync_version(version):
+        return False
+    from .mdr import sync_revision
+    version.refresh_from_db()
+    sync_revision(version)
+    return True
 
 
 @shared_task
@@ -88,4 +93,8 @@ def sync_pending_to_drive(limit=200):
         .select_related("document__project", "document__section__sub_object__parent", "document__section__discipline")
         .order_by("document_id", "revision")[:limit]
     )
-    return sum(1 for version in pending if sync_version(version))
+    count = sum(1 for version in pending if sync_version(version))
+    from .mdr import sync_revision
+    for version in DocumentVersion.objects.filter(mdr_state="pending", drive_status=DriveStatus.SYNCED).order_by("created_at")[:limit]:
+        sync_revision(version)
+    return count

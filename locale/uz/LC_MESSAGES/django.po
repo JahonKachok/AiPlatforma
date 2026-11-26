@@ -5444,3 +5444,221 @@ msgstr "navbatda: %(q)s, xatolar: %(e)s"
 msgid "Setup: worker/README.md"
 msgstr "O'rnatish: worker/README.md"
 
+
+msgid "Agent map"
+msgstr "Agentlar xaritasi"
+
+msgid "Select an agent to see its role."
+msgstr "Vazifasini ko‘rish uchun agentni tanlang."
+
+msgid "Request orchestrator"
+msgstr "So‘rovlar dispetcheri"
+
+msgid "Finance and office"
+msgstr "Moliya va xo‘jalik"
+
+msgid "Drawings"
+msgstr "Chizmalar"
+
+msgid "Task dispatcher"
+msgstr "Vazifalar dispetcheri"
+
+msgid "Collects progress updates and requests intermediate files."
+msgstr "Bajarilish foizini yig‘adi va oraliq faylni so‘raydi."
+
+msgid "KPI analyst"
+msgstr "KPI tahlilchisi"
+
+msgid "Calculates points and ranks accepted work."
+msgstr "Qabul qilingan vazifalar bo‘yicha ball va reytingni hisoblaydi."
+
+msgid "Treasurer"
+msgstr "G‘aznachi"
+
+msgid "Prepares project payments for confirmation."
+msgstr "Loyiha to‘lovlarini tasdiqlashga tayyorlaydi."
+
+msgid "Office manager"
+msgstr "Xo‘jalik mudiri"
+
+msgid "Records office expenses and reminds staff about recurring payments."
+msgstr "Ofis xarajatlarini qayd etadi va davriy to‘lovlarni eslatadi."
+
+msgid "Drawing translator"
+msgstr "Chizmalar tarjimoni"
+
+msgid "Translates DWG text and spreadsheet cells."
+msgstr "DWG matnlari va Excel kataklarini tarjima qiladi."
+
+msgid "PDF printer"
+msgstr "PDF chop etuvchi"
+
+msgid "Fills existing stamps and merges drawing layouts into a PDF."
+msgstr ""
+"Mavjud shtamplarni to‘ldiradi va chizma varaqlarini bitta PDFga yig‘adi."
+
+msgid "GOST formatter"
+msgstr "GOST rasmiylashtiruvchisi"
+
+msgid "Applies the approved page setup, title block and fonts to DWG layouts."
+msgstr "DWG varaqlariga tasdiqlangan sahifa sozlamalari, shtamp va shriftlarni qo‘llaydi."
+
+msgid "Standards checker"
+msgstr "Normokontrol"
+
+msgid "Checks sheet size, margins and overlapping text."
+msgstr "Varaq o‘lchami, hoshiya va ustma-ust tushgan matnlarni tekshiradi."
+
+msgid "Archivist"
+msgstr "Arxivarius"
+
+msgid "Finds project documents and archives revisions in Google Drive."
+msgstr ""
+"Loyiha hujjatlarini topadi va versiyalarni Google Drive’da arxivlaydi."
+
+msgid "Contract secretary"
+msgstr "Kotib-shartnomachi"
+
+msgid "Drafts documents and sends PDFs for signature."
+msgstr "Hujjat qoralamalarini tayyorlaydi va PDFni imzoga yuboradi."
+
+msgid "AI calls"
+msgstr "AI chaqiruvlari"
+
+msgid "Daily AI calls"
+msgstr "Kunlar bo‘yicha AI chaqiruvlari"
+
+msgid "Current workload"
+msgstr "Joriy yuklama"
+
+msgid "Worker online"
+msgstr "Ishchi kompyuter ulangan"
+
+msgid "Worker offline"
+msgstr "Ishchi kompyuter oflayn"
+
+msgid "Queued jobs"
+msgstr "Navbatdagi ishlar"
+
+msgid "Running jobs"
+msgstr "Bajarilayotgan ishlar"
+
+msgid "Awaiting payment confirmation"
+msgstr "Tasdiq kutayotgan to‘lovlar"
+
+msgid "Activity log"
+msgstr "Faoliyat jurnali"
+
+msgid "Records"
+msgstr "Yozuvlar"
+
+msgid "Worker jobs"
+msgstr "Ishchi kompyuter ishlari"
+
+msgid "Pending payments"
+msgstr "Tasdiqdagi to‘lovlar"
+
+msgid "Operation"
+msgstr "Amal"
+
+msgid "Requested by"
+msgstr "So‘rovchi"
+
+msgid "Success"
+msgstr "Muvaffaqiyatli"
+
+msgid "Error"
+msgstr "Xato"
+
+msgid "Empty response"
+msgstr "Bo‘sh javob"
+
+msgid "Office expense"
+msgstr "Ofis xarajati"
+
+msgid "Project payment"
+msgstr "Loyiha to‘lovi"
+
+msgid "Pages"
+msgstr "Sahifalar"
+
+msgid "No worker jobs yet."
+msgstr "Ishchi kompyuterga hali ish yuborilmagan."
+
+msgid "No payments awaiting confirmation."
+msgstr "Tasdiq kutayotgan to‘lovlar yo‘q."
+
+msgid "DWG → PDF + shtamp"
+msgstr "DWG → PDF va shtamp"
+
+msgid "DWG tarjima"
+msgstr "DWG tarjimasi"
+
+msgid "Excel tarjima"
+msgstr "Excel tarjimasi"
+
+msgid "DOCX → PDF"
+msgstr "DOCX → PDF"
+
+msgid "Normokontrol"
+msgstr "Normokontrol"
+
+msgid "Navbatda"
+msgstr "Navbatda"
+
+msgid "Bajarilmoqda"
+msgstr "Bajarilmoqda"
+
+msgid "Tayyor"
+msgstr "Tayyor"
+
+msgid "Xato"
+msgstr "Xato"
+
+msgid "Open 3D office"
+msgstr "3D ofisga kirish"
+
+msgid "3D agent office"
+msgstr "Agentlarning 3D ofisi"
+
+msgid "Office floor"
+msgstr "Ofis maketi"
+
+msgid "Select a desk or choose an agent from the list."
+msgstr "Stolga bosing yoki ro‘yxatdan agentni tanlang."
+
+msgid "Rotate left"
+msgstr "Chapga burish"
+
+msgid "Rotate right"
+msgstr "O‘ngga burish"
+
+msgid "Zoom out"
+msgstr "Uzoqlashtirish"
+
+msgid "Zoom in"
+msgstr "Yaqinlashtirish"
+
+msgid "Reset view"
+msgstr "Asl ko‘rinish"
+
+msgid "AI calls in 24 hours"
+msgstr "Oxirgi 24 soatdagi AI chaqiruvlari"
+
+msgid "View records"
+msgstr "Yozuvlarni ko‘rish"
+
+msgid "No active records"
+msgstr "Faol ish qayd etilmagan"
+
+msgid "Waiting"
+msgstr "Kutilmoqda"
+
+msgid "Planned"
+msgstr "Rejada"
+
+msgid "Update unavailable"
+msgstr "Yangilab bo‘lmadi"
+
+msgid "Last update"
+msgstr "Oxirgi yangilanish"

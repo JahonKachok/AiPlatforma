@@ -164,15 +164,21 @@ def dwg_translate(job, source, ctx):
             value = ent.TextString
             parts = split_mtext(value) if kind == "AcDbMText" else [(False, value)]
             for k, (is_code, text) in enumerate(parts):
-                if is_code or not needs_translation(text) or detect_lang(text) == target:
+                language = detect_lang(text)
+                if (is_code or not needs_translation(text) or language == target
+                        or (language == "en" and job["params"].get("preserve_english"))):
                     continue
                 key = f"{n}.{k}"
                 items.append({"id": key, "text": text, "max_len": max_len(text, detect_lang(text), target)})
                 ents.setdefault(n, (ent, kind, parts, _box(ent)))
         translated = {}
         for i in range(0, len(items), BATCH):
-            answer = ctx.ai("translator", {"target": target, "items": items[i:i + BATCH]})
-            translated.update({row["id"]: row["text"] for row in answer.get("items", [])})
+            batch = items[i:i + BATCH]
+            answer = ctx.ai("translator", {"target": target, "items": batch})
+            changes = {row["id"]: row["text"] for row in answer.get("items", []) if row["text"].strip()}
+            if changes.keys() != {item["id"] for item in batch}:
+                raise RetryableError("Incomplete translation batch")
+            translated.update(changes)
         changed, squeezed, boxes = 0, 0, []
         for n, (ent, kind, parts, old_box) in ents.items():
             new_parts = [(c, translated.get(f"{n}.{k}", t) if not c else t) for k, (c, t) in enumerate(parts)]

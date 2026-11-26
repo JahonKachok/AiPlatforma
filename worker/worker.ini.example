@@ -12,4 +12,6 @@ workdir = C:\GaztekWorker\jobs
 out_dir = D:\Gaztek\Arxiv
 poll_seconds = 10
 ; Shu kompyuter bajaradigan ishlar (AutoCAD yo'q bo'lsa dwg_* ni olib tashlang)
-kinds = dwg_print, dwg_translate, xlsx_translate, docx_to_pdf, norm_control
+kinds = dwg_print, dwg_translate, xlsx_translate, docx_to_pdf, norm_control, gost_format
+; Tasdiqlangan CAD shabloniga mos profil (worker/README.md)
+gost_profile =

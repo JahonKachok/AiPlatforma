@@ -185,6 +185,29 @@ class BotHandlerTests(TestCase):
         self.assertIn("Zavod", self.api.sent[-1])
         self.assertEqual(self.errors, [])
 
+    def test_task_tool_requires_telegram_confirmation(self):
+        from apps.ai_agents.models import PendingAction
+        from apps.tasks.models import Task
+
+        Project.objects.create(name="Zavod", created_by=self.user)
+        self.link(self.user)
+
+        def model(system, prompt, **kwargs):
+            create = next(tool for tool in kwargs["tools"] if tool.__name__ == "create_task")
+            create("Zavod", "AR 1", self.user.full_name)
+            return "model output"
+
+        with mock.patch("apps.ai_agents.services.is_configured", return_value=True), \
+                mock.patch("apps.ai_agents.services.ask_ai", side_effect=model):
+            self.send("Zavod loyihasi uchun AR vazifasini och")
+        self.assertIn("Vazifa yaratilsinmi?", self.api.sent[-1])
+        self.assertFalse(Task.objects.exists())
+        button = f"ag:ok:{PendingAction.objects.get().pk}"
+        self.press(button)
+        self.press(button)
+        self.assertEqual(Task.objects.get().assignee, self.user)
+        self.assertEqual(self.errors, [])
+
     def test_linking_second_account_unlinks_the_first(self):
         other = User.objects.create_user(email="o@example.com", password="x", full_name="Other")
         self.link(self.user)

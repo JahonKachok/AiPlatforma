@@ -33,7 +33,7 @@ def upcoming(today=None):
     today = today or timezone.localdate()
     out = []
     for category, name in RECURRING.items():
-        last = AdministrativeExpense.objects.filter(category=category).order_by("-date").first()
+        last = AdministrativeExpense.objects.filter(category=category, period__in=PERIOD_DAYS).order_by("-date").first()
         if last is None:
             continue
         due = _add_period(last.date, last.period)

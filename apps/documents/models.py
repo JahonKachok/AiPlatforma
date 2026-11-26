@@ -92,6 +92,8 @@ class DocumentVersion(models.Model):
     original_name = models.CharField(max_length=255, blank=True, default="", editable=False)
     # Reviziyalar reyestri: hujjat ichidagi tartib raqami (1, 2, 3...).
     revision = models.PositiveIntegerField(default=0, editable=False)
+    mdr_state = models.CharField(max_length=8, blank=True, default="", editable=False, db_index=True)
+    mdr_error = models.CharField(max_length=300, blank=True, default="", editable=False)
     drive_status = models.CharField(max_length=10, choices=DriveStatus.choices, default=DriveStatus.PENDING, editable=False)
     drive_file_id = models.CharField(max_length=128, blank=True, default="", editable=False)
     drive_folder_id = models.CharField(max_length=128, blank=True, default="", editable=False)

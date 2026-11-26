@@ -11,6 +11,7 @@ def _lazy(module, name):
 
 
 HANDLERS = {
+    "gost_format": _lazy("gost", "format_drawing"),
     "dwg_print": _lazy("autocad", "dwg_print"),
     "dwg_translate": _lazy("autocad", "dwg_translate"),
     "xlsx_translate": _lazy("office", "xlsx_translate"),

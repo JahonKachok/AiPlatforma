@@ -21,6 +21,7 @@ MAX_ATTEMPTS = 3
 
 # Ish turi -> qabul qilinadigan kirish fayllari
 INPUT_EXT = {
+    JobKind.GOST_FORMAT: (".dwg",),
     JobKind.DWG_PRINT: (".dwg",),
     JobKind.DWG_TRANSLATE: (".dwg",),
     JobKind.XLSX_TRANSLATE: (".xlsx", ".xlsm"),
@@ -77,6 +78,8 @@ def _output_name(job, uploaded_name):
 
     source = file_basename(job.version)
     stem = source.rsplit(".", 1)[0]
+    if job.kind == JobKind.NORM_CONTROL:
+        return f"{stem}.remarks.xlsx"
     if job.kind in PDF_OUTPUT:
         return f"{stem}.pdf"
     return source  # tarjima: fayl nomi o'zgarmaydi
@@ -109,25 +112,49 @@ def finish(job, ok, result=None, filename="", data=None, error="", source_data=N
     """Kompyuter natijasini qabul qiladi va kerakli joyga yetkazadi.
     source_data — o'zgartirilgan asl fayl (shtamp to'ldirilgan DWG): asl
     hujjatning yangi reviziyasi bo'ladi."""
+    with transaction.atomic():
+        job = WorkerJob.objects.select_for_update().get(pk=job.pk)
+        if job.status != JobStatus.RUNNING:
+            return job
+        _store_result(job, ok, result, filename, data, error, source_data)
+    if job.status == JobStatus.ERROR:
+        _notify(job, f"⚠️ {job.get_kind_display()}: {job.document.name} — {job.error[:300]}")
+    elif job.status == JobStatus.DONE:
+        _after(job)
+    return job
+
+
+def _store_result(job, ok, result, filename, data, error, source_data):
     job.result = result or {}
+    if ok and job.then == "drawing_pipeline":
+        if not data or (job.kind == JobKind.NORM_CONTROL and not isinstance(job.result.get("remarks"), list)):
+            ok, error = False, "Missing drawing pipeline result"
+        elif job.document.versions.filter(revision__gt=job.version.revision).exists():
+            ok, error = False, "Source revision changed during processing"
     job.finished_at = timezone.now()
     if not ok:
         job.error = (error or "unknown error")[:4000]
         job.status = JobStatus.QUEUED if job.attempts < MAX_ATTEMPTS and job.result.get("retry") else JobStatus.ERROR
         job.save(update_fields=["result", "finished_at", "error", "status"])
-        if job.status == JobStatus.ERROR:
-            _notify(job, f"⚠️ {job.get_kind_display()}: {job.document.name} — {job.error[:300]}")
-        return job
+        return
     if source_data:
         from apps.documents.services import file_basename
 
         _store(job, file_basename(job.version), source_data)
     if data:
         job.result_document = _store(job, _output_name(job, filename), data)
+        if job.then == "drawing_pipeline" and job.kind == JobKind.DWG_PRINT:
+            revision = job.result_document.versions.get(version_number=job.result_document.version)
+            job.result_document.versions.filter(pk=revision.pk).update(mdr_state="pending")
     job.status, job.error = JobStatus.DONE, ""
     job.save(update_fields=["result", "finished_at", "status", "error", "result_document"])
-    _after(job)
-    return job
+    if job.then == "drawing_pipeline":
+        if job.kind in (JobKind.DWG_TRANSLATE, JobKind.GOST_FORMAT):
+            following = JobKind.GOST_FORMAT if job.kind == JobKind.DWG_TRANSLATE else JobKind.NORM_CONTROL
+            create_job(following, job.result_document, job.requested_by, then=job.then)
+        elif job.kind == JobKind.NORM_CONTROL and not any(r["severity"] == "critical" for r in job.result["remarks"]):
+            WorkerJob.objects.create(kind=JobKind.DWG_PRINT, document=job.document, version=job.version,
+                                     requested_by=job.requested_by, then=job.then)
 
 
 # ---------------------------------------------------------------- natijadan keyin
@@ -156,6 +183,8 @@ def _remarks_text(job):
     for r in remarks[:30]:
         mark = "❗" if r.get("severity") == "critical" else "•"
         lines.append(f"{mark} {r.get('sheet', '')}: {r.get('issue', '')}")
+        if r.get("issue_en"):
+            lines.append(r["issue_en"])
     return "\n".join(lines)
 
 
@@ -166,7 +195,7 @@ def _after(job):
         request_approval(job.result_document, job.requested_by)
         return
     if job.kind == JobKind.NORM_CONTROL:
-        _notify(job, _remarks_text(job))
+        _notify(job, _remarks_text(job)[:4000], job.result_document)
         return
     doc = job.result_document
     extra = job.result.get("summary") or ""

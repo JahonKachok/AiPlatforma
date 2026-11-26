@@ -72,3 +72,45 @@ class PendingAction(models.Model):
 
     def __str__(self):
         return f"{self.kind} · {self.user_id}"
+
+
+class OfficeEmployee(models.Model):
+    key = models.SlugField(primary_key=True)
+    name = models.CharField(max_length=60)
+    role = models.CharField(max_length=80)
+    description = models.CharField(max_length=240)
+
+
+class OfficeLead(models.Model):
+    class Status(models.TextChoices):
+        NEW = "new", "Yangi"
+        CONTACTED = "contacted", "Bog‘lanildi"
+
+    employee = models.ForeignKey(OfficeEmployee, on_delete=models.PROTECT)
+    brief = models.TextField()
+    price = models.PositiveBigIntegerField(null=True, blank=True)
+    status = models.CharField(max_length=12, choices=Status, default=Status.NEW)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class OfficeTask(models.Model):
+    class Status(models.TextChoices):
+        NEW = "new", "Yangi"
+        WORKING = "working", "Ishlayapti"
+        READY = "ready", "Tayyor"
+        ERROR = "error", "Xatolik"
+
+    employee = models.ForeignKey(OfficeEmployee, on_delete=models.PROTECT)
+    lead = models.ForeignKey(OfficeLead, on_delete=models.PROTECT, null=True, blank=True)
+    brief = models.TextField()
+    status = models.CharField(max_length=12, choices=Status, default=Status.NEW)
+    run_token = models.UUIDField(null=True, editable=False)
+    started_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class OfficeResult(models.Model):
+    task = models.OneToOneField(OfficeTask, on_delete=models.CASCADE, related_name="result")
+    body = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

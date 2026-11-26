@@ -106,6 +106,18 @@ this file only carries the presentation. Collapse state lives on <html> as
       <span class="ap-nav-text">{% trans "Reports" %}</span>
     </a>
 
+    {% if request.user.is_superuser or request.user.role == "admin" or request.user.role == "manager" %}
+    {% url 'ai_agents:dashboard' as agents_url %}
+    <a href="{{ agents_url }}" class="ap-nav-link{% if request.resolver_match.app_name == 'ai_agents' %} is-active{% endif %}"
+       data-tip="{% trans 'AI agents' %}"{% if request.path == agents_url %} aria-current="page"{% endif %}>
+      <svg class="ap-nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+        <rect x="8" y="2" width="8" height="6" rx="2"/><path d="M12 8v4M5 16v-4h14v4"/>
+        <rect x="2" y="16" width="6" height="5" rx="1.5"/><rect x="16" y="16" width="6" height="5" rx="1.5"/>
+      </svg>
+      <span class="ap-nav-text">{% trans "AI agents" %}</span>
+    </a>
+    {% endif %}
+
     {% url 'accounts:user_list' as users_url %}
     <a href="{{ users_url }}" class="ap-nav-link{% if request.path|slice:':15' == '/accounts/users' %} is-active{% endif %}"
        data-tip="{% trans 'Users' %}">
@@ -115,6 +127,18 @@ this file only carries the presentation. Collapse state lives on <html> as
       </svg>
       <span class="ap-nav-text">{% trans "Users" %}</span>
     </a>
+
+    {# Tokenlar va kalitlar (Telegram, AI, Google Drive, ishchi kompyuter) — faqat admin #}
+    {% if request.user.role == "admin" or request.user.is_superuser %}
+    {% url 'core:integration_settings' as integrations_url %}
+    <a href="{{ integrations_url }}" class="ap-nav-link{% if request.path == integrations_url %} is-active{% endif %}"
+       data-tip="{% trans 'Integrations' %}">
+      <svg class="ap-nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="7.5" cy="15.5" r="4"/><path d="M10.3 12.7L20 3M16 7l3 3M14 9l2 2"/>
+      </svg>
+      <span class="ap-nav-text">{% trans "Integrations" %}</span>
+    </a>
+    {% endif %}
   </nav>
 
   <div class="ap-sb-foot">

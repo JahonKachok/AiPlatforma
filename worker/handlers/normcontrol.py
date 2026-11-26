@@ -55,7 +55,22 @@ def norm_control(job, source, ctx):
         with Drawing(source) as doc:
             plot_pdf(doc, pdf)
     sheets = pdf_facts(pdf)
-    if not any(s["facts"] for s in sheets):
-        return Output(result={"remarks": []})
-    answer = ctx.ai("norm_control", {"file": job["file_name"], "sheets": [s for s in sheets if s["facts"]]})
-    return Output(result={"remarks": answer.get("remarks", [])})
+    flagged = [s for s in sheets if s["facts"]]
+    remarks = ctx.ai("norm_control", {"file": job["file_name"], "sheets": flagged})["remarks"] if flagged else []
+    from openpyxl import Workbook
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Замечания"
+    ws.append(["Файл / File", "Лист / Sheet", "Категория / Severity", "Замечание", "Remark"])
+    for row in remarks:
+        ws.append([job["file_name"], row["sheet"], row["severity"], row["issue"], row["issue_en"]])
+        for cell in ws[ws.max_row]:
+            cell.data_type = "s"
+    ws.freeze_panes = "A2"
+    ws.auto_filter.ref = ws.dimensions
+    for column, width in zip("ABCDE", (38, 14, 20, 70, 70)):
+        ws.column_dimensions[column].width = width
+    report = source.with_suffix(".remarks.xlsx")
+    wb.save(report)
+    return Output(file=report, result={"remarks": remarks})

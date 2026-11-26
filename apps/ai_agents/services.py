@@ -376,7 +376,8 @@ def collect_chat_context(user) -> str:
 
     today = timezone.now().date()
     projects = visible_projects_for(user)
-    open_tasks = Task.objects.filter(project__in=projects).exclude(
+    from .agent_tools import chat_tasks
+    open_tasks = chat_tasks(user).exclude(
         status__in=[Task.Status.COMPLETED, Task.Status.APPROVED]
     )
 
@@ -409,7 +410,7 @@ def collect_chat_context(user) -> str:
 
 def answer_telegram(user, text: str, lang: str = "uz",
                     history: list[tuple[str, str]] | None = None,
-                    audio: tuple[bytes, str] | None = None) -> tuple[str, list[dict]]:
+                    audio: tuple[bytes, str] | None = None, proposals=None) -> tuple[str, list[dict]]:
     """Telegram'dagi oddiy xabarga platforma konteksti asosida AI javobi.
 
     `lang` — foydalanuvchi botda tanlagan til (uz/ru/en); AI shu tilda javob
@@ -441,7 +442,7 @@ def answer_telegram(user, text: str, lang: str = "uz",
 
     prompt = f"{context}\n\n{history_block}{user_block}"
     found_documents: list[dict] = []
-    tools = agent_tools.build_telegram_tools(user, found_documents)
+    tools = agent_tools.build_telegram_tools(user, found_documents, proposals, lang)
     answer = ask_ai(system, prompt, agent="telegram", tools=tools, audio=audio)
     return answer, found_documents
 

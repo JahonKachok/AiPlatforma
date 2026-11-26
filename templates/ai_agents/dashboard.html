@@ -1,90 +1,106 @@
 {% extends "base.html" %}
-{% load i18n %}
-{% block title %}{% trans "AI ecosystem" %}{% endblock %}
-{% block page_title %}🤖 {% trans "AI ecosystem" %}{% endblock %}
-{% block page_help %}{% trans "Configure AI agents, run them automatically on a schedule, and follow the audit log of their work." as help_text %}{% with text=help_text %}{% include "partials/static_info.html" %}{% endwith %}{% endblock %}
-{% block page_subtitle %}{% trans "Agents, schedules and audit log" %}{% endblock %}
+{% load i18n static %}
+{% block title %}{% trans "AI agents" %} · GASTEC{% endblock %}
+{% block page_title %}{% trans "AI agents" %}{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/agent-monitor.css' %}">{% endblock %}
 {% block content %}
-
-<div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-  <div class="card p-6">
-    <div class="mb-2 flex items-center justify-between">
-      <h2 class="font-semibold">⏰ {% trans "Deadline control agent" %}</h2>
-      <span class="badge rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700 dark:bg-green-950 dark:text-green-300">
-        {% trans "Active" %}
-      </span>
+<div class="agent-monitor">
+  <section class="agent-map" aria-labelledby="map-title">
+    <div class="map-head">
+      <div><h2 id="map-title">{% trans "Agent map" %}</h2>
+        <p>{% trans "Select an agent to see its role." %}</p></div>
+      <a class="map-source" href="{% url 'ai_agents:office' %}">AI Ofis</a>
     </div>
-    <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
-      {% trans "Analyzes overdue and upcoming tasks, prepares a daily report for management (site, email, Telegram)." %}
-    </p>
-    <ul class="mb-4 space-y-1 text-sm">
-      <li><span class="text-gray-500 dark:text-gray-400">{% trans "Schedule" %}:</span>
-        {% if schedule and schedule.enabled %}{{ schedule.crontab }}{% else %}—{% endif %}
-      </li>
-      <li><span class="text-gray-500 dark:text-gray-400">{% trans "Provider" %}:</span>
-        {% if provider %}{{ provider }}{% else %}<span class="text-red-500">{% trans "not configured" %}</span>{% endif %}
-      </li>
-      <li><span class="text-gray-500 dark:text-gray-400">{% trans "Last run" %}:</span>
-        {% if last_run %}{{ last_run.created_at }} · {{ last_run.get_status_display }} · {{ last_run.duration_ms }} ms{% else %}—{% endif %}
-      </li>
-    </ul>
-    <form method="post" action="{% url 'ai_agents:run_deadline' %}">
-      {% csrf_token %}
-      <button type="submit" class="btn btn-primary btn-md">▶️ {% trans "Run now" %}</button>
-    </form>
-  </div>
-
-  <div class="card p-6">
-    <div class="mb-2 flex items-center justify-between">
-      <h2 class="font-semibold">💰 {% trans "Finance analysis agent" %}</h2>
-      <span class="badge rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-        {% trans "In development" %}
-      </span>
-    </div>
-    <p class="text-sm text-gray-500 dark:text-gray-400">
-      {% trans "Will monitor payments, debts and contracts, and forecast expenses. Coming in the next phase." %}
-    </p>
-  </div>
-</div>
-
-{% if last_run and last_run.response %}
-<div class="card mb-6 p-6">
-  <h2 class="mb-3 font-semibold">📋 {% trans "Latest report" %}</h2>
-  <pre class="whitespace-pre-wrap font-sans text-sm">{{ last_run.response }}</pre>
-</div>
-{% endif %}
-
-<div class="card overflow-x-auto p-6">
-  <h2 class="mb-3 font-semibold">{% trans "AI audit log" %}</h2>
-  <table class="w-full text-left text-sm">
-    <thead class="text-gray-500 dark:text-gray-400">
-      <tr>
-        <th class="py-1">{% trans "Date" %}</th>
-        <th>{% trans "Agent" %}</th>
-        <th>{% trans "Provider" %}</th>
-        <th>{% trans "Model" %}</th>
-        <th>{% trans "Duration" %}</th>
-        <th>{% trans "Status" %}</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for log in logs %}
-        <tr class="border-t border-gray-100 dark:border-gray-700">
-          <td class="py-1.5">{{ log.created_at|date:"d.m.Y H:i" }}</td>
-          <td>{{ log.agent|default:"—" }}</td>
-          <td>{{ log.provider }}</td>
-          <td>{{ log.model }}</td>
-          <td>{{ log.duration_ms }} ms</td>
-          <td>
-            {% if log.status == "success" %}<span class="text-green-600 dark:text-green-400">✓ {{ log.get_status_display }}</span>
-            {% elif log.status == "error" %}<span class="text-red-600 dark:text-red-400">✗ {{ log.get_status_display }}</span>
-            {% else %}<span class="text-gray-500">{{ log.get_status_display }}</span>{% endif %}
-          </td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="6" class="py-4 text-center text-gray-500 dark:text-gray-400">{% trans "No AI calls yet." %}</td></tr>
+    <div class="map-branches">
+      {% for group, agents in agent_groups %}
+        <div class="map-group"><h3>{{ group }}</h3>
+          {% for key, name, description in agents %}
+            <details><summary>{{ name }}</summary><p>{{ description }}</p>
+              {% if key == 'dispatcher' %}<a href="{% url 'pult:section_tasks' %}">{% trans "Task register" %}</a>
+              {% elif key == 'kpi' %}<a href="{% url 'pult:section_kpi' %}">{% trans "KPI" %}</a>
+              {% elif key in job_agents %}<a href="?feed=jobs&amp;agent={{ key }}#activity">{% trans "Worker jobs" %}</a>
+              {% elif key != 'gost' %}<a href="?feed=calls&amp;agent={{ key }}#activity">{% trans "AI calls" %}</a>{% endif %}
+            </details>
+          {% endfor %}
+        </div>
       {% endfor %}
-    </tbody>
-  </table>
+    </div>
+  </section>
+
+  <div class="monitor-panels">
+    <section class="card monitor-panel">
+      <div class="monitor-heading"><h2>{% trans "AI calls" %}</h2><span>{% trans "Last 7 days" %}</span></div>
+      <strong class="monitor-number">{{ week_total }}</strong>
+      <ol class="activity-bars" aria-label="{% trans 'Daily AI calls' %}">
+        {% for day in days %}<li>
+          <span class="day-count">{{ day.count }}</span>
+          <div class="bar-track"><div style="height:{% widthratio day.count peak 100 %}%"></div></div>
+          <time datetime="{{ day.date|date:'Y-m-d' }}">{{ day.date|date:"d.m" }}</time>
+        </li>{% endfor %}
+      </ol>
+    </section>
+    <section class="card monitor-panel">
+      <div class="monitor-heading"><h2>{% trans "Current workload" %}</h2></div>
+      <div class="worker-indicator {% if worker_online %}online{% endif %}">
+        <i aria-hidden="true"></i>{% if worker_online %}{% trans "Worker online" %}{% else %}{% trans "Worker offline" %}{% endif %}
+      </div>
+      <dl class="workload-list">
+        <div><dt>{% trans "Queued jobs" %}</dt><dd>{{ queued }}</dd></div>
+        <div><dt>{% trans "Running jobs" %}</dt><dd>{{ running }}</dd></div>
+        <div><dt>{% trans "Awaiting payment confirmation" %}</dt><dd>{{ pending_count }}</dd></div>
+      </dl>
+    </section>
+  </div>
+
+  <section id="activity" class="card monitor-panel">
+    <div class="monitor-heading"><h2>{% trans "Activity log" %}{% if selected_name %} · {{ selected_name }}{% endif %}</h2><span>{{ events.paginator.count }} · {% trans "Records" %}</span></div>
+    <nav class="monitor-tabs" aria-label="{% trans 'Activity log' %}">
+      <a href="?feed=calls#activity"{% if feed == 'calls' %} aria-current="page"{% endif %}>{% trans "AI calls" %}</a>
+      <a href="?feed=jobs#activity"{% if feed == 'jobs' %} aria-current="page"{% endif %}>{% trans "Worker jobs" %}</a>
+      <a href="?feed=pending#activity"{% if feed == 'pending' %} aria-current="page"{% endif %}>{% trans "Pending payments" %}</a>
+    </nav>
+    {% if events.object_list %}
+      <div class="monitor-scroll"><table><thead><tr>
+        <th>{% trans "Date" %}</th>
+        {% if feed == 'calls' %}<th>{% trans "Agent" %}</th><th>{% trans "Provider" %} / {% trans "Model" %}</th><th>{% trans "Duration" %}</th>
+        {% elif feed == 'jobs' %}<th>{% trans "Operation" %}</th><th>{% trans "Document" %}</th>
+        {% else %}<th>{% trans "Operation" %}</th><th>{% trans "Requested by" %}</th>{% endif %}
+        <th>{% trans "Status" %}</th>
+      </tr></thead><tbody>
+      {% for row in events %}<tr>
+        <td>{{ row.created_at|date:"d.m.Y H:i" }}</td>
+        {% if feed == 'calls' %}
+          <td>{{ row.agent|default:"—" }}</td><td>{{ row.provider|default:"—" }} · {{ row.model|default:"—" }}</td>
+          <td>{% if row.duration_ms != None %}{{ row.duration_ms }} ms{% else %}—{% endif %}</td>
+          <td><span class="monitor-state s-{{ row.status }}">{% if row.status == 'success' %}{% trans "Success" %}{% elif row.status == 'error' %}{% trans "Error" %}{% else %}{% trans "Empty response" %}{% endif %}</span></td>
+        {% elif feed == 'jobs' %}
+          <td>{% translate row.get_kind_display %}</td><td><a href="{% url 'documents:detail' row.document_id %}">{{ row.document.name }}</a></td>
+          <td><span class="monitor-state s-{{ row.status }}">{% translate row.get_status_display %}</span></td>
+        {% else %}
+          <td>{% if row.kind == 'office_expense' %}{% trans "Office expense" %}{% elif row.kind == 'project_operation' %}{% trans "Project payment" %}{% else %}{{ row.kind }}{% endif %}</td>
+          <td>{{ row.user.full_name }}</td><td><span class="monitor-state s-queued">{% trans "Awaiting confirmation" %}</span></td>
+        {% endif %}
+      </tr>{% endfor %}
+      </tbody></table></div>
+      {% if events.has_other_pages %}<nav class="monitor-pagination" aria-label="{% trans 'Pages' %}">
+        {% if events.has_previous %}<a href="{% querystring feed=feed agent=agent page=events.previous_page_number %}#activity">{% trans "Previous" %}</a>{% endif %}
+        <span>{{ events.number }} / {{ events.paginator.num_pages }}</span>
+        {% if events.has_next %}<a href="{% querystring feed=feed agent=agent page=events.next_page_number %}#activity">{% trans "Next" %}</a>{% endif %}
+      </nav>{% endif %}
+    {% else %}<p class="monitor-empty">
+      {% if feed == 'calls' %}{% trans "No AI calls yet." %}{% elif feed == 'jobs' %}{% trans "No worker jobs yet." %}{% else %}{% trans "No payments awaiting confirmation." %}{% endif %}
+    </p>{% endif %}
+  </section>
+
+  <details class="card monitor-panel deadline-settings">
+    <summary>{% trans "Deadline control agent" %}</summary>
+    <dl class="workload-list">
+      <div><dt>{% trans "Schedule" %}</dt><dd>{% if schedule and schedule.enabled %}{{ schedule.crontab }}{% else %}—{% endif %}</dd></div>
+      <div><dt>{% trans "Provider" %}</dt><dd>{{ provider|default:"—" }}</dd></div>
+      <div><dt>{% trans "Last run" %}</dt><dd>{{ last_run.created_at|date:"d.m.Y H:i"|default:"—" }}</dd></div>
+    </dl>
+    <form method="post" action="{% url 'ai_agents:run_deadline' %}">{% csrf_token %}<button type="submit" class="btn btn-primary btn-md">{% trans "Run now" %}</button></form>
+    {% if last_run.response %}<h3>{% trans "Latest report" %}</h3><pre>{{ last_run.response }}</pre>{% endif %}
+  </details>
 </div>
 {% endblock %}

@@ -288,3 +288,30 @@ msgstr ""
 
 msgid "Discipline %(code)s already exists as %(existing)s."
 msgstr ""
+
+msgid "DWG → PDF + shtamp"
+msgstr "DWG to stamped PDF"
+
+msgid "DWG tarjima"
+msgstr "DWG translation"
+
+msgid "Excel tarjima"
+msgstr "Excel translation"
+
+msgid "DOCX → PDF"
+msgstr "DOCX → PDF"
+
+msgid "Normokontrol"
+msgstr "Standards check"
+
+msgid "Navbatda"
+msgstr "Queued"
+
+msgid "Bajarilmoqda"
+msgstr "Running"
+
+msgid "Tayyor"
+msgstr "Done"
+
+msgid "Xato"
+msgstr "Error"

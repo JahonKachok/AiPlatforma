@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html><html lang="uz"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Ofis · GASTEC</title><link rel="icon" href="{% static 'img/logo-mark.svg' %}">
+<link rel="stylesheet" href="{% static 'css/agent-office.css' %}?v=4">
+<script defer src="{% static 'js/agent-office.js' %}?v=4"></script>
+{% if agent_floor %}<script defer src="{% static 'js/office-agents.js' %}"></script>{% else %}<script defer src="{% static 'js/office-workspace.js' %}?v=3"></script>{% endif %}
+</head><body>
+<header class="top"><div class="brand"><img src="{% static 'img/logo-mark.svg' %}" alt="GASTEC"><h1>AI Ofis</h1></div>
+<nav>{% if agent_floor %}<a href="?team=office">Savdo ofisi</a>{% else %}<a href="{% url 'ai_agents:office' %}">GASTEC agentlari</a>{% endif %}
+<a href="{% url 'ai_agents:dashboard' %}">Agentlar paneli</a>{% if not agent_floor %}<span class="mode">{% if office.demo %}Demo rejimi{% else %}AI ulangan{% endif %}</span>{% endif %}</nav></header>
+<main id="office" data-floor="{% if agent_floor %}agents{% else %}office{% endif %}" data-source="{% if agent_floor %}{% url 'ai_agents:office_status' %}{% else %}{% url 'ai_agents:office_data' %}{% endif %}" data-action="{% url 'ai_agents:office_action' 'ACTION' %}">
+{% csrf_token %}
+<section class="office-stage" aria-label="Interaktiv ofis maketi">
+<div class="scene-title"><span class="eyebrow">GASTEC</span><h2>{% if agent_floor %}Agentlar ofisi{% else %}Savdo ofisi{% endif %}</h2></div>
+{% if not agent_floor %}<button type="button" class="board-open" data-open-board>▦ &nbsp; Ish doskasi</button>{% endif %}
+<canvas id="office-scene" aria-label="Xodim yoki devordagi doskani tanlang"></canvas>
+<div id="scene-pins"></div>
+<div class="office-tools" aria-label="Ofis ko‘rinishi">
+<button type="button" data-camera="out" aria-label="Uzoqlashtirish">−</button>
+<button type="button" data-camera="in" aria-label="Yaqinlashtirish">+</button>
+<button type="button" data-camera="reset">Butun ofis</button></div>
+</section>
+<div class="scene-footer"><span>{% if agent_floor %}Ish holatini ko‘rish uchun agentni tanlang.{% else %}Stol yoki doskani bosing. Ofisni surib ko‘rishingiz mumkin.{% endif %}</span><time>{% now "d.m.Y" %}</time></div>
+{% if agent_floor %}<nav class="agent-roster" aria-label="TZdagi agentlar">{% for s in office.stations %}<button type="button" data-roster="{{ s.key }}"><small>{{ forloop.counter }}</small> {{ s.name }}</button>{% endfor %}</nav>{% endif %}
+<div id="notice" role="status" aria-live="polite"></div>
+<aside id="employee-panel" class="panel" aria-label="Xodim paneli" hidden>
+<button class="close" data-close-panel aria-label="Panelni yopish">×</button><div id="employee-content"></div></aside>
+{% if not agent_floor %}<dialog id="board-dialog" class="board-dialog"><header class="dialog-head"><div><span class="eyebrow">Jamoa</span><h2>Ish doskasi</h2></div><button class="close" data-dismiss aria-label="Doskani yopish">×</button></header>
+<div class="tabs" id="board-tabs"><button data-tab="today">Bugun</button><button data-tab="leads">Lidlar</button><button data-tab="tasks">Vazifalar</button></div>
+<div id="board-content"></div></dialog>
+<dialog id="form-dialog"><header class="dialog-head"><h2 id="form-title"></h2><button class="close" data-dismiss aria-label="Oynani yopish">×</button></header>
+<form id="entry-form"><div id="form-fields"></div><p class="form-error" role="alert"></p><button class="primary" type="submit">Saqlash</button></form></dialog>{% endif %}
+<noscript>Virtual ofis uchun brauzerda JavaScript’ni yoqing.</noscript>
+</main>{{ office|json_script:"office-data" }}</body></html>

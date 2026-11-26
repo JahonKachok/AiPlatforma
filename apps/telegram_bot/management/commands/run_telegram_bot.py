@@ -510,19 +510,23 @@ class Command(BaseCommand):
         AI_NOT_LINKED, AI_NOT_CONFIGURED, AI_RATE_LIMITED = "not_linked", "not_configured", "rate_limited"
 
         @sync_to_async
-        def _ai_answer(chat_id, text, lang, history):
+        def _ai_answer(chat_id, text, lang, history, audio=None):
             from apps.accounts.models import User
             from apps.ai_agents import services
 
             user = User.objects.filter(telegram_chat_id=str(chat_id), is_active=True).first()
             if user is None:
-                return AI_NOT_LINKED, "", []
+                return AI_NOT_LINKED, "", [], []
             if not services.is_configured():
-                return AI_NOT_CONFIGURED, "", []
+                return AI_NOT_CONFIGURED, "", [], []
             if services.rate_limited(user):
-                return AI_RATE_LIMITED, "", []
-            answer, documents = services.answer_telegram(user, text, lang=lang, history=history)
-            return "ok", answer, documents
+                return AI_RATE_LIMITED, "", [], []
+            proposals = []
+            answer, documents = services.answer_telegram(user, text, lang=lang, history=history,
+                                                         audio=audio, proposals=proposals)
+            if proposals:
+                return "ok", proposals[0].text, documents, proposals[0].buttons
+            return "ok", answer, documents, []
 
         # AI qidiruvida topilgan hujjatlardan chatga avtomatik yuboriladigan
         # eng ko'p soni — Telegram'ni fayllar bilan to'ldirib yubormaslik uchun.
@@ -689,7 +693,7 @@ class Command(BaseCommand):
             tushirilganda tarix tozalanadi)."""
             lang = await get_lang(update, context)
             text = update.message.text or ""
-            wait = _take_wait(context, "decline")
+            wait = _take_wait(context, "decline") or _take_wait(context, "terms")
             if wait:
                 from apps.pult import dispatcher
 
@@ -701,7 +705,7 @@ class Command(BaseCommand):
             history = context.user_data.get("ai_history", [])
             await update.effective_chat.send_action("typing")
             try:
-                state, answer, documents = await _ai_answer(update.effective_chat.id, text, lang, history)
+                state, answer, documents, buttons = await _ai_answer(update.effective_chat.id, text, lang, history)
             except Exception:
                 await update.message.reply_text(t("ai.error", lang))
                 raise
@@ -714,28 +718,11 @@ class Command(BaseCommand):
             else:
                 history.extend([("user", text), ("assistant", answer)])
                 context.user_data["ai_history"] = history[-8:]
-                await update.message.reply_text(answer)
+                await update.message.reply_text(answer, reply_markup=_markup(buttons))
                 if documents:
                     await _send_found_documents(update, documents)
 
         VOICE_MAX_SECONDS = 180  # 3 daqiqa
-
-        @sync_to_async
-        def _ai_voice_answer(chat_id, audio_bytes, mime_type, lang, history):
-            from apps.accounts.models import User
-            from apps.ai_agents import services
-
-            user = User.objects.filter(telegram_chat_id=str(chat_id), is_active=True).first()
-            if user is None:
-                return AI_NOT_LINKED, "", []
-            if not services.is_configured():
-                return AI_NOT_CONFIGURED, "", []
-            if services.rate_limited(user):
-                return AI_RATE_LIMITED, "", []
-            answer, documents = services.answer_telegram(
-                user, "", lang=lang, history=history, audio=(audio_bytes, mime_type)
-            )
-            return "ok", answer, documents
 
         async def voice_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             """Ovozli xabarni Gemini'ga uzatib, AI javobini qaytaradi."""
@@ -762,12 +749,10 @@ class Command(BaseCommand):
                 if transcript:
                     if await _orchestrate(update, context, transcript, lang):
                         return
-                    state, answer, documents = await _ai_answer(update.effective_chat.id, transcript, lang, history)
+                    state, answer, documents, buttons = await _ai_answer(update.effective_chat.id, transcript, lang, history)
                 else:
-                    state, answer, documents = await _ai_voice_answer(
-                        update.effective_chat.id, data,
-                        voice.mime_type or "audio/ogg", lang, history,
-                    )
+                    state, answer, documents, buttons = await _ai_answer(
+                        update.effective_chat.id, "", lang, history, audio=(data, voice.mime_type or "audio/ogg"))
             except Exception:
                 await update.message.reply_text(t("ai.error", lang))
                 raise
@@ -780,7 +765,7 @@ class Command(BaseCommand):
             else:
                 history.extend([("user", f"[ovozli xabar, {voice.duration}s]"), ("assistant", answer)])
                 context.user_data["ai_history"] = history[-8:]
-                await update.message.reply_text(answer)
+                await update.message.reply_text(answer, reply_markup=_markup(buttons))
                 if documents:
                     await _send_found_documents(update, documents)
 

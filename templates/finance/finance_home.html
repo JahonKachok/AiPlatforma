@@ -592,6 +592,7 @@
         <label class="field-label">{% trans "Period" %}</label>
         <select name="period" class="field-input w-full">
           <option value="">{% trans "All periods" %}</option>
+          <option value="once" {% if filter_period == "once" %}selected{% endif %}>{% trans "One-time" %}</option>
           <option value="month" {% if filter_period == "month" %}selected{% endif %}>{% trans "Monthly" %}</option>
           <option value="quarter" {% if filter_period == "quarter" %}selected{% endif %}>{% trans "Quarterly" %}</option>
           <option value="year" {% if filter_period == "year" %}selected{% endif %}>{% trans "Yearly" %}</option>

@@ -54,6 +54,28 @@ def png(color=(0, 0, 255, 120)):
 
 
 class TextFitTests(SimpleTestCase):
+    def test_gost_profile_uses_named_setup_and_preserves_completed_stamp(self):
+        from types import SimpleNamespace
+        from worker.handlers.gost import apply_profile
+
+        project = SimpleNamespace(TagString="PROJECT", TextString="Existing client")
+        sheet = SimpleNamespace(TagString="SHEET", TextString="")
+        stamp = SimpleNamespace(ObjectName="AcDbBlockReference", EffectiveName="A3 title", HasAttributes=True,
+                                GetAttributes=lambda: [project, sheet])
+        layout = SimpleNamespace(Name="Лист 1", CanonicalMediaName="A3", ModelType=False, TabOrder=1,
+                                 Block=[stamp], CopyFrom=mock.Mock())
+        doc = mock.Mock()
+        doc.Layouts.Count, doc.Layouts.Item.return_value = 1, layout
+        rule = {"page_setup": "A3 approved", "stamp_block": "A3 title", "attributes": {"PROJECT": "project", "SHEET": "sheet"}}
+        profile = {"media": {"A3": rule}, "fonts": {"Notes": "test.shx"}}
+        self.assertEqual(apply_profile(doc, profile, {"project": "Zavod", "file_name": "План этажа.dwg"}), 1)
+        layout.CopyFrom.assert_called_once_with(doc.PlotConfigurations.Item.return_value)
+        self.assertEqual(doc.TextStyles.Item.return_value.FontFile, "test.shx")
+        self.assertEqual((sheet.TextString, project.TextString), ("Лист 1", "Existing client"))
+        layout.CanonicalMediaName = "A0"
+        with self.assertRaisesRegex(ValueError, "No approved format"):
+            apply_profile(doc, profile, {"file_name": "Файл.dwg"})
+
     def test_codes_and_numbers_are_not_translated(self):
         for text in ("A-1", "Ø20", "М1:100", "+0.000", "КЖ-01", "2-2", "12", ""):
             self.assertFalse(textfit.needs_translation(text), text)
@@ -106,6 +128,14 @@ class TextFitTests(SimpleTestCase):
         self.assertIn("overlapping text", joined)
         self.assertIn("outside the drawing frame", joined)
         self.assertNotIn("non-standard sheet size", joined)
+        from openpyxl import load_workbook
+        from worker.handlers.normcontrol import norm_control
+        ctx = mock.Mock()
+        ctx.ai.return_value = {"remarks": [{"sheet": "1", "severity": "minor", "issue": "За рамкой", "issue_en": "Outside frame"}]}
+        out = norm_control({"file_name": path.name}, path, ctx)
+        book = load_workbook(out.file, read_only=True)
+        self.assertEqual(tuple(book.active.values)[1], (path.name, "1", "minor", "За рамкой", "Outside frame"))
+        book.close()
 
 
 class SigningTests(SimpleTestCase):
@@ -238,6 +268,62 @@ class WorkerApiTests(TestCase):
             reply = orchestrator.handle(self.user, "Zavod AR chizmalarini PDF qil", "uz")
         self.assertIn("1", reply.text)
         self.assertEqual(WorkerJob.objects.get().kind, JobKind.DWG_PRINT)
+
+    def test_drawing_pipeline_chains_revisions_and_skips_duplicate_result(self):
+        from apps.ai_agents import orchestrator
+        from .services import finish
+
+        selection = {"project": "Zavod", "object": "", "discipline": "AR", "file": "", "target_lang": ""}
+        with mock.patch("apps.ai_agents.orchestrator.ask_json", return_value=selection):
+            orchestrator.handle(self.user, "Zavod chizmalar konveyeri", "uz")
+        first = claim("cad")
+        self.assertEqual((first.kind, first.params["preserve_english"]), (JobKind.DWG_TRANSLATE, True))
+        original = first.version
+        finish(first, True, {}, "plan 1.dwg", b"translated")
+        finish(first, True, {}, "plan 1.dwg", b"duplicate")
+        self.assertEqual(WorkerJob.objects.count(), 2)
+        gost = claim("cad")
+        self.assertEqual(gost.kind, JobKind.GOST_FORMAT)
+        finish(gost, True, {}, "plan 1.dwg", b"formatted")
+        check = claim("cad")
+        self.assertEqual(check.kind, JobKind.NORM_CONTROL)
+        finish(check, True, {"remarks": []}, "plan 1.remarks.xlsx", b"report")
+        printer = claim("cad")
+        self.assertEqual((printer.kind, printer.version_id), (JobKind.DWG_PRINT, check.version_id))
+        output = finish(printer, True, {}, "plan 1.pdf", b"%PDF-test")
+        self.assertEqual(output.result_document.original_name, "plan 1.pdf")
+        self.assertEqual(output.result_document.versions.get().mdr_state, "pending")
+        with original.file.open("rb") as source:
+            self.assertEqual(source.read(), b"DWG")
+
+    @override_settings(GASTEC_MDR_SPREADSHEET_ID="test", GASTEC_MDR_TAB="MDR",
+                       GASTEC_MDR_COLUMNS={"filename": "Файл", "link": "Ссылка"})
+    def test_mdr_appends_only_mapped_fields_and_recovers_after_lost_response(self):
+        from apps.documents.mdr import sync_revision
+        from requests import Timeout
+
+        version = self.doc.versions.get()
+        version.drive_file_id, version.mdr_state = "drive-file", "pending"
+        version.save(update_fields=["drive_file_id", "mdr_state"])
+        sheet = {"properties": {"title": "MDR", "sheetId": 125}}
+        def response(data):
+            result = mock.Mock()
+            result.json.return_value = data
+            return result
+        with mock.patch("apps.documents.mdr.drive._session") as session:
+            http = session.return_value
+            http.get.side_effect = [response({"sheets": [sheet]}), response({"values": [["Файл", "Формула", "Ссылка"]]}),
+                                    response({"sheets": [sheet], "namedRanges": [
+                                        {"name": f"GASTEC_MDR_{version.pk.hex}", "range": {"sheetId": 125}}]})]
+            http.post.side_effect = Timeout("lost response")
+            sync_revision(version)
+            self.assertEqual(http.post.call_args.kwargs["json"]["requests"][1]["appendCells"]["rows"][0]["values"][1], {})
+            version.refresh_from_db()
+            self.assertEqual(version.mdr_state, "pending")
+            sync_revision(version)
+            version.refresh_from_db()
+            self.assertEqual(version.mdr_state, "synced")
+            self.assertEqual(http.post.call_count, 1)
 
 
 @override_settings(MEDIA_ROOT=_MEDIA)

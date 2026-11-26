@@ -28,6 +28,7 @@ class RecordCategory(models.TextChoices):
 
 
 class AdminExpensePeriod(models.TextChoices):
+    ONCE = "once", _("One-time")
     MONTH = "month", _("Monthly")
     QUARTER = "quarter", _("Quarterly")
     YEAR = "year", _("Yearly")

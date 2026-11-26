@@ -5425,3 +5425,22 @@ msgstr "Papkani Google Drive'da ochish"
 msgid "Intermediate file handed over"
 msgstr "Oraliq fayl topshirildi"
 
+
+msgid "Worker PC token"
+msgstr "Ishchi kompyuter tokeni"
+
+msgid "A long random string; put the same value into worker/worker.ini on the worker PC."
+msgstr "Uzun tasodifiy satr; xuddi shuni ishchi kompyuterdagi worker/worker.ini ga yozing."
+
+msgid "Worker PC: AutoCAD, Word, Excel"
+msgstr "Ishchi kompyuter: AutoCAD, Word, Excel"
+
+msgid "Offline"
+msgstr "O'chiq"
+
+msgid "queued: %(q)s, errors: %(e)s"
+msgstr "navbatda: %(q)s, xatolar: %(e)s"
+
+msgid "Setup: worker/README.md"
+msgstr "O'rnatish: worker/README.md"
+

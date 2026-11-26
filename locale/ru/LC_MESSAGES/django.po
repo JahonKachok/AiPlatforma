@@ -5427,3 +5427,22 @@ msgstr "Открыть папку в Google Drive"
 msgid "Intermediate file handed over"
 msgstr "Промежуточный файл сдан"
 
+
+msgid "Worker PC token"
+msgstr "Токен рабочего компьютера"
+
+msgid "A long random string; put the same value into worker/worker.ini on the worker PC."
+msgstr "Длинная случайная строка; то же значение впишите в worker/worker.ini на рабочем компьютере."
+
+msgid "Worker PC: AutoCAD, Word, Excel"
+msgstr "Рабочий компьютер: AutoCAD, Word, Excel"
+
+msgid "Offline"
+msgstr "Не в сети"
+
+msgid "queued: %(q)s, errors: %(e)s"
+msgstr "в очереди: %(q)s, ошибок: %(e)s"
+
+msgid "Setup: worker/README.md"
+msgstr "Установка: worker/README.md"
+

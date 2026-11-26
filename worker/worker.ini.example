@@ -1,0 +1,15 @@
+; Nusxa oling: worker.ini (u git'ga tushmaydi — ichida token bor).
+[worker]
+; Platforma manzili
+server = https://pult.example.uz
+; Admin panel → Интеграции → «Рабочий компьютер» dagi token bilan bir xil
+token = CHANGE-ME
+; Kompyuter nomi (admin panelda ko'rinadi)
+name = gaztek-cad-01
+; Vaqtinchalik ishlar papkasi
+workdir = C:\GaztekWorker\jobs
+; Ixtiyoriy: tayyor fayllarning lokal nusxasi (Loyiha\Obyekt\Intizom, eskisi Old\<vaqt>\)
+out_dir = D:\Gaztek\Arxiv
+poll_seconds = 10
+; Shu kompyuter bajaradigan ishlar (AutoCAD yo'q bo'lsa dwg_* ni olib tashlang)
+kinds = dwg_print, dwg_translate, xlsx_translate, docx_to_pdf, norm_control

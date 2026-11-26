@@ -58,6 +58,9 @@ FIELDS = (
     ConfigField("GOOGLE_DRIVE_DELETE_LOCAL", _("Server copy after upload"), "drive",
                 help_text=_("Deleting saves server disk space; files are then read from Drive."),
                 choices=(("", _("Keep")), ("1", _("Delete")))),
+    # Ishchi kompyuter (worker/gaztek_worker.py) shu token bilan ulanadi.
+    ConfigField("WORKER_TOKEN", _("Worker PC token"), "worker", secret=True,
+                help_text=_("A long random string; put the same value into worker/worker.ini on the worker PC.")),
     # Devbot (deploy/devbot) — Telegram orqali platforma kodini o'zgartiruvchi
     # bot. U serverda alohida ishlaydi va bu qiymatlarni `manage.py
     # devbot_config` orqali o'qiydi. Buyruqni faqat Telegram'i ulangan

@@ -354,11 +354,71 @@ T = {
         "ru": "📦 Архивариус: {count} файл(ов) отправляются — {name}.",
         "en": "📦 Archivist: sending {count} file(s) to {name}.",
     },
-    "ag.worker_pending": {
-        "uz": "Bu ish (tarjima, PDF/shtamp, normokontrol, xat) ishchi kompyuterda bajariladi — u hali ulanmagan.",
-        "ru": "Эта работа (перевод, PDF/штамп, нормоконтроль, письма) выполняется на рабочем компьютере — он ещё не подключён.",
-        "en": "This job (translation, PDF/stamp, norm control, letters) runs on the worker PC, which is not connected yet.",
+    "ag.jobs_queued": {
+        "uz": "🖥 {count} ta fayl ishchi kompyuter navbatiga qo'yildi — tayyor bo'lgach shu yerga yuboraman.",
+        "ru": "🖥 Файлов в очереди рабочего компьютера: {count} — пришлю сюда, когда будет готово.",
+        "en": "🖥 {count} file(s) queued on the worker PC — I will send them here when ready.",
     },
+    "ag.jobs_queued_offline": {
+        "uz": "🖥 {count} ta fayl navbatga qo'yildi, lekin ishchi kompyuter hozir o'chiq — yoqilgach bajariladi.",
+        "ru": "🖥 Файлов в очереди: {count}, но рабочий компьютер сейчас выключен — выполнится, когда включится.",
+        "en": "🖥 {count} file(s) queued, but the worker PC is offline — they run once it is back.",
+    },
+    "ag.which_lang": {
+        "uz": "Qaysi tilga tarjima qilay: xitoy, rus yoki ingliz?",
+        "ru": "На какой язык перевести: китайский, русский или английский?",
+        "en": "Translate into which language: Chinese, Russian or English?",
+    },
+    "ag.letter_queued": {
+        "uz": "✍️ «{title}» tayyorlandi, PDF qilinmoqda — keyin direktorga imzoga yuboraman.",
+        "ru": "✍️ «{title}» подготовлено, делаю PDF — затем отправлю директору на подпись.",
+        "en": "✍️ «{title}» is drafted, making the PDF — then it goes to the director for signature.",
+    },
+    "ag.letter_queued_offline": {
+        "uz": "✍️ «{title}» tayyorlandi. PDF ishchi kompyuter yoqilgach qilinadi va direktorga imzoga ketadi.",
+        "ru": "✍️ «{title}» подготовлено. PDF сделает рабочий компьютер, когда включится, и отправит директору.",
+        "en": "✍️ «{title}» is drafted. The worker PC will make the PDF when it is back and send it for signature.",
+    },
+    "ag.sign_ok": {"uz": "✅ Imzo va muhr", "ru": "✅ Подписать и печать", "en": "✅ Sign and seal"},
+    "ag.sign_no": {"uz": "❌ Rad etish", "ru": "❌ Отклонить", "en": "❌ Reject"},
+    "ag.sign_ask": {"uz": "Imzoga: {name} ({who})", "ru": "На подпись: {name} ({who})", "en": "For signature: {name} ({who})"},
+    "ag.sign_question": {
+        "uz": "«{name}» ga imzo va muhr qo'yaymi?",
+        "ru": "Поставить подпись и печать на «{name}»?",
+        "en": "Put the signature and seal on «{name}»?",
+    },
+    "ag.sign_sent": {
+        "uz": "📨 Hujjat direktorga imzoga yuborildi.",
+        "ru": "📨 Документ отправлен директору на подпись.",
+        "en": "📨 Sent to the director for signature.",
+    },
+    "ag.sign_pdf_only": {
+        "uz": "Imzoga faqat PDF yuboring.",
+        "ru": "На подпись отправляйте PDF.",
+        "en": "Send a PDF for signature.",
+    },
+    "ag.no_signers": {
+        "uz": "Imzo huquqi bor va Telegram'i ulangan rahbar topilmadi.",
+        "ru": "Нет руководителя с правом подписи и привязанным Telegram.",
+        "en": "No signer with a linked Telegram was found.",
+    },
+    "ag.sign_denied": {
+        "uz": "Imzo va muhrni faqat direktor (imzo huquqi borlar) qo'yadi.",
+        "ru": "Подпись и печать ставит только директор (с правом подписи).",
+        "en": "Only the director (signers) can sign and seal.",
+    },
+    "ag.sign_rejected": {"uz": "Rad etildi, muallifga xabar berildi.", "ru": "Отклонено, автору сообщено.", "en": "Rejected, the author was told."},
+    "ag.no_seal": {
+        "uz": "Imzo va muhr rasmlari yuklanmagan (Pult → Запросы → Подпись и печать).",
+        "ru": "Не загружены подпись и печать (Пульт → Запросы → Подпись и печать).",
+        "en": "Signature and seal images are not uploaded (Pult → Requests).",
+    },
+    "ag.no_label": {
+        "uz": "PDF'da «Директор» yozuvi topilmadi (skan bo'lsa matn qatlami yo'q). Saytdagi Pult orqali qo'lda qo'ying.",
+        "ru": "В PDF не найдено слово «Директор» (у скана нет текста). Поставьте вручную через Пульт на сайте.",
+        "en": "No «Директор» label found in the PDF (scans have no text layer). Place it manually in the Pult.",
+    },
+    "ag.signed": {"uz": "✅ «{name}» imzolandi va muhrlandi.", "ru": "✅ «{name}» подписан и заверен печатью.", "en": "✅ «{name}» signed and sealed."},
     "ag.voice_needs_gemini": {
         "uz": "Ovozli xabarni tushunish uchun admin panelda Gemini kaliti kerak. Hozircha matn bilan yozing.",
         "ru": "Для голосовых сообщений нужен ключ Gemini в админ-панели. Пока напишите текстом.",

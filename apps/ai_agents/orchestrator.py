@@ -50,7 +50,7 @@ _MEMORY_AGENT = [
 WORKER_AGENTS = {"translator", "printer", "norm_control", "secretary"}
 _WORKER = [
     ("translator", re.compile(r"(tarjima qil|переведи|translate)", re.I)),
-    ("printer", re.compile(r"(pdf ga|в pdf|to pdf|shtamp|штамп)", re.I)),
+    ("printer", re.compile(r"(pdf ga|pdf qil|в pdf|to pdf|shtamp|штамп)", re.I)),
     ("norm_control", re.compile(r"(normokontrol|нормоконтрол|norm control)", re.I)),
     ("secretary", re.compile(r"(xat tayyorla|shartnoma tayyorla|подготовь (письмо|договор)|draft a (letter|contract))", re.I)),
 ]
@@ -152,7 +152,7 @@ def handle(user, text, lang="uz"):
         return _finance(user, lang, text, agent)
     if agent == "archivist":
         return _archive(user, lang, text)
-    return Reply(t("ag.worker_pending", lang))
+    return _worker(user, lang, text, agent)
 
 
 def _remember(user, lang, text):
@@ -294,3 +294,55 @@ def _archive(user, lang, text):
         return Reply(t("ag.recipient_no_tg", lang, name=recipient.full_name))
     send_documents_to_telegram.delay(str(user.pk), str(recipient.pk), ids)
     return Reply(t("ag.files_sending", lang, count=len(ids), name=recipient.full_name))
+
+
+# ---------------------------------------------------------------- Ishchi kompyuter agentlari
+
+MAX_JOBS = 30
+
+
+def _worker(user, lang, text, agent):
+    """Tarjimon / Pechatnik-Shtampovshik / Normokontrol — fayllar uchun ish
+    navbatga qo'yiladi; Sekretar — xat qoralamasi (secretary.py)."""
+    from apps.documents.services import file_basename
+    from apps.worker.models import JobKind
+    from apps.worker.services import accepts, create_job, is_online
+
+    if agent == "secretary":
+        from .secretary import draft
+
+        return draft(user, text, lang)
+    data = ask_json(prompts.WORKER_REQUEST + _memory_rules(user, agent), _context(user, text),
+                    prompts.WORKER_REQUEST_SCHEMA, agent=agent, max_tokens=300)
+    if not data:
+        return Reply(t("ag.not_understood", lang))
+    project = _find_project(user, data["project"])
+    if project is None:
+        return Reply(t("ag.project_unknown", lang, name=data["project"] or "—"))
+    if agent == "translator" and not data["target_lang"]:
+        return Reply(t("ag.which_lang", lang))
+    docs = project.documents.exclude(file="").exclude(file__isnull=True)
+    if data["object"]:
+        o = data["object"]
+        docs = docs.filter(Q(section__sub_object__name__icontains=o) | Q(section__sub_object__parent__name__icontains=o))
+    if data["discipline"]:
+        docs = docs.filter(section__discipline__code__iexact=data["discipline"])
+    if data["file"]:
+        docs = docs.filter(Q(original_name__icontains=data["file"]) | Q(name__icontains=data["file"]))
+    kinds = {
+        "translator": (JobKind.DWG_TRANSLATE, JobKind.XLSX_TRANSLATE),
+        "printer": (JobKind.DWG_PRINT,),
+        "norm_control": (JobKind.NORM_CONTROL,),
+    }[agent]
+    created = 0
+    for doc in docs[:200]:
+        kind = next((k for k in kinds if accepts(k, file_basename(doc))), None)
+        if kind is None or not doc.versions.exists():
+            continue
+        create_job(kind, doc, user, params={"target_lang": data["target_lang"]} if agent == "translator" else {})
+        created += 1
+        if created >= MAX_JOBS:
+            break
+    if not created:
+        return Reply(t("ag.no_files", lang))
+    return Reply(t("ag.jobs_queued" if is_online() else "ag.jobs_queued_offline", lang, count=created))

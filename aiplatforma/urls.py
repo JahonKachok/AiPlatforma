@@ -27,6 +27,8 @@ urlpatterns = [
     path("notifications/", include("apps.notifications.urls")),
     path("telegram/", include("apps.telegram_bot.urls")),
     path("ai/", include("apps.ai_agents.urls")),
+    # Ishchi kompyuter (AutoCAD/Word/Excel) API'si — token bilan, worker/README.md
+    path("api/worker/", include("apps.worker.urls")),
     path("", include("apps.core.urls")),
     # Yuklangan fayllar autentifikatsiyadan o'tgan view orqali beriladi
     # (nginx ularni ochiq tarqatmasligi kerak — nginx/default.conf.template ga qarang).

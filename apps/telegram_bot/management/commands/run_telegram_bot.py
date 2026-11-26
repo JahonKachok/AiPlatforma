@@ -386,6 +386,22 @@ class Command(BaseCommand):
             """Yuborilgan fayl/rasmni qabul qilib, loyiha tanlashni so'raydi."""
             message = update.message
             lang = await get_lang(update, context)
+            from apps.ai_agents.secretary import SIGN_CAPTION
+
+            if message.document and SIGN_CAPTION.search(message.caption or ""):
+                # «imzola» izohli PDF — direktor tasdig'iga (Sekretar).
+                from apps.ai_agents import secretary
+
+                user = await _get_user_by_chat_id(update.effective_chat.id)
+                if user is None:
+                    await message.reply_text(t("not_linked", lang))
+                    return
+                tg_file = await context.bot.get_file(message.document.file_id)
+                data = await tg_file.download_as_bytearray()
+                reply = await sync_to_async(secretary.submit_pdf)(
+                    user, message.document.file_name or "document.pdf", data, lang)
+                await message.reply_text(reply.text)
+                return
             wait = _take_wait(context, "mid") if message.document else None
             if wait:
                 from apps.pult import dispatcher
@@ -650,6 +666,21 @@ class Command(BaseCommand):
                 pass
             await update.effective_chat.send_message(reply.text)
 
+        async def sg_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+            """Direktor: hujjatga imzo va muhr qo'yish yoki rad etish."""
+            from apps.ai_agents import secretary
+
+            query = update.callback_query
+            await query.answer()
+            lang = await get_lang(update, context)
+            user = await sync_to_async(_user_by_chat_sync)(update.effective_chat.id)
+            try:
+                await query.edit_message_reply_markup(reply_markup=None)
+            except Exception:
+                pass
+            reply = await sync_to_async(secretary.decide)(user, query.data, lang)
+            await update.effective_chat.send_message(reply.text)
+
         async def ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
             """Oddiy matnli xabarlarga platforma konteksti asosida AI javob beradi.
 
@@ -817,6 +848,7 @@ class Command(BaseCommand):
         application.add_handler(CallbackQueryHandler(choose_project, pattern=r"^tgdoc:"))
         application.add_handler(CallbackQueryHandler(pd_callback, pattern=r"^pd:"))
         application.add_handler(CallbackQueryHandler(ag_callback, pattern=r"^ag:"))
+        application.add_handler(CallbackQueryHandler(sg_callback, pattern=r"^sg:"))
         application.add_handler(CallbackQueryHandler(settings_callback, pattern=r"^settings:"))
         application.add_handler(CallbackQueryHandler(set_language, pattern=r"^setlang:"))
         application.add_handler(CallbackQueryHandler(start_language, pattern=r"^startlang:"))

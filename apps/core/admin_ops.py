@@ -126,6 +126,18 @@ def _validate_integration(key, value):
     return None
 
 
+def _worker_status():
+    from apps.worker.models import JobStatus, WorkerJob, WorkerNode
+    from apps.worker.services import is_online
+
+    return {
+        "online": is_online(),
+        "nodes": list(WorkerNode.objects.order_by("-last_seen")[:5]),
+        "queued": WorkerJob.objects.filter(status=JobStatus.QUEUED).count(),
+        "errors": WorkerJob.objects.filter(status=JobStatus.ERROR).count(),
+    }
+
+
 def _drive_service_email(raw):
     """Admin ildiz papkani kimga ulashishi kerakligini ko'rsin."""
     from apps.documents.drive import DriveError, parse_credentials
@@ -171,7 +183,7 @@ def integration_settings(request):
                 messages.success(request, _("Settings saved."))
             return redirect("core:integration_settings")
 
-    groups = {"telegram": [], "ai": [], "drive": [], "devbot": []}
+    groups = {"telegram": [], "ai": [], "drive": [], "worker": [], "devbot": []}
     for field in runtime_config.FIELDS:
         db_value = db_values.get(field.key, "")
         env_value = runtime_config.env_value(field.key)
@@ -189,6 +201,8 @@ def integration_settings(request):
         "telegram_fields": groups["telegram"],
         "ai_fields": groups["ai"],
         "drive_fields": groups["drive"],
+        "worker_fields": groups["worker"],
+        "worker_status": _worker_status(),
         "drive_service_email": _drive_service_email(runtime_config.get_config("GOOGLE_DRIVE_CREDENTIALS")),
         "devbot_fields": groups["devbot"],
         "devbot_status": devbot.status(),

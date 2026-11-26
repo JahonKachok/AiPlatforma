@@ -21,6 +21,15 @@
     </p>
   {% endif %}
 
+  {% trans "Worker PC: AutoCAD, Word, Excel" as worker_title %}
+  {% include "core/_integration_group.html" with title=worker_title fields=worker_fields %}
+  <p class="text-sm text-gray-500 dark:text-gray-400">
+    {% if worker_status.online %}<span class="badge badge-success">{% trans "Online" %}</span>{% else %}<span class="badge badge-default">{% trans "Offline" %}</span>{% endif %}
+    {% for node in worker_status.nodes %} {{ node.name }} ({{ node.last_seen|timesince }}){% endfor %}
+    · {% blocktrans with q=worker_status.queued e=worker_status.errors %}queued: {{ q }}, errors: {{ e }}{% endblocktrans %}
+    · {% trans "Setup: worker/README.md" %}
+  </p>
+
   <div class="card p-6">
     <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
       <h2 class="font-semibold">{% trans "Devbot: changing the platform code via Telegram" %}</h2>

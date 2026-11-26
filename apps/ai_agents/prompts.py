@@ -112,7 +112,8 @@ KPI = "KPI is computed by fixed rules in code; no LLM call."
 # --- 5-7, 9. Ishchi kompyuter agentlari (5-bosqich: lokal worker) -------------
 
 TRANSLATOR = (
-    "Translate CAD/Excel/PDF strings between zh, ru, en. Input: JSON list of {id, text, max_len}. "
+    "Translate CAD/Excel strings into the target language (zh, ru or en). "
+    "Input: {target, items: [{id, text, max_len}]}; return every id. "
     "Keep numbers, units, codes, axis marks and abbreviations (e.g. 'М1:100', 'Ø20', 'A-1') unchanged. "
     "Never exceed max_len characters (shorten wording, never overflow the frame). "
     "Do not translate file names. Reply JSON only."
@@ -192,4 +193,21 @@ AGENTS = {
     "norm_control": (NORM_CONTROL, NORM_CONTROL_SCHEMA, "worker"),
     "archivist": (ARCHIVIST, ARCHIVIST_SCHEMA, "server"),
     "secretary": (SECRETARY, SECRETARY_SCHEMA, "worker"),
+}
+
+# Ishchi kompyuterga ish: qaysi fayllar (tarjima / PDF+shtamp / normokontrol).
+WORKER_REQUEST = (
+    "Extract which project files the user wants processed. project: name from the list ('' if not said). "
+    "object: building/object ('' = all). discipline: code like AR, KJ, OV ('' = all). "
+    "file: part of a file name if mentioned ('' otherwise). target_lang: zh, ru or en for translation "
+    "('' if not a translation or not said). Reply JSON only."
+)
+WORKER_REQUEST_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "project": {"type": "string"}, "object": {"type": "string"}, "discipline": {"type": "string"},
+        "file": {"type": "string"}, "target_lang": {"type": "string", "enum": ["zh", "ru", "en", ""]},
+    },
+    "required": ["project", "object", "discipline", "file", "target_lang"],
+    "additionalProperties": False,
 }

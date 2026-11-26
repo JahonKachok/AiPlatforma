@@ -34,3 +34,41 @@ class AILog(models.Model):
 
     def __str__(self):
         return f"{self.agent or 'ai'} · {self.provider} · {self.created_at:%Y-%m-%d %H:%M}"
+
+
+class AgentMemory(models.Model):
+    """Foydalanuvchi tuzatishlari («eslab qol: matn ustma-ust tushmasin») —
+    keyingi so'rovlarda shu agentning promptiga qisqa qoida bo'lib qo'shiladi.
+    agent="*" — barcha agentlar uchun."""
+
+    user = models.ForeignKey("accounts.User", on_delete=models.CASCADE, null=True, blank=True,
+                             related_name="agent_memories")
+    agent = models.CharField(max_length=32, default="*", db_index=True)
+    text = models.CharField(max_length=500)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "AI xotira (tuzatish)"
+        verbose_name_plural = "AI xotira (tuzatishlar)"
+
+    def __str__(self):
+        return f"{self.agent}: {self.text[:60]}"
+
+
+class PendingAction(models.Model):
+    """AI tushungan, lekin foydalanuvchi hali tasdiqlamagan amal (masalan, moliya
+    yozuvi). Telegram tugmasi «ag:ok:<id>» bilan bajariladi."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey("accounts.User", on_delete=models.CASCADE, related_name="ai_pending_actions")
+    kind = models.CharField(max_length=32)
+    payload = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+    done_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.kind} · {self.user_id}"

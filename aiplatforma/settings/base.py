@@ -165,7 +165,7 @@ FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:8000")
 # aks holda ANTHROPIC_API_KEY bo'lsa anthropic.
 AI_PROVIDER = env("AI_PROVIDER", default="")
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
-AI_MODEL = env("AI_MODEL", default="claude-opus-4-8")
+AI_MODEL = env("AI_MODEL", default="claude-opus-5-5")
 GEMINI_API_KEY = env("GEMINI_API_KEY", default="")
 GEMINI_MODEL = env("GEMINI_MODEL", default="gemini-3.5-flash")
 # Asosiy model band (503) bo'lganda ishlatiladigan zaxira model.

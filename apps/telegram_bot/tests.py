@@ -166,6 +166,25 @@ class BotHandlerTests(TestCase):
         self.assertIn(f"№{wf.number}", self.api.sent[-1])
         self.assertEqual(self.errors, [])
 
+    def test_money_message_goes_to_treasurer_not_chat(self):
+        from apps.ai_agents.models import PendingAction
+        from apps.finance.models import FinancialRecord
+
+        Project.objects.create(name="Zavod", created_by=self.user)
+        self.link(self.user)
+        data = {"scope": "project", "direction": "out", "amount": 50, "currency": "USD", "project": "Zavod",
+                "counterparty": "Usta", "project_category": "Оплата исполнителю", "office_category": "other",
+                "method": "transfer", "date": "", "period": "once", "note": ""}
+        with mock.patch("apps.ai_agents.orchestrator.ask_json", return_value=data), \
+             mock.patch("apps.ai_agents.services.answer_telegram") as chat:
+            self.send("Ustaga 50 dollar o'tkazdim, Zavod")
+        chat.assert_not_called()
+        self.assertIn("Kaznachey", self.api.sent[-1])
+        self.press(f"ag:ok:{PendingAction.objects.get().pk}")
+        self.assertEqual(FinancialRecord.objects.get().amount, 50)
+        self.assertIn("Zavod", self.api.sent[-1])
+        self.assertEqual(self.errors, [])
+
     def test_linking_second_account_unlinks_the_first(self):
         other = User.objects.create_user(email="o@example.com", password="x", full_name="Other")
         self.link(self.user)

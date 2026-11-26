@@ -294,6 +294,76 @@ T = {
     "pd.decline": {"uz": "❌ Rad etish", "ru": "❌ Отказ", "en": "❌ Decline"},
     "pd.submit": {"uz": "📤 Tekshiruvga topshirish", "ru": "📤 Сдать на проверку", "en": "📤 Submit for review"},
     "pd.later": {"uz": "Keyinroq", "ru": "Позже", "en": "Later"},
+    # --- Orchestrator agentlari (apps/ai_agents/orchestrator.py) ----------
+    "ag.confirm": {"uz": "✅ Yozish", "ru": "✅ Записать", "en": "✅ Save"},
+    "ag.cancel": {"uz": "❌ Bekor", "ru": "❌ Отмена", "en": "❌ Cancel"},
+    "ag.cancelled": {"uz": "Bekor qilindi.", "ru": "Отменено.", "en": "Cancelled."},
+    "ag.project_summary": {
+        "uz": "💰 Kaznachey: {sign}{money}\nLoyiha: {project}\nKim: {who}\nToifa: {cat}\nSana: {date}\nYozaymi?",
+        "ru": "💰 Казначей: {sign}{money}\nПроект: {project}\nКто: {who}\nКатегория: {cat}\nДата: {date}\nЗаписать?",
+        "en": "💰 Treasurer: {sign}{money}\nProject: {project}\nWho: {who}\nCategory: {cat}\nDate: {date}\nSave it?",
+    },
+    "ag.office_summary": {
+        "uz": "🏢 Zavxoz: ofis xarajati {money}\nToifa: {cat}\nKim: {who}\nSana: {date}\nIzoh: {note}\nYozaymi?",
+        "ru": "🏢 Завхоз: офисный расход {money}\nКатегория: {cat}\nКому: {who}\nДата: {date}\nПримечание: {note}\nЗаписать?",
+        "en": "🏢 Quartermaster: office cost {money}\nCategory: {cat}\nTo: {who}\nDate: {date}\nNote: {note}\nSave it?",
+    },
+    "ag.project_saved": {
+        "uz": "✅ Operatsiya №{n} yozildi. «{project}» balansi: {balance}",
+        "ru": "✅ Операция №{n} записана. Баланс «{project}»: {balance}",
+        "en": "✅ Operation #{n} saved. «{project}» balance: {balance}",
+    },
+    "ag.office_saved": {
+        "uz": "✅ Ofis xarajati yozildi: {money} ({cat}).",
+        "ru": "✅ Офисный расход записан: {money} ({cat}).",
+        "en": "✅ Office cost saved: {money} ({cat}).",
+    },
+    "ag.project_unknown": {
+        "uz": "Loyiha aniqlanmadi («{name}»). Loyiha nomini aniqroq yozing.",
+        "ru": "Не понял проект («{name}»). Напишите название проекта точнее.",
+        "en": "Could not find the project («{name}»). Please name it more exactly.",
+    },
+    "ag.finance_denied": {
+        "uz": "Moliya yozuvlarini faqat rahbar yoki buxgalter kiritadi.",
+        "ru": "Финансовые записи вносят только руководитель или бухгалтер.",
+        "en": "Only a manager or accountant can record money operations.",
+    },
+    "ag.not_understood": {
+        "uz": "Tushuna olmadim — summani, valyutani va loyihani aniq yozing.",
+        "ru": "Не понял — напишите сумму, валюту и проект точнее.",
+        "en": "I did not get it — please state the amount, currency and project.",
+    },
+    "ag.remembered": {
+        "uz": "🧠 Eslab qoldim — keyingi vazifalarda shunday qilaman.",
+        "ru": "🧠 Запомнил — буду так делать в следующих задачах.",
+        "en": "🧠 Noted — I will apply this from now on.",
+    },
+    "ag.no_files": {"uz": "Mos fayl topilmadi.", "ru": "Подходящих файлов нет.", "en": "No matching files."},
+    "ag.recipient_unknown": {
+        "uz": "Qabul qiluvchi aniq emas: «{name}».",
+        "ru": "Не понял получателя: «{name}».",
+        "en": "Recipient is unclear: «{name}».",
+    },
+    "ag.recipient_no_tg": {
+        "uz": "{name} Telegram'ni platformaga ulamagan.",
+        "ru": "{name} не привязал Telegram к платформе.",
+        "en": "{name} has not linked Telegram.",
+    },
+    "ag.files_sending": {
+        "uz": "📦 Arxivarius: {count} ta fayl {name} ga yuborilmoqda.",
+        "ru": "📦 Архивариус: {count} файл(ов) отправляются — {name}.",
+        "en": "📦 Archivist: sending {count} file(s) to {name}.",
+    },
+    "ag.worker_pending": {
+        "uz": "Bu ish (tarjima, PDF/shtamp, normokontrol, xat) ishchi kompyuterda bajariladi — u hali ulanmagan.",
+        "ru": "Эта работа (перевод, PDF/штамп, нормоконтроль, письма) выполняется на рабочем компьютере — он ещё не подключён.",
+        "en": "This job (translation, PDF/stamp, norm control, letters) runs on the worker PC, which is not connected yet.",
+    },
+    "ag.voice_needs_gemini": {
+        "uz": "Ovozli xabarni tushunish uchun admin panelda Gemini kaliti kerak. Hozircha matn bilan yozing.",
+        "ru": "Для голосовых сообщений нужен ключ Gemini в админ-панели. Пока напишите текстом.",
+        "en": "Voice messages need a Gemini key in the admin panel. Please type for now.",
+    },
     "pd.no_active": {
         "uz": "Hozir ishdagi vazifangiz yo'q.",
         "ru": "Сейчас у вас нет задач в работе.",

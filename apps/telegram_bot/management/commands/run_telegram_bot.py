@@ -611,6 +611,45 @@ class Command(BaseCommand):
                 return
             await update.message.reply_html(await sync_to_async(dispatcher.kpi_summary)(user, lang))
 
+        # --- Orchestrator (apps/ai_agents/orchestrator.py) -------------------
+
+        @sync_to_async
+        def _orchestrator_reply(chat_id, text, lang):
+            from apps.ai_agents import orchestrator
+
+            user = _user_by_chat_sync(chat_id)
+            if user is None:
+                return None
+            return orchestrator.handle(user, text, lang)
+
+        def _user_by_chat_sync(chat_id):
+            from apps.accounts.models import User
+            return User.objects.filter(telegram_chat_id=str(chat_id), is_active=True).first()
+
+        async def _orchestrate(update, context, text, lang):
+            """True — xabarni agent bajardi (chat'ga berilmaydi)."""
+            reply = await _orchestrator_reply(update.effective_chat.id, text, lang)
+            if reply is None:
+                return False
+            await update.effective_chat.send_message(
+                reply.text, parse_mode="HTML" if reply.html else None, reply_markup=_markup(reply.buttons))
+            return True
+
+        async def ag_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+            """Agent amalini tasdiqlash/bekor qilish (moliya yozuvi)."""
+            from apps.ai_agents import orchestrator
+
+            query = update.callback_query
+            await query.answer()
+            lang = await get_lang(update, context)
+            user = await sync_to_async(_user_by_chat_sync)(update.effective_chat.id)
+            reply = await sync_to_async(orchestrator.confirm)(user, query.data, lang)
+            try:
+                await query.edit_message_reply_markup(reply_markup=None)
+            except Exception:
+                pass
+            await update.effective_chat.send_message(reply.text)
+
         async def ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
             """Oddiy matnli xabarlarga platforma konteksti asosida AI javob beradi.
 
@@ -625,6 +664,8 @@ class Command(BaseCommand):
 
                 reply = await sync_to_async(dispatcher.handle_text)(update.effective_chat.id, wait, text)
                 await _send_reply(update.effective_chat, reply, context)
+                return
+            if await _orchestrate(update, context, text, lang):
                 return
             history = context.user_data.get("ai_history", [])
             await update.effective_chat.send_action("typing")
@@ -674,13 +715,28 @@ class Command(BaseCommand):
                 return
             history = context.user_data.get("ai_history", [])
             await update.effective_chat.send_action("typing")
+            from apps.ai_agents.services import transcribe
+            from apps.core.runtime_config import get_config as _cfg
+
+            if not await sync_to_async(_cfg)("GEMINI_API_KEY"):
+                # Claude audio eshitmaydi — javobni to'qib chiqarmasin.
+                await update.message.reply_text(t("ag.voice_needs_gemini", lang))
+                return
             try:
                 tg_file = await context.bot.get_file(voice.file_id)
                 data = bytes(await tg_file.download_as_bytearray())
-                state, answer, documents = await _ai_voice_answer(
-                    update.effective_chat.id, data,
-                    voice.mime_type or "audio/ogg", lang, history,
-                )
+                # Avval matnga: keyin Orchestrator (pul, ZIP, KPI) yoki oddiy chat —
+                # audio modelga ikkinchi marta yuborilmaydi.
+                transcript = await sync_to_async(transcribe)((data, voice.mime_type or "audio/ogg"))
+                if transcript:
+                    if await _orchestrate(update, context, transcript, lang):
+                        return
+                    state, answer, documents = await _ai_answer(update.effective_chat.id, transcript, lang, history)
+                else:
+                    state, answer, documents = await _ai_voice_answer(
+                        update.effective_chat.id, data,
+                        voice.mime_type or "audio/ogg", lang, history,
+                    )
             except Exception:
                 await update.message.reply_text(t("ai.error", lang))
                 raise
@@ -760,6 +816,7 @@ class Command(BaseCommand):
         application.add_handler(MessageHandler(filters.VOICE, voice_message))
         application.add_handler(CallbackQueryHandler(choose_project, pattern=r"^tgdoc:"))
         application.add_handler(CallbackQueryHandler(pd_callback, pattern=r"^pd:"))
+        application.add_handler(CallbackQueryHandler(ag_callback, pattern=r"^ag:"))
         application.add_handler(CallbackQueryHandler(settings_callback, pattern=r"^settings:"))
         application.add_handler(CallbackQueryHandler(set_language, pattern=r"^setlang:"))
         application.add_handler(CallbackQueryHandler(start_language, pattern=r"^startlang:"))

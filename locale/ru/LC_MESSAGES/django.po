@@ -5423,3 +5423,7 @@ msgstr "Ревизии"
 msgid "Open folder in Google Drive"
 msgstr "Открыть папку в Google Drive"
 
+
+msgid "Intermediate file handed over"
+msgstr "Промежуточный файл сдан"
+

@@ -5421,3 +5421,7 @@ msgstr "Reviziyalar"
 msgid "Open folder in Google Drive"
 msgstr "Papkani Google Drive'da ochish"
 
+
+msgid "Intermediate file handed over"
+msgstr "Oraliq fayl topshirildi"
+

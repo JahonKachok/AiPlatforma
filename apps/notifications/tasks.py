@@ -26,7 +26,7 @@ def send_notification_email(user_id, title, message, link=None):
 
 
 @shared_task
-def send_notification_telegram(user_id, title, message):
+def send_notification_telegram(user_id, title, message, buttons=None):
     from apps.accounts.models import User
     from apps.telegram_bot.services import send_message
 
@@ -37,7 +37,7 @@ def send_notification_telegram(user_id, title, message):
     if not user.telegram_chat_id:
         return
     # Matnlar oddiy matn — HTML rejimida "<" yoki "&" Telegram'da xabarni buzadi.
-    send_message(user.telegram_chat_id, f"<b>{escape(title)}</b>\n{escape(message)}")
+    send_message(user.telegram_chat_id, f"<b>{escape(title)}</b>\n{escape(message)}", buttons=buttons)
 
 
 @shared_task

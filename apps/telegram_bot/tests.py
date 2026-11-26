@@ -50,7 +50,7 @@ class FakeTelegram(BaseRequest):
             result = {"id": 1, "is_bot": True, "first_name": "Bot", "username": "bot"}
         elif endpoint == "getFile":
             result = {"file_id": "F", "file_unique_id": "U", "file_path": "documents/f.pdf"}
-        elif endpoint in ("answerCallbackQuery", "sendChatAction", "setMyCommands"):
+        elif endpoint in ("answerCallbackQuery", "sendChatAction", "setMyCommands", "editMessageReplyMarkup"):
             result = True
         elif params.get("parse_mode") == "HTML" and not html_ok(params.get("text", "")):
             return 400, json.dumps({"ok": False, "error_code": 400,
@@ -119,9 +119,51 @@ class BotHandlerTests(TestCase):
         self.send(f"/start link_{token}")
         self.user.refresh_from_db()
         self.assertEqual(self.user.telegram_chat_id, str(CHAT))
-        self.assertIn("Ali &lt;Vali&gt; &amp; Co", self.api.sent[-1])
+        self.assertIn("Ali &lt;Vali&gt; &amp; Co", self.api.sent[-2])
+        self.assertIn("KPI", self.api.sent[-1])  # jarima qoidalari boshidanoq eslatiladi
         self.send(f"/link {token}")
         self.assertIn("yaroqsiz", self.api.sent[-1])
+        self.assertEqual(self.errors, [])
+
+    def _pult_task(self, **wf_fields):
+        from apps.pult.services import save_workflow
+        from apps.tasks.models import Task
+
+        project = Project.objects.create(name="Bot P", created_by=self.user)
+        task = Task.objects.create(title="AR", project=project, assignee=self.user, creator=self.user)
+        wf = task.workflow
+        for k, v in wf_fields.items():
+            setattr(wf, k, v)
+        save_workflow(task, wf)
+        return wf
+
+    def test_decline_button_then_reason_text(self):
+        wf = self._pult_task(status="Новая", days=5)
+        self.link(self.user)
+        self.press(f"pd:d:{wf.number}")
+        self.assertIn(f"№{wf.number}", self.api.sent[-1])
+        with mock.patch("apps.ai_agents.services.answer_telegram") as ai:
+            self.send("Исходных данных нет")
+        ai.assert_not_called()  # matn AI'ga emas, rad etish sababiga ketdi
+        wf.refresh_from_db()
+        self.assertEqual(wf.status, "Черновик")
+        self.assertEqual(self.errors, [])
+
+    def test_percent_button_and_kpi_command(self):
+        from datetime import timedelta
+
+        from apps.pult.services import today
+
+        wf = self._pult_task(status="В работе", start_date=today() - timedelta(days=1), days=10)
+        self.link(self.user)
+        self.press(f"pd:p:{wf.number}:30")
+        wf.refresh_from_db()
+        self.assertAlmostEqual(wf.done, 0.3)
+        self.assertIn("30%", self.api.sent[-1])
+        self.send("/kpi")
+        self.assertIn("KPI", self.api.sent[-1])
+        self.send("/report")
+        self.assertIn(f"№{wf.number}", self.api.sent[-1])
         self.assertEqual(self.errors, [])
 
     def test_linking_second_account_unlinks_the_first(self):

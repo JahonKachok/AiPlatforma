@@ -921,7 +921,8 @@
       const fStatus = select('m-status', STATUSES, t?.status || '');
       const fComment = el('textarea', 'ctl'); fComment.id = 'm-comment'; fComment.value = t?.comment || '';
       fType.addEventListener('change', () => { const x = tpl.find((y) => y.name === fType.value); if (!x) return; if (!fDays.value && isNum(x.days)) fDays.value = x.days; if (!fHours.value && isNum(x.hours)) fHours.value = x.hours; autoStatus(); });
-      const autoStatus = () => { if (t) return; fStatus.value = fDays.value ? 'В работе' : 'Новая'; };
+      // new task waits for the assignee to accept it (also from Telegram), even with a term
+      const autoStatus = () => { if (t) return; fStatus.value = 'Новая'; };
       fDays.addEventListener('input', autoStatus); if (!t) autoStatus();
       const lSec = field('Раздел состава проекта', fSec);
       const syncKind = () => { lSec.hidden = !isProj(); fillPeople(); if (isProj()) fillSec(); };

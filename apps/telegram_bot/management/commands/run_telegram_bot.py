@@ -1,4 +1,5 @@
 import asyncio
+import time
 from html import escape
 
 from asgiref.sync import sync_to_async
@@ -211,6 +212,9 @@ class Command(BaseCommand):
                       email=escape(user.email)),
                     reply_markup=main_keyboard(lang, _is_manager(user)),
                 )
+                from apps.pult.dispatcher import kpi_rules
+
+                await update.message.reply_html(await sync_to_async(kpi_rules)(lang))
             else:
                 await update.message.reply_text(t("link.invalid", lang))
 
@@ -382,6 +386,20 @@ class Command(BaseCommand):
             """Yuborilgan fayl/rasmni qabul qilib, loyiha tanlashni so'raydi."""
             message = update.message
             lang = await get_lang(update, context)
+            wait = _take_wait(context, "mid") if message.document else None
+            if wait:
+                from apps.pult import dispatcher
+
+                attachment = message.document
+                if attachment.file_size and attachment.file_size > dispatcher.FILE_LIMIT:
+                    await message.reply_text(t("pd.file_bad", lang))
+                    return
+                tg_file = await context.bot.get_file(attachment.file_id)
+                data = await tg_file.download_as_bytearray()
+                reply = await sync_to_async(dispatcher.handle_file)(
+                    update.effective_chat.id, wait, attachment.file_name or "file.bin", data, attachment.mime_type or "")
+                await _send_reply(update.effective_chat, reply, context)
+                return
             user, projects = await _get_uploader(update.effective_chat.id)
             if user is None:
                 await message.reply_text(t("not_linked", lang))
@@ -525,6 +543,74 @@ class Command(BaseCommand):
                     caption=doc_name[:1024],
                 )
 
+        # --- Pult dispetcheri (apps/pult/dispatcher.py) ----------------------
+
+        def _markup(buttons):
+            if not buttons:
+                return None
+            return InlineKeyboardMarkup([[InlineKeyboardButton(label, callback_data=data) for label, data in row]
+                                         for row in buttons])
+
+        PD_WAIT_SECONDS = 30 * 60
+
+        def _take_wait(context, kind):
+            """Bot kutayotgan javob (rad etish sababi / oraliq fayl), 30 daqiqagacha."""
+            wait = context.user_data.get("pd_wait")
+            if not wait or wait.get("a") != kind:
+                return None
+            context.user_data.pop("pd_wait", None)
+            return wait if time.monotonic() - wait.get("at", 0) < PD_WAIT_SECONDS else None
+
+        async def _send_reply(chat, reply, context):
+            if reply.wait:
+                context.user_data["pd_wait"] = {**reply.wait, "at": time.monotonic()}
+            await chat.send_message(reply.text, reply_markup=_markup(reply.buttons))
+
+        async def pd_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+            """Pult tugmalari: qabul/rad, foiz, topshirish, oraliq fayl."""
+            from apps.pult import dispatcher
+
+            query = update.callback_query
+            await query.answer()
+            reply = await sync_to_async(dispatcher.handle_callback)(update.effective_chat.id, query.data)
+            try:
+                await query.edit_message_reply_markup(reply_markup=None)  # bir marta bosiladi
+            except Exception:
+                pass
+            if query.data.startswith("pd:m:"):
+                context.user_data.pop("pd_wait", None)
+            await _send_reply(update.effective_chat, reply, context)
+
+        async def pd_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
+            """/report — faol vazifalar bo'yicha foiz tugmalari."""
+            from apps.pult import dispatcher
+
+            lang = await get_lang(update, context)
+            user = await _get_user_by_chat_id(update.effective_chat.id)
+            if user is None:
+                await update.message.reply_text(t("not_linked", lang))
+                return
+            workflows = await sync_to_async(dispatcher.active_for)(user)
+            if not workflows:
+                await update.message.reply_text(t("pd.no_active", lang))
+                return
+            for wf in workflows[:10]:
+                await update.message.reply_text(
+                    t("pd.report_ask", lang, n=wf.number, title=wf.task.title, pct=round(wf.done * 100)),
+                    reply_markup=_markup(dispatcher.percent_buttons(wf)),
+                )
+
+        async def pd_kpi(update: Update, context: ContextTypes.DEFAULT_TYPE):
+            """/kpi — oylik ball, reytingdagi o'rin va qoidalar."""
+            from apps.pult import dispatcher
+
+            lang = await get_lang(update, context)
+            user = await _get_user_by_chat_id(update.effective_chat.id)
+            if user is None:
+                await update.message.reply_text(t("not_linked", lang))
+                return
+            await update.message.reply_html(await sync_to_async(dispatcher.kpi_summary)(user, lang))
+
         async def ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
             """Oddiy matnli xabarlarga platforma konteksti asosida AI javob beradi.
 
@@ -533,6 +619,13 @@ class Command(BaseCommand):
             tushirilganda tarix tozalanadi)."""
             lang = await get_lang(update, context)
             text = update.message.text or ""
+            wait = _take_wait(context, "decline")
+            if wait:
+                from apps.pult import dispatcher
+
+                reply = await sync_to_async(dispatcher.handle_text)(update.effective_chat.id, wait, text)
+                await _send_reply(update.effective_chat, reply, context)
+                return
             history = context.user_data.get("ai_history", [])
             await update.effective_chat.send_action("typing")
             try:
@@ -610,16 +703,19 @@ class Command(BaseCommand):
             commands = {
                 None: [  # standart (til aniqlanmaganda)
                     ("start", "Botni ishga tushirish"), ("whoami", "Profil ma'lumotlari"),
+                    ("report", "Kunlik hisobot (foiz)"), ("kpi", "KPI ballarim"),
                     ("link", "Hisobni ulash"), ("unlink", "Hisobni uzish"),
                     ("help", "Yordam"),
                 ],
                 "ru": [
                     ("start", "Запустить бота"), ("whoami", "Данные профиля"),
+                    ("report", "Ежедневный отчёт (%)"), ("kpi", "Мои баллы KPI"),
                     ("link", "Привязать аккаунт"), ("unlink", "Отвязать аккаунт"),
                     ("help", "Помощь"),
                 ],
                 "en": [
                     ("start", "Start the bot"), ("whoami", "Profile info"),
+                    ("report", "Daily report (%)"), ("kpi", "My KPI points"),
                     ("link", "Link account"), ("unlink", "Unlink account"),
                     ("help", "Help"),
                 ],
@@ -658,9 +754,12 @@ class Command(BaseCommand):
         application.add_handler(CommandHandler("myinfo", whoami))
         application.add_handler(CommandHandler("link", link))
         application.add_handler(CommandHandler("unlink", unlink))
+        application.add_handler(CommandHandler("report", pd_report))
+        application.add_handler(CommandHandler("kpi", pd_kpi))
         application.add_handler(MessageHandler(filters.Document.ALL | filters.PHOTO, receive_file))
         application.add_handler(MessageHandler(filters.VOICE, voice_message))
         application.add_handler(CallbackQueryHandler(choose_project, pattern=r"^tgdoc:"))
+        application.add_handler(CallbackQueryHandler(pd_callback, pattern=r"^pd:"))
         application.add_handler(CallbackQueryHandler(settings_callback, pattern=r"^settings:"))
         application.add_handler(CallbackQueryHandler(set_language, pattern=r"^setlang:"))
         application.add_handler(CallbackQueryHandler(start_language, pattern=r"^startlang:"))

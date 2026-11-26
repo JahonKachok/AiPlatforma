@@ -286,6 +286,99 @@ T = {
         "ru": "✅ Язык изменён: Русский",
         "en": "✅ Language changed: English",
     },
+
+    # --- Pult dispetcheri (apps/pult/dispatcher.py) -------------------------
+    "pd.accept": {"uz": "✅ Qabul qilaman", "ru": "✅ Принять", "en": "✅ Accept"},
+    "pd.accept_days": {"uz": "✅ Qabul ({days} kun)", "ru": "✅ Принять ({days} дн.)", "en": "✅ Accept ({days} d)"},
+    "pd.own_days": {"uz": "{days} kun", "ru": "{days} дн.", "en": "{days} d"},
+    "pd.decline": {"uz": "❌ Rad etish", "ru": "❌ Отказ", "en": "❌ Decline"},
+    "pd.submit": {"uz": "📤 Tekshiruvga topshirish", "ru": "📤 Сдать на проверку", "en": "📤 Submit for review"},
+    "pd.later": {"uz": "Keyinroq", "ru": "Позже", "en": "Later"},
+    "pd.no_active": {
+        "uz": "Hozir ishdagi vazifangiz yo'q.",
+        "ru": "Сейчас у вас нет задач в работе.",
+        "en": "You have no tasks in progress.",
+    },
+    "pd.choose_days": {
+        "uz": "Muddat belgilanmagan — necha kunda bajarasiz? ГИП tasdiqlaydi.",
+        "ru": "Срок не назван — за сколько дней сделаете? ГИП утвердит.",
+        "en": "No term set — how many days do you need? The GIP will approve.",
+    },
+    "pd.ask_decline": {
+        "uz": "№{n}: rad etish sababini yozing (ТЗ'dagi kamchilik):",
+        "ru": "№{n}: напишите причину отказа (что не так в ТЗ):",
+        "en": "#{n}: write why you decline (what is wrong in the brief):",
+    },
+    "pd.done": {"uz": "✅ №{n}: {status}", "ru": "✅ №{n}: {status}", "en": "✅ #{n}: {status}"},
+    "pd.report_saved": {
+        "uz": "✅ №{n}: bugungi hisobot — {pct}%",
+        "ru": "✅ №{n}: отчёт за сегодня — {pct}%",
+        "en": "✅ #{n}: today's report — {pct}%",
+    },
+    "pd.ask_mid_file": {
+        "uz": "№{n} 50% ga yetdi. Oraliq faylni (isxodnik) shu chatga yuboring — u platformaga va Google Drive'ga yuklanadi.",
+        "ru": "№{n} достигла 50%. Пришлите сюда промежуточный файл (исходник) — он попадёт на платформу и в Google Drive.",
+        "en": "#{n} reached 50%. Send the intermediate (source) file here — it goes to the platform and Google Drive.",
+    },
+    "pd.mid_saved": {
+        "uz": "📎 №{n}: oraliq fayl qabul qilindi — {name}",
+        "ru": "📎 №{n}: промежуточный файл принят — {name}",
+        "en": "📎 #{n}: intermediate file received — {name}",
+    },
+    "pd.mid_later": {
+        "uz": "Mayli. Faylni keyin ham yuborishingiz mumkin — 50% dan oshgan vazifa bo'yicha bot yana so'raydi.",
+        "ru": "Хорошо. Файл можно прислать позже — бот напомнит по задаче выше 50%.",
+        "en": "OK. You can send the file later — the bot will remind you.",
+    },
+    "pd.report_ask": {
+        "uz": "📊 №{n} «{title}» — bugun necha foiz bajarildi? (hozir {pct}%)",
+        "ru": "📊 №{n} «{title}» — сколько процентов сделано сегодня? (сейчас {pct}%)",
+        "en": "📊 #{n} «{title}» — how much is done today? (now {pct}%)",
+    },
+    "pd.alarm_50": {
+        "uz": "🚨 TREVOGA №{n} «{title}»: muddatning {elapsed}% o'tdi, bajarilgani {pct}% (50% ga yetmagan). Muddat: {plan}.",
+        "ru": "🚨 ТРЕВОГА №{n} «{title}»: прошло {elapsed}% срока, сделано {pct}% (меньше 50%). Срок: {plan}.",
+        "en": "🚨 ALARM #{n} «{title}»: {elapsed}% of the term passed, {pct}% done (below 50%). Due: {plan}.",
+    },
+    "pd.alarm_70": {
+        "uz": "🚨 TREVOGA №{n} «{title}»: muddatning {elapsed}% o'tdi, bajarilgani {pct}% (70% ga yetmagan). Muddat: {plan}.",
+        "ru": "🚨 ТРЕВОГА №{n} «{title}»: прошло {elapsed}% срока, сделано {pct}% (меньше 70%). Срок: {plan}.",
+        "en": "🚨 ALARM #{n} «{title}»: {elapsed}% of the term passed, {pct}% done (below 70%). Due: {plan}.",
+    },
+    "pd.not_linked": {
+        "uz": "Telegram hisobingiz platformaga ulanmagan.",
+        "ru": "Ваш Telegram не привязан к платформе.",
+        "en": "Your Telegram is not linked to the platform.",
+    },
+    "pd.expired": {
+        "uz": "Bu tugma eskirgan. Vazifani platformada oching.",
+        "ru": "Кнопка устарела. Откройте задачу на платформе.",
+        "en": "This button is outdated. Open the task on the platform.",
+    },
+    "pd.file_bad": {
+        "uz": "Bu fayl turi qabul qilinmaydi yoki fayl juda katta (20 MB gacha).",
+        "ru": "Такой тип файла не принимается или файл слишком большой (до 20 МБ).",
+        "en": "This file type is not accepted or the file is too large (up to 20 MB).",
+    },
+    "pd.kpi": {
+        "uz": "📈 <b>KPI — {month}</b>\nBallaringiz: <b>{points}</b> (qabul qilingan vazifalar: {tasks})\nReytingdagi o'rin: {rank} / {total}",
+        "ru": "📈 <b>KPI — {month}</b>\nВаши баллы: <b>{points}</b> (принято задач: {tasks})\nМесто в рейтинге: {rank} / {total}",
+        "en": "📈 <b>KPI — {month}</b>\nYour points: <b>{points}</b> (accepted tasks: {tasks})\nRank: {rank} / {total}",
+    },
+    "pd.kpi_rules": {
+        "uz": "⚖️ <b>KPI qoidalari</b> — ballar avtomatik yoziladi va iltimos bilan o'zgartirilmaydi:\n"
+              "• muddatdan oldin topshirish: {early}\n• o'z vaqtida: {ontime}\n• kechikish ({late_days} kundan ko'p): {late}\n"
+              "• qayta ishlashsiz qabul: {clean}; har bir qayta ishlash: −{rework}\n"
+              "• o'tkazib yuborilgan kunlik hisobot: −{missed} (vazifa uchun ko'pi bilan −{missed_max})",
+        "ru": "⚖️ <b>Правила KPI</b> — баллы начисляются автоматически и по просьбам не меняются:\n"
+              "• сдача раньше срока: {early}\n• вовремя: {ontime}\n• опоздание (больше {late_days} дн.): {late}\n"
+              "• принято без доработок: {clean}; каждая доработка: −{rework}\n"
+              "• пропуск ежедневного отчёта: −{missed} (не больше −{missed_max} за задачу)",
+        "en": "⚖️ <b>KPI rules</b> — points are applied automatically and are not changed on request:\n"
+              "• submitted early: {early}\n• on time: {ontime}\n• late (more than {late_days} d): {late}\n"
+              "• accepted without reworks: {clean}; each rework: −{rework}\n"
+              "• missed daily report: −{missed} (at most −{missed_max} per task)",
+    },
 }
 
 MENU_KEYS = ["menu.profile", "menu.upload", "menu.settings", "menu.help", "menu.report"]

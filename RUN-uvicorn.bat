@@ -7,9 +7,10 @@ REM Python chiqishi logga darhol va UTF-8 da yozilsin.
 set "PYTHONUNBUFFERED=1"
 set "PYTHONIOENCODING=utf-8"
 
-REM Fayl o'zini "bot" argumenti bilan fon jarayon sifatida chaqiradi:
-REM bu holda faqat Telegram bot tsikli ishlaydi (venv va muhit ota jarayondan meros).
+REM Fayl o'zini "bot" yoki "beat" argumenti bilan fon jarayon sifatida chaqiradi:
+REM bu holda faqat o'sha tsikl ishlaydi (venv va muhit ota jarayondan meros).
 if /i "%~1"=="bot" goto bot
+if /i "%~1"=="beat" goto beat
 
 if exist "env\Scripts\activate.bat" (
     set "VENV=env"
@@ -28,8 +29,14 @@ REM Telegram bot shu oynaning o'zida fon jarayon bo'lib ishlaydi (start /b):
 REM alohida oyna ochilmaydi, oyna yopilsa bot ham server bilan birga to'xtaydi.
 start "" /b cmd /c call "%~f0" bot
 
+REM Celery Beat: jadval bo'yicha eslatmalar (Pult 08:30/10:00/17:30, muddatlar va h.k.).
+REM Dev sozlamalarida CELERY_TASK_ALWAYS_EAGER=True: beat vazifani shu jarayonning
+REM o'zida bajaradi, shuning uchun alohida Celery worker kerak emas.
+start "" /b cmd /c call "%~f0" beat
+
 echo Server 3031-portda ishlayapti. Log: logs\server.log
 echo Telegram bot ishlayapti. Log: logs\telegram_bot.log
+echo Celery Beat ishlayapti. Log: logs\celery_beat.log
 echo To'xtatish: oynani yoping.
 
 :start
@@ -50,3 +57,17 @@ echo [%date% %time%] Telegram bot to'xtadi, chiqish kodi: %errorlevel%. 10 soniy
 echo [%date% %time%] Telegram bot to'xtadi. Sababi: logs\telegram_bot.log
 ping -n 11 127.0.0.1 >nul
 goto bot
+
+:beat
+REM Jadvaldagi vazifalarni bazada ro'yxatdan o'tkazish (idempotent, har startda xavfsiz).
+echo [%date% %time%] Jadval vazifalari ro'yxatdan o'tkazilmoqda>> logs\celery_beat.log
+python manage.py setup_periodic_tasks >> logs\celery_beat.log 2>&1
+python manage.py setup_ai_periodic_tasks >> logs\celery_beat.log 2>&1
+python manage.py setup_pult_periodic_tasks >> logs\celery_beat.log 2>&1
+:beat_loop
+echo [%date% %time%] Celery Beat ishga tushmoqda>> logs\celery_beat.log
+python -m celery -A aiplatforma beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler >> logs\celery_beat.log 2>&1
+echo [%date% %time%] Celery Beat to'xtadi, chiqish kodi: %errorlevel%. 10 soniyadan keyin qayta yoqiladi.>> logs\celery_beat.log
+echo [%date% %time%] Celery Beat to'xtadi. Sababi: logs\celery_beat.log
+ping -n 11 127.0.0.1 >nul
+goto beat_loop
